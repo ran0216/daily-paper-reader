@@ -1,0 +1,408 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-08T21:50:53.174240+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 4,
+    "deep_cap": 6,
+    "deep_selected": 4,
+    "quick_candidates": 6,
+    "quick_skim_target": 11,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2609.01212v1",
+      "source": "arxiv",
+      "title": "Recent Developments in Transformer Inference Deployment on FPGA Platforms: A Survey",
+      "abstract": "With the rapid and continuous growth in the incorporation of machine learning models based on the Transformer architecture, capable deployment is in high demand. In this context, capable deployment refers to operational performance aspects, e.g., throughput and latency, as well as efficiency aspects, e.g., energy consumption. When it comes to the task of inference using such models, purpose-built hardware accelerators provide a lucrative alternative to common deployment choices, such as Central Processing Units (CPUs) and Graphics Processing Units (GPUs). The Field Programmable Gate Array (FPGA) platforms category is an example of such alternative accelerators, promising implementation flexibility, energy efficiency, improved latency and suitability for on-site deployment. We investigate the most recent advances, trends, and design choices for Transformer inference on FPGA platforms. We perform a systematic literature review, extracting and delving into preferred techniques for implementation and optimisation. This study and the provided taxonomy of topics could act as a guide for researchers from the academia and industry alike.",
+      "authors": [
+        "Arjan Blankestijn",
+        "Uraz Odyurt",
+        "Amirreza Yousefzadeh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AR"
+      ],
+      "published": "2026-09-01T13:18:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.01212v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Survey on FPGA-based transformer inference accelerators and deployment optimization",
+      "llm_evidence_cn": "FPGA上Transformer推理加速器的部署与优化综述",
+      "llm_evidence": "FPGA上Transformer推理加速器的部署与优化综述",
+      "canonical_evidence": "FPGA上Transformer推理加速器的部署与优化综述",
+      "llm_tldr_en": "Survey of recent transformer inference deployment on FPGA platforms, covering purpose-built accelerator architectures, throughput, latency, and energy-efficiency trade-offs, presenting FPGA as a compelling alternative to CPU/GPU for inference acceleration.",
+      "llm_tldr_cn": "随着Transformer模型快速增长，推理部署对吞吐、时延和能效提出更高要求，FPGA这类定制硬件加速器逐渐成为CPU/GPU之外的重要选项。该综述系统调研了近年来FPGA上Transformer推理的最新进展，梳理加速器结构、实现灵活性和性能-能效设计方法。通过对比不同部署方案，文章总结了FPGA在低时延和能源效率方面的优势。它为后续在FPGA上设计和优化深度学习推理加速器提供了全面参考。",
+      "llm_tldr": "随着Transformer模型快速增长，推理部署对吞吐、时延和能效提出更高要求，FPGA这类定制硬件加速器逐渐成为CPU/GPU之外的重要选项。该综述系统调研了近年来FPGA上Transformer推理的最新进展，梳理加速器结构、实现灵活性和性能-能效设计方法。通过对比不同部署方案，文章总结了FPGA在低时延和能源效率方面的优势。它为后续在FPGA上设计和优化深度学习推理加速器提供了全面参考。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.01821v1",
+      "source": "arxiv",
+      "title": "Scaling Inference Prefill with High-Radix Photonic Interconnects",
+      "abstract": "With the rise of inference as today's dominant AI workload, the industry is transitioning to high-bandwidth photonic interconnects to meet the large scale-up requirements of increasingly complex Mixture-of-Experts (MoE) models. This paper quantifies the benefits of 3D-integrated photonic interconnects for inference prefill by analyzing tradeoffs between high-concurrency throughput for Large Language Model (LLM) chat and the large context windows typically required for reasoning and agentic AI. We simulate three MoE models: short context (1K--8K tokens), medium context (128K tokens), and long context (1M tokens). We evaluate this workload across existing copper-based GPU systems and one with high bandwidth integrated photonics. We show 2.1--3.2x latency improvements in the stressed high-batch regimes and 2.8--5.8x improvements over baselines in communication-limited configurations. 3D photonics enable the 1152-GPU footprint required to lower time-to-first-token, yielding 2.2--4.5x speedups across production-grade platforms when electrical systems cross their inherent scale-up-pod limits.",
+      "authors": [
+        "Arulselvan Madhavan",
+        "Peter Carson",
+        "Taylor Groves",
+        "Thomas Graham"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.AR"
+      ],
+      "published": "2026-09-01T19:54:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.01821v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluates high-radix photonic interconnect architectures for LLM inference prefill, relevant to communication architecture design",
+      "llm_evidence_cn": "评估高基数光子互连架构对大模型推理prefill的收益，属通信架构设计问题",
+      "llm_evidence": "评估高基数光子互连架构对大模型推理prefill的收益，属通信架构设计问题",
+      "canonical_evidence": "评估高基数光子互连架构对大模型推理prefill的收益，属通信架构设计问题",
+      "llm_tldr_en": "Scaling LLM inference with MoE models demands high-bandwidth interconnect; the paper simulates short, medium, and long context workloads over copper and 3D-integrated photonic GPU systems, reporting 2.1-3.2x latency improvement and quantifying trade-offs between high-concurrency throughput and context length.",
+      "llm_tldr_cn": "大规模MoE模型构成的AI推理工作负载对互连带宽和扩展性提出更高要求，传统铜基通信面临瓶颈。该文通过仿真方法比较现有铜基GPU系统与3D集成光子互连系统，评估短、中、长三类上下文下推理prefill的高并发吞吐和延迟表现。结果显示集成光子互连可带来2.1-3.2倍的时延改进，同时量化了高并发吞吐与超大上下文之间的权衡。研究为AI大算力集群乃至片上互连的通信架构设计提供了量化依据。",
+      "llm_tldr": "大规模MoE模型构成的AI推理工作负载对互连带宽和扩展性提出更高要求，传统铜基通信面临瓶颈。该文通过仿真方法比较现有铜基GPU系统与3D集成光子互连系统，评估短、中、长三类上下文下推理prefill的高并发吞吐和延迟表现。结果显示集成光子互连可带来2.1-3.2倍的时延改进，同时量化了高并发吞吐与超大上下文之间的权衡。研究为AI大算力集群乃至片上互连的通信架构设计提供了量化依据。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.03174v1",
+      "source": "arxiv",
+      "title": "A Reconfigurable Hybrid Convolutional-Fully Connected Neuromorphic Core for Biomedical Edge Inference",
+      "abstract": "This work presents a programmable FPGA-based architecture for spiking convolutional neural network (SCNN) inference, with real-time hypoxia classification serving as a biomedical edge application. The architecture implements a hybrid spiking convolutional-fully connected (CNN-FC) topology on a programmable, quantized, layer-based neuromorphic hardware core. Early layers perform spiking convolution using receptive-field connectivity with support for multi-channel kernels and stride, while deeper layers use fully connected spiking layers for classification. A PyTorch-based hardware-software co-design flow enables deployment of trained parameters with quantization and configurability support. The design is first validated on MNIST and Fashion-MNIST, achieving hardware accuracies of up to 98% and 86%, respectively, at 16-bit precision. It is then applied to hypoxia classification using red and infrared photoplethysmography (PPG) signals acquired from a shoulder-mounted sensor, with skin tone included as an additional input channel. The resulting classifier achieves an average hardware accuracy of 88.26% across five folds at 16-bit precision while consuming 1.455 W of dynamic power, demonstrating the feasibility of low-power neuromorphic biomedical classification at the edge.",
+      "authors": [
+        "Sarah Johari",
+        "Suman Kumar",
+        "Abhishek Mishra",
+        "Anush Lingamoorthy",
+        "Nagarajan Kandasamy"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY"
+      ],
+      "published": "2026-09-02T21:32:38+00:00",
+      "link": "https://arxiv.org/pdf/2609.03174v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "FPGA-based reconfigurable spiking CNN-FC neuromorphic core for biomedical edge inference",
+      "llm_evidence_cn": "用于生物医学边缘推理的可重构脉冲CNN-FC神经形态核硬件架构",
+      "llm_evidence": "用于生物医学边缘推理的可重构脉冲CNN-FC神经形态核硬件架构",
+      "canonical_evidence": "用于生物医学边缘推理的可重构脉冲CNN-FC神经形态核硬件架构",
+      "llm_tldr_en": "A programmable FPGA-based spiking neural network inference core implements a hybrid convolutional-fully connected topology with quantization, configurable layer settings, and a PyTorch hardware-software co-design flow, validated on real-time biomedical edge inference such as hypoxia classification.",
+      "llm_tldr_cn": "面向生物医学边缘推理的功耗与灵活性需求，论文设计了可重构的FPGA脉冲卷积神经网络推理核心。该核心采用卷积-全连接混合拓扑，支持多通道卷积核、步长与量化参数配置，并建立PyTorch软硬件协同设计流程完成网络部署。在实时缺氧分类等边界应用中，架构表现出可编程、低功耗的推理能力。该工作为神经形态脉冲网络在边缘AI芯片上的硬件实现提供了模板。",
+      "llm_tldr": "面向生物医学边缘推理的功耗与灵活性需求，论文设计了可重构的FPGA脉冲卷积神经网络推理核心。该核心采用卷积-全连接混合拓扑，支持多通道卷积核、步长与量化参数配置，并建立PyTorch软硬件协同设计流程完成网络部署。在实时缺氧分类等边界应用中，架构表现出可编程、低功耗的推理能力。该工作为神经形态脉冲网络在边缘AI芯片上的硬件实现提供了模板。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.04259v1",
+      "source": "arxiv",
+      "title": "Hardware-conscious Software Training for Deep Neural Network Inference Accelerator Chips to Recover Accuracy Degradation due to Hardware Variabilities",
+      "abstract": "Deep neural network (DNN) has been widely applied in various industries. Specialized chips are being discussed for the purpose of achieving lower power consumption with higher throughput. Hardware variations introduced during the process of chip manufacturing are the main reason for affecting the inference accuracies. In this paper, we propose hardware-conscious software training (HCST) method which enables high inference accuracies even under the influence of hardware variations.",
+      "authors": [
+        "Shuchao Gao",
+        "Takashi Ohsawa"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.ET"
+      ],
+      "published": "2026-09-02T06:13:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.04259v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Software training for DNN inference accelerator chips to overcome hardware variabilities",
+      "llm_evidence_cn": "面向DNN推理加速器芯片硬件差异的软件训练",
+      "llm_evidence": "面向DNN推理加速器芯片硬件差异的软件训练",
+      "canonical_evidence": "面向DNN推理加速器芯片硬件差异的软件训练",
+      "llm_tldr_en": "Addresses accuracy degradation of DNN inference accelerator chips due to manufacturing variations by a hardware-conscious software training method, restoring inference accuracy on real accelerator hardware.",
+      "llm_tldr_cn": "专用深度神经网络推理芯片在低功耗高吞吐的同时，也会因制造过程中的硬件变化而明显降低推理精度。本文提出硬件意识软件训练（HCST）方法，在软件训练阶段显式考虑这种硬件变异性，从而让模型部署在存在偏差的推理加速器芯片上仍能保持高精度。实验验证该方法能有效恢复由硬件变化导致的准确率退化，并明显优于忽略该因素的常规训练。这为AI推理加速器的良率提升与量产采用提供了低成本软件补偿途径。",
+      "llm_tldr": "专用深度神经网络推理芯片在低功耗高吞吐的同时，也会因制造过程中的硬件变化而明显降低推理精度。本文提出硬件意识软件训练（HCST）方法，在软件训练阶段显式考虑这种硬件变异性，从而让模型部署在存在偏差的推理加速器芯片上仍能保持高精度。实验验证该方法能有效恢复由硬件变化导致的准确率退化，并明显优于忽略该因素的常规训练。这为AI推理加速器的良率提升与量产采用提供了低成本软件补偿途径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.30444v1",
+      "source": "arxiv",
+      "title": "Non-uniform Memory Partitioning For Low-Power Spiking Neural Networks",
+      "abstract": "Spiking Neural Networks (SNNs) naturally excel in processing temporally rich and sparse data. However, because of their time-stepped processing, memory access, specifically to synaptic weights stored in SRAM (static random-access memory), tends to dominate total power consumption. To address this issue, without incurring a large area overhead, we propose to leverage the greatly varying average firing rate of neurons in the network to efficiently allocate synaptic weights to an on-chip memory consisting of multiple non-uniformly sized memory banks. By assigning weights of frequently firing neurons to shallow, low-access cost memory and less actively accessed weights to deeper, high-density memories, the average power consumption of the synaptic weight memory is decreased without incurring a large area overhead. To benchmark our proposed architecture and find optimal configurations of memory arrangements, we perform an automatic exploration based on application requirements and hardware constraints. For memory designs synthesized in 28-nm CMOS technology, we show that our architecture can achieve a synaptic weight memory access power reduction of up to 61\\% compared to a conventional design, with a 2.1$\\times$ lower area overhead, as compared to a traditional uniformly partitioned memory bank that achieves a comparable reduction.",
+      "authors": [
+        "Simon Richter",
+        "Darío Fernández Khatiboun",
+        "Maryam Sadeghi",
+        "Milad Zamani",
+        "Farshad Moradi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-31T08:34:53+00:00",
+      "link": "https://arxiv.org/pdf/2608.30444v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Uses neuron firing rate statistics to partition synaptic weights across non-uniform on-chip SRAM banks for low-power SNN inference hardware",
+      "llm_evidence_cn": "按神经元发放率对突触权重做非均匀片上SRAM bank划分，降低SNN加速器权值存储访问功耗",
+      "llm_evidence": "按神经元发放率对突触权重做非均匀片上SRAM bank划分，降低SNN加速器权值存储访问功耗",
+      "canonical_evidence": "按神经元发放率对突触权重做非均匀片上SRAM bank划分，降低SNN加速器权值存储访问功耗",
+      "llm_tldr_en": "SNN accelerators spend most power accessing SRAM weights. This work exploits firing-rate variation by allocating synaptic weights across non-uniform memory banks, putting frequent updates in low-cost shallow banks, reducing average memory power with small area overhead.",
+      "llm_tldr_cn": "脉冲神经网络按时间步执行时，突触权重在SRAM中的访问功耗占整体功耗的主导。该文利用不同神经元发放率的显著差异，提出把权值分配到若干非均匀大小的片上存储bank中：频繁发放的权值放在浅层低访问代价存储，低频访问权值则放深层高密度存储。相比均匀存储设计，该方法可在较小面积开销下降低平均访存功耗，为低功耗SNN与类脑AI加速器的片上存储系统提供了可行的优化方向。",
+      "llm_tldr": "脉冲神经网络按时间步执行时，突触权重在SRAM中的访问功耗占整体功耗的主导。该文利用不同神经元发放率的显著差异，提出把权值分配到若干非均匀大小的片上存储bank中：频繁发放的权值放在浅层低访问代价存储，低频访问权值则放深层高密度存储。相比均匀存储设计，该方法可在较小面积开销下降低平均访存功耗，为低功耗SNN与类脑AI加速器的片上存储系统提供了可行的优化方向。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.00407v1",
+      "source": "arxiv",
+      "title": "DynaNDE: Dynamic Near-Data Expert Scheduling for Batched MoE Inference",
+      "abstract": "Mixture-of-Experts (MoE) models enable efficient scaling of large language model (LLM) inference but suffer from substantial data-movement overhead when deployed on neural processing unit (NPU)-based systems. Near-Data Processing (NDP) provides a promising way to mitigate this bottleneck via cooperative NPU-NDP execution. However, existing NPU-NDP MoE systems do not fully account for hardware heterogeneity, dynamic expert-level concurrency, and temporal expert reuse during batched inference. This paper presents DynaNDE, a dynamic near-data expert scheduling framework that exploits NPU-NDP collaboration to accelerate batched MoE inference. DynaNDE introduces an analytical performance model that captures hardware heterogeneity, data-movement costs, and communication-computation overlap in cooperative NPU-NDP execution. Guided by this model, DynaNDE determines per-layer expert scheduling across the NPU and NDP while accounting for expert-level concurrency. DynaNDE also incorporates a reuse-aware runtime that avoids redundant parameter movement when experts reside in NPU memory. Experimental results show that DynaNDE achieves substantial throughput improvements over the state-of-the-art NPU-NDP MoE serving framework, with average speedups of 2.6$\\times$ and 2.2$\\times$ for the prefill and decoding stages, respectively.",
+      "authors": [
+        "Xiaoyang Lu",
+        "Belthangady Akash Vi Narayana Pai",
+        "Xian-He Sun"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-08-31T21:38:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.00407v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "NPU-NDP collaborative expert scheduling framework for batched MoE inference, relevant to NPU-based AI inference systems",
+      "llm_evidence_cn": "面向批量MoE推理的NPU-NDP协同专家调度框架，与NPU AI推理系统直接相关",
+      "llm_evidence": "面向批量MoE推理的NPU-NDP协同专家调度框架，与NPU AI推理系统直接相关",
+      "canonical_evidence": "面向批量MoE推理的NPU-NDP协同专家调度框架，与NPU AI推理系统直接相关",
+      "llm_tldr_en": "Batched MoE inference on NPU systems suffers from data-movement overheads. DynaNDE dynamically schedules near-data expert processing with NPU-NDP collaboration, using an analytical performance model for hardware heterogeneity and expert reuse, reducing data movement and improving batched inference throughput.",
+      "llm_tldr_cn": "混合专家模型（MoE）以稀疏激活扩展大模型，但在基于NPU的系统上存在显著的数据搬运开销，近数据计算（NDP）虽有潜力，现有NPU-NDP协作未充分建模硬件异构性与动态专家并发。DynaNDE给出运行时专家调度框架，通过解析性能模型捕捉异构性、搬运成本和专家复用，在批量推理中动态决定专家在NPU还是NDP执行。实验表明DynaNDE能有效减少数据移动、提升批量MoE推理的吞吐。该工作为NPU系统的MoE推理提供了精细的近数据处理调度机制。",
+      "llm_tldr": "混合专家模型（MoE）以稀疏激活扩展大模型，但在基于NPU的系统上存在显著的数据搬运开销，近数据计算（NDP）虽有潜力，现有NPU-NDP协作未充分建模硬件异构性与动态专家并发。DynaNDE给出运行时专家调度框架，通过解析性能模型捕捉异构性、搬运成本和专家复用，在批量推理中动态决定专家在NPU还是NDP执行。实验表明DynaNDE能有效减少数据移动、提升批量MoE推理的吞吐。该工作为NPU系统的MoE推理提供了精细的近数据处理调度机制。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "neural processing unit architecture for AI inference and training",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.00450v1",
+      "source": "arxiv",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "abstract": "Block Quantization (BQ) is a promising approach for efficient deployment of large language models (LLMs), enabling low-precision computation with controlled accuracy degradation. Compared to scalar weight-only quantization (WoQ), BQ quantizes both weight and activation, offering higher hardware efficiency and end-to-end inference on a unified datapath, but its design space, spanning bit-width, block size, scaling, and numeric formats, remains underexplored.   We provide hardware/benchmark results through design space exploration (DSE). We find that increasing block size improves hardware efficiency by amortizing dequantization and accumulation costs, but degrades accuracy. This trade-off limits conventional BQ methods.   Motivated by this insight, we propose Hierarchical Block Quantization (HBQ). Unlike prior methods [1], [2], which use small blocks and conventional Power-of-Two (PoT) or integer-based scaling, HBQ uses large blocks to maximize efficiency and introduces low-overhead significand (SIG) scaling for second-level quantization. By allocating quantization levels effectively and accounting for distinct activation and weight distributions, SIG scaling compensates for large-block errors more effectively than prior PoT and INT schemes. HBQ-A (accurate) achieves W4A16-level accuracy using only W4A5 while requiring less silicon area than NVFP4. HBQ-E (efficient) further reduces hardware cost by 17% while maintaining higher accuracy than all existing BQ methods.   We implemented a 28nm ASIC accelerator applying HBQ to weights, activations, and KV cache, and integrated a novel partial-sum BQ scheme to further reduce EMA energy.   Compared to state-of-the-art WoQ, HBQ delivers $2.3\\times$/$4.6\\times$ higher area/energy efficiency at the same accuracy level; $1.6$--$3.3\\times$ system energy reduction and $1.5$--$3.0\\times$ speedup over prior BQ methods while providing best accuracy.",
+      "authors": [
+        "Chun-Ting Chen",
+        "Dongmin Han",
+        "Hangyeol Mun",
+        "Jake Hyun",
+        "Arnab Raha",
+        "Amit Agarwal",
+        "Mark Anders",
+        "Mohamed Abdelfattah",
+        "Jae-sun Seo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-31T22:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.00450v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Hardware-efficiency-aware block quantization design for accurate LLM inference",
+      "llm_evidence_cn": "面向LLM准确推理的硬件高效块量化设计",
+      "llm_evidence": "面向LLM准确推理的硬件高效块量化设计",
+      "canonical_evidence": "面向LLM准确推理的硬件高效块量化设计",
+      "llm_tldr_en": "HBQ studies hierarchical block quantization and design space exploration; larger blocks improve hardware efficiency but hurt accuracy, guiding hardware-efficient LLM inference implementations.",
+      "llm_tldr_cn": "块量化同时量化权重和激活，可在统一数据通路上实现端到端LLM推理并提升硬件效率，但位宽、块大小、缩放和数值格式如何配置仍缺乏系统认识。本文提出层级缩放块量化HBQ，并通过设计空间探索提供硬件与benchmark结果，发现增大块大小可以摊薄反量化与累加成本从而提高硬件效率，但会降低模型精度。HBQ以硬件效率感知策略对这种权衡进行折中，在准确度与硬件开销之间取得更优平衡。其结果对低精度LLM推理加速器架构设计中的量化方案选择具有直接参考价值。",
+      "llm_tldr": "块量化同时量化权重和激活，可在统一数据通路上实现端到端LLM推理并提升硬件效率，但位宽、块大小、缩放和数值格式如何配置仍缺乏系统认识。本文提出层级缩放块量化HBQ，并通过设计空间探索提供硬件与benchmark结果，发现增大块大小可以摊薄反量化与累加成本从而提高硬件效率，但会降低模型精度。HBQ以硬件效率感知策略对这种权衡进行折中，在准确度与硬件开销之间取得更优平衡。其结果对低精度LLM推理加速器架构设计中的量化方案选择具有直接参考价值。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.04168v1",
+      "source": "arxiv",
+      "title": "Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs",
+      "abstract": "As edge-based deep learning applications become more complex, optimizing performance on heterogeneous System-on-Chips (SoCs) presents unique challenges. Traditional pipelining techniques distributing the computation across different on-chip processing units, while effective for throughput, do not address the latency demands posed by modern neural networks with complex interdependencies and extensive operator parallelism. There is a potential in leveraging operator parallelism to enable concurrent execution across multiple processing units, thereby reducing inference latency. However, prioritizing pipelining or parallel execution often necessitates a compromise, where optimizing one performance metric adversely impacts the other. This paper introduces Para-Pipe, a hierarchical mapping framework that integrates intra- and inter-stage operator parallelism within a pipelined architecture. Para-Pipe navigates the trade-off between throughput and latency by selectively fine-tuning parallelism levels within and across pipeline stages. This strategy can significantly reduce inter-processor communication overhead, significantly improving energy efficiency. Our evaluation demonstrates that Para-Pipe generates multiple Pareto-optimal configurations, achieving a balance between throughput and latency on an Amlogic SoC equipped with ARM big.LITTLE CPUs and GPU, as well as the Black Sesame Technology SoC featuring a deep learning accelerator and two DSPs. More importantly, throughput-optimized configurations under Para-Pipe on Amlogic SoC show an average energy efficiency improvement of 11.0% over purely pipelined strategies and 23.3% relative to non-pipelined parallel execution.",
+      "authors": [
+        "Yujie Zhang",
+        "Huiying Lan",
+        "Ehsan Aghapour",
+        "Zhiyuan Ning",
+        "Peng Zan",
+        "Weidong Shao",
+        "Anuj Pathania",
+        "Tulika Mitra"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.LG",
+        "cs.PF"
+      ],
+      "published": "2026-09-03T17:53:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.04168v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Exploiting hierarchical operator parallelism of ML computational graphs on heterogeneous edge SoCs to optimize inference, addressing edge AI chip system design",
+      "llm_evidence_cn": "在异构边缘SoC上利用ML计算图层次算子并行以优化推理，涉及边缘AI芯片系统设计",
+      "llm_evidence": "在异构边缘SoC上利用ML计算图层次算子并行以优化推理，涉及边缘AI芯片系统设计",
+      "canonical_evidence": "在异构边缘SoC上利用ML计算图层次算子并行以优化推理，涉及边缘AI芯片系统设计",
+      "llm_tldr_en": "Para-Pipe exploits hierarchical operator parallelism of ML computational graphs on heterogeneous edge SoCs, combining pipelining and concurrent execution to reduce inference latency while balancing throughput across on-chip processing units.",
+      "llm_tldr_cn": "边缘端深度网络越来越复杂，传统跨处理单元的流水线虽然吞吐较高，却无法满足存在复杂依赖与大规模算子并行的模型的延迟要求。Para-Pipe利用ML计算图的层次化算子并行，使多个片上处理单元并发执行算子，同时与流水线方式结合，在吞吐与延迟之间取得折中。实验结果显示它能够有效降低推理延迟并保持较高的吞吐。该方法为异构SoC上的边缘智能部署提供了新的调度优化思路。",
+      "llm_tldr": "边缘端深度网络越来越复杂，传统跨处理单元的流水线虽然吞吐较高，却无法满足存在复杂依赖与大规模算子并行的模型的延迟要求。Para-Pipe利用ML计算图的层次化算子并行，使多个片上处理单元并发执行算子，同时与流水线方式结合，在吞吐与延迟之间取得折中。实验结果显示它能够有效降低推理延迟并保持较高的吞吐。该方法为异构SoC上的边缘智能部署提供了新的调度优化思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence chip design for edge and cloud computing",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.03149v1",
+      "source": "arxiv",
+      "title": "RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge",
+      "abstract": "Analog in-memory computing (AIMC) speeds up neural-network inference by doing the arithmetic directly inside a memory array, instead of shuttling weights back and forth between memory and a processor. This saves energy, but the physical devices that store the weights are imperfect: programming errors, electrical noise, limited-resolution converters, and outright broken cells all distort the computation, and every physical chip is distorted in its own way. A designer with several such chips available faces an uncomfortable choice: run all of them and combine the answers (safe, but wasteful of energy), or trust a single chip blindly (cheap, but with no guarantee on how often it is wrong). This paper introduces RACE-AIMC (Risk-Aware Certified Ensemble for AIMC), a framework that resolves this choice with statistics rather than guesswork. Offline, RACE-AIMC studies a pool of physical accelerators, picks the single best one for a given energy budget, and computes a mathematically exact upper bound on how often that accelerator will be wrong when it chooses to answer. Online, only that one accelerator is switched on; a lightweight check decides whether to accept its answer or defer to a fallback. In our simulations using a noisy weight mapping and multiple independent test runs, every certified bound stayed under a 10% error target (mean bound 7.83% +- 0.89%, with 70.88% +- 0.98% of inputs answered directly). The resulting system matches the accuracy of a clean digital baseline while cutting modeled energy use by 69.02% relative to always running every accelerator in the pool.",
+      "authors": [
+        "Osama Yousuf",
+        "Martin Lueker-Boden"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET",
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-09-02T20:30:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.03149v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Risk-aware selective inference for heterogeneous analog in-memory accelerators at the edge, addressing non-ideal AI chip behavior",
+      "llm_evidence_cn": "面向边缘异构模拟存内加速器的风险感知选择性推理，应对AI芯片非理想性",
+      "llm_evidence": "面向边缘异构模拟存内加速器的风险感知选择性推理，应对AI芯片非理想性",
+      "canonical_evidence": "面向边缘异构模拟存内加速器的风险感知选择性推理，应对AI芯片非理想性",
+      "llm_tldr_en": "RACE-AIMC selectively infers across multiple heterogeneous analog in-memory computing accelerators with non-ideal device behavior, balancing energy, risk, and error guarantees for dependable edge AI deployment.",
+      "llm_tldr_cn": "模拟存内计算(AIMC)把算术放入存储阵列以加速神经网络推理，但器件编程误差、噪声、有限分辨率和坏单元会逐芯片引入畸变，使设计者面临能耗与正确率的两难。RACE-AIMC提出风险感知的选择性推理策略，面向拥有多颗异构且非理想AIMC芯片的边缘系统，动态决定哪些芯片参与推理及如何组合输出。该方法在盲信单芯片与全量运行所有芯片之间寻找折中，兼顾错误率保障与能耗节省。实验结果表明该框架能有效提升边缘异构模拟加速器推理的能效与可靠性，为AI芯片部署提供系统级方案。",
+      "llm_tldr": "模拟存内计算(AIMC)把算术放入存储阵列以加速神经网络推理，但器件编程误差、噪声、有限分辨率和坏单元会逐芯片引入畸变，使设计者面临能耗与正确率的两难。RACE-AIMC提出风险感知的选择性推理策略，面向拥有多颗异构且非理想AIMC芯片的边缘系统，动态决定哪些芯片参与推理及如何组合输出。该方法在盲信单芯片与全量运行所有芯片之间寻找折中，兼顾错误率保障与能耗节省。实验结果表明该框架能有效提升边缘异构模拟加速器推理的能效与可靠性，为AI芯片部署提供系统级方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence chip design for edge and cloud computing",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.04663v1",
+      "source": "arxiv",
+      "title": "BF16 Component-Product Emulation of FP32 and FP64 GEMM on Intel AMX",
+      "abstract": "Modern CPUs increasingly integrate high-throughput matrix engines optimized for low-precision AI workloads, while many scientific computing applications still rely on FP32 and FP64 GEMM to meet their numerical accuracy requirements. This mismatch motivates an algorithmic bridge that uses low-precision matrix products to emulate higher-precision GEMM. This paper presents a CPU-oriented method based on Intel Advanced Matrix Extensions (AMX) and BF16 matrix products. For FP32, each operand is decomposed into three BF16 components and six selected component products are evaluated, targeting FP32-level accuracy relative to oneMKL SGEMM without claiming elementwise or bitwise identity. For FP64 inputs within the supported BF16 exponent range, the method uses a simplified fixed six-slice Ozaki decomposition. Each retained BF16 product is first produced in FP32, then widened and accumulated in FP64. Four product-count settings retain 6, 10, 15, or 21 component products, exposing the accuracy--performance tradeoff relative to oneMKL DGEMM. The implementation combines precomputed packed component buffers, VNNI-packed $B$ panels, and an FP32 tile-resident operand-reuse schedule. On the tested square matrices, AMX-FP32 exceeds oneMKL SGEMM throughput. For AMX-FP64, low-product-count variants can exceed DGEMM at sufficiently large orders, while retaining more products improves accuracy at additional cost.",
+      "authors": [
+        "Bing Cui",
+        "Yu Liu"
+      ],
+      "primary_category": "cs.MS",
+      "categories": [
+        "cs.MS",
+        "cs.DC"
+      ],
+      "published": "2026-09-04T02:49:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.04663v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Exploits Intel CPU AMX low-precision matrix engines to emulate FP32/FP64 GEMM",
+      "llm_evidence_cn": "利用Intel CPU AMX低精度矩阵引擎模拟FP32/FP64 GEMM",
+      "llm_evidence": "利用Intel CPU AMX低精度矩阵引擎模拟FP32/FP64 GEMM",
+      "canonical_evidence": "利用Intel CPU AMX低精度矩阵引擎模拟FP32/FP64 GEMM",
+      "llm_tldr_en": "CPU matrix units are built for low-precision AI workloads, while scientific computing often needs FP32/FP64 GEMM; using Intel AMX BF16 products, operands are decomposed into BF16 components and selected component products are combined to approximate higher-precision GEMM, expanding AI hardware to scientific computing.",
+      "llm_tldr_cn": "现代CPU集成的高吞吐矩阵引擎偏向低精度AI工作负载，但科学计算通常依赖FP32/FP64精度，两者存在错配。论文基于Intel AMX和BF16矩阵乘法，将FP32操作数分解为三个BF16分量并整合六个分量乘积，实现对接近oneMKL SGEMM精度的矩阵乘模拟；对FP64输入也在指数范围内给出扩展方法。该方法有效架起了低精度AI矩阵硬件与高精度科学计算之间的桥梁。它拓展了CPU AMX单元的应用边界，可用于混合精度数值场景。",
+      "llm_tldr": "现代CPU集成的高吞吐矩阵引擎偏向低精度AI工作负载，但科学计算通常依赖FP32/FP64精度，两者存在错配。论文基于Intel AMX和BF16矩阵乘法，将FP32操作数分解为三个BF16分量并整合六个分量乘积，实现对接近oneMKL SGEMM精度的矩阵乘模拟；对FP64输入也在指数范围内给出扩展方法。该方法有效架起了低精度AI矩阵硬件与高精度科学计算之间的桥梁。它拓展了CPU AMX单元的应用边界，可用于混合精度数值场景。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "architecture design of CPU GPU and NPU for artificial intelligence acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

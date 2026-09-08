@@ -1,0 +1,169 @@
+{
+  "date": "20260908",
+  "date_label": "",
+  "generated_at": "2026-09-08 21:55:32 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.01212v1",
+      "route": "202609/08/2609.01212v1-recent-developments-in-transformer-inference-deployment-on-fpga-platforms-a-survey",
+      "title": "Recent Developments in Transformer Inference Deployment on FPGA Platforms: A Survey",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "FPGA上Transformer推理加速器的部署与优化综述",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.01821v1",
+      "route": "202609/08/2609.01821v1-scaling-inference-prefill-with-high-radix-photonic-interconnects",
+      "title": "Scaling Inference Prefill with High-Radix Photonic Interconnects",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "评估高基数光子互连架构对大模型推理prefill的收益，属通信架构设计问题",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.03174v1",
+      "route": "202609/08/2609.03174v1-a-reconfigurable-hybrid-convolutional-fully-connected-neuromorphic-core-for-biomedical-edge-inference",
+      "title": "A Reconfigurable Hybrid Convolutional-Fully Connected Neuromorphic Core for Biomedical Edge Inference",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用于生物医学边缘推理的可重构脉冲CNN-FC神经形态核硬件架构",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.04259v1",
+      "route": "202609/08/2609.04259v1-hardware-conscious-software-training-for-deep-neural-network-inference-accelerator-chips-to-recover-accuracy-degradation-due-to-hardware-variabilities",
+      "title": "Hardware-conscious Software Training for Deep Neural Network Inference Accelerator Chips to Recover Accuracy Degradation due to Hardware Variabilities",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向DNN推理加速器芯片硬件差异的软件训练",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2608.30444v1",
+      "route": "202609/08/2608.30444v1-non-uniform-memory-partitioning-for-low-power-spiking-neural-networks",
+      "title": "Non-uniform Memory Partitioning For Low-Power Spiking Neural Networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "按神经元发放率对突触权重做非均匀片上SRAM bank划分，降低SNN加速器权值存储访问功耗",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.00450v1",
+      "route": "202609/08/2609.00450v1-hbq-hierarchical-scaling-block-quantization-with-hardware-efficiency-aware-design-for-accurate-llm-inference",
+      "title": "HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向LLM准确推理的硬件高效块量化设计",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.03149v1",
+      "route": "202609/08/2609.03149v1-race-aimc-selective-inference-for-heterogeneous-analog-in-memory-accelerators-at-the-edge",
+      "title": "RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向边缘异构模拟存内加速器的风险感知选择性推理，应对AI芯片非理想性",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.04663v1",
+      "route": "202609/08/2609.04663v1-bf16-component-product-emulation-of-fp32-and-fp64-gemm-on-intel-amx",
+      "title": "BF16 Component-Product Emulation of FP32 and FP64 GEMM on Intel AMX",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "利用Intel CPU AMX低精度矩阵引擎模拟FP32/FP64 GEMM",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.00407v1",
+      "route": "202609/08/2609.00407v1-dynande-dynamic-near-data-expert-scheduling-for-batched-moe-inference",
+      "title": "DynaNDE: Dynamic Near-Data Expert Scheduling for Batched MoE Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向批量MoE推理的NPU-NDP协同专家调度框架，与NPU AI推理系统直接相关",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    },
+    {
+      "paper_id": "2609.04168v1",
+      "route": "202609/08/2609.04168v1-para-pipe-exploiting-hierarchical-operator-parallelism-of-ml-computational-graphs-on-socs",
+      "title": "Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "在异构边缘SoC上利用ML计算图层次算子并行以优化推理，涉及边缘AI芯片系统设计",
+      "first_seen_at": "2026-09-08 21:55:32 UTC",
+      "updated_at": "2026-09-08 21:55:32 UTC"
+    }
+  ]
+}

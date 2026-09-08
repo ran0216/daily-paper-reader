@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-10 ~ 2026-09-08</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-08</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 32 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>32</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-08 08:56:24 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-08 21:55:32 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>本周期共速读32篇论文，聚焦AI加速与芯片设计前沿。</p>
-<p>最值得关注的是满分论文《Maia 200》及9分的《FSGen》《PPAPlace》，覆盖数据流AI系统与芯片布局优化。</p>
-<p>建议优先浏览这三篇高分速读笔记，快速把握AI硬件与EDA交叉方向的关键进展。</p>
+<p>今日聚焦FPGA上的Transformer推理部署与高基数光子互连加速预填充，共精读2篇、速读6篇。</p>
+<p>最值得关注：FPGA部署综述梳理硬件优化路径；光子互连设计能有效缓解大规模推理的预填充瓶颈。</p>
+<p>后续可拓展了解低功耗脉冲神经网络、LLM分块量化及边缘异构存算加速，以覆盖更广硬件方案。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Recent Developments in Transformer Inference Deployment on FPGA Platforms: A Survey">Recent Developments in Transformer Inference Deployment on FPGA Platforms: A Survey</span></li><li><span class="dpr-home-dashboard-paper-title" title="Scaling Inference Prefill with High-Radix Photonic Interconnects">Scaling Inference Prefill with High-Radix Photonic Interconnects</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Reconfigurable Hybrid Convolutional-Fully Connected Neuromorphic Core for Biomedical Edge Inference">A Reconfigurable Hybrid Convolutional-Fully Connected Neuromorphic Core for Biomedical Edge Inference</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">32 篇</strong>
+    <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Maia 200: A Software Defined Dataflow System for Large-scale AI Acceleration">Maia 200: A Software Defined Dataflow System for Large-scale AI Acceleration</span></li><li><span class="dpr-home-dashboard-paper-title" title="FSGen: Agile Fused and Sparse Accelerator Generator with Accurate Power Model for LLM Applications">FSGen: Agile Fused and Sparse Accelerator Generator with Accurate Power Model for LLM Applications</span></li><li><span class="dpr-home-dashboard-paper-title" title="PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization">PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Non-uniform Memory Partitioning For Low-Power Spiking Neural Networks">Non-uniform Memory Partitioning For Low-Power Spiking Neural Networks</span></li><li><span class="dpr-home-dashboard-paper-title" title="HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference">HBQ: Hierarchical Scaling Block Quantization with Hardware-Efficiency-Aware Design for Accurate LLM Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge">RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>32</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>6</strong></span></div>
 </section>
 </div>
 

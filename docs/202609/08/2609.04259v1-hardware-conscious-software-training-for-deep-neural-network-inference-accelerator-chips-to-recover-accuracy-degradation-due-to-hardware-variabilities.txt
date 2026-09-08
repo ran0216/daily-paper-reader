@@ -1,0 +1,74 @@
+Title: Microsoft Word - SSDM2023_Shuchao_Ohsawa_05162023_all_black
+
+URL Source: https://arxiv.org/pdf/2609.04259v1
+
+Published Time: Mon, 07 Sep 2026 00:01:53 GMT
+
+Number of Pages: 2
+
+Markdown Content:
+# Hardware-conscious Software Training for Deep Neural Network Inference Accelerator Chips to Recover Accuracy Degradation due to Hardware Variabilities 
+
+Shuchao Gao and Takashi Ohsawa 1 Graduate School of Information, Production and Systems, Waseda University Hibikino 2-7, Wakamatsu-ku, Kitakyushu, Fukuoka 808-0135, Japan Phone: +81-93-692-5349, E-mail: takashi.ohsawa@aoni.waseda.jp 
+
+Abstract Deep neural network (DNN) has been widely applied in various industries. Specialized chips are being discussed for the purpose of achieving lower power consumption with higher throughput. Hardware variations introduced during the process of chip manufacturing are the main reason for affecting the inference accuracies. In this paper, we propose hardware-conscious software training (HCST) method which enables high inference accuracies even under the influence of hardware variations. 
+
+1. Introduction 
+
+The accuracies of deep neural network (DNN) inference accelerators are lower than the corresponding accuracies in software if the accelerators are trained offline because of the inevitable hardware variabilities. To overcome this, several methods have been proposed such as the on-chip training [1] and the in-situ training [2]. However, they suffer from endurance limitation of the nonvolatile memory devices which are used for storing the weights, because they are required to perform a huge number of device switchings after training iterations (epochs) in these trainings [3]. We propose a software training in which the hardware variabilities such as offset voltages in operational amplifiers (op-amps) are taken into consideration so that the accuracy degradation due to the hardware parameters’ fluctuations are compensated. The method makes the memory devices free from the endurance constraint, the nonlinearity and the asymmetry issues in updating the resistances. 
+
+2. Hardware-conscious software training (HCST) 
+
+The proposed method named hardware-conscious software training (HCST) is performed by a training program written by using parameters of electronic circuits such as voltage, current and conductance. It, furthermore, embodies finite open loop gains (G’s) and offset voltages (Vos’s) of op-amps used in DNN inference accelerators which are considered as hardware imperfections. Vos’s in the program are set to actually fluctuated values which are measured from each hardware chip, making the training individual for each chip. Fig. 1 shows an l-th synapse crossbar array in which each weight is represented by a pair of ReRAM devices ( 𝑔 ௝௜ ሺ௟ሻା , 𝑔 ௝௜ ሺ௟ሻି ሻ
+
+which are connected to a pair of bit-lines ( 𝐵𝐿 ௝ሺ௟ሻା , 𝐵𝐿 ௝ሺ௟ሻି ሻ and the currents flowing through the bit-lines are subtracted after converted to voltages for realizing a positive or a negative weight. The circuit diagrams of the IV-converter (IVC), subtractor, ReLU, and voltage follower are shown in Fig. 2 (a)-(d) and the characteristic curve of ReLU is shown in Fig. 2 (e). The op-amps have offset voltages Vos’s and finite open loop gains G’s except for ReLU. The op-amps used in the circuits have the same structure (Fig. 3) of Type 1 and Type 2 with different sizes in 32nm technology. Type 1 is used in IVC, subtractor, and ReLU. Type 2 is used in voltage follower. Vth fluctuation’s standard deviation in each MOSFET is estimated by using the equation proposed in [4]. Fig. 4 (a) and (b) respectively show Monte Carlo simulation results of Vos’s for Type 1 and Type 2 based on the Vth fluctuations in Tabel I and II, respectively. In this study, we assigned Vos’s of each op-amp based on this standard deviation chip by chip, though they actually are to be measured from each fabricated chip. The process of HCST is illustrated in Fig. 5. The training completes in the training program (hardware emulator (HWE)) with the measured (but assigned in this study) Vos’s to set 𝑔௝௜ to their final values 𝑔 ௝௜ ሺ௙ሻ . We conduct HCST as an individual training for each chip with different Vos’s (Fig. 6). 
+
+3. Training program including hardware variations 
+
+Fig. 7 and Fig. 8 illustrate the formulae for forward and backward propagations in the HWE where the unit errors are derived in the backward path according to the chain rule in the neuron circuits. In the both propagations, each op-amp’s G and Vos are taken into account. The updated conductance is deployed to the both 𝑔 ௝௜ ሺ௟ሻേ in the synapse array according to their sign as shown in Fig. 9. Depending on the restriction of ReRAM, 
+
+𝑔 ௝௜ ሺ௟ሻേ =𝑔௠௔௫ when 𝑔 ௝௜ ሺ௟ሻേ ൐ 𝑔௠௔௫ and 𝑔 ௝௜ ሺ௟ሻേ =0 when 𝑔 ௝௜ ሺ௟ሻേ ൏𝑔௠௜௡ as shown in Fig. 9. The ReRAM without electroforming can be used as the 0 conductance device. 
+
+4. Application to IRIS dataset 
+
+The outputs simulated by HSPICE for three kinds of flowers in the IRIS dataset [5] are shown in Fig. 10 without Vos’s. The network has 4 ൈ 5 ൈ 3 struture. The training result of the HWE without Vos’s is 97.33% (baseline) which is the same as the HSPICE results. Fig. 11 (a) and (b) show 10 chips’ accuracies of the baseline (black) without Vos’s, offline training (blue) and HCST (red) both with Vos’s for HWE and HSPICE, respectively. 
+
+5. Conclusion 
+
+It was verified by HSPICE that the HCST is effective for recovering the accuracy degradation due to the hardware variabilities in DNN inference accelerators. 
+
+Acknowledgements 
+
+This work was supported by VLSI Design and Education Center (VDEC), the University of Tokyo with the collaboration with Synopsys Corporation. 
+
+References 
+
+> [1] C. Li et al., Nature Communications (2018) 9 2385. [2] J. -M. Choi et al., IEEE Trans. Circuits and Systems-I: Reg. Papers, vol. 68, no. 7, pp. 2863-2875, July 2021. [3] Y. Cai et al., Design Automation Conf. (DAC), June 2018.
+
+[4] K. Takeuchi et al., IEDM, pp. 467-470, 2007. [5] R. A. Fisher, Annals of Eugenics, 7(2), pp. 179-188, 1936. 
+
+Fig. 10 Simulation waveforms of the three outputs (green, red and blue for Setosa, Versicolor and Virginica, respectively). The orange line is clock ∅. Fig. 11 (a) Results in H/W emulator and (b) results in HSPICE simulation  
+
+> (a) (b)
+
+Fig. 6 The method of HCST as an individual training for each chip 
+
+Fig. 4 Monte Carlo simulation results for the off-set voltages of the op-amp (a) Type 1 and (b) Type 2. 
+
+Table I MOSFETs in op-amp Type 1 with G=1515. 
+
+Table II MOSFETs in op-amp Type 2 with G=500. 
+
+Fig. 8 Formula for backward propagation 
+
+Fig. 9 Update algorithm 
+
+Fig. 5 Concept of hardware (H/W)-conscious software training (HCST) 
+
+Fig. 3 Circuit schematic of the op-amp 
+
+Fig. 1 l-th synapse array and neuron circuits in a DNN inference accelerator. 
+
+Fig. 7 Formula for forward propagation 
+
+Fig. 2 Circuits of (a) IV-converter, (b) voltage subtractor, (c) ReLU and (d) voltage follower with offset voltages. (e) The characteristic curve of the ReLU

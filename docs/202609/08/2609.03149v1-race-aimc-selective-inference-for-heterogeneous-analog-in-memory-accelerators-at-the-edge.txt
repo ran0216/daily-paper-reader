@@ -1,0 +1,301 @@
+Title: RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge
+
+URL Source: https://arxiv.org/pdf/2609.03149v1
+
+Published Time: Fri, 04 Sep 2026 00:13:30 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# RACE-AIMC: Selective Inference for Heterogeneous Analog In-Memory Accelerators at the Edge 
+
+Osama Yousuf 
+
+WD Research San Jose, CA, USA osama.yousuf@wdc.com 
+
+Martin Lueker-Boden 
+
+WD Research San Jose, CA, USA martin.lueker-boden@wdc.com 
+
+Abstract —Analog in-memory computing (AIMC) speeds up neural-network inference by doing the arithmetic directly inside a memory array, instead of shuttling weights back and forth between memory and a processor. This saves energy, but the physical devices that store the weights are imperfect: programming errors, electrical noise, limited-resolution converters, and outright broken cells all distort the computation, and every physical chip is distorted in its own way. A designer with several such chips available faces an uncomfortable choice: run all of them and combine the answers (safe, but wasteful of energy), or trust a single chip blindly (cheap, but with no guarantee on how often it is wrong). This paper introduces RACE-AIMC ( Risk-Aware Certified Ensemble for AIMC ), a framework that resolves this choice with statistics rather than guesswork. Offline, RACE-AIMC studies a pool of physical accelerators, picks the single best one for a given energy budget, and computes a mathematically exact upper bound on how often that accelerator will be wrong when it chooses to answer . Online, only that one accelerator is switched on; a lightweight check decides whether to accept its answer or defer to a fallback. In our simulations using a noisy weight mapping and multiple independent test runs, every certified bound stayed under a 10% error target (mean bound 7.83% ± 0.89%, with 70.88% ± 0.98% of inputs answered directly). The resulting system matches the accuracy of a clean digital baseline while cutting modeled energy use by 69.02% relative to always running every accelerator in the pool. 
+
+Index Terms —analog in-memory computing, heterogeneous accelerators, selective classification, risk certification, edge AI, crossbar arrays 
+
+I. I NTRODUCTION 
+
+Ordinary computers keep memory (where numbers are stored) and the processor (where arithmetic happens) in physi-cally separate places. Every multiplication requires shuttling a number from memory to the processor and back, which costs both time and energy. Analog in-memory computing (AIMC) avoids most of that shuttling: neural-network weights are stored as physical conductances inside a grid of memory devices (a “crossbar array”), and a matrix-vector multiplication – the core operation in a neural network layer – is computed directly by applying voltages to the array and reading off currents, using basic circuit physics (Ohm’s and Kirchhoff’s laws) instead of digital multiply-and-add circuits [1, 2]. The catch is that physical devices are not perfect. Writ-ing a target conductance value onto a device is imprecise (programming error ); reading the device back introduces 
+
+noise ; converting between the analog and digital worlds adds 
+
+quantization error ; and a small fraction of devices may be stuck at the wrong value entirely ( stuck faults ) [3, 4, 5]. All of this means a neural network mapped onto an analog chip does not compute quite the same thing as the original digital network – and because every physical chip has its own random manufacturing imperfections, different chips make different mistakes .If you have several such imperfect chips available (a 
+
+heterogeneous pool ), an obvious safety net is to run every input through all of them and combine the results, e.g. by averaging. This is the standard engineering answer to unreliable hardware, but on an energy-constrained edge device it is wasteful: you pay the full energy cost on every single input , even the easy ones a single chip would have gotten right anyway. The opposite extreme – picking one chip and trusting it blindly – is cheap, but gives no way to guarantee an application-level error budget (e.g., “this system must be wrong on at most 10% of the answers it commits to”). A middle path, borrowed from the idea of selective classifica-tion [6], is to let the system decline to answer low-confidence inputs rather than being forced to commit every time. Early-exit and cascade systems apply a similar idea to save compute [7, 8], but they generally assume the underlying predictor is stable and digital. AIMC breaks that assumption: the accelerator itself is a source of unreliable, chip-specific behavior, so the system must decide both which physical chip to use and when that chip’s answer is trustworthy enough to accept. RACE-AIMC addresses exactly this two-part problem. It does its thinking offline – characterizing each accelerator, pick-ing one winner, and computing an exact statistical guarantee – so that the online path (the part that runs at inference time, on the edge device, under a tight energy budget) is as simple as possible: one analog inference, one comparison, one decision (Fig. 1). 
+
+Contributions. This paper makes four contributions: (i) a rule for selecting which accelerator in a heterogeneous pool should be the “front line” one, based on how much useful work it does per unit of energy; (ii) a cheap, per-accelerator stopping rule for deciding when to trust an answer; (iii) an 
+
+exact statistical certificate on the error rate among accepted answers, computed on data that was never used for tuning; and (iv) transparent simulation experiments confirming the arXiv:2609.03149v1 [cs.ET] 2 Sep 2026 Hardware split (H)  Policy split (P)  Certificate split (C)           
+
+> (a) OFFLINE: calibrate, select, and certify
+> A0 A1 AM …
+> Accelerator calibration
+> Heterogenous AIMC accelerator pool with varying noise, faults, energy, etc.
+> Estimate per-accelerator bias with H (Sec. III-C)
+> Threshold fitting
+> 𝝉𝝉
+> Fit thresholds 𝜏𝜏 ,select accelerator policy i* with P (Sec. III-D)
+> Certification
+> Evaluate frozen policy for final guarantee with C (Sec. III-D)
+> ✓✓✓
+> ××
+> Inputs ( x)
+> Analog inference
+> Perform analog inference on selected accelerator i*, obtain raw logits
+> 𝑦𝑦(𝑥𝑥)
+> Yes: accept
+> Return AIMC label
+> No: defer
+> Fallback policy
+> Correction & Scoring
+> Correct final logits into 𝑧𝑧 𝑖𝑖 ∗(𝑥𝑥) & score
+> into 𝑠𝑠𝑖𝑖 ∗(𝑥𝑥)
+> raw logits
+> bias bᵢ
+> corrected zᵢ
+
+− =    
+
+> 𝑠𝑠 𝑥𝑥 is top-2 margin
+> (b) ONLINE: activate single accelerator; accept confident queries and defer rest
+> Accept?
+> 𝑠𝑠𝑖𝑖 ∗ 𝑥𝑥 ≥ 𝜏𝜏𝑖𝑖 ∗
+> ✓Risk bound
+> certified error limit
+> Energy efficiency
+> fallback only when needed
+> ✓Simple online logic
+> one inference + one comparison
+> (c) Benefits of RACE-AIMC
+
+Fig. 1. RACE-AIMC overview. (a) Offline, disjoint hardware, policy, and certificate splits characterize a heterogeneous pool of AIMC accelerators, select and freeze one accelerator and its confidence threshold, and independently certify accepted error. (b) Online, a query activates only the selected accelerator; a small controller accepts its high-confidence label or defers to a fallback or abstention path. (c) Benefits of our approach. 
+
+approach works. II. B ACKGROUND AND RELATED WORK 
+
+A. Computations in crossbar arrays 
+
+A crossbar array is a grid of memory devices, one at every intersection of a set of row and column wires. Each device’s electrical conductance encodes one neural-network weight. Applying an input voltage on each row and reading the resulting current on each column computes, in one physical step, a full matrix-vector product – the workhorse operation of a neural network layer. The quality of that computed product depends on many pieces of the pipeline working together: how weights are encoded into conductances, how precisely they are written (programmed ), how noisy the read-out is, the resolution of the analog-to-digital and digital-to-analog converters, and any circuit-level non-idealities in the periphery of the array [1, 2, 3, 4, 9]. A large body of prior work makes an analog-mapped network 
+
+more accurate for a fixed, already-built chip – for instance, 
+
+hardware-aware training that trains the network to already tolerate a chip’s known noise, or fault-tolerant ensembles that spread a computation redundantly across devices [3, 5]. RACE-AIMC asks a different, complementary question: given a chip that has already been characterized, should it be trusted with this particular input right now , or should the query be routed elsewhere? This work uses a simulation tool, XBTorch [10], because it lets ordinary PyTorch code run unchanged outside a clearly-marked “analog boundary,” while still modeling persistent, stateful conductance arrays (i.e., the same simulated chip keeps its own noise pattern across many calls, rather than being re-randomized every time – which matters because real chips do not re-randomize themselves between inferences). A transparent multilevel weight encoding is used, rather than the cruder binary/sign-only encoding sometimes used in the literature, specifically so that the experiments measure the effect of the proposed policy and not an artifact of using limited bits per weight. 
+
+B. Selective classification and conformal prediction 
+
+Selective classification [6] formalizes the idea of a classifier that may abstain: instead of forcing a prediction on every input, it accepts inputs above some confidence level and rejects the rest, trading coverage (how often it answers) against risk (how often it is wrong when it does answer). Early-exit and cascade systems [7, 8], and heterogeneous-hardware schedulers [11, 12], apply a related idea to save computation, but typically assume the underlying model’s confidence signal is stable and digital – an assumption that does not hold for a noisy analog chip. Conformal prediction [13, 14] is a more general family of tools for wrapping any predictor with a distribution-free statistical guarantee. RACE-AIMC’s statistical target is narrower and simpler than general conformal risk control: once a single accelerator and threshold have been frozen, the only remaining question is a plain Bernoulli error rate – of the accepted predictions from 
+
+this one fixed subset , what fraction are wrong? Because that target is so specific, an exact one-sided binomial confidence interval (rather than an approximate or asymptotic one) can certify it directly, whereas general-purpose conformal methods are built to control a broader, joint notion of miscoverage. III. RACE-AIMC 
+
+A. System model and data separation 
+
+Let A = {1, . . . , M } denote a pool of M AIMC accelerators (potentially heterogeneous), all storing the same trained classi-fier. Accelerator i has an activation energy Ei, a communication cost Ci, and, for an input x, produces logits zi(x) ∈ RK
+
+(the raw, pre-softmax class scores, one per class). A shared, purely digital “front end” computes the input features that all accelerators share. The predicted label is the class with the highest logit, ˆyi(x) = arg max k zi,k (x), and si(x) denotes a confidence score (defined later) for that prediction. 
+
+a) The accept/reject rule: Every accelerator has its own confidence threshold τi. An answer is accepted only if the confidence score clears that threshold: 
+
+gi(x; τi) = 1{si(x) ≥ τi}. (1) Here 1{·} is the indicator function : it equals 1 if the statement inside the braces is true, and 0 otherwise. So gi(x; τi) is simply a yes/no flag – “accept” or “defer” – for one input on one accelerator. Two quantities describe how well a given threshold behaves: 
+
+ϕi(τ ) = P [ gi(X; τ ) = 1 ] , (2) 
+
+Ri(τ ) = P [ ˆ yi(X)̸ = Y | gi(X; τ ) = 1 ] . (3) Equation (2) is the coverage: the fraction of all possible inputs that the accelerator is willing to answer (as opposed to deferring). Equation (3) is the selective risk: of only the inputs it chose to answer , what fraction are wrong? Note this is a conditional probability – it completely ignores the inputs that were deferred. The goal is to keep coverage as high as possible (answer as many inputs directly as we can, to save energy on the fallback path) while keeping selective risk below an application-defined budget r (e.g., r = 10% ). 
+
+b) Three independent roles for calibration data: To make the final risk guarantee trustworthy, calibration data is split into three non-overlapping groups, each used for exactly one purpose:  
+
+> •
+
+Hardware split H: estimates a persistent, per-accelerator correction (Sec. III-C). Never used to tune thresholds or pick an accelerator.  
+
+> •
+
+Policy split P : fits each accelerator’s threshold and selects which single accelerator to deploy (Sec. III-D).  
+
+> •
+
+Certificate split C: evaluates the already-frozen policy 
+
+exactly once , producing the final statistical guarantee. 
+
+B. Multilevel differential weight mapping 
+
+Analog devices can only hold a limited number of distinct conductance levels – here, 256 levels (8-bit resolution). Each software weight must therefore be rounded onto this discrete grid. For a layer ℓ, let γℓ = max jk |Wℓ,jk | be the largest-magnitude weight in that layer, and let Q = 2 8 − 1 = 255 .Each weight magnitude is normalized and quantized as 
+
+q(w) = round( Q |w|/γ ℓ)
+
+Q . (4) Because analog conductances cannot be negative, sign is encoded using a differential pair of two physical devices per weight. For a positive weight, the positive-branch conductance is Gmin +q(w)( Gmax −Gmin ) and the negative-branch conduc-tance sits at its floor value Gmin ; the roles swap for a negative weight. The weight is then reconstructed from the pair as 
+
+ˆw = γℓ
+
+G+ − G−
+
+Gmax − Gmin 
+
+. (5) The very same per-layer scale γℓ is also applied to that layer’s input during the physical matrix-vector multiply, which avoids accidentally applying two different, mismatched scale factors (one for weights, one for inputs) to the same computation. Every mapped layer is audited for the number of distinct reconstructed values actually used, any clipping, and standard mapping-error metrics (MAE, RMSE, relative ℓ2 error). 
+
+C. Hardware correction and confidence 
+
+Every physical accelerator tends to have a persistent, system-atic bias in its output logits – a consistent skew caused by its own programming imperfections, distinct from random noise. Using the hardware split H, this per-class bias is estimated by comparing each accelerator’s raw logits zraw  
+
+> i
+
+(x) against the reference (clean, digital) logits z0(x):
+
+bi = |H|−1X
+
+> x∈H
+
+ zraw  
+
+> i
+
+(x) − z0(x), zi(x) = zraw  
+
+> i
+
+(x) − bi.
+
+(6) RACE-AIMC uses the top-two logit margin as its confidence score: 
+
+si(x) = zi, (1) (x) − zi, (2) (x), (7) where zi, (1) ≥ zi, (2) are the largest and second-largest (bias-corrected) logits for input x.
+
+D. Threshold fitting, selection, and certification a) Fitting a threshold: For each accelerator i, policy-split examples are sorted by decreasing confidence score, and acceptance is built up as a growing prefix of the most-confident examples. If a candidate prefix accepts n examples and e of them are wrong, the Clopper-Pearson upper bound on the true error rate is 
+
+U (e, n ; δ) = F −1Beta( e+1 , n −e)(1 − δ), (8) with U = 1 by convention when n = 0 or e = n.The largest prefix satisfying U (e, n ; δd) ≤ rd is kept, where 
+
+rd is a stricter design risk target than the true deployment target 
+
+r (e.g., rd = 8% vs. r = 10% ). This built-in safety margin matters because the threshold is fit on the policy split, while the 
+
+real certificate will later be computed fresh on the untouched certificate split – fitting with some slack makes it much more likely that the final, independently-computed certificate still clears the true target. 
+
+b) Selecting one accelerator: Once every accelerator has its own fitted threshold and measured (empirical) coverage ˆϕi,a single “front-line” accelerator is chosen by a coverage-per-energy utility: 
+
+ui = ˆϕi
+
+Ei + Ci
+
+, i∗ = arg max  
+
+> i
+
+ui. (9) The winning accelerator i∗ and its threshold τi∗ are then 
+
+frozen – no further tuning. c) Certification: The frozen policy is evaluated exactly once on the untouched certificate split C. If it accepts nC > 0
+
+examples with eC errors, and U (eC , n C ; δC ) ≤ r, the policy is certified: assuming the certificate and deployment data are exchangeable (drawn from the same underlying distribution), this is a rigorous, finite-sample confidence statement about the true, real-world selective risk of the frozen policy – not merely an estimate. IV. E XPERIMENTAL METHODOLOGY 
+
+A. Model, data, and the analog/digital boundary 
+
+Experiments use CIFAR-10. The feature-extraction path is a small convolutional network: Conv(3,32,3)-ReLU-MaxPool, Conv(32,64,3)-ReLU-MaxPool, Conv(64,128,3)-ReLU-adaptive-pool-to-4 × 4, followed by a classifier head Linear(2048,256)-ReLU-Linear(256,10). Each of the (multiple, independently seeded) trained realizations uses 40,000 training examples for 30 epochs, batch size 128, AdamW (learning rate 
+
+2 × 10 −3, weight decay 5 × 10 −4), cosine annealing, cross-entropy loss, and standard random-crop/flip augmentation. The remaining 10,000 training examples are split into |H| = 3000 ,
+
+|P | = 2000 , |C| = 5000 ; the official 10,000-example test set is used only descriptively (i.e., to sanity-check behavior, not to compute the certified guarantee). 
+
+B. Heterogeneous accelerator population 
+
+Experiments use PyTorch 2.7.0, torchvision 0.22.0, XBTorch 1.0.0, and an NVIDIA A100 GPU (for simulation). All six simulated accelerator profiles share 8-bit conductance devices, 8-bit ADC/DAC converters, Gmin = 133 μS , Gmax = 233 
+
+μS , a 0.3 V read voltage, instantaneous input encoding, and a 2500 × 2500 physical device array. Table I lists how noise, fault rate, and energy/latency vary across the six profiles (A0, the mildest and cheapest, through A5, the harshest and most expensive). Each profile uses its own deterministic-but-distinct simulator seed, so the six profiles form a broad, reproducible 
+
+stress envelope for testing the scheduling method, rather than a fit to any one specific real chip.                                   
+
+> TABLE I HETEROGENEOUS 8-BIT AIMC ACCELERATOR PROFILES
+> Profile Read noise (μS) Write noise (μJ) Stuck (%)
+> E
+> (μJ)
+> L
+> (ms) A0 1.0 2.0 0.020 0.7 0.090 A1 2.8 7.6 0.116 0.8 0.105 A2 4.6 13.2 0.212 0.9 0.120 A3 6.4 18.8 0.308 1.0 0.135 A4 8.2 24.4 0.404 1.1 0.150 A5 10.0 30.0 0.500 1.2 0.165
+
+C. Frozen protocol, baselines, and energy model 
+
+The deployment risk target is r = 0 .10 , with a stricter design target rd = 0 .08 , δd = 0 .10 , and δC = 0 .05 . Five confirmatory random seeds were fixed before any of these runs were executed, so the reported results are genuine out-of-sample confirmations rather than results selected after the fact. Four systems are compared: (1) clean digital inference (the ideal, no-analog-error baseline), (2) forced execution of only the selected analog accelerator (no deferral), (3) the full selective system with a digital fallback for deferred queries, and (4) a uniform always-on ensemble that activates all six 
+
+analog accelerators and averages their outputs. The energy model includes analog classifier activation energy, a 0.12 μJcommunication cost per accelerator, a 0.003 μJ controller cost, 
+
+0.0002 μJ per fused class, and a modeled 4 μJ fallback cost; the (shared, digital) convolutional path is excluded from this comparison since it is identical across all four systems. This makes the energy comparison a component-level modeled estimate, not a full-platform hardware measurement. V. R ESULTS 
+
+A. Selection beats blind redundancy 
+
+Nonidealities remain meaningful across the pool: on the confirmatory runs, the selected accelerator alone reaches 
+
+81 .00% ± 0.55% forced accuracy versus 81 .40% ± 0.50% 
+
+for clean digital inference. In contrast, blindly averaging all six heterogeneous accelerators falls to only 75 .32% ± 1.74% ,because the harshest profiles drag the combined answer down with poor-quality logits. Selecting a single good accelerator therefore outperforms blind, always-on redundancy by 5.68 accuracy points on average – despite using far less energy (see Sec. V-D). 
+
+B. Independent risk certificates and accuracy  
+
+> TABLE II SUMMARY OF SIMULATION RESULTS (PERCENTAGES ).
+
+Run Cert. cov. Cert. risk 95% upper Test cov. Hybrid acc. R1 70.90 5.73 6.41 70.46 82.06 R2 69.44 7.14 7.90 69.35 80.68 R3 72.20 8.09 8.87 71.70 81.42 R4 70.88 7.20 7.95 70.98 81.57 R5 70.96 7.24 8.00 70.83 81.27 
+
+Mean 70.88 7.08 7.83 70.66 81.40 
+
+All five frozen policies certify below the 10% risk target (Table II, Fig. 2(a)). The mean certified coverage is 70 .88% ±
+
+0.98% (i.e., about 71% of test queries are answered directly by the analog accelerator), the mean accepted empirical risk is 7.08% ± 0.85% , and the mean one-sided 95% upper bound on that risk is 7.83% ± 0.89% (worst case across the five runs: 8.87%). It is important to be precise about what this means statistically: these are five individual 95% certificates, not one pooled or simultaneous guarantee across all five runs together. Descriptive results on the separate, held-out test set (70.66% TABLE III POST -HOC CONFIDENCE -SCORE REPLAY (MEAN %, FIVE RUNS ).                         
+
+> Score Cert. cov. 95% upper Test cov. Test risk Max softmax 71.70 7.82 71.69 7.45 Probability margin 71.69 7.90 71.40 7.53 Logit margin (primary) 70.88 7.83 70.66 7.46 Log-odds 71.70 7.82 71.69 7.45 Negative entropy 70.76 7.87 70.53 7.29
+
+coverage, 7.46% accepted error) closely track the certified numbers, which is a good sign that the certificate generalizes. Rejected (deferred) queries fall back to the digital path. The resulting hybrid system reaches 81 .40% ± 0.50% overall accuracy – statistically indistinguishable from clean digital inference (mean difference: 0.004 points) – while accepted-only test accuracy on the confident, analog-answered subset alone reaches 92.54%. 
+
+C. Risk, availability, and confidence-score ablations a) Risk-coverage tradeoff.: Sweeping the design risk target shows the expected tradeoff: at a stricter 5% design risk, mean test coverage is only 58.35%, but by 9% design risk it rises to 73.40%, with all five certificate replays still passing (Fig. 2(b)). Push the design risk all the way to the 10% deployment target itself, and coverage climbs to 77.02% – but only 3 of 5 certificates pass. This illustrates concretely why RACE-AIMC deliberately fits thresholds at a stricter design risk than the deployment target: without that safety margin, the certificate becomes unreliable more often. 
+
+b) Accelerator availability.: With the full pool available, the mildest, cheapest accelerator (A0) is chosen in every single run, since it dominates on both accuracy and cost. To test robustness, A0 (then A0–A1, then A0–A2) were made artificially unavailable, forcing the system to reselect from the remaining, harsher accelerators (Fig. 2(c)). Mean certified coverage drops accordingly – to 59.27%, 39.24%, and 6.47% – with 5/5, 5/5, and 4/5 certificates still passing, respectively. The system degrades gracefully under moderate hardware loss, but the harshest accelerators alone offer only limited useful coverage. 
+
+c) Confidence-score choice.: Table III replays the same protocol using four alternative confidence scores in place of the primary logit margin: maximum softmax probability, probability margin, log-odds, and negative entropy. All four alternatives still certify 5/5 policies, with mean test coverage in a narrow 70.53–71.69% band and mean accepted risk in a narrow 7.29– 7.53% band. This supports the finding that the method is robust to the specific choice of confidence score. 
+
+D. Energy sensitivity 
+
+At the modeled 4 μJ fallback cost, the full selective system consumes 2.00 ± 0.03 μJ per query, versus 6.45 μJ for the always-on, six-accelerator baseline – a modeled reduction of 69 .02% ± 0.53% . Ignoring fallback cost entirely, a single selected activation alone costs just 0.825 μJ, 87.21% below the always-on baseline. Since the true cost of the digital fallback path is inherently platform-dependent, Fig. 2(d) sweeps this cost directly: the selective system remains cheaper than the always-on baseline right up until fallback cost reaches a mean break-even point of 19 .19 ± 0.56 μJ – well above the 4 μJmodeled operating point used elsewhere in this paper. VI. D ISCUSSION 
+
+RACE-AIMC treats analog hardware reliability as something to be managed with a certified decision , rather than a property every accelerator must be forced to imitate perfectly. The entire online workload is deliberately tiny: one analog inference, a top-two logit comparison, a subtraction, a threshold check, and a routing decision. All the harder work – characterizing hardware, selecting an accelerator, and computing the statistical certificate – happens offline, once, ahead of deployment. Although this paper studies a heterogeneous pool of six differently-flawed accelerators, the same logic applies to a 
+
+homogeneous pool of nominally identical chips: even “the same” accelerator design acquires distinct programmed states, aging patterns, faults, and operating temperatures across individual physical units. Deliberate heterogeneity simply makes the selection opportunity larger – it is not a requirement of the method. Three limitations are worth being explicit about. First, the six accelerator profiles are an intentionally broad, simulator-generated stress envelope, not statistics fitted to measured, fabricated silicon; likewise, all energy numbers are mod-eled component-level costs rather than full-chip hardware measurements. Second, the statistical certificate relies on an exchangeability assumption between the certificate data and future deployment data – it must be re-earned (i.e., recomputed) after any data distribution shift, temperature change, conductance drift, or change to the frozen policy itself. Third, CIFAR-10 with a compact CNN is a controlled proof of concept, useful for isolating and testing the proposed method, but not yet evidence of production-scale behavior. Future work includes validating the approach on measured traces from fabricated accelerators (rather than simulated ones), studying drift-aware recalibration and sequential (anytime-valid) risk control, and exploring multi-stage fallback chains together with joint latency-energy objectives. VII. C ONCLUSION 
+
+Across five independent runs, RACE-AIMC’s frozen policies all certified an accepted-error rate below a 10% target, while directly answering roughly 71% of queries using a single, cheap analog accelerator, matching clean digital accuracy overall, and cutting modeled classifier-system energy by 69% relative to a naive always-on heterogeneous ensemble. The central idea – characterize hardware once, freeze a simple decision rule, and certify it rigorously on untouched data – lets a lightweight edge controller expose a statistically trustworthy region of low-cost analog operation, while reserving the more expensive, reliable fallback path only for the queries that actually need it. R1 R2 R3 R4 R5                  
+
+> Independent realization
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Fraction
+> (a) Five independently certified policies
+> 10% risk target Certificate coverage 95% risk upper bound
+> 0.55 0.60 0.65 0.70 0.75
+> Mean test coverage
+> 0.04 0.06 0.08 0.10
+> Mean descriptive 95% upper bound
+> 5% 6% 7% 8% 9% 10%
+> 10% target
+> (b) Risk-coverage operating frontier
+> All A0 unavailable A0-A1 unavailable A0-A2 unavailable 0.0 0.2 0.4 0.6
+> Mean certificate coverage  5/5 5/5 5/5 4/5
+> certified realizations
+> (c) Heterogeneous-accelerator availability
+> 0.0 2.5 5.0 7.5 10.0 12.5 15.0 17.5 20.0
+> Fallback energy ( J)
+> 0246
+> Classifier-system energy (  J)
+> 4J operating point
+> break-even 19.19 J
+> (d) Fallback-energy sensitivity
+> Energy-saving region +/- 1 s.d. Selective system (ours) Always-on accelerator
+
+Fig. 2. RACE-AIMC simulation results. (a) Independent frozen realizations; all one-sided certificate bounds are below the 10% target. (b) Post-hoc risk-coverage frontier; labels are design-risk settings and shading is one standard deviation. (c) Reconfiguration as low-severity accelerator profiles become unavailable; labels give independently certified realizations. (d) Modeled energy versus fallback cost, including across-run variation, the reported operating point, and the energy-saving region. 
+
+REFERENCES 
+
+[1] Abu Sebastian et al. “Memory devices and applications for in-memory computing”. In: Nature nanotechnology 
+
+15.7 (2020), pp. 529–544. [2] Manuel Le Gallo et al. “A 64-core mixed-signal in-memory compute chip based on phase-change memory for deep neural network inference”. In: Nature Electron-ics 6.9 (2023), pp. 680–693. [3] Malte J Rasch et al. “Hardware-aware training for large-scale and diverse deep learning inference workloads using in-memory computing-based accelerators”. In: 
+
+Nature communications 14.1 (2023), p. 5282. [4] Qiwen Wang, Yongmo Park, and Wei D Lu. “Device variation effects on neural network inference accuracy in analog in-memory computing systems”. In: Advanced Intelligent Systems 4.8 (2022), p. 2100199. [5] Osama Yousuf et al. “Layer ensemble averaging for fault tolerance in memristive neural networks”. In: Nature Communications 16.1 (2025), p. 1250. [6] Yonatan Geifman and Ran El-Yaniv. “Selectivenet: A deep neural network with an integrated reject option”. In: 
+
+International conference on machine learning . PMLR. 2019, pp. 2151–2159. [7] Surat Teerapittayanon, Bradley McDanel, and Hsiang-Tsung Kung. “Branchynet: Fast inference via early exiting from deep neural networks”. In: 2016 23rd international conference on pattern recognition (ICPR) .IEEE. 2016, pp. 2464–2469. [8] Luzian Lebovitz et al. “Efficient inference with model cascades”. In: Transactions on Machine Learning Re-search (2023). [9] Osama Yousuf et al. “Robust hardware-aware neural networks for fefet-based accelerators”. In: IEEE Trans-actions on Nanotechnology 24 (2025), pp. 189–200. [10] Osama Yousuf et al. “XBTorch: A Unified Frame-work for Modeling and Co-Design of Crossbar-Based Deep Learning Accelerators”. In: arXiv preprint arXiv:2601.07086 (2026). [11] Amirali Boroumand et al. “Mitigating edge machine learning inference bottlenecks: An empirical study on accelerating google edge models”. In: arXiv preprint arXiv:2103.00768 (2021). [12] Ismet Dagli and Mehmet E Belviranli. “Multi-accelerator neural network inference in diversely heterogeneous embedded systems”. In: 2021 IEEE/ACM Redefining Scalability for Diversely Heterogeneous Architectures Workshop (RSDHA) . IEEE. 2021, pp. 1–7. [13] Anastasios N Angelopoulos and Stephen Bates. “Confor-mal prediction: A gentle introduction”. In: Foundations and Trends in Machine Learning 16.4 (2023), pp. 494– 591. [14] Anastasios Angelopoulos et al. “Conformal risk control”. In: International conference on learning representations .Vol. 2024. 2024, pp. 55198–55218.

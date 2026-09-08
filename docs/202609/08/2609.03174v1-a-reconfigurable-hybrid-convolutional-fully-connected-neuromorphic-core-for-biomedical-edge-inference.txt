@@ -1,0 +1,238 @@
+Title: A Reconfigurable Hybrid Convolutional-Fully Connected Neuromorphic Core for Biomedical Edge Inference
+
+URL Source: https://arxiv.org/pdf/2609.03174v1
+
+Published Time: Fri, 04 Sep 2026 00:15:28 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# A Reconfigurable Hybrid Convolutional–Fully Connected Neuromorphic Core for Biomedical Edge Inference 
+
+Sarah Johari, Suman Kumar, Abhishek Mishra, Anush Lingamoorthy, and Nagarajan Kandasamy 
+
+Electrical and Computer Engineering Department Drexel University Philadelphia, Pennsylvania 19104, USA 
+
+{sj984,sk4266,am4862,kandasamy }@drexel.edu 
+
+Abstract 
+
+This work presents a programmable FPGA-based architecture for spiking convolutional neural network (SCNN) inference, with real-time hypoxia classification serving as a biomedical edge application. The architecture implements a hybrid spiking convolutional–fully connected (CNN–FC) topology on a programmable, quantized, layer-based neuromorphic hardware core. Early layers perform spiking convolution using receptive-field connectivity with support for multi-channel kernels and stride, while deeper layers use fully connected spiking layers for classification. A PyTorch-based hardware–software co-design flow enables deployment of trained parameters with quantization and configurability support. The design is first validated on MNIST and Fashion-MNIST, achieving hardware accuracies of up to 98% and 86%, respectively, at 16-bit precision. It is then applied to hypoxia classification using red and infrared photoplethysmography (PPG) signals acquired from a shoulder-mounted sensor, with skin tone included as an additional input channel. The resulting classifier achieves an average hardware accuracy of 88.26% across five folds at 16-bit precision while consuming 1.455 W of dynamic power, demonstrating the feasibility of low-power neuromorphic biomedical classification at the edge. 
+
+Index Terms 
+
+Spiking Convolutional Neural Networks, Neuromorphic Hardware, Hypoxia Detection 
+
+I. I NTRODUCTION 
+
+Spiking neural networks (SNNs) process information using discrete spikes, which can substantially reduce power consumption when executed on dedicated neuromorphic hardware. Recently, FPGA-based neuromorphic designs have been proposed, from small-scale fully connected networks to architectures aimed at real-world inference [1]–[5]. SNNs on neuromorphic hardware are an attractive solution for biomedical applications, where continuous physiological monitoring requires low-power real-time inference. A representative and important example is the detection of hypoxia, through the continuous estimation of blood oxygen saturation (SpO 2), which is central to a wide range of clinical and community health settings. In acute care, SpO 2 monitoring guides oxygen therapy in intensive care, post-surgical recovery, and mechanical ventilation. In sleep medicine, it is the standard method for detecting obstructive sleep apnea, where episodic desaturation is associated with cardiovascular risk. In high-altitude medicine, it helps identify people at risk for hypoxemia, pulmonary edema, and cerebral edema. Finally, opioid overdose detection is one of the most time-critical applications: nearly 40% of overdose cases progress to multiorgan failure due to prolonged oxygen deprivation, and the window to prevent irreversible brain injury is often under five minutes [6]. Recent work has demonstrated the effectiveness of SNNs in classifying the severity of hypoxia through a non-invasive method using photoplethysmography (PPG) signals [7]. However, these models have yet to be deployed on dedicated neuromorphic hardware, leaving a gap between algorithmic capability and practical edge deployment. Returning to the available neuromorphic hardware designs, most focus on fully connected (FC) topologies, leaving con-volutional SNN accelerators—critical for feature extraction in image and signal classification—underexplored, particularly with respect to configurability and quantization support [8], [9]. Systolic array architectures offer a promising avenue for convolutional SNN acceleration. For example, Guo et al. [10] showed that binary spike activations are well-suited to systolic arrays, where multiply-accumulate operations reduce to additions. Lee and Li [11] demonstrated the impact of variable tiling on throughput, Lee et al. [12] introduced temporal parallelism for recurrent SNNs, and Wang et al. [13] proposed SpikeFlow with adjustable temporal-spatial dataflow. However, these implementations have largely focused on fixed topologies with limited reconfigurability, and their deployment with full hardware-software co-design and quantization support remains underexplored for hybrid CNN–FC frameworks targeting biomedical edge applications. Building on convolutional feature extraction, Aung et al. proposed DeepFire [14] and DeepFire2 [15] as dedicated accelerators for spiking CNN inference, but neither addresses hybrid CNN–FC topologies with layer-wise reconfigurability, mixed-precision quantization. arXiv:2609.03174v1 [eess.SY] 2 Sep 2026 We develop a neuromorphic hardware platform for end-to-end spiking CNN inference for hypoxia detection. The main contributions of this work are:  
+
+> •
+
+A programmable, quantized digital spiking CNN accelerator for biomedical edge application that supports hybrid CNN– FC topologies with multi-level configurability, including arithmetic precision, kernel size, stride, neuron parameters, and layer composition.  
+
+> •
+
+We formulate hypoxia detection as a classification task (based on the severity of the condition) using red and infrared PPG signals along with skin tone as input channels. We then develop and deploy a spiking CNN on the proposed hardware accelerator.  
+
+> •
+
+To validate the generalizability of the design, we tested it on image-based benchmarks (MNIST and Fashion-MNIST) to demonstrate competitive classification accuracy under both 8-bit and 16-bit quantization levels. The remainder of this paper is organized as follows. Section II provides the necessary background. Section III develops the hybrid CNN–FC spiking hardware and Section IV discusses the deployment of an SNN trained to detect hypoxia on this hardware. Section V concludes the paper. II. B ACKGROUND 
+
+This section presents background on spiking neural networks (SNNs) and surveys open-source neuromorphic platforms that support their execution. It also discusses the importance of detecting hypoxia at the edge, which motivates the deployment of hypoxia detection and classification algorithms on neuromorphic hardware. 
+
+A. Spiking Neurons and Network Models 
+
+SNNs are biologically plausible computing models in which neurons communicate through discrete spikes rather than continuous-valued activations. The Leaky Integrate-and-Fire (LIF) neuron has become the predominant choice for digital hardware implementations due to its favorable trade-off between biological fidelity and computational simplicity [ ?], [16]– [18]. The continuous-time dynamics of the neuron neuron is governed by the first-order ordinary differential equation 
+
+τ dV mem (t)
+
+dt = −Vmem (t) + R · Iin (t), (1) where Vmem (t) is the membrane potential, τ = R · C is the membrane time constant defined by the membrane resistance R
+
+and capacitance C, and Iin (t) is the input current [5]. Applying the forward Euler discretization yields 
+
+Vmem [t + 1] = Vmem [t] − ∆tτ|{z} 
+
+> decay rate
+
+·Vmem [t] + ∆tC|{z} 
+
+> growth rate
+
+·Iin [t]. (2) When Vmem [t] exceeds a threshold voltage Vth , the neuron emits a spike and the membrane potential is reset according to a configurable reset mechanism (e.g., reset-to-zero, reset-by-subtraction, or reset-to-constant). In addition, a refractory period may be enforced to limit the maximum firing frequency. For current-based synapses, the input current to a post-synaptic neuron j is calculated as the weighted sum of incoming spikes Ij [t] = P 
+
+> i
+
+xij [t] · wij , where xij [t] ∈ { 0, 1} is the binary spike from pre-synaptic neuron i and wij is the corresponding synaptic weight. The binary nature of spikes reduces the multiply-accumulate operation to a conditional addition, which is highly advantageous for digital hardware implementations. When multiple LIF neurons are organized into layers with all-to-all connectivity, the result is a fully connected spiking network suitable for classification tasks [19], [20]. However, FC topologies do not scale efficiently to high-dimensional inputs, as the number of synaptic connections grows quadratically with the input size. To address this, convolutional architectures have been adapted to the spiking domain [14], [21], where shared kernels are applied across spike-encoded input feature maps and the weighted sums of binary spike inputs are accumulated into the membrane potentials of post-synaptic LIF neurons. This preserves the parameter efficiency of conventional CNNs while benefiting from the sparse, event-driven computation of SNNs. A typical hybrid spiking CNN–FC pipeline consists of one or more convolutional layers for feature extraction, followed by fully connected layers for classification, with the predicted class corresponding to the output neuron with the highest accumulated spike count. 
+
+B. Open-Source Availability and Research Gap 
+
+Deploying SNNs on hardware requires an accessible and reproducible platform. Although SNN accelerators based on FPGA and ASIC have received increasing attention, only a small number of such platforms are publicly available as open source [8], [22], [23]. The majority of reported implementations remain closed source, limiting reproducibility and preventing fair comparison across designs. In addition, no existing open-source platform supports a fully configurable hybrid CNN–FC spiking architecture with variable quantization and a complete hardware–software co-design flow, which motivates the present work. Fig. 1. Dynamics of a digital LIF neuron showing integration, threshold crossing, spike-and-reset, leak decay, and subthreshold activity. 
+
+C. Hypoxia Detection using Machine Learning 
+
+Hypoxia is a physiological state in which the body, or a specific tissue region, is deprived of adequate oxygen. Clinically, it is commonly associated with peripheral oxygen saturation (SpO 2) levels below 92% in healthy individuals and below 88% in patients with chronic obstructive pulmonary disease [24]. If not treated, sustained oxygen deprivation leads to progressive metabolic failure, neurological injury, and possible death. Consequently, timely detection of hypoxia is critical in a wide range of clinical and community health settings. We focus on SpO 2 as the physiological signal used to detect hypoxia. SpO 2 reflects the oxygen-carrying state of hemoglobin in peripheral capillary blood and can be estimated noninvasively using photoplethysmography (PPG), an optical sensing technique in which light at specific wavelengths is emitted into the skin and the reflected or transmitted signal is measured by a photodetector. The estimation relies on the differential absorption of red and infrared light as it passes through tissue. However, these measurements can also be influenced by skin pigmentation, which may reduce accuracy across diverse patient populations [24]. To address this limitation, recent studies have explored machine learning approaches that incorporate skin tone as an additional input feature alongside raw PPG waveforms, including approaches based on spiking neural networks. For example, Lingamoorthy et al. [7] proposed HypoxSpike, an SNN that classifies three levels of hypoxemia (normal, moderate or severe) using PPG signals, motion data, and skin tone collected from a shoulder-mounted sensor. However, HypoxSpike was evaluated only in software, with hardware inference left as future work. III. H ARDWARE DESIGN 
+
+This section develops the hardware architecture of the proposed spiking convolutional neural network (SCNN) core. The design builds upon the QUANTISENC neuromorphic platform [19], one of the few design available as open source, and extends it with convolutional layer support, yielding a unified hybrid CNN–FC architecture. The section first describes the foundational building blocks, the quantized arithmetic units and the LIF neuron, then details the fully connected and convolutional layer implementations, and finally presents the top-level system integration. 
+
+A. LIF Core 
+
+Arithmetic within the SCNN core uses signed fixed-point representation with configurable precision Qn.q , where n and 
+
+q denote the number of integer and fractional bits, respectively. Including the sign bit, neuron state variables therefore use a total word width of 1 + n + q bits. Synaptic weights can be represented using 1 + m + q bits, with m ≤ n, to reduce the memory footprint while retaining an adequate dynamic range for trained values. The core computation is built on three arithmetic modules: (i) a quantized adder with overflow/underflow saturation, (ii) a quantized multiplier that forms a 2N -bit Fig. 2. Hardware block diagram of the LIF neuron.  
+
+> Fig. 3. Hardware block diagram of multiply-accumulate (MAC) operations: (a) Fully connected layer and (b) convolutional (CNN) layer.
+
+intermediate result and requantizes it to N bits, and (iii) a quantized ALU that additionally provides comparator support for threshold detection [19]. The LIF neuron is the core computational unit of the architecture. Each neuron maintains an internal membrane potential register, vmem , and implements the discrete-time dynamics of Eq. (2), including configurable decay and growth, threshold comparison, three reset modes, and a configurable refractory period. All neuron parameters are stored in runtime-configurable registers, allowing post-deployment tuning without resynthesis. As shown in Fig. 2, the LIF block operates in the spike-clock domain ( spk_clk ). The incoming activation ( activation ) from synaptic memory is multiplied by growth_rate , while the current membrane potential ( vmem ) is multiplied by decay_rate , forming two parallel datapaths whose outputs are combined through quantized adders to generate the candidate membrane update ( vmem_dyn ). At the same time, the ResetGen block computes the post-spike membrane value based on the configured reset_mechanism , and the refractory counter (RefCnt) tracks whether the neuron is in its refractory phase. A multiplexer, controlled by vmem_sel derived from the RefCnt and comparator outputs, selects between the normal update path and the reset path. The selected value is stored in the 
+
+vmem_reg flip-flop, completing the update. Finally, the comparator checks vmem against vth and drives the spike-generation logic ( spk_gen ), which produces the output spike ( Spk_out ) through a final registered stage [19]. 
+
+B. Synaptic Memory and Multiply-Accumulate 
+
+Synaptic memory and multiply-accumulate (MAC) operations are organized differently for fully connected and convolutional layers, reflecting their distinct connectivity patterns. 
+
+1) Fully Connected Synaptic Access: In the FC layer, each post-synaptic neuron maintains a dedicated block RAM storing 
+
+F synaptic weights, where F is the fan-in. As shown in Fig. 3(a), a synapse access controller generates the read address (rd_addr ), read enable ( rd_en ), and accumulator reset ( rst_acc ) signals based on the input spike pattern ( spk_in ). The controller sequentially scans through the pre-synaptic addresses, asserting a read enable only when the corresponding input spike is active, thereby implementing the current accumulation. Each weight read from BRAM ( rd_data ) is conditionally added to a running partial sum in the activation register (ACT Reg), producing the total synaptic activation forwarded to the LIF block [19]. 
+
+2) Convolutional Synaptic Access: The convolutional layer adopts a memory organization based on kernel weight sharing. Rather than storing a full weight matrix per neuron, each input–output channel pair shares a single block RAM of size Kx ×Ky .Fig. 4. Unrolled convolution example: a 3 × 3 input convolved with a 2 × 2 shared kernel (stride = 1) producing a 2 × 2 output. Each output neuron receives connections from its receptive field, with the shared kernel counter generating per-output rd_en signals gated by the input spike pattern. 
+
+All output feature-map positions for that channel pair access the same kernel memory, greatly reducing memory cost compared to an equivalent fully connected design. The convolutional synaptic access controller implements an unrolled convolution in which all output positions are computed in parallel. A shared counter k steps through the kernel entries from 0 to ( Kx × Ky − 1), reading one weight per cycle from the shared BRAM. In each cycle, k is decomposed into row and column offsets, kx and ky . For each output position (wx, w y ),the controller then maps this kernel offset to the corresponding input neuron as idx = ( wx · S + kx) · Yin + ( wy · S + ky ), (3) where S is the stride and Yin is the input width. If the input spike at this index is active, the read enable for that output position is asserted, and the shared kernel weight is added to that position’s partial sum accumulator. Since all Xout × Yout output positions evaluate their respective input indices in the same clock cycle, the entire convolution completes in just Kx × Ky
+
+memory clock cycles—one cycle per kernel entry. Figure 4 illustrates the process with a concrete example. A 3 × 3 input feature map is convolved with a 2 × 2 kernel with stride = 1, yielding a 2 × 2 output. The left side shows the standard convolution, and the right side shows its unrolled hardware realization. Each output neuron ( o11 , o12 , o21 , o22 ) is connected to its corresponding 2 ×2 receptive field, while all four outputs share the same kernel weights, w11 , w 12 , w 21 , w 22 , stored in a single BRAM. A shared counter traverses the four kernel entries over four clock cycles. At each step, rd_en is asserted for an output only when the corresponding input neuron spikes. For example, at k = 0 (weight w11 ), output o11 reads input i11 , which is 0, so no accumulation occurs, while output o12 reads input 
+
+i12 , which is 1, so rd_en is asserted and w11 is accumulated. The rd_en waveforms beside each output neuron visualize this spike-gated accumulation across the kernel sweep. As shown in Fig. 3(b), each output position maintains its own independent partial sum register. When a new input spike pattern arrives, all accumulators are reset and a new kernel sweep begins. After the sweep completes, the accumulated partial sums represent the full convolution result and are forwarded to the LIF neurons for membrane potential integration. 
+
+C. Top-Level System Integration 
+
+The SCNN core integrates multiple CNN layers followed by FC classification layers into a unified processing pipeline. The layer configuration is specified via a compile-time parameter array that defines the kernel dimensions, stride, and number of input/output channels for each convolutional layer. Output spikes from last CNN layer are flattened and forwarded as the input spike vector to the fully-connected layer. A layer-level address decoder selects the target layer for weight programming based on a dedicated field in the write address bus. All layers share a common set of neuron configuration registers (threshold, decay rate, growth rate, resting potential, reset mechanism, and refractory period), which are programmed at runtime through the configuration interface. The architecture operates on a dual-clock scheme: a fast memory clock ( memclk ) drives the synaptic weight access and MAC operations, while a slower spike clock ( spkclk ) governs the LIF neuron dynamics, with clock domain crossing handled by the synchronizer modules. 
+
+D. Design Space and Configurability 
+
+The proposed architecture offers configurability at multiple levels, summarized in Table I. At the arithmetic level , the integer and fractional bit widths can be set independently, enabling mixed-precision deployment. At the layer level , kernel dimensions, stride, and the number of input/output channels are parameterized, supporting a wide range of convolutional topologies. At the 
+
+neuron level , all LIF parameters are configurable via memory-mapped registers. At the system level , the number of CNN and FC layers, as well as their interconnection, are defined at compile time through the configuration package. This multi-level configurability enables rapid design space exploration and efficient deployment across diverse application scenarios. TABLE I SUMMARY OF CONFIGURABLE PARAMETERS ACROSS DIFFERENT LEVELS OF THE PROPOSED ARCHITECTURE .
+
+Level Parameter Description 
+
+Arithmetic INTEGER_PRECISION Number of states integer bits ( n)
+
+DECIMAL_PRECISION Number of fraction bits ( q)
+
+WT_INETGER_PRECISION Number of weights integer bits ( m)Neuron VTH Threshold voltage 
+
+DECAY_RATE Membrane decay rate 
+
+GROWTH_RATE Membrane growth rate 
+
+VREST Resting potential 
+
+RESET_MECHANISM Reset mode (0, 1, or 2) 
+
+REFRECTORY_PERIOD Refractory duration FC Layer FANIN Pre-synaptic fan-in 
+
+FANOUT Number of output neurons CNN Layer X_KERNEL , Y_KERNEL Kernel dimensions 
+
+STRIDE Convolution stride 
+
+IN_CHANNEL Number of input channels 
+
+OUT_CHANNEL Number of output channels 
+
+X_FANIN , Y_FANIN Input feature map size System NUM_CNN_LAYERS Number of CNN layers 
+
+NUM_FC_LAYERS Number of FC layers 
+
+HARDWARE_LAYERS Total number of layers TABLE II SPIKING CNN–FC NETWORK CONFIGURATIONS FOR MNIST AND FMNIST. 
+
+Layer Configuration Output MNIST 
+
+Input 1 channel, 16 × 16 1×16 ×16 Conv 1 + LIF 16 out ch, kernel=5, stride=2 16 ×6×6Conv 2 + LIF 32 out ch, kernel=5, stride=1 32 ×2×2Flatten — 128 FC + LIF 10 units 10 
+
+FMNIST 
+
+Input 1 channel, 16 × 16 1×16 ×16 Conv 1 + LIF 16 out ch, kernel=5, stride=2 16 ×6×6Conv 2 + LIF 32 out ch, kernel=3, stride=2 32 ×2×2Flatten — 128 FC 1 + LIF 64 units 64 FC 2 + LIF 10 units 10 TABLE III CLASSIFICATION ACCURACY (%) ON MNIST AND FMNIST. 
+
+Task Precision SW HW 
+
+MNIST Q0.4/Q 3.4 (8-bit) 98.5 97.0 
+
+Q0.8/Q 7.8 (16-bit) 98.5 98.0 FMNIST Q1.6/Q 5.6 (12-bit) 86.5 81.5 
+
+Q1.8/Q 7.8 (16-bit) 86.5 86.0 
+
+E. Performance Evaluation using MNIST and FMNIST 
+
+The hybrid CNN–FC spiking architecture was synthesized and evaluated on a Xilinx Virtex UltraScale+ FPGA. The networks were trained using snnTorch with a PyTorch backend, and the learned parameters were quantized and deployed onto the hardware via the co-design interface with per-layer quantization. Multiple fixed-point precision configurations were evaluated: 8-bit and 16-bit for MNIST, and 12-bit and 16-bit for FMNIST. Table II shows the network configurations. Table III summarizes the classification accuracies for MNIST and FMNIST. On MNIST, the 8-bit configuration achieves a hardware accuracy of 97.0%, corresponding to a 1.5% loss relative to the software baseline, while the 16-bit configuration reaches 98.0%. On FMNIST, the 16-bit configuration attains 86.0%, closely matching the 86.5% software baseline, whereas the 12-bit configuration drops to 81.5%. This indicates that FMNIST is a more challenging dataset and benefits more from TABLE IV POST -IMPLEMENTATION FPGA RESOURCE UTILIZATION , DYNAMIC POWER , AND ENERGY EFFICIENCY FOR MNIST AND FMNIST AT 0.5MH Z.                                                     
+
+> Task Metric Higher prec. Lower prec.
+> MNIST
+> 16-bit 8-bit Used %Used %
+> LUT 357,717 27.44 269,190 20.65 FF 194,067 7.44 109,504 4.20 BRAM 269 13.34 269 13.34 DSP 1,428 15.82 ——Dynamic (W) 1.556 0.930 MOPS/W 21.72 36.34 FMNIST
+> 16-bit 12-bit Used %Used %
+> LUT 379,122 29.08 262,206 20.11 FF 199,562 7.65 155,812 5.98 BRAM 301 14.93 301 14.93 DSP 1,556 17.24 1,556 17.24 Dynamic (W) 1.746 1.421 MOPS/W 12.13 14.91
+> Fig. 5. Architecture of the hybrid spiking CNN–FC network for classification of SpO 2levels from PPG signals.
+
+higher numerical precision than MNIST. Table IV reports the post-implementation FPGA resource utilization. For MNIST at 8-bit precision, the design occupies 20.65% of LUTs and 4.20% of FFs, increasing to 27.44% and 7.44% at 16-bit. FMNIST follows a similar trend with slightly higher utilization as a result of the additional FC layer. DSP slices are utilized in the 16-bit and 12-bit configurations for dedicated multiplication, while the 8-bit designs implement all arithmetic using LUT-based logic. BRAM usage remains constant across precisions for each task, as it is determined by the network topology rather than the quantization setting. For MNIST, the 8-bit configuration consumes 0.930 W of dynamic power and achieves 36.34 MOPS/W, while the 16-bit configuration requires 1.556 W at 21.72 MOPS/W — a 1.67 × improvement in energy efficiency at reduced precision. FMNIST shows a similar trend, with 12-bit achieving 14.91 MOPS/W at 1.421 W compared to 12.13 MOPS/W at 1.746 W for 16-bit. IV. H YPOXIA DETECTION 
+
+We formulate the problem as a three-class classification task using red PPG, infrared PPG, and skin tone as input channels to a spiking convolutional neural network, whose architecture is shown in Fig. 5. The classes are labeled according to the SpO 2 level: normal ( >92%), moderate (80–92%) or severe ( <80%). The input signals are encoded into spike trains using rate coding and processed through the proposed hybrid CNN–FC architecture, bridging the gap between software-based SNN classifiers and on-device neuromorphic deployment. The network configuration is summarized in Table V. 
+
+A. Dataset Collection 
+
+The dataset was collected at the UCSF Hypoxia Laboratory, a specialized research facility that induces precise, graded levels of hypoxemia under medical supervision. The study enrolled N = 12 subjects and used a controlled protocol in which each participant’s SpO 2 was systematically varied from normoxic levels ( 100%) to severe hypoxemia ( 70%), yielding TABLE V SPIKING CNN–FC NETWORK CONFIGURATION FOR SPO2 CLASSIFICATION .                     
+
+> Layer Configuration Output
+> Input 3 channels (Red, IR, Skin Tone) 3×100 Conv 1 + LIF 16 out ch, kernel=5, stride=2 16 ×48 Conv 2 + LIF 32 out ch, kernel=5, stride=5 32 ×9Flatten —288 FC 1 + LIF 64 units 64 FC 2 + LIF 3 units 3Output Normal / Moderate / Severe
+
+approximately 25–26 discrete SpO 2 target samples per subject. This produces broad coverage of three clinically relevant severity classes: Normal (SpO 2 96–100%), Moderate (92–95%), and Severe (88–91%) [7]. Each participant wore both a custom shoulder-mounted sensor and a gold-standard reference pulse oximeter. The reference device provides the ground-truth SpO 2 labels, while the shoulder device records raw two-channel (Red, IR) PPG signals from the deltoid together with 6-axis IMU data capturing 3D acceleration and gyroscopic motion. These measurements support both respiration-rate estimation and motion-artifact detection. Unlike opportunistic sleep-apnea datasets, where severe hypoxemia events are infrequent and unevenly distributed, this controlled protocol yields a more balanced label distribution across the full SpO 2 range. 
+
+B. Preprocessing and Denoising of Data 
+
+The raw optical data are acquired using the MAX30101 integrated optical sensor, which uses red (660 nm) and infrared (880 nm) LEDs to illuminate the deltoid and a matched photodetector to capture the reflected light. The photodetector samples the signal at 400 Hz with 18-bit ADC precision. To suppress high-frequency noise, the sensor performs on-chip averaging over 16 consecutive samples before transmission to the microcontroller, reducing the effective sampling rate to 25 Hz. The resulting two-channel (Red, IR) PPG signal is stored in binary format in local flash memory. Software preprocessing begins with temporal alignment and signal-quality filtering. Samples collected when either the shoulder device or the reference pulse oximeter was not worn are removed (indicated by the reduced correlation between the red and infrared PPG channels). The reference device’s SpO 2 readings are upsampled using forward-fill interpolation to align with the shoulder-sensor data, and any remaining temporal offset is corrected by cross-correlating pulse rates derived from the two signals. Because the shoulder is a highly dynamic sensing site, motion artifacts are identified using the vector magnitude of the 3-axis accelerometer signal, and high-motion samples are discarded before SpO 2 estimation. Low-quality segments are further removed using a signal quality index computed from the skewness of the PPG signal over an 8-second rolling window. For SpO 2 estimation, both red and infrared PPG channels are filtered with a third-order Butterworth band-pass filter with cutoff frequencies of 0.5 Hz and 3.0 Hz to remove baseline drift and high-frequency noise. A Chebyshev Type II band-pass filter is similarly applied to 4-second signal epochs used for SpO 2 estimation. Finally, to address the inherent class imbalance in SpO 2 data, the dataset is downsampled so that each class matches the least frequent one. The dataset is split with 90% of subjects allocated for training and validation (80/20 split within the pool) and the remaining 10% held for testing. 
+
+C. Hardware Performance Evaluation 
+
+The trained SNN shown in Fig. 5 is deployed on the neuromorphic hardware. Multiple fixed-point precision configurations were evaluated: 8-bit, 12-bit, and 16-bit, providing a finer-grained analysis of the accuracy–resource trade-off for hypoxia detection on the hardware. Table VI reports per-fold software accuracy and the corresponding hardware accuracy after quantization and deployment at three precision levels. The 16-bit design achieves an average hardware accuracy of 85.8%, a 3.3% drop from the software average of 89.1%. Reducing precision to 12 bits yields 83.92% average accuracy, only 1.88% below the 16-bit result, making it an attractive accuracy-cost trade-off. In contrast, the 8-bit design falls to 73.54%, indicating that the precision is insufficient to reliably represent the neuron state variables and synaptic weights required for SpO 2 classification. Fold 2 consistently achieves the best hardware accuracy across all precisions, matching its strongest software baseline. Table VII reports the utilization of FPGA resources along with dynamic power consumption and energy efficiency metrics. SpO 2 classification requires more resources than the MNIST and FMNIST benchmarks, reflecting the larger network (64 output channels in Conv 2, two FC layers) and the three input channels. At 16-bit, the design occupies 51.73% of LUTs and 19.64% of FFs. Reducing to 12-bit decreases LUT usage to 36.34% and FF usage to 15.32%, while the 8-bit configuration yields 37.53% LUT and 10.99% FF utilization. BRAM and DSP usage remain unchanged between 16-bit and 12-bit, as both precisions require dedicated DSP multipliers, while the 8-bit configuration eliminates DSP usage entirely. TABLE VI PER -FOLD CLASSIFICATION ACCURACY (%) FOR HYPOXIA DETECTION .                                                                             
+
+> HW Accuracy SW Test 16-bit 12-bit 8-bit
+> Q1.8/Q 7.8Q1.8/Q 3.8Q1.4/Q 3.4
+> Fold 1 87.7 85.8 84.5 72.9 Fold 2 94.8 92.9 92.5 86 Fold 3 86.5 86.2 84.3 72.9 Fold 4 88.4 88.4 81.9 73.3 Fold 5 88.2 88 88 88 Avg 89.1 88.26 86.24 78.62 TABLE VII POST -IMPLEMENTATION FPGA RESOURCE UTILIZATION ,DYNAMIC POWER ,AND ENERGY EFFICIENCY ON SPO2AT 100KH Z.
+> 16-bit 12-bit 8-bit Metric Used %Used %Used %LUT 674,353 51.73 473,724 36.34 489,218 37.53 FF 512,013 19.64 399,347 15.32 286,652 10.99 BRAM 313.5 15.55 313.5 15.55 313.5 15.55 DSP 2,246 24.89 2,246 24.89 ——Dynamic (W) 1.455 1.284 0.771 MOPS/W 6.60 7.48 12.45 Energy/inference ( μJ) 727.5 642.0 385.5
+
+When operating at 100 KHz, the 8-bit configuration consumes 0.771 W with an energy efficiency of 12.45 MOPS/W and 385.5 μJ per inference. The 12-bit configuration increases dynamic power to 1.284 W , and the 16-bit to 1.455 W. These results demonstrate that reduced-precision quantization provides substantial power savings: the 8-bit SpO 2 configuration achieves a 1.89 × reduction in dynamic power and energy per inference compared to 16-bit, highlighting the effectiveness of mixed-precision deployment for power-constrained biomedical edge applications. Because biomarkers such as SpO 2 need only be monitored at low rates, for example once per second, the hardware can operate at a correspondingly low clock frequency. In our design, 16-bit operation at 10 kHz—–still far above what is required for 1 Hz monitoring—–consumes 148 mW of dynamic power, while reducing the frequency to 1 kHz lowers the dynamic power to 16 mW. 
+
+D. Comparison with State-of-the-Art 
+
+Table VIII compares the proposed framework with existing approaches along two axes: PPG-based hypoxemia classification and FPGA-based spiking neural network accelerators. Among existing PPG-based hypoxia classifiers, OxyCaps [25] employs capsule networks and HypoxSpike [7] introduces a ternary spiking neural network, both of which achieve competitive classification accuracy in software. However, neither work has been deployed on neuromorphic hardware, and HypoxSpike explicitly identifies hardware deployment as a direction for future work. Among FPGA-based SNN accelerators, DeepFire [14] and DeepFire2 [15] support spiking CNN inference but lack mixed-precision quantization support and have not been applied to biomedical signal classification. Spiker [8] and NeuroCoreX [3] are limited to fully connected topologies without convolutional layer support. To the best of our knowledge, the proposed framework is the first to combine a reconfigurable hybrid CNN–FC spiking architecture with variable-precision quantization and demonstrate end-to-end hardware-accelerated inference for SpO 2 classification from PPG signals. 
+
+E. Limitations and Proposed Improvements 
+
+While the proposed framework demonstrates the feasibility of hardware-accelerated SpO 2 classification, the reported dynamic power reflects the overhead of FPGA-based prototyping. A corresponding ASIC implementation, the natural next step for this architecture, is expected to substantially reduce power consumption while preserving the same configurability and accuracy. Additionally, all experiments used 50 simulation time steps per inference; reducing the number of time steps through adaptive temporal coding or training-aware optimization would proportionally lower the dynamic power and energy per inference. Future work will also explore deeper network architectures with pooling and on-chip learning capabilities, along with integration with wearable PPG sensing and event-driven neuromorphic sensors to enable end-to-end low-power SpO 2 monitoring at the edge. TABLE VIII COMPARISON WITH STATE -OF -THE -ART .
+
+Work Platf. Model CNN Mixed SpO 2 Open HW Prec. Src. Depl. 
+
+OxyCaps [25] SW Capsule ✓ — ✓ ✓ ×
+
+HypoxSpike [7] SW Tern. SNN ✓ — ✓ ✓ ×
+
+Spiker [8] FPGA SNN (FC) × × × ✓ ✓
+
+DeepFire [14] FPGA SNN (CNN-FC) ✓ × × × ✓
+
+DeepFire2 [15] FPGA SNN (CNN-FC) ✓ × × × ✓
+
+NeuroCoreX [3] FPGA SNN (FC) × × × ✓ ✓
+
+Ours FPGA SNN (CNN-FC) ✓ ✓ ✓ ✓ ✓
+
+V. C ONCLUSION 
+
+We present a configurable digital architecture for spiking convolutional neural network acceleration, targeting hypoxia detection as a representative edge application. The architecture extends a programmable, quantized, layer-based neuromorphic core with spiking convolutional support, enabling hybrid CNN–FC topologies with multi-level configurability. An snnTorch-based hardware–software co-design interface allows trained parameters to be deployed directly onto the hardware with full quantization support. The design is validated on the MNIST and FMNIST benchmarks to show generalizability, achieving up to 98.0% hardware accuracy on MNIST and 86.0% on FMNIST at 16-bit precision. It is also evaluated on hypoxia detection formulated as a classification task using PPG signals and skin-tone information, achieving an average hardware accuracy of 85.8% at 16-bit precision. Across all tasks, lower-precision quantization consistently improves energy efficiency, with 12-bit configurations reducing dynamic power by up to 1.13 × relative to 16-bit implementations. To the best of our knowledge, this is the first demonstration of hardware-accelerated spiking CNN inference for hypoxia detection and classification.o support reproducibility, the complete HDL design files, trained models are released as an open repository. 1
+
+REFERENCES [1] S. Matinizadeh, S. Johari, A. Mohammadhassani, and A. Das, “Towards biology-inspired fault tolerance of neuromorphic hardware for space applications,” in IEEE Symp. Defect & Fault Tolerance VLSI & Nanotechnology Systems (DFT) , 2024. [2] S. Matinizadeh, A. Mohammadhassani, M. L. Varshika, S. Johari, N. Kandasamy, and A. Das, “Quantisenc++: A fully-configurable many-core neuromorphic hardware,” in Asilomar Conf. Signals, Systems, & Computers , 2024, pp. 1527–1531. [3] A. Gautam, P. Date, S. Kulkarni, R. Patton, and T. Potok, “Neurocorex: An open-source fpga-based spiking neural network emulator with on-chip learning,” arXiv preprint arXiv:2506.14138 , 2025. [4] A. Mohammadhassani, S. Johari, K. Tishbi, and A. Das, “Improving scalability of noc-based neuromorphic hardware with compressed aer (c-aer) protocol,” in IEEE Symp. Circuits & Syst. (ISCAS) , 2025. [5] S. Johari, A. Mohammadhassani, M. L. Varshika, and A. Das, “Cmos-memristor hybrid design of a neuromorphic crossbar array with integrated inference and training,” in IEEE 67th Midwest Symp. Circuits & Syst. (MWSCAS) , 2024, pp. 442–446. [6] A. M. Roth et al. , “Use of a shoulder-mounted wearable sensor prototype designed to detect opioid-related overdose: A qualitative user experience study,” Medical Internet Research , vol. 27, 2025. [7] A. Lingamoorthy, A. K. Mishra, O. Oni, J. S. Brenner, N. Kandasamy, and A. Watson, “Hypoxspike: Ternary spiking neural network for opioid overdose detection,” in Proc. AAAI Conf. Artificial Intelligence , vol. 40, no. 45, 2026, pp. 38 917–38 925. [8] A. Carpegna, A. Savino, and S. Di Carlo, “Spiker: an fpga-optimized hardware accelerator for spiking neural networks,” in IEEE Computer Society Annual Symp. VLSI (ISVLSI) , 2022, pp. 14–19. [9] D. Neil and S.-C. Liu, “Minitaur, an event-driven fpga-based spiking network accelerator,” IEEE transactions on very large scale integration (VLSI) systems , vol. 22, no. 12, pp. 2621–2628, 2014. [10] S. Guo, L. Wang, S. Wang, Y. Deng, Z. Yang, S. Li, Z. Xie, and Q. Dou, “A systolic snn inference accelerator and its co-optimized software framework,” in Proceedings of the 2019 Great Lakes Symposium on VLSI , 2019, pp. 63–68. [11] J.-J. Lee and P. Li, “Reconfigurable dataflow optimization for spatiotemporal spiking neural computation on systolic array accelerators,” in IEEE 38th Conf. Computer Design (ICCD) , 2020, pp. 57–64. [12] J.-J. Lee, W. Zhang, Y. Xie, and P. Li, “Saarsp: An architecture for systolic-array acceleration of recurrent spiking neural networks,” ACM Journal on Emerging Technologies in Computing Systems (JETC) , vol. 18, no. 4, pp. 1–23, 2022. [13] J. Wang, Y. Shi, Z. Chen, and M. Wen, “Spikeflow: A hardware-software co-designed systolic array for spiking neural networks,” Journal of Systems Architecture , p. 103604, 2025. [14] M. T. L. Aung, C. Qu, L. Yang, T. Luo, R. S. M. Goh, and W.-F. Wong, “Deepfire: Acceleration of convolutional spiking neural network on modern field programmable gate arrays,” in 2021 31st International Conference on Field-Programmable Logic and Applications (FPL) . IEEE, 2021, pp. 28–32. [15] M. T. L. Aung, D. Gerlinghoff, C. Qu, L. Yang, T. Huang, R. S. M. Goh, T. Luo, and W.-F. Wong, “Deepfire2: A convolutional spiking neural network accelerator on fpgas,” IEEE Transactions on Computers , vol. 72, no. 10, pp. 2847–2857, 2023. [16] M. L. Varshika, S. Johari, J. Dubey, and A. Das, “Design of a tunable astrocyte neuromorphic circuitry with adaptable fault tolerance,” in 2023 IEEE 66th International Midwest Symposium on Circuits and Systems (MWSCAS) , 2023, pp. 904–908. [17] A. Mishra, S. Kumar, A. Lingamoorthy, A. Das, and N. Kandasamy, “Wafer2spike: Spiking neural network for wafer map pattern classification,” in 
+
+IEEE Int’l Test Conf. (ITC) , 2024, pp. 16–20. [18] S. Johari, A. Mohammadhassani, and A. Das, “A framework for automatic synthesis of neuromorphic architectures with heterogeneous integration of cmos and memristors,” in 2025 IEEE International Symposium on Circuits and Systems (ISCAS) , 2025, pp. 1–5. 
+
+> 1
+
+https://github.com/Sarah-Johari/SCNN [19] S. Matinizadeh, A. Mohammadhassani, N. Pacik-Nelson, I. Polykretisl, A. Mishra, J. Shackleford, N. Kandasamy, E. Gallo, and A. Das, “A fully-configurable digital spiking neuromorphic hardware design with variable quantization and mixed precision,” in IEEE midwest symp. circuits & systems (MWSCAS) , 2024, pp. 937–941. [20] S. Matinizadeh, A. Mohammadhassani, N. Pacik-Nelson, I. Polykretis, K. Tishbi, S. Kumar, M. L. Varshika, A. K. Mishra, N. Kandasamy, J. Shackleford, E. Gallo, and A. Das, “Neuromorphic computing for the masses,” in Int’l Conf. Neuromorphic Syst. (ICONS) , 2024, pp. 39–46. [21] Y. Cao, Y. Chen, and D. Khosla, “Spiking deep convolutional neural networks for energy-efficient object recognition,” International Journal of Computer Vision , vol. 113, no. 1, pp. 54–66, 2015. [22] M. Isik, I. Ozturk, F. Kopsaftopoulos, and M. E. Gursoy, “A survey of spiking neural network accelerator on fpga,” arXiv preprint arXiv:2307.03910 ,2023. [23] F. Modaresi, M. Guthaus, and J. K. Eshraghian, “Openspike: An openram snn accelerator,” in IEEE International Symposium on Circuits and Systems (ISCAS) , 2023. [24] M. W. Sjoding, R. P. Dickson, T. J. Iwashyna, S. E. Gay, and T. S. Valley, “Racial bias in pulse oximetry measurement,” New England Journal of Medicine , vol. 383, no. 25, pp. 2477–2478, 2020. [25] A. N. Lingamoorthy, A. K. Mishra, S. Kumar, D. Gordon, J. S. Brenner, N. Kandasamy, and A. Watson, “Drug overdose vital-signs evaluator using machine learning.” in IJCAI , 2024, pp. 7358–7366.

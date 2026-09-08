@@ -1,0 +1,760 @@
+Title: BF16 Component-Product Emulation of FP32 and FP64 GEMM on Intel AMX
+
+URL Source: https://arxiv.org/pdf/2609.04663v1
+
+Published Time: Mon, 07 Sep 2026 00:25:48 GMT
+
+Number of Pages: 29
+
+Markdown Content:
+# BF16 Component-Product Emulation of FP32 and FP64 GEMM on Intel AMX 
+
+Cui Bing 1, Liu Yu 1∗
+
+> 1
+
+Maginfra Co., Ltd., Jinan, Shangdong, China. 
+
+Abstract 
+
+Modern CPUs increasingly integrate high-throughput matrix engines optimized for low-precision AI workloads, while many scientific computing applications still rely on FP32 and FP64 GEMM to meet their numerical accuracy requirements. This mismatch motivates an al-gorithmic bridge that uses low-precision matrix products to emulate higher-precision GEMM. This paper presents a CPU-oriented method based on Intel Advanced Matrix Extensions (AMX) and BF16 matrix products. For FP32, each operand is decomposed into three BF16 components and six selected component products are evaluated, targeting FP32-level accuracy relative to oneMKL SGEMM without claiming elementwise or bitwise identity. For FP64 inputs within the supported BF16 exponent range, the method uses a simplified fixed six-slice Ozaki decom-position. Each retained BF16 product is first produced in FP32, then widened and accumulated in FP64. Four product-count settings retain 6, 10, 15, or 21 component products, exposing the accuracy–performance tradeoff relative to oneMKL DGEMM. The implementation combines precomputed packed component buffers, VNNI-packed B panels, and an FP32 tile-resident operand-reuse schedule. On the tested square matrices, AMX-FP32 exceeds oneMKL SGEMM throughput. For AMX-FP64, low-product-count variants can exceed DGEMM at sufficiently large orders, while retaining more products improves accuracy at additional cost. 
+
+Keywords: Intel AMX, BF16, FP32 and FP64 GEMM, mixed-precision, high-performance com-puting 
+
+1 Introduction 
+
+The rapid expansion of artificial intelligence has reshaped the design of modern compute hard-ware. To meet the arithmetic demand of deep learning, processor vendors have devoted increasing silicon area and power budget to low-precision matrix engines. Formats such as FP16, BF16, FP8, and INT8 now deliver much higher peak throughput than conventional FP32 and, in partic-ular, FP64 arithmetic on many architectures [1–3]. This trend creates a widening imbalance for high-performance computing (HPC). Many scientific applications, including computational fluid dynamics, climate simulation, electronic-structure calculations, and quantum chemistry, still de-pend on conventional FP32 and FP64 arithmetic for stability, convergence, and reproducibility. Yet general-purpose FP32/FP64 units serve a narrower market than AI-oriented matrix engines, and their performance growth is increasingly constrained by area and energy efficiency. This imbalance motivates a central question: can the low-precision matrix throughput introduced for AI be used to accelerate high-precision scientific computing? Matrix multiplication is a natu-ral place to ask this question. In machine learning, GEMM is the dominant dense linear-algebra 
+
+> ∗Correspondence to: liujerry06st@gmail.com
+
+1arXiv:2609.04663v1 [cs.MS] 4 Sep 2026 primitive; in HPC, matrix products appear directly in dense solvers and indirectly in sparse solvers, spectral methods, tensor contractions, electronic-structure methods, and quantum-chemistry ker-nels. Modern AI-oriented matrix engines are tile-based: they exploit locality and parallelism by operating on small matrix blocks, and they deliver arithmetic density far beyond traditional scalar or vector units. However, their input formats are usually low precision, and native FP32/FP64 GEMM support is limited or absent. As a result, the hardware capability created for AI is not immediately usable by applications that require conventional FP32 or FP64 GEMM semantics. The goal of this paper is to investigate an algorithmic path across this precision barrier on CPUs. The core idea is to represent a high-precision matrix product as a controlled collection of low-precision matrix products: each FP32 or FP64 operand is decomposed into several BF16 component matrices, selected component products are evaluated by a fast tile engine, and the partial results are reconstructed in a wider format. Intel Advanced Matrix Extensions (AMX) are the implementation vehicle studied here because they bring a dense tile matrix engine into a general-purpose CPU. AMX is therefore a means to explore the larger idea of using AI-style low-precision hardware to accelerate high-precision GEMM on CPU platforms. High-precision emulation is not obtained by issuing additional low-precision GEMMs alone. De-composition produces multiple component matrices and, in principle, a quadratic number of cross products. The most significant products must be selected according to their numerical contribution, while the final summation must preserve low-order information that would otherwise be lost in FP32 accumulation. On a CPU, conversion, packing, tile configuration, cache traffic, parallel scheduling, and final reconstruction can become comparable to the low-precision matrix operations themselves. A successful design must therefore couple numerical decomposition with the data movement and blocking structure of the CPU matrix engine. This paper presents a BF16-based method for emulating FP32 and FP64 GEMM using Intel AMX. The AMX-FP32 path exploits the shared exponent range of BF16 and FP32 through a three-component BF16 residual decomposition and the six-product schedule suggested by Henry et al. [4], and evaluates whether the resulting kernel provides FP32-level accuracy relative to oneMKL SGEMM. The AMX-FP64 path applies a simplified, unscaled Ozaki decomposition to FP64 operands restricted to the BF16 exponent range. It fixes six BF16 slices per operand, recon-structs each selected component product in FP64, and varies the number of retained cross-products. The product count is a tunable accuracy–cost control: retaining more products typically improves agreement with oneMKL DGEMM but reduces the performance headroom available for accelera-tion. 
+
+2 Related Work 
+
+2.1 Low-Precision Hardware and Mixed-Precision Computing 
+
+The arithmetic throughput of modern processors has shifted increasingly toward reduced-precision matrix operations. BF16 retains the exponent range of FP32 while reducing the significand pre-cision, a property that made it attractive for deep-learning training and inference[5]. Tensor Pro-cessing Units demonstrated the system-level value of specializing hardware for dense low-precision matrix multiplication[1]. NVIDIA Tensor Cores subsequently exposed similar matrix-engine func-tionality to general GPU programmers[6], and Hopper continued this trend with dedicated support for multiple reduced-precision formats[2]. This hardware shift has motivated mixed-precision algorithms that reserve wider arithmetic for numerically sensitive operations. In iterative refinement, for example, a low-precision factorization 2and solve can be paired with higher-precision residual evaluation and correction to obtain an ac-curate linear system solution[7]. Carson and Higham established modern convergence analyses for such schemes and extended them to three-precision configurations[8, 9]. At the application level, mixed-precision methods have reduced computational cost in geostatistical modeling[10], reduced data motion in geospatial modeling[11], and enabled scale-selective precision in weather and climate forecasting[12]. These studies demonstrate useful precision flexibility, but the attainable savings depend on the algorithmic structure and its error tolerance. Their objective, however, differs from high-precision GEMM emulation: assigning formats to different stages of an algorithm does not recover the information discarded when a single GEMM is rounded to BF16. Reconstructing that GEMM from BF16 component products requires the discarded low-order information to be rep-resented explicitly in residual components. This requirement motivates floating-point expansions and precision emulation. 
+
+2.2 Floating-Point Expansions and Precision Emulation 
+
+Floating-point expansions provide this representation-level mechanism. They express a value as a sum of floating-point components: a leading component captures the dominant bits, while resid-ual components retain information discarded by preceding rounding operations. Classical error-free transformations, including TwoSum and TwoProduct , separate a rounded result from its correc-tion term and form the foundation for expansion arithmetic[13, 14]. Accurate summation methods address the complementary problem of combining such terms in the presence of cancellation and rounding[15]. Multiword arithmetic extends this idea by representing one number as a sequence of ordinary floating-point words, although its scalar arithmetic does not automatically benefit from the throughput of a matrix engine. For matrix multiplication, an expansion replaces each operand by several low-precision compo-nents and reconstructs the result from selected pairwise component products. Its accuracy therefore depends on component extraction, the retained products, and the precision and order of accumu-lation. RPE, the low-precision simulator of Higham and Pranesh, and QPyTorch support format-sensitivity or quantization studies[16–18], but they do not use this component-product formulation as a high-throughput matrix-engine GEMM. A more direct line of work maps floating-point expan-sions onto matrix engines. 
+
+2.3 Accuracy Recovery with Matrix Engines 
+
+Several studies pursue this direct mapping of floating-point expansions onto matrix engines. Henry, Tang, and Heinecke showed that three BF16 components per FP32 operand and six selected BF16 products can recover FP32-oriented matrix-multiplication accuracy[4]. Bayraktar et al. recently studied BF16 Tensor Core emulation of IEEE-754 SGEMM for scientific-computing settings and reported a GPU implementation intended for library integration, including treatment of denormal inputs, with improved numerical and performance characteristics [19]. Ootomo and Yokota recov-ered single-precision accuracy from FP16 Tensor Core operations by combining leading and residual products with controlled accumulation[20]. Fasi et al. analyzed multiword matrix multiplication on GPU Tensor Cores, identifying how component products and summation order influence the resulting error [21]. Mukunoki, Ozaki, Ogita, and Imamura developed Tensor Core-based SGEMM and DGEMM variants that additionally address accuracy and reproducibility[22]. The Ozaki scheme extends this component-product idea to higher precision by decomposing operands into scaled low-precision slices, evaluating several low-precision GEMMs, and accumu-3lating the results in a wider format [23]. This formulation enabled DGEMM emulation on integer matrix-multiplication units[24], but its practical cost depends strongly on the scaling policy and the number of retained component products. Abdelfattah et al. analyzed this integer-arithmetic for-mulation to quantify that accuracy–cost dependence[25]. Building on this analysis, Uchino, Ozaki, and Imamura developed performance optimizations for Ozaki-style integer-engine emulation[26] and later reported an INT8-engine implementation that evaluates both performance and energy efficiency[27]. A subsequent line of work seeks more explicit control over the product count. Ozaki Scheme II uses an integer modular formulation to limit the GEMMs required for floating-point emulation[28], and its accuracy behavior and product-count requirements have been analyzed explicitly [29]. Com-plementing these cost-control approaches, recent work has established DGEMM-accuracy guaran-tees with reduced-precision Tensor Cores[30]. The same precision-recovery theme has also been extended to FP8 Tensor Cores with FP64 arithmetic emulation [31], FP8 quantization within Ozaki Scheme II [32], and reduced intermediate precision requirements in quantum chemistry[33]. Taken together, these studies connect low-precision hardware, floating-point expansions, and accurate GEMM emulation. The next section specifies the floating-point formats, input domains, and AMX execution model considered in this paper. 
+
+3 Background and Problem Setting 
+
+3.1 Floating-Point Formats 
+
+Table 1 summarizes the formats relevant to this work. We use p for significand precision including the implicit leading bit and u = 2 −p for unit roundoff under round-to-nearest. BF16 retains the eight-bit exponent field of FP32 but reduces the significand from 24 to 8 bits. This design gives BF16 approximately the same normal exponent range as FP32, which is useful for decomposition: an FP32 value can be repeatedly rounded to BF16 and have the rounded component subtracted without first changing its exponent range. Table 1: Floating-point formats used in this work. The precision p includes the implicit leading bit. Format Storage Exponent bits Precision p Unit roundoff u
+
+BF16 16 8 8 2−8
+
+FP32 32 8 24 2−24 
+
+FP64 64 11 53 2−53 
+
+We use the following notation for finite BF16 values and the two IEEE 754 target formats: 
+
+FBF16 = {x : x is a finite BF16 value },
+
+F32 = {x : x is a finite IEEE 754 binary32 value },
+
+F64 = {x : x is a finite IEEE 754 binary64 value }.
+
+(1) Thus, FBF16 , F32 , and F64 have significand precisions of 8, 24, and 53 bits, respectively. NaNs and infinities are excluded from these sets. We write uBF16 = 2 −8, u32 = 2 −24 , and u64 = 2 −53 for the corresponding unit roundoffs. 4FP64 has a wider exponent range than BF16. We denote the restricted FP64 input domain used in this work by 
+
+FB64 =
+
+> {
+
+x ∈ F64 : x = 0 or 2−126 ≤ | x| ≤ (2 − 2−7)2 127 }
+
+. (2) Thus, FB64 contains FP64 values whose finite nonzero magnitudes lie within the normal BF16 range; the values retain the 53-bit FP64 significand and are not rounded to BF16 by this definition. This restricted format is referred to as BF16-range FP64 below. The normal BF16 exponent range matches that of FP32 and covers the practical operand dynamic range of many HPC matrix kernels, particularly after the normalization or nondimensionalization commonly used in scientific codes. Restricting the FP64 path to this domain is a deliberate performance choice: it avoids per-panel scaling factors, stored weights, and their corresponding reconstruction operations, thereby preserving more of the limited AMX-BF16 performance headroom for FP64 emulation. The restriction removes the leading-slice exponent mismatch between FP64 and BF16, but it does not by itself guarantee that every lower residual slice is a normal BF16 value. The unscaled six-slice prototype is therefore restricted to inputs whose extracted components remain representable in BF16. It does not implement scaling or fallback processing; values near the lower BF16 range boundary for which a residual component becomes subnormal or zero are outside its supported domain. Finite FP64 values x / ∈ FB64 are likewise outside the supported numerical domain of the implementation studied here. 
+
+3.2 Problem Definition and Performance Model 
+
+This work considers only the matrix product 
+
+C = AB, A ∈ D m×kt , B ∈ D k×nt , C ∈ Fm×nt , (3) where Ft = F32 and Dt = F32 for the AMX-FP32 path, while Ft = F64 and Dt = FB64 for the BF16-range AMX-FP64 path. The input-domain symbol Dt constrains the operands, rather than the reconstructed FP64 output. Thus, even when A and B belong to FB64 , C need not belong to 
+
+FB64 : component results are widened and accumulated in FP64, and the output is never converted back to BF16. No additional output-range handling is required for this case. Here m, n, and 
+
+k are the row, column, and reduction dimensions, respectively. The current prototype, however, provides no protection against overflow or underflow in an AMX FP32 component product or tile accumulator. The stated numerical claims therefore assume finite normal operands, finite intermediate FP32 component results and tile accumulations, and finite target results. Exceptional values and boundary cases are outside the scope of the current prototype and require a separate fallback extension. Let CS and CD denote the results produced by Intel oneMKL SGEMM and DGEMM, respectively, for the same matrix dimensions, layouts, thread configuration, and input data. These routines serve as the experimental reference baselines in this work. For compactness, figure legends abbreviate oneMKL as “MKL.” For AMX-FP32, the objective is FP32-level numerical accuracy relative to CS, not bitwise repro-duction of oneMKL’s implementation-specific reduction order. The claim is assessed with the two complementary metrics defined in Section 7 and reported in Section 8.2: normwise relative error and GEMM-scaled componentwise error. An unscaled entrywise relative error is deliberately not used because entries of CS can be zero or small after cancellation; the GEMM-scaled denominator instead uses the absolute dot-product bound. 5For AMX-FP64, no single pass threshold is imposed. The six-slice variants are compared with 
+
+CD to determine how accuracy improves as the number of BF16 component GEMMs increases from 6 to 21 and how much performance remains relative to DGEMM. If Np component products are evaluated, a first-order execution-time model is 
+
+Temu = Tsplit + Tpack + NpTAMX + Trecon + Tparallel . (4) Here Tsplit is the cost of decomposing FP32 operands or FB64 operands into BF16 components, Tpack 
+
+is the cost of arranging those components in the packed layout consumed by AMX, and TAMX is the time for one BF16 component GEMM. The multiplier Np is the number of selected component GEMMs. The remaining terms denote target-format reconstruction ( Trecon ) and thread scheduling, synchronization, and other parallel overheads ( Tparallel ). The peak-throughput argument alone is therefore insufficient. Emulation is beneficial only when the AMX advantage over native FP32 or FP64 arithmetic is larger than the number of products and the non-AMX overheads. Equation (4) motivates the three implementation principles used in this paper: minimize insignificant component products, fuse decomposition with the packing path already required by blocked GEMM, and reuse tile-resident operands across multiple products. 
+
+3.3 CPU Matrix Engines and Intel AMX 
+
+Recent Xeon processors incorporate Intel AMX, an x86 instruction-set extension that adds a CPU-resident tile-register matrix facility [3]. AMX provides dedicated instructions for explicitly loading and storing blocked matrix data between memory and tile registers, including TILELOADD 
+
+and TILESTORED , together with tile dot-product instructions[34]. This facility provides eight two-dimensional tile registers. Each tile register has a total capacity of 1 KiB; the implementation can configure it with at most 16 rows, each having a logical width of at most 64 bytes. For AMX-BF16, the source tiles contain BF16 operands and the destination tile contains FP32 accumulators. For floating-point tile dot products, the AMX instruction family provides low-precision BF16 and FP16 variants on processors implementing the respective extensions. This work selects BF16 rather than FP16. BF16 retains the normal exponent range of FP32, whereas FP16 has a substan-tially narrower exponent range. Consequently, BF16 decomposition can represent the FP32 path directly and can support the BF16-range FP64 path without per-panel scaling in the supported domain. An FP16-based expansion would generally require additional scaling, scale metadata, and reconstruction operations; those costs would consume the limited performance headroom of a multi-product emulation method. The choice of BF16 is therefore an end-to-end performance and data-movement choice for the high-precision paths studied here, rather than a claim about the relative peak throughput of BF16 and FP16 instructions. Figure 1 summarizes the AMX-BF16 execution primitive at the architectural level. AMX sup-plies tile-level matrix multiply–accumulate primitives rather than a complete GEMM kernel. The implementation configures the tile shapes and organizes panel packing, blocking, explicit tile move-ment, operand reuse, and output reconstruction. Packed BF16 panels are loaded into source tiles with TILELOADD . The B panel must already use the VNNI-packed layout expected by the BF16 dot-product instruction. TDPBF16PS computes BF16 dot products and updates an FP32 destina-tion tile. TILESTORED materializes that tile in memory when subsequent processing or wider-format reconstruction is required. 6Packed BF16 operand tile Packed BF16 operand tile AMX source tile BF16 AMX source tile BF16    
+
+> tdpbf16ps
+> BF16 ×BF16
+> →FP32 accumulate AMX destination tile FP32 accumulator Stored FP32 tile result Post-AMX reconstruction AMX tile state inside one CPU core
+
+Figure 1: AMX-BF16 execution primitive. TILELOADD explicitly loads BF16 source tiles, TDPBF16PS 
+
+accumulates their dot products into an FP32 destination tile, and TILESTORED writes the accumu-lated tile to memory. Higher-precision behavior is obtained by algorithmic decomposition, product scheduling, and reconstruction around this primitive. Compared with GPU Tensor Cores, AMX operates within a general-purpose CPU core and shares the CPU cache hierarchy, threading environment, and instruction stream. Tile loads and stores are explicit, and the limited tile register file must accommodate both source operands and destination accumulators. These properties make AMX accessible within conventional CPU pro-gramming environments, but they also expose input-conversion, panel-packing, tile-configuration, cache-blocking, and reconstruction costs. High-precision emulation on AMX therefore depends not only on tile-instruction throughput but also on reuse of decomposed operands and coordination with the surrounding CPU memory hierarchy. 
+
+4 BF16-Based High-Precision GEMM 
+
+4.1 General Decomposition Framework 
+
+The notation below builds on classical floating-point splitting and multiword arithmetic [13, 14, 21], BF16 residual decomposition for FP32 computation [4], and component-product formulations used in Ozaki-type matrix multiplication schemes [23, 24, 26]. We use a single unscaled notation for matrices in F32 and FB64 .For a target-format input matrix X ∈ Fa×b 
+
+> 32
+
+∪ (FB64 )a×b, construct the BF16 expansion 
+
+X = 
+
+> sX−1
+
+∑
+
+> r=0
+
+Xr + RX , Xr ∈ Fa×b
+
+> BF16
+
+, (5) where sX is the number of BF16 slices, Xr is the rth slice, and RX is the exact remainder of the stored-slice representation. Here t = 32 for FP32 inputs and t = 64 for BF16-range FP64 inputs. We write fl BF16 (·) for entrywise rounding to the BF16 format. For normal values, this operation retains an 8-bit binary significand, including the implicit leading bit. The rounded result is storable as BF16 when its exponent lies in the supported range. Slice indices increase from the most significant contribution ( r = 0 ) toward progressively smaller residual contributions. As is customary in multiword arithmetic, a slice in an algebraic expression denotes the exact real value of the stored BF16 number. BF16 values are exactly representable in both FP32 and FP64, so no explicit format-embedding operator is needed in the formulas below. 7Equation (5) specifies a stored representation, not one universal extraction recurrence. Section 4.2 uses direct residual rounding for FP32, whereas Section 4.3 uses a simplified Ozaki-style projec-tion for FP64. This separation follows the multiword component-product view used in extended-precision GEMM schemes [4, 21, 22]. For a selected component-product set S, the standard multiword reconstruction is written com-pactly as ̂
+
+Ct = ∑
+
+> (i,j )∈S
+
+fl 32 (AiBj ) t ∈ { 32 , 64 }. (6) Here Ai ∈ Fm×k 
+
+> BF16
+
+and Bj ∈ Fk×n
+
+> BF16
+
+. Each inner fl 32 (AiBj ) denotes an AMX BF16-by-BF16 component GEMM: its inputs are BF16 and its reduction result is retained in FP32. The sum is evaluated in target format t and in the implementation’s executed order. In particular, for t = 64 , each FP32 component result is exactly widened before its FP64 addition; there is no FP32 accumulation across component products. This notation follows the usual low-precision-product and wider-accumulation presentation in multiword GEMM [4, 21, 22]. Later residual slices normally contain lower-order information, so component pairs are selected in increasing index-sum order. For sA and sB slices, the triangular selection is 
+
+Sd = {(i, j ) : 0 ≤ i < s A, 0 ≤ j < s B , i + j < d } , Np(d) = |S d| . (7) This ordering is a residual-based heuristic rather than a strict entrywise or matrix-norm mono-tonicity guarantee: rounding, cancellation, and the entry distribution can alter individual product magnitudes. It nevertheless gives the standard triangular truncation used to trade component-product count against accuracy [4, 21]. For AMX-FP32, d = 3 recovers the six-product structure of Henry et al. [4]. 
+
+4.2 AMX-FP32 Emulation 
+
+For FP32, BF16 and FP32 share the normal exponent range. A direct residual decomposition therefore uses three BF16 components per operand. With A(0) = A, define 
+
+Ar = fl BF16 (A(r)), A(r+1) = fl 32 
+
+> (
+
+A(r) − Ar
+
+> )
+
+, r = 0 , 1, 2, (8) The BF16 slice Ar is exactly representable when read by FP32 arithmetic, so the subtraction in Eq. (8) introduces no conversion error. For nonzero normal FP32 residuals away from underflow, 
+
+A(r) and Ar have the same sign and are within a factor of two in magnitude. Sterbenz’s lemma therefore makes their FP32 subtraction exact [35]. Thus, in this normal case, fl 32 (A(r) − Ar) equals the exact difference; the fl 32 notation is retained to state the implemented FP32 operation and to cover zero, subnormal, and boundary cases. RA = A − (A0 + A1 + A2) is the residual in exact real arithmetic; Br and RB are defined analogously. Thus 
+
+A = A0 + A1 + A2 + RA, B = B0 + B1 + B2 + RB . (9) The residual decomposition itself is a standard floating-point expansion technique [13, 14]; it is not unique to Henry et al. In this paper, “Henry-style” refers specifically to the BF16 three-component construction paired with the following six-product triangular schedule, which was suggested by Henry et al. and later analyzed in the general multiword setting [4, 21]: The default six-product schedule follows the first three diagonals. Its six selected component products are ̂
+
+C32 = fl 32 (A0B0) + fl 32 (A0B1) + fl 32 (A1B0)+ fl 32 (A0B2) + fl 32 (A1B1) + fl 32 (A2B0). (10) 8Equation (10) specifies the retained products; their physical accumulation order is given in Sec-tion 6.2. Each term is a BF16-by-BF16 AMX matrix product with an FP32 result. Their sum is evaluated in FP32 in the implementation’s executed order; no additional conversion of a com-ponent product is implied. The corresponding ideal truncation omits A1B2, A2B1, and A2B2, as well as terms containing the residuals. Under round-to-nearest, normal intermediate values, and exact residual subtraction, repeated BF16 extraction gives a componentwise residual reduction of at most uBF16 = 2 −8 per step. The first omitted diagonal is then of order u3BF16 = 2 −24 relative to |A|| B|. This observation motivates the six-product scheme of Henry et al. [4] and explains why it can recover FP32-level accuracy. It is not a universal forward-error guarantee: cancellation in component products, underflow or boundary cases, and the FP32 accumulation order can produce larger errors for difficult matrices. The method therefore does not claim elementwise or bitwise identity with oneMKL SGEMM. The implemented fast path issues all six products into FP32 AMX accumulators and combines reduction blocks in FP32. This choice minimizes reconstruction overhead and matches the intended performance-oriented use of the Henry six-product schedule, but it also means that low-order contributions can be lost when they are added to larger partial sums. Algorithm 1 summarizes this FP32 path. It combines the three BF16-component splits with the triangular selection in Eq. (7) and performs the resulting six AMX-BF16 products with FP32 accumulation. 
+
+Algorithm 1 AMX-FP32 GEMM emulation with a triangular BF16 product schedule 
+
+Require: A ∈ Fm×k 
+
+> 32
+
+, B ∈ Fk×n 
+
+> 32
+> 1:
+
+(A0, A 1, A 2) ← Split FP32 (A) ▷ three-component BF16 residual split  
+
+> 2:
+
+(B0, B 1, B 2) ← Split FP32 (B) 
+
+> 3:
+
+C ← 0 in FP32  
+
+> 4:
+
+for i = 0 , 1, 2 do  
+
+> 5:
+
+for j = 0 , . . . , 2 − i do  
+
+> 6:
+
+C ← fl 32 (C + fl 32 (AiBj )) ▷ AMX BF16 component GEMM with FP32 accumulation  
+
+> 7:
+
+end for  
+
+> 8:
+
+end for  
+
+> 9:
+
+return C
+
+4.3 AMX-FP64 Emulation 
+
+The AMX-FP64 path is a simplified variant of the Ozaki residual decomposition. It deliberately fixes the number of BF16 slices to six for every operand. This choice differs from a full Ozaki configuration, where the decomposition depth and scaling parameters are chosen from error bounds so that the final result satisfies a prescribed FP64 accuracy target. Here the goal is instead to expose the accuracy/performance tradeoff available on AMX: each operand is split into six BF16 slices, and the number of retained component products is varied. In the standard Ozaki scheme [23], a vector or panel residual is decomposed into scaled low-precision chunks, 
+
+X ≈ 
+
+> sX−1∑
+> r=0
+
+2v(r) 
+
+> X˜
+
+X(r), ˜X(r) ∈ Fa×b
+
+> BF16
+
+, (11) where the exponents v(r) 
+
+> X
+
+are chosen from the magnitude of the current residual and are used again during reconstruction. The high-order chunk of a residual is commonly obtained through the Ozaki 9add–subtract projection: 
+
+Z(r) 
+
+> X
+
+= fl 64 
+
+> (
+
+fl 64 
+
+> (
+
+X(r) + Σ (r)
+
+> X
+> )
+
+− Σ(r)
+
+> X
+> )
+
+, Σ(r) 
+
+> X
+
+= 2 v(r) 
+
+> X+ρ
+
+, (12) where v(r) 
+
+> X
+
+=
+
+> ⌈
+
+log 2
+
+> (
+
+max i,j |X(r) 
+
+> ij
+
+|
+
+> )⌉
+
+, and ρ controls the number of significand bits retained in the extracted chunk. The ceiling selects a power-of-two upper bound, ensuring Σ(r) 
+
+> X
+
+≥ 2ρ max i,j |X(r) 
+
+> ij
+
+|
+
+as required by the Ozaki add–subtract extraction. The residual is then updated after subtracting this chunk from X(r).The present method retains this residual-chunk structure but simplifies its storage format for supported BF16-range FP64 inputs. Rather than storing a normalized BF16 chunk together with an explicit coefficient 2v(r) 
+
+> X
+
+, it stores the extracted chunk directly as a BF16 matrix whenever that chunk is a normal BF16 value. Thus the component buffers carry no separate scale metadata or reconstruction weights. This simplification removes the associated scaling and rescaling work, leaving more of the limited AMX-BF16 performance headroom available for the selected component GEMMs. For A(0) = A, if A(r) = 0 , set Ar = A(r+1) = 0 and set all remaining slices to zero. Otherwise, for a nonzero residual, the fixed six-slice Ozaki split is 
+
+v(r) 
+
+> A
+
+=
+
+> ⌈
+
+log 2
+
+> (
+
+max  
+
+> i,j
+
+|A(r) 
+
+> ij
+
+|
+
+> )⌉
+
+, (13) 
+
+Z(r) 
+
+> A
+
+= fl 64 
+
+> (
+
+fl 64 
+
+> (
+
+A(r) + 2 v(r) 
+
+> A+ρ
+> )
+
+− 2v(r) 
+
+> A+ρ
+> )
+
+,Ar = fl BF16 (Z(r) 
+
+> A
+
+), A(r+1) = fl 64 
+
+> (
+
+A(r) − Ar
+
+> )
+
+, r = 0 , . . . , 5. (14) Here Ar is the retained BF16 slice, which is exactly representable when read by FP64 arithmetic. For a BF16 slice with an 8-bit significand, we use ρ = 53 − 8 = 45 , the significand-width gap between FP64 and BF16. This choice aligns the add–subtract projection with the BF16 target precision: Z(r) 
+
+> A
+
+retains the leading information in A(r) at a granularity from which fl BF16 can round a BF16 slice while discarding as little leading residual information as possible. The split always stops after six slices; the residual A(6) is not decomposed further. For the supported domain, the projection produces normal BF16-representable entries, so Ar =
+
+Z(r) 
+
+> A
+
+. Consequently, the residual update in Eq. (14) is the usual Ozaki-type update that subtracts the extracted high-order chunk from the current residual. The stored BF16 slice is therefore also the quantity removed from the residual; apart from ordinary FP64 residual-update rounding, no additional BF16-rounding discrepancy is introduced at this step. The same six-step recurrence is applied to B(0) = B.The representation is unweighted because the panel-scale factor used by the add–subtract projec-tion is carried implicitly in the exponent field of each normal BF16 slice. Thus reconstruction sums the stored slices directly, without separate scale metadata or rescaling. This property requires the extracted entries to remain normal BF16 values. The current unscaled prototype does not han-dle lower residual slices that become subnormal or zero; such inputs require a scaled or fallback extension. Computing all six-by-six products would require 36 component GEMMs, but the intended accu-racy/performance region of this work is the leading triangular part of the expansion. For six slices per operand, 
+
+Np(3) = 6 , Np(4) = 10 , Np(5) = 15 , Np(6) = 21 . (15) 10 These four schedules form a controlled sequence from lower cost and lower accuracy toward higher cost and higher accuracy. This fixed-depth and truncated-product design is motivated by the limited performance headroom measured in Section 8.1: AMX-BF16 GEMM is substantially faster than native FP64 GEMM, but not fast enough to make a 21-product six-slice schedule universally profitable. Let Sd = {(i, j ) : 0 ≤ i, j < 6, i + j < d } denote the selected triangular set. Let (iq, j q),
+
+q = 0 , . . . , N p(d) − 1, list its pairs in the executed order. The computed FP64 output is ̂
+
+C(d)64 =
+
+> Np(d)−1
+> ∑
+> q=0
+
+fl 64 
+
+> (
+
+fl 32 
+
+> (
+
+Aiq Bjq 
+
+> ))
+
+. (16) The inner fl 32 denotes the AMX BF16-by-BF16 component GEMM with an FP32 tile result. The enclosing fl 64 denotes its exact widening to FP64 before accumulation. The sum is evaluated in the displayed order with FP64 additions: each component result is stored, widened, and added to the FP64 accumulator before the next product is evaluated. Thus there is no FP32 accumulation across distinct component products, and the BF16 component inputs are never multiplied directly as FP64 matrices. This low-precision-product, wider-reconstruction organization is the standard separation used in extended-precision low-precision-GEMM methods [4, 21, 22]. Unlike the AMX-FP32 path, these products cannot remain in a common AMX FP32 accumulator: each selected product must be materialized by a tile store, converted from FP32 to FP64, and added to the FP64 output block before the next product is processed. The repeated stores, format conversions, and FP64 additions are therefore a substantial cost of the AMX-FP64 implementation and reduce the performance headroom available for additional component products. Algorithm 2 summarizes the fixed six-slice path. It uses the simplified Ozaki residual decom-position described above [23], then evaluates the selected triangular product schedule with FP64 reconstruction. 
+
+Algorithm 2 Six-slice AMX-FP64 GEMM approximation using AMX-BF16 
+
+Require: A ∈ (FB64 )m×k, B ∈ (FB64 )k×n 
+
+> 1:
+
+(A0, . . . , A 5) ← Split FP64 (A) ▷ simplified Ozaki six-slice split  
+
+> 2:
+
+(B0, . . . , B 5) ← Split FP64 (B) 
+
+> 3:
+
+Choose (d, N p) ∈ { (3 , 6) , (4 , 10) , (5 , 15) , (6 , 21) } 
+
+> 4:
+
+C ← 0 in FP64  
+
+> 5:
+
+for ℓ = 0 , . . . , d − 1 do  
+
+> 6:
+
+for all (i, j ) such that i + j = ℓ, 0 ≤ i, j < 6 do  
+
+> 7:
+
+C ← fl 64 (C + fl 32 (AiBj )) ▷ AMX FP32 result; store, widen, and add in FP64  
+
+> 8:
+
+end for  
+
+> 9:
+
+end for  
+
+> 10:
+
+return C
+
+5 Numerical Accuracy Considerations 
+
+This section summarizes the numerical effects that are most relevant to the proposed kernels. The goal is not to prove bitwise agreement with SGEMM or a complete DGEMM accuracy guarantee. Instead, the analysis identifies which parts of the algorithm are controlled by the number of BF16 slices, the retained product schedule, AMX’s FP32 accumulation, and the reconstruction format. The attained accuracy is measured experimentally against the corresponding oneMKL GEMM result. 11 5.1 Decomposition and Omitted Products 
+
+For AMX-FP32, the three stored BF16 components leave residual matrices RA and RB after the direct residual split of Section 4.2. The six selected Henry-style products retain the leading com-ponent interactions but omit lower-order cross-products and all terms involving these residuals. Together with FP32 accumulation, these omitted terms explain why the method targets FP32-level accuracy relative to oneMKL SGEMM rather than bitwise or elementwise identity. Equation (10) fixes the six retained AMX-FP32 component products; the omitted terms also include contributions involving RA and RB . The set-based expression below is instead used for the variable AMX-FP64 product schedules. The fixed six-slice FP64 split leaves terminal residuals A(6) and B(6) that are not represented by the stored BF16 components. Together with ordinary rounding in the FP64 residual updates, these residuals are one source of deviation from a native high-precision GEMM. A separate algorithmic source is product truncation. If only the index set Sd = {(i, j ) : 0 ≤ i < s A, 0 ≤ j < s B , i + j < d }
+
+is evaluated, an omitted-product term appears: 
+
+Eomit = ∑  
+
+> 0≤i<s A,0≤j<s B
+> (i,j )/∈S d
+
+AiBj . (17) This term is the main algorithmic difference among AMX-FP64-6, AMX-FP64-10, AMX-FP64-15, and AMX-FP64-21. Adding triangular diagonals reduces the omitted tail, but it does not imply full FP64 accuracy for all matrices. Cancellation, input scaling, and the residuals left by the fixed six-slice split can still dominate the final error. 
+
+5.2 Accumulation and Reconstruction 
+
+The products in Eq. (17) are real-arithmetic quantities used only to analyze slice and truncation error. The corresponding executable term is fl 32 (AiBj ): AMX-BF16 multiplies BF16 operands and accumulates them into FP32 destination tiles. The multiplication of finite BF16 significands is exactly representable in FP32 before exponent-range effects, while rounding occurs during FP32 accumulation and during later combination of component products. This is the same qualitative issue as in standard floating-point dot products [35]; the exact error depends on the blocking, reduction order, and number of component products combined in one accumulator. The two precision paths deliberately make different reconstruction choices. The AMX-FP32 path combines the six Henry-style products in FP32 to preserve the performance motivation of the method. In the implementation, this combination can occur while the six products remain resident in the same AMX FP32 accumulator tiles, following the operand-reuse order in Eq. (19). This improves data movement and tile-load efficiency but fixes a particular FP32 summation order across component products. The resulting AMX-FP32 path targets FP32-level accuracy relative to oneMKL SGEMM and is validated empirically under that criterion, but it does not claim ele-mentwise or bitwise identity. The AMX-FP64 variants store each AMX component result as FP32, exactly embed it into FP64, and then accumulate each selected product in FP64. Reconstructing the AMX-FP64 path directly in FP32 would discard much of the recovered low-order information. These choices leave four experimentally controlled accuracy levers: number of BF16 slices, retained product levels, k-blocking, and reconstruction precision. 12 6 AMX Implementation 
+
+6.1 Blocked Kernel Organization and Tile Mapping 
+
+The implementation follows the conventional layered structure of a high-performance GEMM. To avoid overloading the matrix name C, we denote the outer output-block sizes by BM and BN , the reduction-panel length by BK , and the AMX micro-tile dimensions by TM and TN . Outer loops partition the output matrix into cache-resident BM × BN blocks and split the reduction dimension into panels of length BK . Within each output block, the microkernel updates a TM × TN output tile. In the current prototype, 
+
+(BM , B N , B K , T M , T N ) = (256 , 256 , 256 , 32 , 32) . (18) The same outer structure is used for FP32 and FB64 input emulation; the difference is the number of packed BF16 panels and the reconstruction path. The choice TM = TN = 32 is determined by the eight-tile register budget of the selected microkernel mapping. Two tiles hold the two 16 × 32 row halves of the A operand, two tiles hold two VNNI-packed B operand panels, and the remaining four tiles hold the four 16 × 16 FP32 accumulator quadrants. Thus all eight registers are occupied while updating one 32 × 32 output micro-tile; this is the largest square component-product update supported by this register allocation without spilling tile-resident operands or accumulators. Eight AMX tile registers must hold both BF16 source operands and FP32 accumulators. Unlike the architectural primitive in Figure 1, the microkernel must assign concrete tile registers to a fixed output block. Figure 2 shows a representative 32 × 32 component-product update. Two source tiles hold a 32 × 32 BF16 Ai panel as two 16 × 32 row blocks. Two source tiles hold the corresponding Bj
+
+panel after BF16 VNNI packing. In the schematic, an 8 × 8 B subpanel has eight reduction indices and eight output columns. VNNI packing pairs adjacent entries along the reduction dimension, yielding a 4 × 16 physical layout: each pair of adjacent packed positions represents the two BF16 values for one original output column. This illustrative packed layout is divided by output-column group , not by the reduction dimension. Its first four output columns occupy the first 4 × 8 packed region loaded into TMM2, and its remaining four output columns occupy the second 4 × 8 packed region loaded into TMM3. At full micro-tile scale, TMM2 and TMM3 analogously hold the K = 32 
+
+data for output columns 0–15 and 16 –31 , respectively. They therefore update the left and right output column groups, while the remaining four tiles hold the four 16 × 16 FP32 quadrants of the 
+
+32 × 32 accumulator block. The same tile allocation is used by the AMX-FP32 and AMX-FP64 paths; they differ in the number of scheduled component products and in the reconstruction format after tile stores. 13 BF16 source tiles                         
+
+> Aipanel: two row halves
+> TMM0
+> rows 0–15
+> TMM1
+> rows 16–31 each 16 ×32 BF16
+> Bjpanel: VNNI packed
+> TMM2
+> cols 0–15
+> TMM3
+> cols 16–31 VNNI: 4×16 logical packed cells
+> AMX-BF16
+> tdpbf16ps
+> BF16 ×BF16 →FP32
+> 4 quadrant updates
+> Gℓaccumulator block
+> 32 ×32 FP32
+> TMM4 TMM5 TMM6 TMM7 four 16 ×16 FP32 tiles
+> tile store FP32 block reconstruction
+
+Figure 2: Representative AMX tile mapping for one 32 × 32 BF16 component product. TMM0– TMM1 hold the two row halves of Ai. TMM2–TMM3 hold the VNNI-packed Bj panel: in the illustrative 8 × 8 view, the packed 4 × 16 layout is divided into 4 × 8 regions for two distinct output-column groups, not for two reduction-dimension halves. TMM4–TMM7 hold the four 16 × 16 FP32 accumulator quadrants. The layout exposes the four quadrant updates produced by the AMX BF16 dot-product instruction. 
+
+6.2 Precomputed Decomposition/Packing and Product Scheduling 
+
+The implementation uses an all-slice precomputation strategy in which decomposition and packing are performed before the AMX compute loop. The decomposition step is format dependent: the AMX-FP32 path uses the three-component BF16 residual split, whereas the AMX-FP64 path uses the fixed-depth Ozaki-style split described in Section 4.3. Once BF16 components have been generated, however, both paths use the same packing logic. The preprocessing routine does not preserve the original global matrix order. Instead, each decomposed subblock is emitted into a block-contiguous component buffer, so later panel reads access consecutive packed subblocks rather than strided regions of the original matrix. The A and B component buffers differ only in their AMX-facing layout. Components of A
+
+are stored as contiguous subblocks in the standard row-major panel layout. Components of B
+
+are first converted to the VNNI layout expected by the BF16 dot-product instruction, with BF16 pairs contiguous along the reduction dimension, and are then stored as contiguous VNNI-packed subblocks. During the GEMM loop, the implementation copies the required 256 × 256 component panels into block-local AMX-facing buffers and reuses them across the 32 × 32 micro-tile updates inside the block. Figure 3 illustrates this data layout using the FP32 three-component path as an example; the AMX-FP64 path follows the same packing dataflow after its Ozaki-style decomposition has produced BF16 components. 14 original FP32 panels                         
+
+> example input subblocks
+> A[mc, k c]256 ×256 FP32
+> B[kc, n c]256 ×256 FP32
+> preprocessing
+> BF16 split
+> x7→x0, x 1, x 2
+> A→block buffer
+> B→VNNI block buffer
+> block-contiguous component buffers
+> Aicomponent buffers contiguous standard-layout subblocks
+> A0. . .
+> A1. . .
+> A2. . .
+> Bicomponent buffers contiguous VNNI-packed subblocks
+> B0. . .
+> B1. . .
+> B2. . .
+> AMX loop reads
+> 256 ×256 panels into local buffers
+
+Figure 3: Precomputed decomposition and packing used by the prototype, shown for the AMX-FP32 three-component path. The AMX-FP64 path uses the same packing dataflow after Ozaki-style decomposition produces BF16 components. This precomputed layout is deliberately chosen for the loop order used in the implementation. A streamed-lower-slice design would generate residual components inside the (BM , B N , B K ) panel loop, but with the current M -outer, N -middle, and K-inner traversal it repeats either A-panel or B-panel generation across output blocks. In the evaluated implementation, this extra split/pack work outweighed the memory savings, and changing the outer loop order also changes the accumulation structure. All selected slices are therefore kept precomputed under the fixed loop order described above. The triangular selection in Eq. (7) determines the nominal residual-based significance order, but the physical execution order can be chosen for tile reuse. This scheduling freedom is useful mainly for the AMX-FP32 path because the six selected BF16 products can share the AMX FP32 accumulator tiles before the micro-tile is stored. This tile-resident reuse is specific to AMX-FP32: AMX-FP64 must materialize each component product before FP64 accumulation and therefore cannot obtain the same scheduling benefit; its reconstruction path is described in Section 6.3. For the six-product AMX-FP32 path, rather than evaluating the selected products in diagonal order, the implementation uses the operand-reuse order 
+
+A1B1 → A1B0 → A2B0 → A0B0 → A0B1 → A0B2. (19) where a label such as A1B1 abbreviates the AMX BF16 component GEMM with BF16 input slices A1 and B1; it does not denote an FP32 multiplication of embedded component matrices. Adjacent products in this chain share exactly one operand component. Thus the first product loads both an A component panel and a B component panel, while each later product loads only the operand component that changes. For one output micro-tile and one BK reduction panel, a component panel occupies two AMX input tiles; the schedule therefore reduces the six-product inner-loop traffic from 12 component-panel loads to 7, or from 24 tile-load instructions to 14. It therefore saves 5 component-panel loads and 10 explicit tile-load instructions per six-product sequence, reducing both instruction overhead and movement of BF16 panels into the tile register file. Because the pattern is repeated across the reduction panels and output micro-tiles, the reduced load cost materially improves the AMX-FP32 kernel’s overall performance. This is primarily a data-movement optimization: it does not change the selected component products and therefore preserves the same Henry-style six-product approximation in real arithmetic. However, FP32 addition is nonassociative, so the changed accumulation order can alter the final FP32 bits relative to another 15 valid schedule. For the present algorithm, these order-dependent differences are negligible in the reported accuracy evaluation. Figure 4 illustrates the schedule.               
+
+> FP32 six-product operand-reuse schedule
+> AMX micro-tile schedule: input panels are updated one at a time while FP32 accumulators remain live
+> A1B1
+> step 1
+> A1B0
+> step 2
+> A2B0
+> step 3
+> A0B0
+> step 4
+> A0B1
+> step 5
+> A0B2
+> step 6
+> load A1
+> load B1
+> keep A1
+> load B0
+> load A2
+> keep B0
+> load A0
+> keep B0
+> keep A0
+> load B1
+> keep A0
+> load B2
+> TMM accumulator group: FP32 Ctiles remain resident Two component-panel loads for the first product; one changed component-panel load for each later product.
+
+Figure 4: Operand-reuse scheduling for the AMX-FP32 six-product path. The AMX-FP32 accu-mulator tiles remain resident across the chain; only the changed input component panel is reloaded after the first product. 
+
+6.3 Target-Format Reconstruction and Parallelization 
+
+For the AMX-FP32 implementation, reconstruction is fused with the blocked compute loop. For each BM × BN output block, the implementation allocates a private FP32 block accumulator. Within each BK panel, the implementation zeros the four FP32 AMX accumulator tiles for a 
+
+32 × 32 micro-tile, evaluates the six scheduled component products across the BK reduction block, and stores the four AMX accumulator tiles to a temporary 32 × 32 FP32 buffer. This temporary micro-tile is added into the thread-private BM × BN FP32 block accumulator. After all BK panels have been processed, the completed block is written to the output matrix. The AMX-FP64 variants use the same blocked traversal and output-block parallelization, but they use a different reconstruction rule. For every selected BF16 matrix multiplication, AMX first produces an FP32 micro-kernel result; the four FP32 AMX accumulator tiles are then stored immediately, the stored 32 × 32 FP32 tile is converted to FP64, and the converted tile is added to the thread-private FP64 block accumulator. Thus FP64 reconstruction shares the AMX-FP32 path’s parallel blocking structure, but it does not directly accumulate multiple component products in the same AMX FP32 accumulator tile. If several products were accumulated in the same AMX FP32 tile before the FP64 conversion, their inter-product summation would occur in FP32 and would not match the intended FP64 reconstruction. Consequently, the AMX-FP64 path cannot obtain the same scheduling-driven speedup as the AMX-FP32 path by keeping multiple component products resident in AMX FP32 tiles. The additional tile stores, FP32-to-FP64 conversion, and FP64 accumulation reduce the available performance headroom for AMX-FP64-6, AMX-FP64-10, AMX-FP64-15, and AMX-FP64-21 relative to the AMX-FP32 path. Figure 5 summarizes this distinction: the outer parallel decomposition is shared, whereas the reconstruction path diverges after each AMX-BF16 component product. 16 Shared OpenMP/blocking structure: independent BM × BN output blocks, sequential BK panels, same AMX micro-kernel shape 
+
+FP32 reconstruction 
+
+> component products remain in AMX FP32 tiles
+> six selected BF16 products
+> AMX FP32 accumulator tiles remain resident single tile store FP32 block accumulator
+> Single AMX FP32 chain; one tile store per micro-tile.
+
+FP64 reconstruction          
+
+> materialize each product before FP64 accumulation
+> Q1AMX FP32 tile store FP32 to FP64
+> Q2AMX FP32 tile store FP32 to FP64
+> QdAMX FP32 tile store FP32 to FP64
+> ...
+> FP64 block accumulator
+> Every selected product: store, convert, then add to the FP64 accumulator.
+
+Figure 5: Different reconstruction paths under the same block-level parallelization. The AMX-FP32 path keeps the AMX FP32 accumulator tiles live across the six scheduled component products, whereas the AMX-FP64 variants store each selected AMX-BF16 product, convert it to FP64, and accumulate outside AMX. The current implementation parallelizes three stages with OpenMP. The A decomposition is parallelized over (BM , B K ) blocks with static scheduling, while the B decomposition and VNNI packing are parallelized over (BK , B N ) blocks. The compute stage assigns independent BM × BN
+
+output blocks to threads using a collapsed static loop over the outer M and N block dimensions, so no two threads update the same output block. This parallel structure is shared by the AMX-FP32 and AMX-FP64 paths. Inside each output block, the current implementation traverses BK
+
+panels sequentially and copies the precomputed A components and VNNI-packed B components into block-local buffers before issuing the AMX micro-kernel. The AMX tile configuration is loaded before the timed compute region, and tile state is released after the AMX kernel completes. 
+
+7 Experimental Methodology 
+
+7.1 Hardware and Experimental Configuration 
+
+All experiments are conducted on a dual-socket Intel Xeon Platinum 8462Y+ server running Rocky Linux 9.3. The prototype is compiled with Intel oneAPI 2026.1. Unless otherwise noted, the SGEMM and DGEMM baselines use Intel oneMKL from the same oneAPI environment. OpenMP parallel runs use the Intel OpenMP runtime with KMP_AFFINITY=compact for compact thread placement. Frequency policy is kept fixed within each measurement campaign. Table 2: Experimental platform. Item Configuration Processor Intel Xeon Platinum 8462Y+ Sockets 2Operating system Rocky Linux 9.3 Compiler Intel oneAPI 2026.1 Compiler flags -O3 -march=native -mkl -qopenmp 
+
+BLAS library Intel oneMKL 2026.1 Thread binding compact 17 Full-core measurements use 64 OpenMP threads, with one software thread per physical core. Before timed repetitions, both the AMX and oneMKL benchmark paths are invoked once for warm-up; the AMX warm-up includes its operand decomposition stage. Each configuration is then measured 10 times, and the reported runtime is the arithmetic mean of these measurements. 
+
+7.2 Baselines and Variants 
+
+The principal baselines are the Intel oneMKL SGEMM and DGEMM routines for the AMX-FP32 and AMX-FP64 paths, respectively. Table 3 summarizes the emulation variants evaluated in this study. All variants use the same matrix layouts, thread counts, and timing protocol. Table 3: Evaluated algorithm variants. Variant Reference Slices BF16 GEMM count Reconstruction AMX-FP32 oneMKL SGEMM 3 6 FP32 AMX-FP64-6 oneMKL DGEMM 6 6 FP64 AMX-FP64-10 oneMKL DGEMM 6 10 FP64 AMX-FP64-15 oneMKL DGEMM 6 15 FP64 AMX-FP64-21 oneMKL DGEMM 6 21 FP64 
+
+7.3 Input Matrices and Accuracy Metrics 
+
+The validation plan considers three representative classes of input matrices: 
+
+• random matrices with uniform or Gaussian entries, used as the default non-adversarial case; 
+
+• scaled or log-uniform matrices, used to exercise a wider dynamic range while remaining inside 
+
+FB64 for FP64 experiments; and 
+
+• cancellation-sensitive matrices, used to expose cases where product truncation and summation order have a larger effect. The accuracy results reported in Section 8.2 use uniform random inputs. Additional evaluations using scaled and cancellation-sensitive inputs were conducted as supplementary validation; detailed results across the tested matrix orders are not reported here. All reported experiments use square GEMM problems with m = n = k = N , and the matrix order 
+
+N is varied to expose small-matrix overheads and large-matrix steady-state behavior. Rectangular GEMM cases are outside the experimental scope of this study. The primary FP32 reference is 
+
+CS from oneMKL SGEMM, and the primary FP64 reference is CD from oneMKL DGEMM. A multiprecision result may be used as an auxiliary diagnostic to separate emulation error from the error already present in the oneMKL GEMM, but it is not the baseline used for the headline comparison. For a computed result ̂ C and the corresponding reference Cref , we report the Frobenius-norm relative error 
+
+eF =
+
+> ∥∥∥̂
+
+C − Cref 
+
+> ∥∥∥F
+
+‖Cref ‖F
+
+, (20) 18 and the GEMM-scaled componentwise error 
+
+escaled = max 
+
+> i,j
+
+|(̂C − Cref )ij |
+
+(|A|| B|)ij 
+
+, (21) where the denominator is evaluated in the reference format or a wider diagnostic format. Entries with a zero denominator are reported separately using absolute error. The Frobenius-norm metric measures aggregate matrix-level agreement, whereas the scaled componentwise metric exposes the worst local discrepancy relative to the absolute dot-product bound at the corresponding entry. The FP32-level-accuracy claim is based on these two metrics rather than a single scalar threshold, and it does not imply bitwise equality with oneMKL SGEMM. This normwise/componentwise reporting follows established mixed- and multiword-GEMM accuracy practice [21, 35]. 
+
+7.4 Performance Metrics 
+
+Performance is reported as wall-clock time T , effective throughput, and speedup over the corre-sponding oneMKL baseline. Because all reported experiments use square GEMM with m = n =
+
+k = N , effective throughput is computed as 2N 3/T . This normalization counts the mathematical work of the requested high-precision GEMM, not the larger number of BF16 component operations issued by the emulation kernels. Accuracy and performance are reported together for every evalu-ated variant so that faster but less accurate AMX-FP64 schedules are not hidden. Timing excludes matrix initialization and reference-result generation; one-time setup costs such as AMX permission checks and tile-configuration setup are kept outside the steady-state timing region unless explic-itly reported. The performance evaluation reports full-core results and AMX-FP32 thread scaling. Single-core and single-socket studies are outside the scope of this paper. 
+
+8 Results 
+
+We first quantify the raw AMX-BF16 headroom, then report accuracy, performance, and runtime composition for the implemented variants. 
+
+8.1 AMX-BF16 Performance Headroom 
+
+Before evaluating the emulation kernels, we first measure the performance headroom of the oneMKL AMX-BF16 matrix-multiply routine bf16bf16fp32 , which computes BF16-by-BF16 products with FP32 accumulation. This experiment compares bf16bf16fp32 against oneMKL SGEMM and oneMKL DGEMM using the same matrix sizes, thread configuration, affinity policy, and timing protocol. The purpose is to estimate the raw performance budget available to any BF16-component emulation method before decomposition, packing, reconstruction, and synchronization costs are included. Thus, this headroom measurement reports the performance of oneMKL’s AMX-BF16 library routine, not the total performance of the proposed emulation kernels. Figure 6 reports the measured throughput. These data motivate the design choices in Section 4: the raw AMX-BF16 advantage cannot amortize an unrestricted component expansion once de-composition, packing, and reconstruction are included. The AMX-FP32 path therefore uses a fixed six-product construction together with operand reuse, while the AMX-FP64 path treats 6, 10, 15, and 21 products as separate accuracy/performance points rather than assuming that a high-product-count Ozaki-style expansion is automatically profitable on a CPU matrix engine. 19 256 512 1024 2048 4096 8192 16384 32768 
+
+010 20 30 40 
+
+> 0.21 0.62.72 18 .47 23 .335 .47 38 .08 32 .28 0.03 0.14 0.98 4.52 8.09 9.48.97 8.16 0.03 0.14 0.86 2.64 4.43 5.21 4.47 4.73
+
+Matrix order N  
+
+> GFLOPS
+> bf16bf16fp32 SGEMM DGEMM
+
+Figure 6: Raw oneMKL bf16bf16fp32 performance headroom relative to oneMKL SGEMM and DGEMM. Throughput is reported as effective GFLOPS for square matrices, with values annotated above each bar. The measured bf16bf16fp32 throughput advantage is substantial but bounded: for large matri-ces it is roughly four times the SGEMM throughput and reaches about eight times the DGEMM throughput in the best measured case. This is not enough headroom to treat BF16-based emu-lation as a free replacement for native high-precision GEMM. The AMX-FP32 path still has a plausible performance opportunity because the six-product Henry-style expansion is paired with operand-reuse scheduling and low-overhead FP32 reconstruction. In contrast, the AMX-FP64 path has much less room: each retained component product must be stored, converted, and accumulated in FP64, so speedup over DGEMM is expected only when the application’s accuracy requirement can be met by a sufficiently truncated product schedule. This limited headroom is the main reason for fixing the FP64 decomposition depth and evaluating 6-, 10-, 15-, and 21-product schedules separately. 
+
+8.2 Numerical Accuracy 
+
+Table 4 reports the normwise relative error and the GEMM-scaled componentwise error defined in Section 7. For AMX-FP32, the comparison determines whether the six-product AMX-FP32 kernel provides FP32-level accuracy relative to oneMKL SGEMM. For the AMX-FP64 path, the table exposes the accuracy gained when the schedule grows from 6 to 10, 15, and 21 BF16 GEMMs. The results in this table are obtained with uniform random inputs sampled from [−1, 1] . Other input distributions, especially cancellation-dominated or strongly scaled matrices, may produce different normwise and scaled componentwise errors; the table is therefore used as a representative accuracy check rather than as a universal error bound. 20 Table 4: Numerical accuracy on square uniform random matrices. AMX-FP32 is compared with oneMKL SGEMM, while AMX-FP64 variants are compared with oneMKL DGEMM. Each numeric entry reports the corresponding metric multiplied by the factor shown in the column header; for example, the AMX-FP32 entry eF × 10 7 = 3 .02 denotes eF = 3 .02 × 10 −7.                                                                                                        
+
+> NAMX-FP32 AMX-FP64-6 AMX-FP64-10 AMX-FP64-15 AMX-FP64-21
+> eF×10 7escaled ×10 7eF×10 8escaled ×10 8eF×10 11 escaled ×10 11 eF×10 14 escaled ×10 14 eF×10 16 escaled ×10 16
+> 256 3.02 2.25 1.49 0.546 3.26 1.30 6.95 2.49 5.71 3.41 512 3.06 1.54 1.49 0.441 3.25 0.931 6.94 1.88 5.88 2.96 1024 3.59 1.22 1.49 0.338 3.26 0.693 6.97 1.40 6.96 2.79 2048 3.72 0.941 1.49 0.234 3.25 0.510 6.95 1.08 7.45 2.16 4096 3.83 0.556 1.49 0.173 3.25 0.387 6.96 0.765 8.19 1.67 8192 3.97 0.416 1.49 0.124 3.25 0.286 6.96 0.615 9.41 1.52 16384 4.18 0.406 1.49 0.0936 3.25 0.210 6.96 0.440 11.4 1.61 32768 4.58 0.375 1.49 0.0680 3.25 0.148 6.96 0.304 14.6 1.93
+
+The AMX-FP32 path remains in the expected single-precision range: the Frobenius relative er-ror stays on the order of 10 −7, and the scaled componentwise error is of the same or smaller order. This supports the description of the AMX-FP32 six-product path as providing FP32-level accuracy, while still allowing elementwise differences from oneMKL SGEMM because the decomposition and reduction order are different. For AMX-FP64 variants, increasing the number of retained BF16 component products sharply reduces both metrics. On this input distribution, AMX-FP64-6 is already below the FP32-level range in Frobenius relative error, while AMX-FP64-10, AMX-FP64-15, and AMX-FP64-21 progressively improve agreement with the oneMKL DGEMM reference. Taken together, these uniform-random results show that retaining more component products im-proves agreement with the DGEMM reference. Hence, the product count serves as a controllable accuracy–cost parameter of the AMX-FP64 design. The reported error magnitudes are empirical measurements for this input distribution, rather than distribution-independent error bounds. 
+
+8.3 GEMM Performance 
+
+This section reports GEMM performance under the multicore configuration described in Section 7. Unlike the headroom study in Section 8.1, the measurements include all costs of the proposed method: BF16 decomposition, packed component-buffer generation, AMX component products, and target-format reconstruction. We do not include a single-core comparison here because the main question for the paper is whether the complete implementation can outperform the oneMKL SGEMM/DGEMM baselines in a realistic multicore setting. Figure 7 reports AMX-FP32 performance against oneMKL SGEMM. The AMX-FP32 timing includes preprocessing, AMX-BF16 component products, and FP32 reconstruction, whereas the oneMKL SGEMM baseline is timed as its native routine. The AMX path is faster than SGEMM for all tested square sizes, but the speedup is non-monotonic with matrix size. For small matrices, fixed costs such as kernel dispatch, parallel scheduling, and loop overhead dominate the absolute runtime, and the measured SGEMM throughput is low. In this measured configuration, the AMX-FP32 implementation has a lower total fixed-cost contribution despite its decomposition and packing stages, and is consequently faster. The aggregate timing does not isolate a single cause for this behavior; in particular, it should not be interpreted as a general AMX hardware-latency advantage. At intermediate sizes, SGEMM utilization improves rapidly, while the AMX path still pays for BF16 decomposition, block-contiguous packing, VNNI layout conversion for B, six component products, and FP32 reconstruction. These additional costs reduce the relative advantage and produce the 21 minimum speedup around the middle of the tested range. For large matrices, the preprocessing and reconstruction costs are better amortized, and execution is increasingly dominated by BF16 tile throughput and the FP32 operand-reuse schedule. The speedup therefore recovers to between 
+
+1.16 × and 1.32 × for N ≥ 8192 .       
+
+> 256 512 1024 2048 4096 8192 16384 32768
+
+0510         
+
+> Matrix order N
+> GFLOPS
+> AMX-FP32 MKL SGEMM
+> 256 512 1024 2048 4096 8192 16384 32768
+
+11.522.53 2.56 2.17 1.70 1.39 1.14 1.16 1.25 1.32  
+
+> Matrix order N
+> Speedup
+
+Figure 7: AMX-FP32 performance against oneMKL SGEMM. Speedup is the total-runtime speedup of AMX-FP32 over oneMKL SGEMM. Figure 8 reports AMX-FP32 thread scaling for three square matrix sizes. The AMX-FP32 path is faster than SGEMM for every tested thread count and matrix size, but the scaling behavior depends on the problem size. For N = 1024 , both AMX-FP32 and SGEMM reach their best measured throughput at 32 threads and then drop at 64 threads. This indicates that the matrix is too small to amortize the additional scheduling, synchronization, cache, and possible NUMA-related overheads introduced at the largest thread count. Since the same trend appears for SGEMM, the drop is not an AMX-specific limitation but a parallel-efficiency limit of this problem size. For 
+
+N = 4096 and N = 16384 , the absolute throughput of both methods continues to increase with thread count. However, the relative speedup of AMX-FP32 is larger at low or moderate thread counts and becomes smaller at high thread counts. This trend is consistent with SGEMM benefiting more from increased parallel utilization, whereas the AMX-FP32 path still pays decomposition, packing, and reconstruction costs. Thus, for large matrices, fewer threads do not give higher absolute performance; rather, they expose a larger per-thread advantage of the AMX-based kernel over SGEMM. The speedup remains above 1.1× for all tested thread counts. 22 2 4 8 16 32 64 
+
+00.511.52       
+
+> Threads
+> GFLOPS
+> N= 1024
+> AMX-FP32 MKL SGEMM 24816 32 64
+
+0246810       
+
+> Threads
+> N= 4096
+> 24816 32 64
+
+0510       
+
+> Threads
+> N= 16384
+> 24816 32 64
+
+1.21.41.61.8     
+
+> 1
+> OpenMP threads Speedup
+> N= 1024 N= 4096 N= 16384
+
+Figure 8: AMX-FP32 thread scaling against oneMKL SGEMM. The upper panel reports through-put; the lower panel reports the total-runtime speedup of AMX-FP32 over oneMKL SGEMM. Figure 9 reports the corresponding AMX-FP64 comparison against oneMKL DGEMM. The retained BF16 product count has a direct effect on the attainable speedup. For small matrices, all AMX-FP64 variants are slower than DGEMM because the fixed costs of six-slice decomposition, block-contiguous packing, VNNI conversion for B, tile stores, FP32-to-FP64 conversion, and FP64 accumulation are not yet amortized. In particular, the fixed-depth Ozaki-derived split is more expensive than the three-component FP32 split: it performs six residual projections and residual updates per operand before packing all six BF16 components, independent of whether 6, 10, 15, or 21 products are later selected. oneMKL DGEMM does not pay these preprocessing and reconstruction costs and can use its native FP64 microkernels directly, so its total time is lower in this regime. AMX-FP64-6 crosses over near N = 4096 and reaches about 1.7× for the two largest sizes, where the AMX-BF16 component-product throughput begins to dominate the fixed overheads. AMX-FP64-10 has a smaller performance margin: it remains below DGEMM through N = 8192 and exceeds DGEMM only for the largest two matrices. AMX-FP64-15 and AMX-FP64-21 do not outperform DGEMM in these measurements. This behavior is consistent with the design constraint discussed above: unlike the AMX-FP32 path, every retained FP64 component product must be materialized, converted to FP64, and accumulated outside AMX. As the product count increases, the additional stores, conversions, and FP64 additions consume the limited AMX-BF16 headroom. Therefore, performance gains over DGEMM are available only for sufficiently truncated AMX-FP64 schedules, and must be interpreted together with the accuracy results in Section 8.2. 23 256 512 1024 2048 4096 8192 16384 32768 
+
+02468       
+
+> Matrix order N
+> GFLOPS
+> AMX-FP64-6 AMX-FP64-10 AMX-FP64-15 AMX-FP64-21 MKL DGEMM
+> 256 32768 512 1024 2048 4096 8192 16384
+
+00.511.5    
+
+> Matrix order N
+> Speedup
+> AMX-FP64-6 AMX-FP64-10 AMX-FP64-15 AMX-FP64-21
+
+Figure 9: AMX-FP64 performance against oneMKL DGEMM. Speedup is the total-runtime speedup of each AMX-FP64 variant over oneMKL DGEMM. 
+
+8.4 Runtime Breakdown 
+
+The runtime breakdown uses the two implementation stages of the prototype. Preprocessing com-prises BF16 decomposition and packed component-buffer generation, including VNNI packing for 
+
+B; the remaining stage comprises AMX component products and target-format reconstruction. For AMX-FP32, these latter operations are genuinely fused: the FP32 AMX accumulator tiles remain live across the scheduled products. For AMX-FP64, they are distinct hardware operations, but each AMX product is immediately stored, converted to FP64, and added to the output accumula-tor before the next product. They are therefore timed together as one per-product execution path rather than separated by artificial timers. Figure 10 reports the normalized two-stage runtime composition for all five AMX variants. Each horizontal bar is normalized to its measured total runtime: the leading segment is preprocessing, and the complementary segment is compute/reconstruction. The normalization shows the relative phase composition across matrix sizes whose absolute runtimes differ by orders of magnitude. All panels use the same full-core configuration as the corresponding performance experiments. For AMX-FP32, the preprocessing share falls from one third of the total runtime at N = 256 to less than 4% at N = 32768 , with a small non-monotonic variation at N = 4096 . This reduction concerns the runtime fraction rather than the absolute preprocessing cost, which still grows with matrix order. The six-slice AMX-FP64 paths have a larger preprocessing share at small sizes, reaching 56% –75% at N = 256 . Compared with AMX-FP32, they must generate and pack twice as many BF16 components, and their Ozaki-derived split performs six residual projections and 24 updates per operand rather than the simpler three-component FP32 split. Both factors raise the absolute preprocessing cost before any selected product is evaluated. Their preprocessing share declines sharply as N grows. For a fixed matrix order, the share is lower for schedules retaining more products. This does not indicate cheaper preprocessing within the AMX-FP64 family: the six-slice Ozaki-derived decomposition and packing work is common to all four variants, while the larger compute/reconstruction cost increases the denominator. These results contextualize both the poor small-matrix behavior in Figure 9 and why product-count reduction is necessary to retain performance headroom.            
+
+> N
+> 256 512 1024 2048 4096 8192 16384 32768 AMX-FP32 0% 50% 100% AMX-FP64-6 0% 50% 100% AMX-FP64-10 0% 50% 100% AMX-FP64-15 0% 50% 100% AMX-FP64-21 0% 50% 100%
+> Decomposition + packing Compute + reconstruction
+
+Figure 10: Normalized total runtime composition. Each horizontal bar sums to 100% ; blue denotes BF16 decomposition and packing, including VNNI packing of B, and green denotes AMX compu-tation and target-format reconstruction. The shared N column identifies matrix order. 
+
+9 Discussion and Future Work 
+
+This paper is an early algorithmic study of BF16-based high-precision GEMM on a CPU matrix engine. Its evaluation is deliberately limited to real, square C = AB problems, so it does not estab-lish performance for rectangular, skinny, or more general matrix-multiplication interfaces. These settings are not assumed to be unfavorable; they are natural targets for subsequent engineering work on blocking, packing reuse, scheduling, and application-specific optimization. Future work will extend the kernels and evaluation to these matrix shapes and to more complete BLAS seman-tics. The current AMX-FP32 result targets FP32-level accuracy rather than elementwise agreement with SGEMM, while the AMX-FP64 variants explicitly expose an accuracy–performance tradeoff rather than claiming complete FP64 or DGEMM-equivalent accuracy. The attainable speedup is also constrained by the current AMX tile-register resources. The eight-tile register file must simultaneously hold BF16 source panels and FP32 accumulator tiles, which limits the 32 × 32 microkernel, the number of component panels that can remain resident, and the amount of tile load/store traffic that can be eliminated by scheduling. If future CPU matrix engines provide more tile registers, larger tile capacity, or both, the same decomposition framework could use larger microkernels and retain more operands or accumulators on chip. Such hardware evolution would enlarge the performance headroom available to extended-precision algorithms; it would not require a change to the central BF16 component-product formulation. 25 The component-expansion principle is also not specific to x86 AMX. The method and implemen-tation logic described here can be adapted to CPUs that integrate high-throughput low-precision matrix hardware, including Arm SME/SME2 implementations such as the planned FUJITSU-MONAKA-X processor for FugakuNEXT and the LingKun LX2 processor [36, 37]. Such adap-tations require platform-specific packing, blocking, and microkernel design, but retain the same component-decomposition and wider-accumulation principle. Alongside these performance and portability opportunities, the unscaled AMX-FP64 path has a narrower input domain than native DGEMM. The BF16 normal exponent range matches FP32 and covers the operand ranges of most HPC cases targeted by this work, particularly after the common normalization or nondimensionalization of physical variables. It nevertheless does not cover the full FP64 exponent range, and the current method intentionally omits stored exponent scaling. Consequently, all input entries must lie within the supported BF16-exponent range, and the unscaled fast path additionally requires the extracted residual components to remain representable in BF16. Finite FP64 inputs outside this range, inputs near the lower BF16 boundary that violate this component condition, and exceptional IEEE values are outside the supported domain of the current prototype. Cases involving overflow or underflow are also outside the claimed interface. Reconstruction is performed in FP64: each selected AMX component product is converted from its FP32 tile result and accumulated in the FP64 output block. Extending the framework with scale-aware decomposition and fallback handling is therefore a key future step toward a broader FP64 input domain and more general HPC deployment. 
+
+10 Conclusion 
+
+This paper presents a framework that uses Intel AMX, specifically its AMX-BF16 tile instruc-tions, to emulate FP32 and FP64 matrix multiplication. The AMX-FP32 path combines a three-component BF16 residual decomposition with the six-product schedule suggested by Henry et al. and an operand-reuse schedule that keeps FP32 AMX accumulator tiles resident and reduces tile-load traffic. It targets FP32-level accuracy relative to oneMKL SGEMM, rather than elementwise identity. For BF16-range FP64 inputs, the AMX-FP64 path uses a simplified fixed six-slice Ozaki decomposition. Each selected BF16 component product is materialized, converted from FP32, and accumulated in FP64; retaining 6, 10, 15, or 21 products exposes a deliberate accuracy–performance tradeoff rather than claiming complete FP64 or DGEMM-equivalent accuracy. In the reported full-core square experiments, AMX-FP32 outperforms oneMKL SGEMM by 
+
+1.14 ×–2.56 × across the tested sizes while meeting the reported FP32-level accuracy criteria. The AMX-FP64 results show a narrower performance window: AMX-FP64-6 reaches up to 1.72 × over oneMKL DGEMM, whereas AMX-FP64-10 provides only a small gain for the two largest tested matrices and AMX-FP64-15 and AMX-FP64-21 do not outperform DGEMM. The increasing store, conversion, and FP64 accumulation costs consume the available AMX-BF16 headroom as more products are retained. Overall, the results support selective use of low-precision CPU matrix engines for high-precision GEMM when the supported input range, matrix shape, and application-level accuracy requirement match the method’s operating regime. 
+
+References 
+
+[1] Norman P Jouppi, Cliff Young, Nishant Patil, David Patterson, Gaurav Agrawal, Raminder Bajwa, Sarah Bates, Suresh Bhatia, Nan Boden, Al Borchers, et al. In-datacenter performance 26 analysis of a tensor processing unit. In Proceedings of the 44th Annual International Symposium on Computer Architecture , pages 1–12, 2017. doi: 10.1145/3079856.3080246. [2] Jack Choquette. NVIDIA hopper H100 GPU: Scaling performance. IEEE Micro , 43(3):9–17, 2023. doi: 10.1109/MM.2023.3256796. [3] Nevine Nassif, Ashley O Munch, Carleton L Molnar, Gerald Pasdast, Sitaraman V Lyer, Zibing Yang, Oscar Mendoza, Mark Huddart, Srikrishnan Venkataraman, Sireesha Kandula, et al. Sapphire rapids: The next-generation intel xeon scalable processor. In 2022 IEEE International Solid-State Circuits Conference , pages 44–46, 2022. doi: 10.1109/ISSCC42614.2022.9731107. [4] Greg Henry, Ping Tak Peter Tang, and Alexander Heinecke. Leveraging the bfloat16 artificial intelligence datatype for higher-precision computations. In 2019 IEEE 26th Symposium on Computer Arithmetic , pages 69–76, 2019. doi: 10.1109/ARITH.2019.00019. [5] Dhiraj Kalamkar, Dheevatsa Mudigere, Naveen Mellempudi, Dipankar Das, Kunal Banerjee, Sasikanth Avancha, Dharma Teja Vooturi, Nataraj Jammalamadaka, Jianyu Huang, Hector Yuen, et al. A study of BFLOAT16 for deep learning training. arXiv preprint arXiv:1905.12322 ,2019. doi: 10.48550/arXiv.1905.12322. [6] Stefano Markidis, Steven Wei Der Chien, Erwin Laure, Ivy Bo Peng, and Jeffrey S. Vetter. NVIDIA tensor core programmability, performance and precision. In 2018 IEEE International Parallel and Distributed Processing Symposium Workshops , pages 522–531, 2018. doi: 10.1109/ IPDPSW.2018.00091. [7] Julie Langou, Julien Langou, Piotr Luszczek, Jakub Kurzak, Alfredo Buttari, and Jack Don-garra. Tools and techniques for performance: Exploiting the performance of 32 bit floating point arithmetic in obtaining 64 bit accuracy: Revisiting iterative refinement for linear sys-tems. In Proceedings of the 2006 ACM/IEEE Conference on Supercomputing , page 113, 2006. doi: 10.1145/1188455.1188573. [8] Erin Carson and Nicholas J. Higham. A new analysis of iterative refinement and its applica-tion to accurate solution of ill-conditioned sparse linear systems. SIAM Journal on Scientific Computing , 39(6):A2834–A2856, 2017. doi: 10.1137/17M1122918. [9] Erin Carson and Nicholas J. Higham. Accelerating the solution of linear systems by iterative refinement in three precisions. SIAM Journal on Scientific Computing , 40(2):A817–A847, 2018. doi: 10.1137/17M1140819. [10] Sameh Abdulah, Qinglei Cao, Yu Pei, George Bosilca, Jack Dongarra, Marc G. Genton, David E. Keyes, Hatem Ltaief, and Ying Sun. Accelerating geostatistical modeling and prediction with mixed-precision computations: A high-productivity approach with PaR-SEC. IEEE Transactions on Parallel and Distributed Systems , 33(4):964–976, 2022. doi: 10.1109/TPDS.2021.3084071. [11] Qinglei Cao, Sameh Abdulah, Hatem Ltaief, Marc G. Genton, David Keyes, and George Bosilca. Reducing data motion and energy consumption of geospatial modeling applications using automated precision conversion. In 2023 IEEE International Conference on Cluster Computing , pages 330–342, 2023. doi: 10.1109/CLUSTER52292.2023.00035. [12] Matthew Chantry, Tobias Thornes, Tim Palmer, and Peter Düben. Scale-selective precision for weather and climate forecasting. Monthly Weather Review , 147(2):645–655, 2019. doi: 10.1175/MWR-D-18-0308.1. 27 [13] Theodorus J. Dekker. A floating-point technique for extending the available precision. Nu-merische Mathematik , 18:224–242, 1971. doi: 10.1007/BF01397083. [14] Donald E. Knuth. The Art of Computer Programming, Volume 2: Seminumerical Algorithms .Addison-Wesley, 3 edition, 1997. [15] Siegfried M. Rump, Takeshi Ogita, and Shin’ichi Oishi. Accurate floating-point summation part II: Sign, K-fold faithful and rounding to nearest. SIAM Journal on Scientific Computing ,31(2):1269–1302, 2009. doi: 10.1137/07068816X. [16] Andrew Dawson and Peter D. Düben. rpe v5: An emulator for reduced floating-point precision in large numerical simulations. Geoscientific Model Development , 10(6):2221–2230, 2017. doi: 10.5194/gmd-10-2221-2017. [17] Nicholas J. Higham and Srikara Pranesh. Simulating low precision floating-point arithmetic. 
+
+SIAM Journal on Scientific Computing , 41(5):C585–C602, 2019. doi: 10.1137/19M1251308. [18] Tianyi Zhang, Zhiqiu Lin, Guandao Yang, and Christopher De Sa. QPyTorch: A low-precision arithmetic simulation framework. arXiv preprint arXiv:1910.04540 , 2019. doi: 10.48550/arXiv. 1910.04540. [19] Harun Bayraktar, Cole Brower, John Gunnels, Greg Henry, Cherin Joseph, Jack Kosaian, Dmitry Lyakh, Lukas Mosimann, Victor Podlozhnyuk, Addison Richards, Paul Springer, and Haicheng Wu. Exceeding the numerical and performance characteristics of IEEE-754 SGEMM with BFloat16 tensor cores on GPUs for scientific computing. arXiv preprint arXiv:2605.16617 ,2026. doi: 10.48550/arXiv.2605.16617. [20] Hiroyuki Ootomo and Rio Yokota. Recovering single precision accuracy from tensor cores while surpassing the FP32 theoretical peak performance. The International Journal of High Performance Computing Applications , 36(4):475–491, 2022. doi: 10.1177/10943420221090256. [21] Massimiliano Fasi, Nicholas J. Higham, Florent Lopez, Theo Mary, and Mantas Mikaitis. Matrix multiplication in multiword arithmetic: Error analysis and application to GPU tensor cores. SIAM Journal on Scientific Computing , 45(1):C1–C19, 2023. doi: 10.1137/21M1465032. [22] Daichi Mukunoki, Katsuhisa Ozaki, Takeshi Ogita, and Toshiyuki Imamura. DGEMM using tensor cores, and its accurate and reproducible versions. In High Performance Computing: 35th International Conference, ISC High Performance 2020, Proceedings , volume 12151 of Lecture Notes in Computer Science , pages 230–248, 2020. doi: 10.1007/978-3-030-50743-5_12. [23] Katsuhisa Ozaki, Takeshi Ogita, Shin’ichi Oishi, and Siegfried M. Rump. Error-free trans-formations of matrix multiplication by using fast routines of matrix multiplication and its applications. Numerical Algorithms , 59(1):95–118, 2012. doi: 10.1007/s11075-011-9478-1. [24] Hiroyuki Ootomo, Katsuhisa Ozaki, and Rio Yokota. DGEMM on integer matrix multiplication unit. The International Journal of High Performance Computing Applications , 38(4):297–313, 2024. doi: 10.1177/10943420241239588. [25] Ahmad Abdelfattah, Jack Dongarra, Massimiliano Fasi, Mantas Mikaitis, and Françoise Tis-seur. Analysis of floating-point matrix multiplication computed via integer arithmetic. arXiv preprint arXiv:2506.11277 , 2025. doi: 10.48550/arXiv.2506.11277. 28 [26] Yuki Uchino, Katsuhisa Ozaki, and Toshiyuki Imamura. Performance enhancement of the ozaki scheme on integer matrix multiplication unit. The International Journal of High Performance Computing Applications , 39(3):462–476, 2025. doi: 10.1177/10943420241313064. [27] Yuki Uchino, Katsuhisa Ozaki, and Toshiyuki Imamura. High-performance and power-efficient emulation of matrix multiplication using INT8 matrix engines. In Proceedings of the SC ’25 Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis , pages 1824–1831, 2025. doi: 10.1145/3731599.3767539. [28] Katsuhisa Ozaki, Yuki Uchino, and Toshiyuki Imamura. Ozaki scheme II: A GEMM-oriented emulation of floating-point matrix multiplication using an integer modular technique. arXiv preprint arXiv:2504.08009 , 2025. doi: 10.48550/arXiv.2504.08009. [29] Yuki Uchino, Katsuhisa Ozaki, and Toshiyuki Imamura. Error analysis of matrix multiplication emulation using Ozaki-II scheme. arXiv preprint arXiv:2602.02549 , 2026. doi: 10.48550/arXiv. 2602.02549. [30] Angelika Schwarz, Anton Anders, Cole Brower, Harun Bayraktar, John Gunnels, Kate Clark, RuQing G. Xu, Samuel Rodriguez, Sebastien Cayrols, Pawel Tabaszewski, and Victor Pod-lozhnyuk. Guaranteed DGEMM accuracy while using reduced precision tensor cores through extensions of the ozaki scheme. In Proceedings of the Supercomputing Asia and International Conference on High Performance Computing in Asia Pacific Region , pages 91–101, 2026. doi: 10.1145/3773656.3773670. [31] Daichi Mukunoki. DGEMM using FP64 arithmetic emulation and FP8 tensor cores with ozaki scheme. In Proceedings of the Supercomputing Asia and International Conference on High Performance Computing in Asia Pacific Region Workshops , pages 303–311, 2026. doi: 10.1145/3784828.3785017. [32] Yuki Uchino, Katsuhisa Ozaki, and Toshiyuki Imamura. Double-precision matrix multiplica-tion emulation via Ozaki-II scheme with FP8 quantization. arXiv preprint arXiv:2603.10634 ,2026. doi: 10.48550/arXiv.2603.10634. [33] William Dawson, Katsuhisa Ozaki, Jens Domke, and Takahito Nakajima. Reducing numerical precision requirements in quantum chemistry calculations. Journal of Chemical Theory and Computation , 20(24):10826–10837, 2024. doi: 10.1021/acs.jctc.4c00938. [34] Intel Corporation. Intel 64 and IA-32 Architectures Software Developer’s Man-ual , 2026. URL https://www.intel.com/content/www/us/en/developer/articles/ technical/intel-sdm.html . See the AMX-TILE and AMX-BF16 instruction-set descrip-tions; accessed 2026-06-15. [35] Nicholas J. Higham. Accuracy and Stability of Numerical Algorithms . Society for Industrial and Applied Mathematics, 2 edition, 2002. doi: 10.1137/1.9780898718027. [36] RIKEN Center for Computational Science. Basic design technical report for the new flagship system FugakuNEXT. Technical report, RIKEN, 2026. URL https://www.r-ccs.riken.jp/ fugaku-next/fugakunext_basicdesign-technicalreport_en.pdf . Accessed: 2026-08-03. [37] Yinuo Wang, Lin Gan, Tianqi Mao, Wubing Wan, Zekun Yin, Wenqiang Wang, Wei Xue, and Guangwen Yang. High-order spectral element methods for wave propagation on ARM multicore CPU with SME: Optimizations and implications. arXiv preprint arXiv:2606.12850 ,2026. doi: 10.48550/arXiv.2606.12850. 29
