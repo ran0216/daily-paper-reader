@@ -1,0 +1,1281 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-09-08T08:45:12.933265+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 32,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 32,
+    "quick_skim_target": null,
+    "quick_selected": 32
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2608.24664v1",
+      "source": "arxiv",
+      "title": "Maia 200: A Software Defined Dataflow System for Large-scale AI Acceleration",
+      "abstract": "We introduce Maia 200, an advanced AI accelerator delivering high performance-10 145 Tflop/s FP4 and 5072 Tflop/s FP8 within a 750W TDP and 7 TB/s HBM bandwidth. Maia exemplifies a new class of Software Defined Locally Accessed Dataflow Architectures (SDLA), which explicitly program dataflow engines to orchestrate highly specialized memories and data movement engines. This approach shifts the focus from today's thread-centric to data-movement-centric architecture, improving efficiency and scalability. Our taxonomy of data management, inspired by Flynn's classification, highlights how SDLA addresses challenges in modern AI computing. Maia 200 achieves significant cost and energy savings while supporting massive parallelism for AI inference workloads, making it a compelling solution for next-generation high-performance computing systems.",
+      "authors": [
+        "Sherry Xu",
+        "Marco Heddes",
+        "Jackson Peng",
+        "Tom Savell",
+        "Monica Tang",
+        "Prashant Ranjan",
+        "Jesse Benson",
+        "Ofer Dekel",
+        "Saurabh Dighe",
+        "Anupama Kurpad",
+        "Artour Levin",
+        "Matthew Mattina",
+        "George Petre",
+        "Cheng Tang",
+        "Yuan Yu",
+        "Li Zhang",
+        "Torsten Hoefler"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.DC",
+        "cs.ET",
+        "cs.LG"
+      ],
+      "published": "2026-08-25T15:05:40+00:00",
+      "link": "https://arxiv.org/pdf/2608.24664v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "A large-scale AI accelerator with software-defined dataflow architecture for inference",
+      "llm_evidence_cn": "面向AI推理的大规模软件定义数据流加速器架构",
+      "llm_evidence": "面向AI推理的大规模软件定义数据流加速器架构",
+      "canonical_evidence": "面向AI推理的大规模软件定义数据流加速器架构",
+      "llm_tldr_en": "Maia 200 is a software-defined dataflow AI accelerator that reaches 10,145 FP4 / 5,072 FP8 Tflop/s at 750W TDP and 7TB/s HBM. Its data-movement-centric architecture improves efficiency and scalability for large-scale AI inference.",
+      "llm_tldr_cn": "Maia 200是一种软件定义、局部访问的数据流AI加速器，在750W TDP与7TB/s HBM带宽下分别达到10,145 FP4和5,072 FP8 Tflop/s的高性能。它显式编程数据流引擎，将注意力从线程中心转向数据移动中心，极大提升AI推理工作负载的效率与可扩展性，并降低成本和能耗，代表了面向大规模AI的新型加速器类别。",
+      "llm_tldr": "Maia 200是一种软件定义、局部访问的数据流AI加速器，在750W TDP与7TB/s HBM带宽下分别达到10,145 FP4和5,072 FP8 Tflop/s的高性能。它显式编程数据流引擎，将注意力从线程中心转向数据移动中心，极大提升AI推理工作负载的效率与可扩展性，并降低成本和能耗，代表了面向大规模AI的新型加速器类别。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.09252v1",
+      "source": "arxiv",
+      "title": "FSGen: Agile Fused and Sparse Accelerator Generator with Accurate Power Model for LLM Applications",
+      "abstract": "With the growing demand of artificial intelligence (AI) applications, large language models (LLMs) have become important workloads in many domains. The question of how to efficiently generate optimal AI chip accelerator designs remains unresolved and challenging. Currently, there is a lack of end-to-end design methodologies for efficient design space exploration (DSE). We propose FSGen, an agile framework for attention-based LLM accelerator generation with an early-stage PPA estimator. FSGen supports fused operator dataflows and sparsity with a diverse design space and finds designs with 1.4x better power efficiency or 10x speedup with similar PPA metrics compared to prior work. Pareto-optimal designs have much better performance over a wide range of LLM benchmarks and have 58x better figures of merit (FoM). Design exploration is also faster due to our PPA estimators, which have better accuracy than prior art and reduce DSE runtime drastically.",
+      "authors": [
+        "Jay Zhe-An Mok",
+        "Qijun Zhang",
+        "Zhiyao Xie"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-10T08:13:38+00:00",
+      "link": "https://arxiv.org/pdf/2608.09252v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agile AI accelerator generator for LLM workloads with PPA estimator and design space exploration",
+      "llm_evidence_cn": "面向LLM工作负载的AI加速器生成器，聚焦人工智能加速器硬件架构",
+      "llm_evidence": "面向LLM工作负载的AI加速器生成器，聚焦人工智能加速器硬件架构",
+      "canonical_evidence": "面向LLM工作负载的AI加速器生成器，聚焦人工智能加速器硬件架构",
+      "llm_tldr_en": "FSGen is an agile accelerator generator for attention-based LLM workloads; it supports fused dataflows and sparsity with an early PPA estimator. It yields designs with 1.4x better power efficiency or 10x speedup versus prior work.",
+      "llm_tldr_cn": "论文指出当前缺少端到端的AI加速器设计探索方法，LLM应用的芯片设计效率和功耗估算都面临挑战；为此提出FSGen框架，为注意力机制类LLM加速器自动生成设计，支持融合算子数据流与稀疏性并集成早期PPA估计。实验表明FSGen能快速产出显著优于先前工作的帕累托最优设计，在相似PPA指标下实现1.4倍能效提升或10倍速度提升，可为AI芯片架构探索提供敏捷工具。",
+      "llm_tldr": "论文指出当前缺少端到端的AI加速器设计探索方法，LLM应用的芯片设计效率和功耗估算都面临挑战；为此提出FSGen框架，为注意力机制类LLM加速器自动生成设计，支持融合算子数据流与稀疏性并集成早期PPA估计。实验表明FSGen能快速产出显著优于先前工作的帕累托最优设计，在相似PPA指标下实现1.4倍能效提升或10倍速度提升，可为AI芯片架构探索提供敏捷工具。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.13790v1",
+      "source": "arxiv",
+      "title": "PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization",
+      "abstract": "Macro placement significantly affects a chip's post-route performance, power, and area (PPA). Most placement methods optimize half-perimeter wirelength (HPWL) as the primary objective. However, recent benchmarking shows a near-zero correlation between HPWL and post-route timing metrics such as the worst negative slack (WNS) and total negative slack (TNS). As a result, all six evaluated artificial intelligence (AI) placers degraded PPA relative to the hierarchical baseline. Recent efforts have tried to train cross-stage predictors to close this gap. However, existing methods focus on macro-only representations and use pre-route metrics as training labels. A label fidelity study of ten circuits at four design flow stages reveals that HPWL and pre-route timing poorly reflect final post-route timing rankings. In contrast, post-global-routing achieves the best balance between final timing fidelity and label generation cost-effectiveness. Based on this finding, PPAPlace is a timing-driven differentiable surrogate predicting post-route PPA from macro and standard-cell placements. The surrogate is a dual-stream predictor that combines graph attention over the chip netlist with spatial convolution over the placement grid. It is trained on post-global-routing labels. The predicted WNS and TNS gradients flow end-to-end back to cell coordinates. PPAPlace exploits these gradients in two ways: as a co-objective injected into an analytical placer's optimization loop (PPAPlace-CoOpt), and as a post-placement refinement step that adjusts macro positions via projected gradient descent (PPAPlace-Refine). On five ChiPBench test circuits excluded from training, PPAPlace improves average WNS and TNS by 22\\% and 51\\% over the hierarchical baseline while preserving power and routability, using the same predictor without test-circuit retraining. Code is available at https://github.com/ValleyC/PPAPlace.",
+      "authors": [
+        "Ruogu Chen",
+        "Jie Han"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-08-13T21:50:07+00:00",
+      "link": "https://arxiv.org/pdf/2608.13790v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Differentiable cross-stage objectives for chip macro placement optimize routing-level PPA, directly improving digital integrated circuit physical implementation.",
+      "llm_evidence_cn": "面向芯片宏布局的可微分跨阶段PPA优化目标，直接作用于数字集成电路物理设计实现。",
+      "llm_evidence": "面向芯片宏布局的可微分跨阶段PPA优化目标，直接作用于数字集成电路物理设计实现。",
+      "canonical_evidence": "面向芯片宏布局的可微分跨阶段PPA优化目标，直接作用于数字集成电路物理设计实现。",
+      "llm_tldr_en": "Chip placement methods optimizing HPWL fail to predict post-route PPA, hurting AI placers. PPAPlace labels circuits at four design-flow stages, reveals HPWL/PPA mismatch, and trains differentiable cross-stage objectives to directly optimize routing-aware performance, power, and area in macro placement.",
+      "llm_tldr_cn": "芯片宏布局中HPWL与布线后时序指标相关性接近零，导致已有AI布局器相比层级基线反而恶化PPA。PPAPlace通过对十个电路在四个设计流程阶段的标签保真度研究，揭示HPWL与预布线指标作为训练标签的不足，并提出可微分跨阶段目标函数，使布局直接面向布线后的性能、功耗和面积优化。该方法为AI芯片布局工具提供了更贴近真实签核质量的优化信号，改善了物理设计终局PPA。",
+      "llm_tldr": "芯片宏布局中HPWL与布线后时序指标相关性接近零，导致已有AI布局器相比层级基线反而恶化PPA。PPAPlace通过对十个电路在四个设计流程阶段的标签保真度研究，揭示HPWL与预布线指标作为训练标签的不足，并提出可微分跨阶段目标函数，使布局直接面向布线后的性能、功耗和面积优化。该方法为AI芯片布局工具提供了更贴近真实签核质量的优化信号，改善了物理设计终局PPA。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.19628v1",
+      "source": "arxiv",
+      "title": "A Thread-Register Decoupled GPU Execution Model for Efficient Tensor Computation",
+      "abstract": "Modern GPUs increasingly integrate Tensor Cores into the execution pipeline. Although aggregate tensor throughput continues to grow, aided by an operand supply that has evolved from register-based in Ampere to redundancy-free, memory-based in Hopper and Blackwell, efficiently orchestrating the complete tensor compute pipeline for the modern AI workloads remains challenging. We identify the fundamental bottlenecks as fixed parallelism and coarse-grained scheduling, both of which are exposed by modern AI workloads that interleave diverse non-GEMM operations with GEMM. To orchestrate tensor computation efficiently, we propose FIBER, a new architecture that extends the GPU SIMT (single instruction, multiple thread) model. Its basic execution instance, the \\emph{fiber}, is decoupled from private register ownership, carrying only minimal control state while accessing an SM's registers through a shared view. This enables dynamic parallelism scaling, fine-grained register-level dataflow scheduling, and offers a redundancy-free alternative for matrix operand supply. We extend the ISA, microarchitecture, and compiler to realize shared-register addressing, conflict-free operand delivery, and fiber-based program mapping. Under a typical mixed-precision LLM serving scenario, FIBER achieves a 2.25x end-to-end speedup on Ampere (1.15x for the original FP16 computation), with 1.8x and 2.09x on Hopper and Blackwell respectively, and kernel-level gains up to 2.49x.",
+      "authors": [
+        "Zihan Liu",
+        "Jingwen Leng",
+        "Yangjie Zhou",
+        "Yitong Ding",
+        "Guanlin Zhu",
+        "Yilu Huang",
+        "Chiheng Jin",
+        "Chen Zhang",
+        "Shixuan Sun",
+        "Yu Feng",
+        "Anbang Wu",
+        "Minyi Guo",
+        "Jian Weng",
+        "Jiajin Tu",
+        "Junsong Wang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-20T04:35:13+00:00",
+      "link": "https://arxiv.org/pdf/2608.19628v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes FIBER, a thread-register decoupled GPU execution architecture tailored for efficient tensor computation on AI workloads.",
+      "llm_evidence_cn": "提出面向AI工作负载的线程-寄存器解耦GPU执行架构FIBER，以提升张量计算效率",
+      "llm_evidence": "提出面向AI工作负载的线程-寄存器解耦GPU执行架构FIBER，以提升张量计算效率",
+      "canonical_evidence": "提出面向AI工作负载的线程-寄存器解耦GPU执行架构FIBER，以提升张量计算效率",
+      "llm_tldr_en": "FIBER extends GPU SIMT execution with thread-register decoupling to eliminate fixed parallelism and coarse-grained scheduling bottlenecks, efficiently orchestrating interleaved GEMM and non-GEMM operations for modern AI workloads on tensor cores.",
+      "llm_tldr_cn": "现代GPU持续引入Tensor Core，但操作数供给演进后仍受固定并行度和粗粒度调度制约，难以高效调度GEMM与非GEMM交织的新型AI负载。为此提出FIBER，一种扩展GPU SIMT模型的执行架构，以线程-寄存器解耦的基本执行单元使访存与计算解耦，并支持细粒度调度。该设计能够更充分利用Tensor Core计算管线以及内存/寄存器供给能力，提升复杂AI张量任务的整体利用率与能效。这项GPU架构创新为加速多样化AI工作负载提供了新的执行模型思路。",
+      "llm_tldr": "现代GPU持续引入Tensor Core，但操作数供给演进后仍受固定并行度和粗粒度调度制约，难以高效调度GEMM与非GEMM交织的新型AI负载。为此提出FIBER，一种扩展GPU SIMT模型的执行架构，以线程-寄存器解耦的基本执行单元使访存与计算解耦，并支持细粒度调度。该设计能够更充分利用Tensor Core计算管线以及内存/寄存器供给能力，提升复杂AI张量任务的整体利用率与能效。这项GPU架构创新为加速多样化AI工作负载提供了新的执行模型思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "architecture design of CPU GPU and NPU for artificial intelligence acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.21288v1",
+      "source": "arxiv",
+      "title": "Assessing Triple Modular Redundancy for Wide-Link, Low-Latency NoC Routers: Reliability and Physical Design Challenges",
+      "abstract": "Protecting the Network-on-Chip (NoC) of physical-AI tile-based accelerators deployed in harsh environments against single-event effects (SEEs) is paramount for preventing NoC failures that can lead to deadlocks and silent data corruption (SDC). Prior work on reliable NoCs has largely focused on narrow links (e.g., 32-bit), deeply pipelined routers, and single-event upsets (SEUs). However, the state of the art has evolved toward low-latency NoC routers with ultra-wide links, implemented on advanced technology nodes and operating at frequencies above 1 GHz. We evaluate the cost and reliability trade-offs of implementing Triple Modular Redundancy (TMR) at three granularities (coarse, state-only, and full) for a 2-cycle-latency NoC router with 512-bit wide links. We carry out RTL-to-GDSII physical design in TSMC 7nm technology, as well as both RTL- and netlist-level SEU and SET fault injection campaigns. We evaluate the three TMR approaches in terms of reliability, cost, and physical design strategies, further extending the assessment from a standalone router to a full AI acceleration tile. Our results show that state-only and coarse-grained TMR do not provide sufficient protection against SEEs, whereas full TMR eliminates all observed failures across more than one million injected faults per experiment. Although the standalone full-TMR router incurs a 7.04x area overhead, this cost is drastically amortized once integrated into a complete AI accelerator tile with processors and local L1 memories: the same design adds only 16.8% area and 15.2% power consumption under a GEMM benchmark at the system level, with the critical path of the tile entirely unaffected. These results demonstrate that advanced technology nodes provide sufficient routing capacity to make full TMR a practical and deployable solution for protecting NoCs in Physical AI systems operating in harsh environments.",
+      "authors": [
+        "Chen Wu",
+        "Michael Rogenmoser",
+        "Luca Benini",
+        "Angelo Garofalo"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-21T16:43:39+00:00",
+      "link": "https://arxiv.org/pdf/2608.21288v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reliability and physical design evaluation of wide-link low-latency NoC routers for physical-AI tile-based accelerators",
+      "llm_evidence_cn": "面向物理AI瓦片加速器的宽链路低延迟NoC路由器可靠性评估，直接契合多核AI加速器系统NoC互连",
+      "llm_evidence": "面向物理AI瓦片加速器的宽链路低延迟NoC路由器可靠性评估，直接契合多核AI加速器系统NoC互连",
+      "canonical_evidence": "面向物理AI瓦片加速器的宽链路低延迟NoC路由器可靠性评估，直接契合多核AI加速器系统NoC互连",
+      "llm_tldr_en": "This paper evaluates coarse, state-only, and full triple modular redundancy for wide-link low-latency NoC routers in physical-AI tile-based accelerators, covering reliability, cost, and physical design challenges above 1 GHz.",
+      "llm_tldr_cn": "面向恶劣环境中物理AI瓦片加速器的片上网络路由器易受单粒子效应影响，可能造成死锁和静默数据损坏；已有可靠性研究多针对窄链路、深度流水线路由器。论文面向当前先进工艺下超过1GHz、超宽链路的低延迟NoC路由器，评估粗粒度、仅状态和全三模冗余三种TMR粒度的成本与可靠性折中，并分析其物理设计挑战。该工作为AI瓦片加速器的片上网络加固设计提供了重要参考。",
+      "llm_tldr": "面向恶劣环境中物理AI瓦片加速器的片上网络路由器易受单粒子效应影响，可能造成死锁和静默数据损坏；已有可靠性研究多针对窄链路、深度流水线路由器。论文面向当前先进工艺下超过1GHz、超宽链路的低延迟NoC路由器，评估粗粒度、仅状态和全三模冗余三种TMR粒度的成本与可靠性折中，并分析其物理设计挑战。该工作为AI瓦片加速器的片上网络加固设计提供了重要参考。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network on chip interconnect architecture for many core AI accelerator systems",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.22613v1",
+      "source": "arxiv",
+      "title": "NOVA: Technology-Architecture Co-Design of Near-Memory Processing for Attention-SSM-MoE Hybrid LLM Inference",
+      "abstract": "The rapid evolution of hybrid large language models (LLMs), which interleave grouped-query-attention (GQA), state-space model (SSM), and Mixture-of-Experts (MoE) layers, introduces two fundamental challenges for near-memory processing (NMP) architectures. First, the Technology Wall: the conventional 6F^2 DRAM cell is approaching its physical scaling limits at 10nm-class nodes, making it difficult to meet the memory capacity demands of MoE models with hundreds of experts. Second, the Architecture Wall: existing NMP designs target narrow arithmetic intensity (Op/B) ranges and cannot efficiently support the heterogeneous compute characteristics of hybrid LLMs, spanning memory-bound SSM layers, compute-intensive GQA layers, and large Op/B variations across experts. We propose NOVA, a technology-architecture co-designed NMP system that overcomes both walls. On the technology side, NOVA combines a 4F^2 vertical channel transistor (VCT) DRAM cell with a peri-over-cell (POC) structure to achieve approximately 2x memory density at iso-area over conventional 6F^2-based DRAM, enabling continued scaling into sub-10nm nodes. On the architecture side, NOVA repurposes the POC peripheral-die (peri-die) to host processing units, forming a 2-tier NMP architecture: Tier-1 (peri-die NMP) for low-to-mid Op/B operations, and Tier-2 (base-die NMP) for mid-to-high Op/B operations. Parallel execution across tiers supports diverse compute patterns for hybrid LLMs, maximizing inference performance. Evaluated on state-of-the-art hybrid and MoE LLMs including Nemotron3-Nano, Nemotron3-Super, Falcon-H1R, and Qwen3, NOVA achieves on average 4.5x higher throughput, 69.8% lower end-to-end latency, and 5x better energy efficiency over a GPU baseline, with only 3.9% area overhead and no loss in memory capacity.",
+      "authors": [
+        "In-Jun Jung",
+        "Jaeha Min",
+        "Joo-Young Kim"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-23T21:38:46+00:00",
+      "link": "https://arxiv.org/pdf/2608.22613v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "technology-architecture co-design of near-memory processing for hybrid LLM inference",
+      "llm_evidence_cn": "面向混合大模型推理的近内存处理技术-架构协同设计",
+      "llm_evidence": "面向混合大模型推理的近内存处理技术-架构协同设计",
+      "canonical_evidence": "面向混合大模型推理的近内存处理技术-架构协同设计",
+      "llm_tldr_en": "Hybrid LLMs with GQA, SSM, and MoE layers stress near-memory processing. NOVA co-designs device technology and NMP architecture to solve capacity scaling and heterogeneous arithmetic intensity requirements across memory-bound and compute-intensive layers.",
+      "llm_tldr_cn": "将GQA、状态空间模型(SSM)和专家混合(MoE)层混合的大模型给近内存处理架构带来两大难题：常规6F² DRAM单元在10nm级节点逼近物理极限，难以满足数百专家MoE的容量需求；已有NMP设计只能适配较窄的算术强度范围，无法兼顾访存受限的SSM层和计算密集的GQA层。NOVA通过存储器件技术与近内存架构的协同设计，在单元、电路和架构层联合解决容量与异构计算特性冲突。实验证明NOVA可高效处理混合LLM各层，为下一代大模型推理芯片架构提供了可行路径。",
+      "llm_tldr": "将GQA、状态空间模型(SSM)和专家混合(MoE)层混合的大模型给近内存处理架构带来两大难题：常规6F² DRAM单元在10nm级节点逼近物理极限，难以满足数百专家MoE的容量需求；已有NMP设计只能适配较窄的算术强度范围，无法兼顾访存受限的SSM层和计算密集的GQA层。NOVA通过存储器件技术与近内存架构的协同设计，在单元、电路和架构层联合解决容量与异构计算特性冲突。实验证明NOVA可高效处理混合LLM各层，为下一代大模型推理芯片架构提供了可行路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.24351v1",
+      "source": "arxiv",
+      "title": "Small-World Communication Fabrics for Neuromorphic Multicore-SoCs",
+      "abstract": "As neuromorphic systems scale beyond a single core, inter-core event communication can become a dominant contributor to memory footprint, latency, and energy consumption. Biological neural systems address a similar scaling challenge through small-world organization, combining dense local connectivity with sparse long-range projections. In this work, we compare two recent multicore neuromorphic systems implemented in the same 22-nm FDSOI technology and explicitly optimized for such connectivity. The first, NeoCorAl, uses an asynchronous packet-switched tree with hierarchical multicast, whereas the second, MOSAIC, employs an RRAM-based, circuit-switched two-dimensional mesh that performs routing in memory. We examine the resulting trade-offs in routing flexibility, hop count, memory requirements, multicast efficiency, and scalability. We further study how the relative efficiency of tree- and mesh-based routing depends on communication locality in spatially-embedded, random, and layered networks. Finally, we discuss routing-aware training as a means of jointly optimizing neural connectivity, task performance, and hardware mappability.",
+      "authors": [
+        "Sebastian Billaudelle",
+        "Christian Metzner",
+        "Jimmy Weber",
+        "Zhe Su",
+        "Chenxi Wen",
+        "Siqi Liu",
+        "Laura Kriener",
+        "Filippo Moro",
+        "Giacomo Indiveri",
+        "Melika Payvand"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET"
+      ],
+      "published": "2026-08-25T10:07:46+00:00",
+      "link": "https://arxiv.org/pdf/2608.24351v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Compares two on-chip communication fabrics for neuromorphic multicore SoCs, covering packet-switched tree and RRAM in-memory circuit-switched mesh",
+      "llm_evidence_cn": "比较两种神经形态多核系统的小世界通信结构，直接属于片上网络互连设计与通信架构",
+      "llm_evidence": "比较两种神经形态多核系统的小世界通信结构，直接属于片上网络互连设计与通信架构",
+      "canonical_evidence": "比较两种神经形态多核系统的小世界通信结构，直接属于片上网络互连设计与通信架构",
+      "llm_tldr_en": "Compares two neuromorphic multicore SoC communication fabrics in 22nm FDSOI: asynchronous packet-switched tree with multicast vs RRAM in-memory circuit-switched mesh, analyzing routing flexibility and tradeoffs.",
+      "llm_tldr_cn": "随着神经形态系统扩展到多核，核间事件通信日益主导面积、时延和能耗，而生物神经系统用小世界连接应对该挑战。该文针对22nm FDSOI工艺下专门为小世界连接优化的两个多核系统，比较了分别采用异步包交换树状层次组播(NeoCorAl)和RRAM电路交换二维网格存内路由(MOSAIC)的通信结构。研究揭示了路由灵活性、存储占用和能耗之间的折中关系。这项工作为多核神经形态SoC的片上互连选型提供了清晰的设计权衡依据。",
+      "llm_tldr": "随着神经形态系统扩展到多核，核间事件通信日益主导面积、时延和能耗，而生物神经系统用小世界连接应对该挑战。该文针对22nm FDSOI工艺下专门为小世界连接优化的两个多核系统，比较了分别采用异步包交换树状层次组播(NeoCorAl)和RRAM电路交换二维网格存内路由(MOSAIC)的通信结构。研究揭示了路由灵活性、存储占用和能耗之间的折中关系。这项工作为多核神经形态SoC的片上互连选型提供了清晰的设计权衡依据。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.24478v1",
+      "source": "arxiv",
+      "title": "NoC-Out: A Formally-verified Network-on-Chip Library for Rule-based Hardware Designs",
+      "abstract": "The Network-on-Chip (NoC) is the communication backbone of any multiprocessor chip. A failure of the NoC has severe consequences for the whole system. Yet, no approach exists that provides formally-verified NoCs with strong guarantees but without tedious verification effort.   Any library that generates formally-verified NoCs needs to be parametric in the structure of the NoC. This requires a hardware description language (HDL) that allows for parametric and concurrent yet efficient hardware designs as well as the necessary program logic to reason about them in a modular fashion. So far, HDLs fall short in both aspects.   In this paper, we implement NoC-Out, the first library/generator for formally-verified k-dimensional NoC designs. In order to build NoC-Out, we extended Kôika, a rule-based HDL in the Rocq theorem prover, with support for concurrent yet efficient NoC designs and a program logic for modular, automated reasoning. Given a configuration, NoC-Out produces a k-dimensional torus NoC in Kôika, which can then be compiled to Verilog. Each produced NoC is equipped with a proof that it refines our formal NoC specification; no additional verification effort is required. Our specification proves a strong liveness guarantee, which consequently applies to all generated NoCs. In our evaluation, we find that our verification approach is even required to synthesize efficient NoCs in rule-based HDLs.",
+      "authors": [
+        "Max Kurze",
+        "František Farka",
+        "Sebastian Ertel"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL"
+      ],
+      "published": "2026-08-25T12:23:54+00:00",
+      "link": "https://arxiv.org/pdf/2608.24478v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "First library/generator for formally verified k-dimensional NoC designs; direct Network-on-Chip architecture match",
+      "llm_evidence_cn": "首个生成形式化验证k维NoC设计的库，直接命中片上网络互连设计需求",
+      "llm_evidence": "首个生成形式化验证k维NoC设计的库，直接命中片上网络互连设计需求",
+      "canonical_evidence": "首个生成形式化验证k维NoC设计的库，直接命中片上网络互连设计需求",
+      "llm_tldr_en": "NoC-Out is a library/generator for formally verified k-dimensional NoC designs, exploiting parametric concurrent HDL and modular proof support to provide strong correctness guarantees for on-chip networks.",
+      "llm_tldr_cn": "片上网络是多处理器芯片的通信骨干，其失效后果严重，但现有方法难以在不引入繁琐验证工作的情况下给出强正确性保证；同时传统HDL难以同时支持参数化并发设计和模块化推理。论文提出NoC-Out，它是首个可生成经过形式化验证的k维片上网络设计的库或生成器，利用参数化并发硬件描述和配套程序逻辑模块化地构造并证明NoC。该成果可在降低验证工序的同时为NoC硬件提供强正确性保障。",
+      "llm_tldr": "片上网络是多处理器芯片的通信骨干，其失效后果严重，但现有方法难以在不引入繁琐验证工作的情况下给出强正确性保证；同时传统HDL难以同时支持参数化并发设计和模块化推理。论文提出NoC-Out，它是首个可生成经过形式化验证的k维片上网络设计的库或生成器，利用参数化并发硬件描述和配套程序逻辑模块化地构造并证明NoC。该成果可在降低验证工序的同时为NoC硬件提供强正确性保障。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.26220v1",
+      "source": "arxiv",
+      "title": "MeshReduce-U: Compiler-Guided Communication Reduction for Irregular Neural Reductions on Mesh NoCs",
+      "abstract": "Many irregular neural workloads induce skewed many-to-one reductions with repeated neighborhoods and nonlocal communication. Conventional NoC mappers optimize placement and routes for a fixed communication graph, even though associative reductions expose legal opportunities to eliminate traffic before routing. We present MeshReduce-U, a compiler-guided communication-reduction and routing framework for mesh-NoC-based spatial accelerators.   MeshReduce-U coalesces colocated sources, forms local aggregation islands, blocks channels with compatible fan-in structure, selects capacity-feasible sinks, and routes the remaining fixed-width carriers using fused usage-aware costs. A deterministic route-replay model reports schedule-derived communication latency, total link usage (TLU), and fused link usage (FusedTLU) separately.   Across a 20-workload lowerable neural-network zoo, MeshReduce-U reduces mean latency, TLU, and FusedTLU by 40.3%, 56.0%, and 48.7%, respectively, relative to an ABC-style source-aggregation baseline, improving all three metrics on every workload. Across 40 synthetic irregular reductions, it reduces mean latency and TLU by 12.3% and 19.7%. A new 30-instance pass-by-pass study further shows that the structural rewrites reduce the global carrier count by 60.9% and replay latency by 63.0%. These results show that rewriting reducible neural communication before routing can be more effective than searching harder over an unreduced traffic graph.",
+      "authors": [
+        "Amirreza Khorasanian"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.DC"
+      ],
+      "published": "2026-08-26T12:39:14+00:00",
+      "link": "https://arxiv.org/pdf/2608.26220v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "compiler-guided communication reduction and routing for irregular neural reductions on mesh NoCs",
+      "llm_evidence_cn": "面向网格片上网络不规则神经归约的编译器引导通信缩减与路由",
+      "llm_evidence": "面向网格片上网络不规则神经归约的编译器引导通信缩减与路由",
+      "canonical_evidence": "面向网格片上网络不规则神经归约的编译器引导通信缩减与路由",
+      "llm_tldr_en": "Irregular neural reductions on mesh NoCs cause non-local communication. MeshReduce-U is a compiler-guided framework that coalesces colocated sources, forms local aggregation islands, blocks compatible channels, and selects feasible sinks to reduce traffic before routing.",
+      "llm_tldr_cn": "网格片上网络(mesh NoC)上的不规则神经归约往往伴随大量非局部通信和重复邻域，传统NoC映射只针对固定通信图优化布局与路由，无法利用归约的结合律来消除流量。MeshReduce-U提出编译引导的通信缩减与路由框架，通过合并同地源、构造本地聚合岛、阻塞兼容汇聚通道、选择容量可行汇聚点以及在路由前缩减通信量，降低片上网络拥塞。确定性路由回放模型保证了调度行为的确定性。该工作为多核AI加速器系统的片上通信优化提供了编译器-架构协同的新方法。",
+      "llm_tldr": "网格片上网络(mesh NoC)上的不规则神经归约往往伴随大量非局部通信和重复邻域，传统NoC映射只针对固定通信图优化布局与路由，无法利用归约的结合律来消除流量。MeshReduce-U提出编译引导的通信缩减与路由框架，通过合并同地源、构造本地聚合岛、阻塞兼容汇聚通道、选择容量可行汇聚点以及在路由前缩减通信量，降低片上网络拥塞。确定性路由回放模型保证了调度行为的确定性。该工作为多核AI加速器系统的片上通信优化提供了编译器-架构协同的新方法。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.26418v2",
+      "source": "arxiv",
+      "title": "Redwood: A Frontier AI Accelerator Designed, Verified, and Deployed from Scratch in 2 Weeks by AI",
+      "abstract": "Modern AI workloads and the hardware that runs them evolve on different timescales: architectural definition precedes volume silicon by years, while target workloads shift in months. Design decisions are therefore committed under deep uncertainty and paid for twice, once in the generality added as a hedge, and again when new workloads map poorly onto frozen silicon. As Moore's Law stagnates, specialization is the main remaining source of performance-per-watt and demands a design cycle that runs at the cadence of the workloads. We present an end-to-end AI system that collapses the software-to-silicon stack into a single optimization loop, where hardware and software are co-designed and verified under one objective. Its first demonstration is Redwood, a frontier AI accelerator built for single-batch, low-power, ultra-low-latency inference for physical AI. From a high-level specification by two human architects, the system autonomously generated the performance model, RTL design, UVM environments, formal proofs, firmware, and kernels in under two weeks with no human intervention below the specification. Every block reached 95% coverage via commercial EDA tools, our proprietary formal engine, and hardware-in-the-loop validation. Specification changes were reverified and redeployed to hardware in under 48 hours. Redwood Nano, its ultra-low-power FPGA variant, runs multi-billion-parameter models like Llama and Qwen. Projected onto Samsung 8 nm, the Jetson Orin Nano's process class, Redwood delivers 1.75x the throughput at 1.9x lower power, a 3.4x performance-per-watt gain against a measured Jetson baseline on the same models. Qwen running on Redwood also helped design next-generation Redwood, an early step toward recursive self-improvement. To our knowledge, this is the first production-worthy AI accelerator designed end-to-end by an AI system and running a modern AI model.",
+      "authors": [
+        "Architect Labs"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-08-26T21:36:51+00:00",
+      "link": "https://arxiv.org/pdf/2608.26418v2",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Directly describes a frontier AI accelerator hardware architecture designed, verified, and deployed from scratch within two weeks",
+      "llm_evidence_cn": "直接涉及AI加速器硬件架构的设计、验证与部署，与需求高度一致",
+      "llm_evidence": "直接涉及AI加速器硬件架构的设计、验证与部署，与需求高度一致",
+      "canonical_evidence": "直接涉及AI加速器硬件架构的设计、验证与部署，与需求高度一致",
+      "llm_tldr_en": "AI hardware design lags behind fast-evolving workloads. This paper presents an end-to-end AI system that unifies hardware/software co-design and verification under one objective. Redwood, a frontier AI accelerator, was designed, verified, and deployed from scratch in two weeks, showing a radically faster path to specialized silicon.",
+      "llm_tldr_cn": "针对AI负载演化快而芯片设计周期长、设计决策不确定的问题，本文提出一个端到端AI系统，将软硬件协同设计与验证压缩进同一优化循环，让AI自动定义并实现加速器。该流程从零开始仅用两周即完成Redwood这个前沿AI加速器的设计、验证与部署，使专用芯片能以接近应用更新的节奏迭代，为AI驱动的高效芯片设计提供新范式。",
+      "llm_tldr": "针对AI负载演化快而芯片设计周期长、设计决策不确定的问题，本文提出一个端到端AI系统，将软硬件协同设计与验证压缩进同一优化循环，让AI自动定义并实现加速器。该流程从零开始仅用两周即完成Redwood这个前沿AI加速器的设计、验证与部署，使专用芯片能以接近应用更新的节奏迭代，为AI驱动的高效芯片设计提供新范式。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.28048v1",
+      "source": "arxiv",
+      "title": "AI Hardware Accelerators for Large Language Models: Architectures and the Memory Wall",
+      "abstract": "Large language models (LLMs) place unprecedented and still-growing demands on the hardware that trains and serves them. This review surveys the full landscape of AI hardware accelerators for LLMs, including general-purpose GPUs, custom ASICs such as TPUs, Trainium, Groq, and Cerebras, reconfigurable FPGAs, processing-in-memory and near-memory architectures, and emerging neuromorphic and photonic approaches across cloud and edge deployment. Using the transformer's computational structure and roofline analysis as a common framework, we show that the decisive constraint on LLM acceleration is not arithmetic but memory: the autoregressive decode phase is bandwidth-bound, the key-value cache can rival the model weights in size, and data movement dominates energy. Comparing platforms on compute, memory, energy, programmability, and scalability, we find that no single architecture is optimal across workloads: GPUs remain the flexible default and the workhorse of training; domain-specific ASICs win at scale for stable, high-volume workloads; processing-in-memory is the most promising near-term response to the memory wall, entering systems as a heterogeneous complement; and neuromorphic and photonic computing, while promising, are not yet production-ready at frontier scale. Future progress depends on hardware-algorithm co-design and heterogeneous, memory-centric systems: for large language models, the memory system has become the computer.",
+      "authors": [
+        "Siddharth Patel",
+        "Rohit Singh"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.DC"
+      ],
+      "published": "2026-08-28T08:10:01+00:00",
+      "link": "https://arxiv.org/pdf/2608.28048v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Cross-architecture survey of LLM AI accelerators and memory-wall analysis maps directly onto comparative chip architecture analysis for AI workloads.",
+      "llm_evidence_cn": "横跨GPU/ASIC/FPGA/存内/神经形态/光子等架构的AI加速器综述，直接构成面向AI负载的芯片架构比较。",
+      "llm_evidence": "横跨GPU/ASIC/FPGA/存内/神经形态/光子等架构的AI加速器综述，直接构成面向AI负载的芯片架构比较。",
+      "canonical_evidence": "横跨GPU/ASIC/FPGA/存内/神经形态/光子等架构的AI加速器综述，直接构成面向AI负载的芯片架构比较。",
+      "llm_tldr_en": "Review of LLM AI hardware: GPUs, TPUs, ASICs, FPGAs, PIM, neuromorphic, photonic. Roofline analysis of transformers shows memory is decisive: decode is bandwidth-bound; KV cache rivals weights. It guides AI accelerator architecture and memory-system design.",
+      "llm_tldr_cn": "本文围绕大语言模型训练与推理的硬件需求，系统综述了GPU、TPU等定制ASIC、FPGA、存内/近存计算以及新兴神经形态与光子加速器的架构谱系。以Transformer计算结构和Roofline分析为统一框架，指出LLM加速的决定性瓶颈不是算力而是存储：自回归解码受带宽限制，键值缓存规模可媲美权重。该综述为云侧和边缘AI芯片的架构与存储层次设计提供了清晰的权衡指引。",
+      "llm_tldr": "本文围绕大语言模型训练与推理的硬件需求，系统综述了GPU、TPU等定制ASIC、FPGA、存内/近存计算以及新兴神经形态与光子加速器的架构谱系。以Transformer计算结构和Roofline分析为统一框架，指出LLM加速的决定性瓶颈不是算力而是存储：自回归解码受带宽限制，键值缓存规模可媲美权重。该综述为云侧和边缘AI芯片的架构与存储层次设计提供了清晰的权衡指引。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "comparative analysis of digital chip architectures for neural processing and AI workloads",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.30509v1",
+      "source": "arxiv",
+      "title": "CHIPSMORE: Compute-in-Interconnect and -Memory Chiplets for Multi-Mode Multi-Request LLM Inference Acceleration",
+      "abstract": "Large language model (LLM) inference exhibits substantial variability across adaptation modes, context lengths, and request concurrency, creating challenges for maintaining high utilization, memory efficiency, and scalable performance on compute-in-memory (CIM) accelerators. This paper presents CHIPSMORE, a multi-mode and multi-request LLM inference accelerator that integrates compute-in-interconnect and CIM to support both base-mode and low-rank adaptation (LoRA) inference under diverse workloads. CHIPSMORE employs heterogeneous processing elements consisting of resistive RAM analog compute-in-memory (RRAM-ACIM) and static RAM digital compute-in-memory (SRAM-DCIM) interconnected through a programmable Inter-PE computational network (IPCN). A composable hierarchical key-value (KV) memory scheme dynamically allocates router scratchpad, SRAM-DCIM, and embedded DRAM (eDRAM) resources according to workload requirements, enabling scalable support for long-context and batched inference. Furthermore, a non-replicated multi-request execution pipeline exploits request-level parallelism without duplicating pretrained weights, while a state-aware resource reconfiguration mechanism selectively retains runtime states and power-gates inactive resources to improve energy efficiency. Evaluation using cycle-accurate hardware-software co-simulation demonstrates that CHIPSMORE effectively sustains high throughput across varying model sizes, context lengths, and batch sizes while maintaining favorable power scaling. Compared with Nvidia H100, CHIPSMORE achieves up to $2.38\\times$ higher throughput and $27\\times$ higher energy efficiency on Mistral-7B inference while eliminating weight replication for multi-request serving.",
+      "authors": [
+        "Yue Jiet Chong",
+        "Yimin Wang",
+        "Zhen Wu",
+        "Zixuan Wang",
+        "Wei Zhang",
+        "Xuanyao Fong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-31T09:43:07+00:00",
+      "link": "https://arxiv.org/pdf/2608.30509v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Chiplet accelerator combining compute-in-interconnect, RRAM analog CIM and SRAM digital CIM for multi-mode multi-request LLM inference; a direct AI accelerator hardware architecture design.",
+      "llm_evidence_cn": "提出融合计算互连和存内计算的Chiplet LLM推理加速器，异构PE由RRAM模拟CIM与SRAM数字CIM构成，直接属于AI加速器硬件设计。",
+      "llm_evidence": "提出融合计算互连和存内计算的Chiplet LLM推理加速器，异构PE由RRAM模拟CIM与SRAM数字CIM构成，直接属于AI加速器硬件设计。",
+      "canonical_evidence": "提出融合计算互连和存内计算的Chiplet LLM推理加速器，异构PE由RRAM模拟CIM与SRAM数字CIM构成，直接属于AI加速器硬件设计。",
+      "llm_tldr_en": "CHIPSMORE combines compute-in-interconnect with RRAM/SRAM compute-in-memory PEs in a chiplet design to provide scalable multi-mode, multi-request LLM inference acceleration across base and LoRA workloads.",
+      "llm_tldr_cn": "大语言模型推理在适配模式、上下文长度与请求并发上差异巨大，这让存算一体加速器难以同时保证高利用率、高存储效率与可扩展性。CHIPSMORE将计算互连与计算存内结合，提出支持基础模式与低秩适配LoRA的多模式多请求推理加速器；它由RRAM模拟CIM和SRAM数字CIM的异构处理单元经可编程互连组成，面向多样负载协同工作。实验表明该架构在多种工作负载下能提升利用率并降低内存瓶颈，为LLM推理提供了一种可扩展的Chiplet级加速方案。",
+      "llm_tldr": "大语言模型推理在适配模式、上下文长度与请求并发上差异巨大，这让存算一体加速器难以同时保证高利用率、高存储效率与可扩展性。CHIPSMORE将计算互连与计算存内结合，提出支持基础模式与低秩适配LoRA的多模式多请求推理加速器；它由RRAM模拟CIM和SRAM数字CIM的异构处理单元经可编程互连组成，面向多样负载协同工作。实验表明该架构在多种工作负载下能提升利用率并降低内存瓶颈，为LLM推理提供了一种可扩展的Chiplet级加速方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.30932v1",
+      "source": "arxiv",
+      "title": "Beacon: LLM Multi-Agent Driven Hardware Design Space Exploration for Heterogeneous Multi-Chiplet Deep Learning Accelerators",
+      "abstract": "Heterogeneous multi-chiplet accelerators allow chiplets to be configured independently to better match different operator characteristics and improve inference efficiency. However, heterogeneity makes simulator evaluation expensive, limiting the number of iterations affordable for hardware design space exploration (HW-DSE). Mainstream data-driven methods rely mainly on final metrics and a few predefined states, and require many search iterations to implicitly learn the relationships between input parameters and optimization objectives, making them less effective in this setting. In practice, evaluators also generate detailed reports on execution timelines, resource utilization, memory accesses, and communication behavior. Large language models (LLMs) can combine domain knowledge with these reports to explicitly identify bottleneck locations, degradation causes, and parameter adjustment directions, thereby improving each design decision under limited iteration budgets. Based on this observation, we propose Beacon, a report-driven LLM multi-agent framework for heterogeneous multi-chiplet HW-DSE. Beacon employs hierarchical agents for bottleneck localization, root-cause diagnosis, and hardware candidate generation, together with an Analysis Toolbox and RAG memory for closed-loop search. Under the same limited iteration budget, Beacon reduces the composite latency-energy-monetary-cost objective by 25.1\\%--93.5\\% compared with random search, Bayesian optimization, and reinforcement learning.",
+      "authors": [
+        "Boyu Li",
+        "Zongwei Zhu",
+        "Qianyue Cao",
+        "Xi Li",
+        "Xuehai Zhou"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-31T15:07:15+00:00",
+      "link": "https://arxiv.org/pdf/2608.30932v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "hardware design space exploration for heterogeneous multi-chiplet deep learning accelerators",
+      "llm_evidence_cn": "异构多芯粒深度学习加速器的硬件设计空间探索",
+      "llm_evidence": "异构多芯粒深度学习加速器的硬件设计空间探索",
+      "canonical_evidence": "异构多芯粒深度学习加速器的硬件设计空间探索",
+      "llm_tldr_en": "Hardware DSE for heterogeneous multi-chiplet DL accelerators is expensive. Beacon uses an LLM multi-agent framework that consumes simulator reports to guide exploration, learning input-parameter-to-objective relationships without needing many expensive iterations.",
+      "llm_tldr_cn": "异构多芯粒深度学习加速器虽可提升推理效率，但模拟器评估代价高，数据驱动搜索往往需要大量迭代才能隐式学习参数和目标的关系。为此本文提出Beacon，采用LLM多智能体协作框架，结合执行时间线、资源利用率、访存等详细评估报告引导设计空间探索，从而减少迭代次数并解释输入参数与优化目标的关联。实验表明Beacon在相近评估预算下能发现更优的加速器配置，为AI芯片设计自动化提供了新的LLM驱动范式。",
+      "llm_tldr": "异构多芯粒深度学习加速器虽可提升推理效率，但模拟器评估代价高，数据驱动搜索往往需要大量迭代才能隐式学习参数和目标的关系。为此本文提出Beacon，采用LLM多智能体协作框架，结合执行时间线、资源利用率、访存等详细评估报告引导设计空间探索，从而减少迭代次数并解释输入参数与优化目标的关联。实验表明Beacon在相近评估预算下能发现更优的加速器配置，为AI芯片设计自动化提供了新的LLM驱动范式。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.00421v1",
+      "source": "arxiv",
+      "title": "VARA: A Voltage-Aware ReRAM-Based Accelerator for Energy-Efficient Computing",
+      "abstract": "ReRAM-based in-memory computing (IMC) architectures are widely regarded as a promising approach to alleviating the computational bottleneck of conventional architectures. Since ReRAM crossbars perform matrix-vector multiplication (MVM) in the analog domain, their computational energy consumption is highly dependent on weight and activation distributions. However, most existing ReRAM accelerators focus primarily on weight optimization while paying limited attention to the impact of activations on computational energy consumption, leaving the energy-saving potential of activation sparsity largely underexploited. In this paper, we propose a voltage-aware ReRAM-based accelerator (VARA), along with its accompanying design methodology. Specifically, we first introduce a voltage-aware training (VAT) algorithm that incorporates a preset threshold into the activation function to steer the activation distribution toward zero values, thereby enhancing activation sparsity. Building upon this, we further propose a co-zero activation reordering (CAR) scheme for crossbar-level computation skipping. CAR clusters activation dimensions based on their co-zero correlations and consistently reorders both the activation matrix and its corresponding weights. This process consolidates scattered zero activations into contiguous zero-valued regions to maximize the benefits of crossbar-level computation skipping. Extensive experimental results demonstrate that, with only marginal accuracy loss, VARA reduces the average total system energy consumption by 60.12\\% and improves the average system energy efficiency by 2.68$\\times$ compared to the baseline, outperforming existing state-of-the-art accelerators for sparse-activation optimization.",
+      "authors": [
+        "Peng Dang",
+        "Yintao He",
+        "Huawei Li"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-31T21:57:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.00421v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Voltage-aware ReRAM in-memory computing accelerator and design methodology exploiting activation sparsity for energy-efficient MVM, core deep-learning accelerator hardware research.",
+      "llm_evidence_cn": "提出电压感知ReRAM存算一体加速器，利用激活稀疏性降低MVM能耗，属于深度学习加速器硬件设计与优化。",
+      "llm_evidence": "提出电压感知ReRAM存算一体加速器，利用激活稀疏性降低MVM能耗，属于深度学习加速器硬件设计与优化。",
+      "canonical_evidence": "提出电压感知ReRAM存算一体加速器，利用激活稀疏性降低MVM能耗，属于深度学习加速器硬件设计与优化。",
+      "llm_tldr_en": "VARA is a voltage-aware ReRAM-based in-memory computing accelerator that exploits activation sparsity and adjusts crossbar voltages to reduce computational energy for matrix-vector multiplications, alongside a supporting design methodology.",
+      "llm_tldr_cn": "ReRAM交叉阵列在模拟域执行矩阵向量乘，其计算能耗与权重和激活分布密切相关，但已有加速器主要优化权重而忽视了激活稀疏性所蕴含的节能空间。VARA提出电压感知的ReRAM加速器，依据激活特征调整计算电压并配套设计方法论，从而降低MVM能量。实验显示其在保持精度的前提下显著减少计算能耗。该工作为基于新兴存储器的AI加速器能效优化开辟了新思路。",
+      "llm_tldr": "ReRAM交叉阵列在模拟域执行矩阵向量乘，其计算能耗与权重和激活分布密切相关，但已有加速器主要优化权重而忽视了激活稀疏性所蕴含的节能空间。VARA提出电压感知的ReRAM加速器，依据激活特征调整计算电压并配套设计方法论，从而降低MVM能量。实验显示其在保持精度的前提下显著减少计算能耗。该工作为基于新兴存储器的AI加速器能效优化开辟了新思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.00701v1",
+      "source": "arxiv",
+      "title": "FALCON: Fault-Tolerant Magnetic Tunnel Junction-Based In-Memory Stochastic Architecture for Reliability-Critical Edge AI Applications",
+      "abstract": "As modern data-centric applications such as neural inference and sensor-edge analytics expand, they increasingly encounter the von Neumann memory wall, suffering from excessive data movement overhead and stringent energy constraints. In-Memory Computing (IMC) utilizing emerging non-volatile technologies, such as Magnetic Tunnel Junctions (MTJs), promises to mitigate these bottlenecks. However, conventional binary radix-based IMC architectures suffer from excessive vulnerability to process-induced variations, restricted operating margins, and thermal noise. To bridge the gap between energy efficiency and computational reliability, this work proposes FALCON, a fault-tolerant, MTJ-based in-memory arithmetic architecture integrated with Stochastic Computing (SC). By encoding numerical values into uniform bit-streams, SC naturally absorbs localized soft errors and enables the execution of an essential suite of arithmetic operations using highly compact logic primitives directly within the memory arrays. FALCON integrates a deterministic bit mapping mechanism with reconfigurable logic-in-memory (LIM) structures, eliminating the need to transfer data to external processors or area- and power-hungry random number generators. Experimental results using 14 nm FinFET technology validate the correct functionality of FALCON even under aggressive voltage scaling, severe process variation, and noise injection levels up to 30%, making it a robust framework for reliability-critical edge AI applications. We investigate the proper functionality of FALCON on morphological closing as a realistic noise-tolerant image processing case study.",
+      "authors": [
+        "Farzad Razi",
+        "Mehran Moghadam",
+        "Sercan Aygun",
+        "M. Hassan Najafi",
+        "Marc Riedel"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET",
+        "cs.AR",
+        "eess.IV"
+      ],
+      "published": "2026-09-01T04:22:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.00701v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Fault-tolerant MTJ-based in-memory stochastic architecture for edge AI reliability and energy efficiency; edge AI accelerator hardware design.",
+      "llm_evidence_cn": "面向可靠性关键的边缘AI提出基于磁隧道结的容错存内随机计算架构，兼顾能效与可靠性，属边缘AI芯片硬件设计。",
+      "llm_evidence": "面向可靠性关键的边缘AI提出基于磁隧道结的容错存内随机计算架构，兼顾能效与可靠性，属边缘AI芯片硬件设计。",
+      "canonical_evidence": "面向可靠性关键的边缘AI提出基于磁隧道结的容错存内随机计算架构，兼顾能效与可靠性，属边缘AI芯片硬件设计。",
+      "llm_tldr_en": "FALCON is a fault-tolerant MTJ-based in-memory stochastic computing architecture for reliability-critical edge AI, solving process-variation and thermal-noise vulnerability in radix IMC while delivering energy-efficient neural inference.",
+      "llm_tldr_cn": "神经推理与传感器边缘分析等数据密集型应用面临冯·诺依曼存储墙和严苛能耗约束，磁隧道结等新兴非易失存储器的存内计算可缓解该瓶颈，但传统二进制基数IMC易受工艺偏差与热噪声影响。FALCON提出基于MTJ的容错存内随机架构，采用随机计算与冗余机制增强对工艺偏差、工作裕度和热噪声的鲁棒性。面向可靠性关键的边缘AI应用，该架构在保持能效优势的同时提升计算可靠性。研究为可靠边缘AI芯片的新兴存储IMC设计提供了可行方案。",
+      "llm_tldr": "神经推理与传感器边缘分析等数据密集型应用面临冯·诺依曼存储墙和严苛能耗约束，磁隧道结等新兴非易失存储器的存内计算可缓解该瓶颈，但传统二进制基数IMC易受工艺偏差与热噪声影响。FALCON提出基于MTJ的容错存内随机架构，采用随机计算与冗余机制增强对工艺偏差、工作裕度和热噪声的鲁棒性。面向可靠性关键的边缘AI应用，该架构在保持能效优势的同时提升计算可靠性。研究为可靠边缘AI芯片的新兴存储IMC设计提供了可行方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence chip design for edge and cloud computing",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.00857v1",
+      "source": "arxiv",
+      "title": "LLM Inference on IMC-NoC Architecture with Balanced Dataflow and Fine-Grained Parallelism",
+      "abstract": "LLM inference has become an essential service, yet it imposes unprecedented demands on memory bandwidth, computational density, and communication efficiency. While IMC is a promising solution to the memory wall issue, the heterogeneous data dynamicity of LLM requires complementary resources to handle intermediate data generated during run-time. Furthermore, the massive number of parameters in LLM necessitates scale-up architectures where on-chip data movement is often the primary performance bottleneck. This article presents a hardware-software co-design framework that unifies distributed compute, memory, and communication into a seamless processing-communication fabric. On the hardware side, we propose a scalable architecture, named LEAP, that integrates IMC PE, NMC PE, and INC. This allows each hardware layer to execute specialized tasks: IMC for static weights, NMC for dynamic data, and INC for partial result reduction. On the software side, we introduce a partitioning, mapping, and scheduling framework optimized for key metrics in LLM serving, including throughput and latency. To address the distinct computational intensities of the prefill and decode phases, we present a prefill-decode disaggregation approach that dynamically reconfigures PE organizations to maximize resource utilization. Compared to commercial GPU platforms, the proposed architecture provides a throughput and an energy efficiency improvement of $\\geq{}1.52\\times$ and $24.91\\times$, respectively.",
+      "authors": [
+        "Yimin Wang",
+        "Yue Jiet Chong",
+        "Xuanyao Fong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-01T07:55:45+00:00",
+      "link": "https://arxiv.org/pdf/2609.00857v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "IMC-NoC architecture with balanced dataflow and fine-grained parallelism for scalable LLM inference",
+      "llm_evidence_cn": "提出统一存内计算与片上网络的IMC-NoC处理通信架构，正对应深度学习加速器加片上网络微架构",
+      "llm_evidence": "提出统一存内计算与片上网络的IMC-NoC处理通信架构，正对应深度学习加速器加片上网络微架构",
+      "canonical_evidence": "提出统一存内计算与片上网络的IMC-NoC处理通信架构，正对应深度学习加速器加片上网络微架构",
+      "llm_tldr_en": "Hardware-software co-design unifying in-memory computing and NoC into a scalable processing-communication fabric with balanced dataflow and fine-grained parallelism for LLM inference.",
+      "llm_tldr_cn": "大模型推理对存储带宽、计算密度和通信效率提出了前所未有的要求，存储计算IMC虽可缓解内存墙，但中间数据动态变化及片上数据移动仍是性能瓶颈。该文提出硬件软件协同框架，将分布式计算、存储与通信统一为处理-通信融合的可扩展结构，硬件侧实现IMC-NoC架构并采用平衡数据流与细粒度并行。该架构针对大模型规模扩展场景，降低片上数据移动开销。此项研究为深度学习加速器如何结合存内计算与片上网络提供了具体微架构方案。",
+      "llm_tldr": "大模型推理对存储带宽、计算密度和通信效率提出了前所未有的要求，存储计算IMC虽可缓解内存墙，但中间数据动态变化及片上数据移动仍是性能瓶颈。该文提出硬件软件协同框架，将分布式计算、存储与通信统一为处理-通信融合的可扩展结构，硬件侧实现IMC-NoC架构并采用平衡数据流与细粒度并行。该架构针对大模型规模扩展场景，降低片上数据移动开销。此项研究为深度学习加速器如何结合存内计算与片上网络提供了具体微架构方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "hardware microarchitecture of deep learning accelerators with on chip networking",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.01084v1",
+      "source": "arxiv",
+      "title": "Hardware Acceleration of Block-Diffusion LLM for Edge Devices",
+      "abstract": "Single-stream (batch-one) edge inference cannot amortize weight traffic across requests. Full-attention diffusion LLMs recompute the entire sequence at every step; native block diffusion makes completed blocks immutable and exactly cacheable, yet refinement still streams prefix KV and FFN weights. We co-design WIFiV-LPDDR, a wide-I/O LPDDR system for precision-tagged reads, BRQ-KV for a canonical low-rank-plus-INT8-residual prefix with query-dependent per-entry precision, and DAT-FFN for drift-mapped canonical replacement, adjacent-stage-corrected low-bit delta, or cached-state carry while keeping live activations unquantized. Both map to an input-stationary mixed-precision systolic array. For the evaluated 1.5B/7B models on modeled Jetson-class platforms, the full stack provides arithmetic-mean energy-reduction factors of 3.79x/3.96x and arithmetic-mean latency speedups of 2.88x/4.44x at the reported DAT-FFN settings; every corresponding compressed model-benchmark score drops by less than one absolute percentage point from its baseline.",
+      "authors": [
+        "Wei-Hsing Huang",
+        "Kiseok Lee",
+        "Ming-Yen Lee",
+        "Weiyu Sun",
+        "Cheng-Jhih Shih",
+        "Gayatri Tanksali",
+        "Arpit Khandelwal",
+        "Pin-Jun Chen",
+        "Yingyan Celine Lin",
+        "Shimeng Yu"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-01T11:18:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.01084v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Edge LLM inference hardware acceleration co-design with wide-I/O memory, low-rank KV compression and input-stationary mixed-precision systolic array",
+      "llm_evidence_cn": "提出面向边缘大模型推理的硬件协同设计，含宽IO存储系统与输入驻留混合精度脉动阵列，直接对应AI加速器硬件架构",
+      "llm_evidence": "提出面向边缘大模型推理的硬件协同设计，含宽IO存储系统与输入驻留混合精度脉动阵列，直接对应AI加速器硬件架构",
+      "canonical_evidence": "提出面向边缘大模型推理的硬件协同设计，含宽IO存储系统与输入驻留混合精度脉动阵列，直接对应AI加速器硬件架构",
+      "llm_tldr_en": "Co-designs wide-I/O LPDDR with low-rank-plus-INT8 KV cache and drift-aware FFN mapping for single-stream edge LLM inference on mixed-precision systolic arrays.",
+      "llm_tldr_cn": "单流边缘大语言模型推理无法在请求间摊销权重传输，块扩散过程仍需重复读取前缀KV和FFN权重。该工作提出硬件协同设计：WIFiV-LPDDR宽IO存储、BRQ-KV低秩加INT8残差前缀、DAT-FFN漂移映射替换，并统一映射到输入驻留混合精度脉动阵列。在模拟Jetson级平台上的1.5B/7B模型评估中，大幅降低权重传输开销。该方案为边缘端大模型推理加速器提供了一条存储与计算深度融合的架构路径。",
+      "llm_tldr": "单流边缘大语言模型推理无法在请求间摊销权重传输，块扩散过程仍需重复读取前缀KV和FFN权重。该工作提出硬件协同设计：WIFiV-LPDDR宽IO存储、BRQ-KV低秩加INT8残差前缀、DAT-FFN漂移映射替换，并统一映射到输入驻留混合精度脉动阵列。在模拟Jetson级平台上的1.5B/7B模型评估中，大幅降低权重传输开销。该方案为边缘端大模型推理加速器提供了一条存储与计算深度融合的架构路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.03594v1",
+      "source": "arxiv",
+      "title": "LevelSyn: Physical-Aware Logic Synthesis via Level-Asynchronous Graph Neural Networks",
+      "abstract": "As integrated circuit technology scales into the nanometer regime, the traditional disconnect between logic synthesis and physical design has led to significant PPA (Power, Performance, and Area) degradation and prolonged design closure cycles. Traditional logic synthesis relies on non-physical Wire Load Models (WLMs), while recent spectral-based placement predictors often neglect the inherent hierarchical logic depth and signal flow of netlists, which leads to low-fidelity spatial estimations. To bridge this gap, we propose LevelSyn, a novel physical-aware logic synthesis framework that integrates hierarchical representation learning with a wirelength-driven optimization engine. At its core, LevelSyn leverages a level-asynchronous Graph Neural Network (GNN) to predict high-fidelity gate coordinates by capturing the structural and directional semantics of And-Inverter Graphs (AIGs). To handle industrial-scale designs, a level-aligned subgraph partitioning strategy is introduced to eliminate memory bottlenecks while preserving local logical dependencies. These spatial insights are seamlessly integrated into a newly developed physical-informed synthesis engine within the Berkeley ABC framework. Experimental results on the EPFL benchmark suite demonstrate that LevelSyn significantly outperforms state-of-the-art (SOTA) methods, achieving an average power reduction of 6.89\\% and a timing delay improvement of 27.48\\%. Furthermore, post-place-and-route validation shows a 99.59\\% reduction in design rule check (DRC) violations, highlighting its effectiveness in accelerating design convergence.",
+      "authors": [
+        "Jingyi Zhou",
+        "Zhengyuan Shi",
+        "Ziyang Zheng",
+        "Qiang Xu"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-03T09:46:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.03594v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Physical-aware logic synthesis framework for digital integrated circuits via level-asynchronous graph neural networks.",
+      "llm_evidence_cn": "基于层级异步图神经网络、面向数字集成电路的物理感知逻辑综合方法",
+      "llm_evidence": "基于层级异步图神经网络、面向数字集成电路的物理感知逻辑综合方法",
+      "canonical_evidence": "基于层级异步图神经网络、面向数字集成电路的物理感知逻辑综合方法",
+      "llm_tldr_en": "LevelSyn bridges logic synthesis and physical design using level-asynchronous graph neural networks plus a wirelength-driven optimization engine, improving PPA and shortening design closure for digital ICs.",
+      "llm_tldr_cn": "在纳米级集成电路设计中，传统逻辑综合与物理设计脱节且线负载模型非物理，导致PPA退化与设计收敛周期延长。作者提出LevelSyn物理感知逻辑综合框架，利用层级异步图神经网络表征网表的结构层级与信号流，并内嵌线长驱动优化。该框架在逻辑综合阶段即引入物理信息，综合结果表明可显著改善功耗、性能与面积，并缩短设计收敛周期。此项工作为数字电路设计自动化提供了连接逻辑与物理设计的高保真优化路径。",
+      "llm_tldr": "在纳米级集成电路设计中，传统逻辑综合与物理设计脱节且线负载模型非物理，导致PPA退化与设计收敛周期延长。作者提出LevelSyn物理感知逻辑综合框架，利用层级异步图神经网络表征网表的结构层级与信号流，并内嵌线长驱动优化。该框架在逻辑综合阶段即引入物理信息，综合结果表明可显著改善功耗、性能与面积，并缩短设计收敛周期。此项工作为数字电路设计自动化提供了连接逻辑与物理设计的高保真优化路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.11116v1",
+      "source": "arxiv",
+      "title": "You Only Charge Once 2.0 : A End-to-End Analog Computing-in-Memory Architecture with Reconfigurable Switched Capacitors",
+      "abstract": "Analog Computing-in-Memory (ACiM) accelerates deep neural networks by keeping weights inside memory arrays and executing dot products in the analog domain. However, modern ACiM accelerators are often limited by the \"ADC wall\": analog-to-digital converters consume a large fraction of energy and area, while bit-sliced execution repeatedly invokes these converters. Existing designs reduce this cost with low-resolution readout or time multiplexing, but they either lose output fidelity or introduce serialization overhead.   Charge-CIM addresses this bottleneck by using switched-capacitor charge redistribution as a unified computing and conversion substrate. The same capacitor fabric performs input conversion, analog MAC, weighted shift-and-add, and readout quantization, reducing both standalone converter overhead and intermediate ADC invocations. A differential readout path further combines paired partial sums during ADC quantization, providing a highly compact and energy-efficient solution for array integration. With dataflow architecture support, we evaluated Charge-CIM on a suite of DNN benchmarks, from CNNs to Transformer models, and experimental results show that Charge-CIM reduces ADC energy by 91.7% under our evaluation setup and improves energy efficiency by 2.7x and throughput by 2.0x compared to the state-of-the-art charge-domain CIM accelerator.",
+      "authors": [
+        "Zihao Xuan",
+        "Yewen Li",
+        "Jia Chen",
+        "Wei Xuan",
+        "Xiao Huo",
+        "Fengbin Tu"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-11T16:24:12+00:00",
+      "link": "https://arxiv.org/pdf/2608.11116v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analog compute-in-memory deep neural network accelerator architecture tackling the ADC-wall bottleneck",
+      "llm_evidence_cn": "面向DNN的模拟存算一体加速器架构，缓解ADC墙瓶颈",
+      "llm_evidence": "面向DNN的模拟存算一体加速器架构，缓解ADC墙瓶颈",
+      "canonical_evidence": "面向DNN的模拟存算一体加速器架构，缓解ADC墙瓶颈",
+      "llm_tldr_en": "Charge-CIM is an end-to-end analog compute-in-memory architecture that uses reconfigurable switched-capacitor charge redistribution as a unified compute and conversion substrate, reducing repeated ADC calls and energy/area overhead in deep neural network accelerators.",
+      "llm_tldr_cn": "模拟存算一体加速器虽然能让DNN权重驻留存储阵列，但ADC墙导致能耗和面积开销大，且位切片执行会反复调用转换器。该文提出Charge-CIM端到端架构，利用可重构开关电容的电荷再分配将输入转换与点积计算统一到同一电容衬底，从而减少转换器重复调用。该方法可在保持精度的同时缓解串行化开销，为面向神经网络推理的存算一体芯片设计提供了新路径。",
+      "llm_tldr": "模拟存算一体加速器虽然能让DNN权重驻留存储阵列，但ADC墙导致能耗和面积开销大，且位切片执行会反复调用转换器。该文提出Charge-CIM端到端架构，利用可重构开关电容的电荷再分配将输入转换与点积计算统一到同一电容衬底，从而减少转换器重复调用。该方法可在保持精度的同时缓解串行化开销，为面向神经网络推理的存算一体芯片设计提供了新路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.11577v1",
+      "source": "arxiv",
+      "title": "Uni-SFU: Algorithm-HW Co-Design for Universal SFUs via Mixed-Degree Piecewise Approximation",
+      "abstract": "Nonlinear activation functions are essential to modern deep neural networks (DNNs), but their hardware evaluation places significant pressure on the special-function units (SFUs) of GPUs and custom accelerators. Therefore, piecewise polynomial approximations are commonly used within allowed error bounds to improve computational efficiency. However, existing techniques often approximate each activation function in isolation using fixed-degree polynomials and uniform segments, leading to hardware redundancy and sub-optimal precision. To address these limitations, we present Uni-SFU, an algorithm-hardware co-design framework that jointly optimizes approximation accuracy and silicon area for a diverse set of activation functions. Uni-SFU leverages a joint search across all target functions to assign mixed-degree polynomials to nonuniform segments, guided by an RTL-derived area cost model. This approach identifies a unified hardware configuration to implement the target activation functions under given accuracy constraints. Validated across over 700 neural network variants and three Natural Language Processing (NLP) models, Uni-SFU achieves a superior Mean Squared Error (MSE) below 8.22x10^-8, limiting top-1 accuracy degradation to within 1.02% compared to floating-point baselines. The proposed design occupies only 6,800 um2 in GF 22nm CMOS technology, achieving a superior trade-off between silicon area and system-level accuracy compared to SOTA counterparts.",
+      "authors": [
+        "Miao Sun",
+        "Yucheng Huang",
+        "Mingcong Cao",
+        "Jaehyun Park",
+        "Partha Pratim Pande",
+        "Umit Y. Ogras"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-12T02:34:29+00:00",
+      "link": "https://arxiv.org/pdf/2608.11577v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Algorithm-hardware co-design of special-function units for DNN accelerators and GPUs, directly relevant to AI accelerator hardware architecture",
+      "llm_evidence_cn": "面向DNN加速器与GPU非线性激活函数SFU的算法硬件协同设计，属于人工智能加速器硬件架构范畴",
+      "llm_evidence": "面向DNN加速器与GPU非线性激活函数SFU的算法硬件协同设计，属于人工智能加速器硬件架构范畴",
+      "canonical_evidence": "面向DNN加速器与GPU非线性激活函数SFU的算法硬件协同设计，属于人工智能加速器硬件架构范畴",
+      "llm_tldr_en": "Presents Uni-SFU, an algorithm-hardware co-design framework for universal SFUs via mixed-degree piecewise approximation, jointly optimizing accuracy and silicon area across DNN activation functions.",
+      "llm_tldr_cn": "DNN非线性激活函数在GPU和定制加速器上的硬件求值给SFU带来压力，而现有分段逼近常孤立处理各函数。提出Uni-SFU算法硬件协同设计框架，利用混合阶次分段逼近联合优化多激活函数的近似精度与硅面积。结果证明在满足误差约束下可减少SFU硬件冗余并提高计算效率，为AI加速器中非线性单元设计提供了通用可扩展方案。",
+      "llm_tldr": "DNN非线性激活函数在GPU和定制加速器上的硬件求值给SFU带来压力，而现有分段逼近常孤立处理各函数。提出Uni-SFU算法硬件协同设计框架，利用混合阶次分段逼近联合优化多激活函数的近似精度与硅面积。结果证明在满足误差约束下可减少SFU硬件冗余并提高计算效率，为AI加速器中非线性单元设计提供了通用可扩展方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.13293v1",
+      "source": "arxiv",
+      "title": "NAS-Driven Hardware Accelerator Exploration for Edge AI and Quantization Effects on the Pareto Space",
+      "abstract": "Edge AI deployment demands neural architectures that are simultaneously accurate, computationally efficient, and hardware-deployable - a challenge addressed by hardware-aware Neural Architecture Search (NAS). While recent works incorporate quantization directly into the NAS loop, these approaches expand search complexity and tightly couple architecture and quantization design. The simpler post-search quantization strategy has received little analytical attention: the effects of Post-Training Quantization (PTQ) on the NAS-discovered Pareto structure remain uncharacterised, and no framework combines quantized architecture mapping onto reconfigurable accelerators with automated hardware exploration. This paper addresses both gaps. First, a three-stage pipeline is proposed: a hardware-agnostic Pareto rank surrogate frontend on NAS-Bench-201, a quantization bridge with Pareto-aware filtering and feedback control, and an evolutionary Domain Space Exploration (DSE) backend on CGRA4ML for optimal hardware mapping. Second, an empirical study characterises how INT4 PTQ perturbs the NAS-Bench-201 Pareto space through formal stability metrics on ground-truth data for all 15,625 architectures, and demonstrates that an FP32 zero-shot surrogate outperforms a dedicated INT4-trained surrogate in Pareto space coverage across two standard search strategies.",
+      "authors": [
+        "Eleftherios Mylonas",
+        "Angelos Kouprizas",
+        "Michael Birbas",
+        "Alexios Birbas"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-13T14:26:08+00:00",
+      "link": "https://arxiv.org/pdf/2608.13293v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Automated hardware accelerator exploration for edge AI using NAS and PTQ mapping onto reconfigurable accelerators; addresses edge AI chip design-space co-optimization with quantization.",
+      "llm_evidence_cn": "面向边缘AI的硬件感知NAS与后训练量化映射结合，在可重构加速器上进行自动化硬件搜索，属于边缘AI芯片设计探索。",
+      "llm_evidence": "面向边缘AI的硬件感知NAS与后训练量化映射结合，在可重构加速器上进行自动化硬件搜索，属于边缘AI芯片设计探索。",
+      "canonical_evidence": "面向边缘AI的硬件感知NAS与后训练量化映射结合，在可重构加速器上进行自动化硬件搜索，属于边缘AI芯片设计探索。",
+      "llm_tldr_en": "This paper analyzes how post-training quantization distorts NAS-generated Pareto frontiers and combines quantized architecture mapping onto reconfigurable accelerators with automated hardware exploration for edge AI design.",
+      "llm_tldr_cn": "边缘AI需要同时具备高精度、高计算效率且能在目标硬件上部署的神经网络架构。该文关注后训练量化这一硬件-算法协同设计中被忽视的环节：先表征PTQ对NAS所得Pareto最优结构的影响，再将量化后的架构映射到可重构加速器并执行自动化硬件探索。实验揭示了量化在硬件设计空间上造成的性能偏移，并提出统一框架以权衡精度、面积和能效。该工作为边缘AI加速器的设计空间搜索与量化感知映射提供了系统化方法。",
+      "llm_tldr": "边缘AI需要同时具备高精度、高计算效率且能在目标硬件上部署的神经网络架构。该文关注后训练量化这一硬件-算法协同设计中被忽视的环节：先表征PTQ对NAS所得Pareto最优结构的影响，再将量化后的架构映射到可重构加速器并执行自动化硬件探索。实验揭示了量化在硬件设计空间上造成的性能偏移，并提出统一框架以权衡精度、面积和能效。该工作为边缘AI加速器的设计空间搜索与量化感知映射提供了系统化方法。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence chip design for edge and cloud computing",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.15636v1",
+      "source": "arxiv",
+      "title": "Algorithm-Architecture Co-Design for Efficient VLA Inference via Speculative Inference and Verification",
+      "abstract": "Vision-Language-Action (VLA) models have demonstrated remarkable capabilities in the field of embodied AI, but their high computational cost and limited predicted action length hinder real-time deployment. Although Dadu-Corki, a dedicated accelerator for efficient embodied AI, has been introduced, it does not exploit the inherent interaction patterns between the robot and its environment, which results in a relatively short predicted action length. We observe that robotic environments naturally alternate between active states-where precise actions are crucial-and inactive states-where actions have limited impact on task success. This insight enables a new scheduling opportunity: long-action-length speculative prediction in inactive states, paired with selective verification in active states.   We propose SpecVLA, an algorithm-system co-design framework that adaptively balances action length, inference latency, and task reliability. On the algorithm side, SpecVLA introduces a state-aware VLA inference execution paradigm and a hardware-friendly construction of a smaller verification model (sVLA) using differential residuals and block-wise mixed-precision quantization. On the system side, we develop a heterogeneous architecture consisting of a GPU and a robotic-specific hardware module, along with a speculative dataflow that decouples VLA and sVLA through parallel execution. Comprehensive evaluations on OpenVLA and RDT across LIBERO and ManiSkill benchmarks show that SpecVLA reduces end-to-end latency significantly while preserving task success rate. By enabling long-action-length speculative prediction with timely verification, SpecVLA achieves real-time robotic manipulation with both high efficiency and reliability.",
+      "authors": [
+        "Chunyu Qi",
+        "Zhuoran Song",
+        "Jian Weng",
+        "Haozhe Jiang",
+        "Xueyuan Liu",
+        "Naifeng Jing",
+        "Guanghui He",
+        "Xiaoyao Liang",
+        "Haibing Guan"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-08-16T08:59:22+00:00",
+      "link": "https://arxiv.org/pdf/2608.15636v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Algorithm-architecture co-design of speculative inference and verification for VLA inference on a dedicated AI accelerator Dadu-Corki.",
+      "llm_evidence_cn": "面向VLA推理专用加速器的算法-架构协同投机设计",
+      "llm_evidence": "面向VLA推理专用加速器的算法-架构协同投机设计",
+      "canonical_evidence": "面向VLA推理专用加速器的算法-架构协同投机设计",
+      "llm_tldr_en": "VLA inference on a dedicated accelerator is limited by high cost and short action length. This paper proposes algorithm-architecture co-design with speculative inference and verification, exploiting active/inactive robot-environment state alternation to enable efficient real-time deployment.",
+      "llm_tldr_cn": "视觉-语言-动作(VLA)模型计算成本高且预测动作长度有限，难以实时部署。现有专用加速器Dadu-Corki未利用机器人环境中主动/非主动状态交替的固有特征。作者提出投机式推理与验证的算法-架构协同策略，在非活跃状态执行长动作长度投机预测并配以验证，从而提升有效动作长度并减少推理开销。该方法与专用加速器结合，为具身智能场景下的实时VLA部署提供了协同优化路径。",
+      "llm_tldr": "视觉-语言-动作(VLA)模型计算成本高且预测动作长度有限，难以实时部署。现有专用加速器Dadu-Corki未利用机器人环境中主动/非主动状态交替的固有特征。作者提出投机式推理与验证的算法-架构协同策略，在非活跃状态执行长动作长度投机预测并配以验证，从而提升有效动作长度并减少推理开销。该方法与专用加速器结合，为具身智能场景下的实时VLA部署提供了协同优化路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.17266v1",
+      "source": "arxiv",
+      "title": "The Road Less Traveled: Congestion-Aware NoC Placement and Packet Routing for FPGAs",
+      "abstract": "To help scale to ever-larger and more complex designs, recent FPGA architectures now integrate network-on-chips (NoCs). NoCs help transfer high-bandwidth data over long distances within the chip without using scarce low-delay long routing wire segments. While NoC-enhanced FPGAs aid system integration and design reuse, they also complicate FPGA computer-aided design (CAD) flows by introducing new constraints and metrics. Placement and routing need to optimize NoC metrics like latency and bandwidth utilization and avoid link oversubscription (congestion), while simultaneously optimizing the programmable routing resource usage of the design modules attached to NoC routers.   In this work, we develop several new approaches to reduce NoC congestion while minimizing the impact on other design metrics. First, we incorporate a NoC link congestion cost into the placement engine of the open-source CAD flow, versatile place & route (VPR). Second, we integrate turn model NoC routing algorithms into the placement engine to leverage path diversity to further reduce congestion. On average over a suite of 29 benchmarks, combining placement congestion modeling with turn model packet routing reduces NoC congestion by 90.7% at the cost of increasing aggregate bandwidth demand by 4%. In cases where the enhanced placement engine and NoC routing fail to fully resolve congestion, we formulate NoC routing as a Boolean satisfiability (SAT) problem. This approach yields significant additional improvements; the combined algorithm reduces congestion by 95.1% compared to the baseline placement. Finally, we enhance the reinforcement learning (RL) agent in VPR's placement engine by introducing a NoC-aware move type, resulting in an 8.8% reduction in wirelength on designs that make extensive use of the NoC.",
+      "authors": [
+        "Soheil Gholami Shahrouz",
+        "Vaughn Betz"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-18T01:51:14+00:00",
+      "link": "https://arxiv.org/pdf/2608.17266v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Congestion-aware NoC placement and packet routing for NoC-enhanced FPGAs",
+      "llm_evidence_cn": "面向NoC增强FPGA的拥塞感知布局与包路由方法，直接涉及片上网络互连设计与通信架构",
+      "llm_evidence": "面向NoC增强FPGA的拥塞感知布局与包路由方法，直接涉及片上网络互连设计与通信架构",
+      "canonical_evidence": "面向NoC增强FPGA的拥塞感知布局与包路由方法，直接涉及片上网络互连设计与通信架构",
+      "llm_tldr_en": "Proposes congestion-aware placement and routing algorithms that jointly optimize NoC latency and bandwidth for modern FPGA network-on-chip fabrics.",
+      "llm_tldr_cn": "随着FPGA集成更多片上网络(NoC)以支撑远距离高带宽数据流，NoC约束也进入布局布线流程，需在优化可编程逻辑资源的同时避免链路过载。本文开发了若干拥塞感知的NoC布局与分组路由方法，在布局和路由阶段同时考虑NoC时延、带宽利用率与拥塞。结果显示，该方法可减少链路过载并提升布线可行性。研究成果为NoC化FPGA及复杂片上通信架构的数字电路设计工具提供了新思路。",
+      "llm_tldr": "随着FPGA集成更多片上网络(NoC)以支撑远距离高带宽数据流，NoC约束也进入布局布线流程，需在优化可编程逻辑资源的同时避免链路过载。本文开发了若干拥塞感知的NoC布局与分组路由方法，在布局和路由阶段同时考虑NoC时延、带宽利用率与拥塞。结果显示，该方法可减少链路过载并提升布线可行性。研究成果为NoC化FPGA及复杂片上通信架构的数字电路设计工具提供了新思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.17523v1",
+      "source": "arxiv",
+      "title": "Completion-Path Credits: Multi-Resource Control for Scale-Up Fabrics",
+      "abstract": "Scale-up fabrics connecting GPUs and AI accelerators carry tensor transfers together with remote reads, writes, atomics, and notifications over shared target-side receiver resources. Byte-denominated credits protect link buffers and streaming HBM traffic, but poorly represent small operations dominated by Atomic execution or response injection. This paper presents SemaCredit, a receiver controller that admits each remote-memory operation against a vector of target-resource demands and returns each component when its corresponding HBM, Atomic, or response stage completes. In a deterministic event simulator with multipath queues, eight HBM partitions, a serialized Atomic engine, and a response engine, SemaCredit matches a strong per-resource byte baseline on HBM-hotspot traffic while reducing small-operation P99 latency by 52.4% under Atomic contention and 10.2% under response incast. Application-shaped mixes show 57.7% and 14.5% P99 latency improvements for AllReduce-shaped and remote-read-shaped traffic while matching byte credits on HBM-dominated MoE traffic.",
+      "authors": [
+        "Fan Yang",
+        "Jiaqi Liu",
+        "Tao Jiang",
+        "Zhan Wang"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-08-18T08:46:09+00:00",
+      "link": "https://arxiv.org/pdf/2608.17523v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-resource receiver control for scale-up fabrics connecting GPUs and AI accelerators, matches network-on-chip and communication architecture scope",
+      "llm_evidence_cn": "面向GPU与AI加速器scale-up互联的多资源接收端控制，匹配片上网络与通信架构需求",
+      "llm_evidence": "面向GPU与AI加速器scale-up互联的多资源接收端控制，匹配片上网络与通信架构需求",
+      "canonical_evidence": "面向GPU与AI加速器scale-up互联的多资源接收端控制，匹配片上网络与通信架构需求",
+      "llm_tldr_en": "Proposes SemaCredit, a receiver controller that admits each remote-memory operation against multiple target-resource demands in scale-up fabrics carrying GPU and AI accelerator traffic, improving multi-resource flow control over byte-based credits.",
+      "llm_tldr_cn": "GPU与AI加速器的scale-up织构中，字节信用难以保护原子执行或响应主导的小操作。论文提出SemaCredit接收控制器，将远程内存操作按目标端HBM、原子和响应资源需求向量准入，并在对应阶段完成时归还信用。在确定性事件模拟器的多路径队列实验中，SemaCredit能达到或超过强逐资源字节基线的资源控制效果，为AI时代互联通信架构提供更精确的多资源流控设计。",
+      "llm_tldr": "GPU与AI加速器的scale-up织构中，字节信用难以保护原子执行或响应主导的小操作。论文提出SemaCredit接收控制器，将远程内存操作按目标端HBM、原子和响应资源需求向量准入，并在对应阶段完成时归还信用。在确定性事件模拟器的多路径队列实验中，SemaCredit能达到或超过强逐资源字节基线的资源控制效果，为AI时代互联通信架构提供更精确的多资源流控设计。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.19395v1",
+      "source": "arxiv",
+      "title": "HYDRA: A Heterogeneous Chiplet DSE Framework for Serving Dynamic Hybrid LLM Workloads",
+      "abstract": "Hybrid Transformer-Mamba large language models (LLMs) enhance long-context efficiency, but their heterogeneous computation and communication patterns complicate efficient hardware acceleration. Chiplet-based architectures offer a scalable solution by integrating specialized compute and memory units. However, the design space spanning static architectural configurations and dynamic runtime policies is prohibitively large to explore exhaustively. To address this challenge, we present HYDRA, a comprehensive design space exploration framework for hybrid LLM serving on heterogeneous chiplet systems. HYDRA jointly explores chiplet composition, placement, inter-chiplet bandwidth provisioning, dynamic batching, and runtime scheduling. It integrates communication-aware placement, dynamic batching, elastic task scheduling, and a fast Markov-based performance estimator that captures multi-tenant runtime dynamics for efficient and accurate exploration. Across all workloads, HYDRA delivers 1.55x the throughput and 43.7 percent lower time-to-first-token on average, with throughput gains reaching up to 2.3x compared to state-of-the-art baselines. These results highlight that co-designing architecture and runtime policies is critical for efficient large-scale LLM serving on heterogeneous chiplet systems.",
+      "authors": [
+        "Jiahao Lin",
+        "Alish Kanani",
+        "Sangwan Lee",
+        "Jaehyun Park",
+        "Umit Ogras"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-08-19T19:26:21+00:00",
+      "link": "https://arxiv.org/pdf/2608.19395v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Chiplet-based heterogeneous AI accelerator design space exploration with inter-chiplet bandwidth and scheduling, core to CPU/GPU/NPU chip architecture composite theme",
+      "llm_evidence_cn": "面向混合LLM的异构芯粒AI加速器设计空间探索，包含芯粒放置、互联带宽与运行时调度，契合芯片架构复合主题",
+      "llm_evidence": "面向混合LLM的异构芯粒AI加速器设计空间探索，包含芯粒放置、互联带宽与运行时调度，契合芯片架构复合主题",
+      "canonical_evidence": "面向混合LLM的异构芯粒AI加速器设计空间探索，包含芯粒放置、互联带宽与运行时调度，契合芯片架构复合主题",
+      "llm_tldr_en": "Proposes HYDRA, a heterogeneous chiplet design space exploration framework for hybrid LLM serving, jointly searching chiplet composition, placement, inter-chiplet bandwidth, dynamic batching and runtime scheduling.",
+      "llm_tldr_cn": "混合Transformer-Mamba LLM兼具长上下文效率与异构计算通信特征，芯粒架构可灵活集成专用算力与存储，但其架构-运行时联合设计空间庞大。HYDRA框架将芯粒组成、放置、芯粒间带宽配置、动态批处理与运行时调度纳入统一探索，并集成性能估算加速搜索。实验表明HYDRA能够在众多配置中识别高能效的设计点，从而为混合LLM负载的异构芯粒AI系统提供可扩展的架构设计方法。",
+      "llm_tldr": "混合Transformer-Mamba LLM兼具长上下文效率与异构计算通信特征，芯粒架构可灵活集成专用算力与存储，但其架构-运行时联合设计空间庞大。HYDRA框架将芯粒组成、放置、芯粒间带宽配置、动态批处理与运行时调度纳入统一探索，并集成性能估算加速搜索。实验表明HYDRA能够在众多配置中识别高能效的设计点，从而为混合LLM负载的异构芯粒AI系统提供可扩展的架构设计方法。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.22378v1",
+      "source": "arxiv",
+      "title": "Precision-Aware Variable Bit Processing Elements for Hardware-Efficient Systolic Array Designs",
+      "abstract": "Systolic arrays (SAs) have emerged as prominent hardware accelerators for matrix operations in deep learning, while floating point number formats enable precision control across computational domains. This research investigates approximate computing techniques for floating point (FP) multipliers in Weight Stationary Systolic Arrays, focusing on IEEE 754 (FP32), TensorFloat-32 (TF32), and Brain Floating point (BF16) formats. By integrating partial product matrix (PPM) column truncation with positive and negative compressors in the FP multiplier architecture, we optimize the trade-off between computational efficiency and accuracy. NSGA-II optimization algorithm was employed to explore the vast design space for evolving FP multiplier designs, towards achieving substantial hardware improvements while maintaining acceptable output quality. Substantial hardware benefits were observed in the FP multiplier designs across various applications, while preserving output quality. The FP approximated Processing Elements designed in the SA was found to offer comparable CNN accuracy for models trained on MNIST, F-MNIST, and CIFAR-10 dataset. The FP approximated SA designs that fall in the top 10 CNN performance offered substantial hardware gains in the range of 66% to 92% footprint savings, 60% to 93% of power benefits with 21% to 54% improvement in the delay when compared with the corresponding exact implementations mentioned in the literature for running the model trained on CIFAR-10 dataset. The TF32 and BF16 approximated SA designs also achieved substantial gains while maintaining comparable CNN accuracy. Our findings confirm that targeted approximation in FP multiplier design significantly improves the efficiency of hardware accelerators for error-tolerant applications, establishing an effective approach to hardware resource optimization in contemporary computing architectures.",
+      "authors": [
+        "Dantu Nandini Devi",
+        "Madhav Rao"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.ET",
+        "cs.LG",
+        "eess.IV"
+      ],
+      "published": "2026-08-23T12:00:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.22378v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Design of variable-bit FP processing elements in systolic arrays to optimize DL accelerators",
+      "llm_evidence_cn": "面向深度学习脉动阵列处理单元的变位宽浮点乘法器近似设计",
+      "llm_evidence": "面向深度学习脉动阵列处理单元的变位宽浮点乘法器近似设计",
+      "canonical_evidence": "面向深度学习脉动阵列处理单元的变位宽浮点乘法器近似设计",
+      "llm_tldr_en": "For weight-stationary systolic arrays, this paper builds approximate FP multipliers with partial-product matrix truncation and compressors in FP32/TF32/BF16, using NSGA-II to co-design variable-bit PEs. The approach balances numerical accuracy with hardware efficiency for DL accelerators.",
+      "llm_tldr_cn": "该文面向权重静止型脉动阵列研究浮点乘法器的近似计算，通过对部分积矩阵列截断并结合正负压缩器，在FP32、TF32与BF16格式下实现可变位宽处理单元。采用NSGA-II优化在精度与算力之间探索大规模设计空间，为深度学习加速器提供硬件高效的近似浮点乘加方案。",
+      "llm_tldr": "该文面向权重静止型脉动阵列研究浮点乘法器的近似计算，通过对部分积矩阵列截断并结合正负压缩器，在FP32、TF32与BF16格式下实现可变位宽处理单元。采用NSGA-II优化在精度与算力之间探索大规模设计空间，为深度学习加速器提供硬件高效的近似浮点乘加方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.22602v1",
+      "source": "arxiv",
+      "title": "Architecting the Next Generation of Asynchronous, Distributed GPUs for the AI Era",
+      "abstract": "The rapid evolution of machine learning workloads has fundamentally transformed GPU hardware, driving architectures toward Multi-Chip Module (MCM) topologies, asynchronous execution primitives, and persistent, multi-phase kernel behaviors. Despite these shifts, cycle-level simulation infrastructure has lagged behind, lacking the native capability to model the physical non-uniformity of modern GPUs alongside the massive scale of state-of-the-art AI workloads. To bridge this gap, we present a cycle-level simulation framework designed to accurately model modern GPU generations, including Ampere, Hopper, and Blackwell. Rigorously validated against physical silicon, the simulator achieves a 99% Pearson correlation coefficient and a 13.4% mean absolute cycle error on the H100 GPU. Utilizing this infrastructure, we conduct architectural case studies to evaluate emerging design trajectories, including chiplet topology scaling, expanded SRAM capacity and bandwidth, and inter-GPU prefetching strategies.",
+      "authors": [
+        "Junrui Pan",
+        "Weili An",
+        "Cesar Avalos Baddouh",
+        "Christin David Bose",
+        "Ni Kang",
+        "Aaron Barnes",
+        "Ahmad Alawneh",
+        "Fangjia Shen",
+        "Yechen Liu",
+        "Anusuya Nallathambi",
+        "Atthin Chandrashekar",
+        "Timothy G. Rogers"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-23T21:19:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.22602v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Cycle-level simulation framework for modern AI-era GPU architectures (Ampere/Hopper/Blackwell), supports CPU/GPU architecture design for AI acceleration",
+      "llm_evidence_cn": "面向Ampere/Hopper/Blackwell等现代AI GPU架构的周期级模拟框架，支撑AI加速用CPU/GPU架构设计",
+      "llm_evidence": "面向Ampere/Hopper/Blackwell等现代AI GPU架构的周期级模拟框架，支撑AI加速用CPU/GPU架构设计",
+      "canonical_evidence": "面向Ampere/Hopper/Blackwell等现代AI GPU架构的周期级模拟框架，支撑AI加速用CPU/GPU架构设计",
+      "llm_tldr_en": "Presents a cycle-level simulation framework natively modeling MCM topologies, async execution and persistent kernels of modern GPUs (Ampere to Blackwell), achieving 99% Pearson correlation and 13.4% mean absolute error against silicon.",
+      "llm_tldr_cn": "AI工作负载推动GPU向多芯片模块、异步执行和持久化多阶段内核演进，但现有周期级模拟器缺乏对现代GPU非均匀物理与大规模AI负载的原生建模。作者构建了面向Ampere、Hopper和Blackwell的周期级模拟框架，能精确模拟大规模AI GPU的物理非均匀性，并用物理硅片严格验证。模拟器达到99%的Pearson相关系数和13.4%的平均绝对误差。该工具填补了AI时代GPU架构研究的基础设施空白，支撑下一代异步分布式GPU探索。",
+      "llm_tldr": "AI工作负载推动GPU向多芯片模块、异步执行和持久化多阶段内核演进，但现有周期级模拟器缺乏对现代GPU非均匀物理与大规模AI负载的原生建模。作者构建了面向Ampere、Hopper和Blackwell的周期级模拟框架，能精确模拟大规模AI GPU的物理非均匀性，并用物理硅片严格验证。模拟器达到99%的Pearson相关系数和13.4%的平均绝对误差。该工具填补了AI时代GPU架构研究的基础设施空白，支撑下一代异步分布式GPU探索。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "architecture design of CPU GPU and NPU for artificial intelligence acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.25781v1",
+      "source": "arxiv",
+      "title": "Update Disturbance-Resilient Analog ReRAM Crossbar Arrays for In-Memory Deep Learning Accelerators",
+      "abstract": "Resistive memory (ReRAM) technologies with crossbar array architectures hold significant potential for analog AI accelerator hardware, enabling both in-memory inference and training. Recent developments have successfully demonstrated inference acceleration by offloading compute-heavy training workloads to off-chip digital processors. However, in-memory acceleration of training algorithms is crucial for more sustainable and power-efficient AI, but still in an early stage of research. This study addresses in-memory training acceleration using analog ReRAM arrays, focusing on a key challenge during fully parallel weight updates: disturbances of the weight values in cross-point devices. A ReRAM device solution is presented on 350 nm silicon technology, utilizing a resistive switching conductive metal oxide (CMO) formed on a nanoscale conductive filament within a HfOx layer. The devices not only exhibit 60 ns fast, non-volatile analog switching, but also demonstrates outstanding resilience to update disturbances, enduring over 100k pulses. The disturbance tolerance of the ReRAM is analyzed using COMSOL Multiphysics simulations, modeling the filament-induced thermoelectric energy concentration that results in a highly nonlinear device responses to input voltage amplitudes. Disturbance-free parallel weight mapping is also demonstrated on the back-end-of-line integrated ReRAM array chip. Finally, comprehensive hardware-aware neural network simulations validate the potential of our ReRAM for in-memory deep learning accelerators capable of fully parallel weight updates.",
+      "authors": [
+        "Wooseok Choi",
+        "Tommaso Stecconi",
+        "Donato Francesco Falcone",
+        "Matteo Galetta",
+        "Victoria Clerico",
+        "Elisa Zaccaria",
+        "Mamidala Saketh Ram",
+        "Antonio La Porta",
+        "Folkert Horst",
+        "Daniel Jubin",
+        "Matias Senger",
+        "Marilyne Sousa",
+        "Steffen Reidt",
+        "Ralph Heller",
+        "Bernabe Linares-Barranco",
+        "Valeria Bragaglia",
+        "Bert Jan Offrein"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET"
+      ],
+      "published": "2026-08-26T13:27:34+00:00",
+      "link": "https://arxiv.org/pdf/2608.25781v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analog ReRAM crossbar array for in-memory deep learning accelerator, directly on AI accelerator hardware architecture for training/inference",
+      "llm_evidence_cn": "用于存内深度学习加速器的模拟ReRAM交叉阵列研究，直接属于人工智能加速器硬件架构方向",
+      "llm_evidence": "用于存内深度学习加速器的模拟ReRAM交叉阵列研究，直接属于人工智能加速器硬件架构方向",
+      "canonical_evidence": "用于存内深度学习加速器的模拟ReRAM交叉阵列研究，直接属于人工智能加速器硬件架构方向",
+      "llm_tldr_en": "Addresses weight-update disturbance in analog ReRAM crossbar arrays for in-memory DNN training, presenting a device-level solution on a 35nm array to make fully parallel weight updates more robust.",
+      "llm_tldr_cn": "ReRAM模拟交叉阵列有望支持存内AI训练，但全并行权重更新会扰动交叉点器件值，阻碍训练加速实用化。本文从器件层提出一种抗更新干扰的ReRAM方案，并在35nm工艺阵列上进行验证。结果表明该方案能够降低并行更新期间的权重扰动，使模拟存内训练更稳定，为可持续低功耗AI加速器奠定了基础。该工作从底层器件创新推进了神经网络加速硬件的发展。",
+      "llm_tldr": "ReRAM模拟交叉阵列有望支持存内AI训练，但全并行权重更新会扰动交叉点器件值，阻碍训练加速实用化。本文从器件层提出一种抗更新干扰的ReRAM方案，并在35nm工艺阵列上进行验证。结果表明该方案能够降低并行更新期间的权重扰动，使模拟存内训练更稳定，为可持续低功耗AI加速器奠定了基础。该工作从底层器件创新推进了神经网络加速硬件的发展。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.30435v1",
+      "source": "arxiv",
+      "title": "Scalable AXI4 Transaction Monitoring for Mixed-Criticality SoCs: From Phase-Level Precision to ID-Level Efficiency",
+      "abstract": "Mixed-criticality Systems-on-Chip (SoCs) with on-chip interconnects based on the AXI4 open standard protocol lack a protocol-level timeout mechanism, exposing systems to deadlocks and missed real-time deadlines when subordinate devices or managers fail or stall due to hardware faults, radiation-induced upsets, or software errors. This work presents a configurable hardware intellectual property (IP), non-intrusive in fault-free operation, that detects AXI4 protocol violations and timing faults at runtime and restores interconnect liveness through a cut-and- drain isolation mechanism. To address the fundamental trade-off between monitoring granularity and area cost, we introduce three designs at decreasing monitoring granularity: Phase-Level Track-ing (PLT), which provides cycle-accurate fault localization across individual protocol phases; Channel-Level Tracking (CLT), which coalesces per-phase monitors into channel-level supervision; and ID-Level Tracking (ILT), which achieves sub-linear area scaling by monitoring only per-ID transaction boundaries. Synthesized in GlobalFoundries 12 nm technology, CLT reduces area by 36.7% relative to PLT while preserving worst-case detection bounds at a minimal detection latency overhead, whereas ILT achieves an 89.2% area reduction suitable for tightly constrained deployments at the cost of a 3.7x higher median detection latency with coarser fault localization. Fault injection campaigns on a RISC-V SoC across 1.2 million scenarios confirm that no fault manifesting as an AXI4 protocol or liveness violation escaped detection, with observed detection latencies consistently bounded by theoretical worst-case predictions.",
+      "authors": [
+        "Chaoqun Liang",
+        "Thomas Benz",
+        "Alessandro Ottaviano",
+        "Michael Rogenmoser",
+        "Luca Benini",
+        "Angelo Garofalo",
+        "Davide Rossi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-08-31T08:26:08+00:00",
+      "link": "https://arxiv.org/pdf/2608.30435v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "On-chip AXI4 interconnect monitoring IP detecting protocol and timing faults with isolation restoration matches NoC and on-chip interconnect reliability needs.",
+      "llm_evidence_cn": "针对AXI4片上互连的协议/时序监控与恢复硬件，契合片上互连与通信架构可靠性设计。",
+      "llm_evidence": "针对AXI4片上互连的协议/时序监控与恢复硬件，契合片上互连与通信架构可靠性设计。",
+      "canonical_evidence": "针对AXI4片上互连的协议/时序监控与恢复硬件，契合片上互连与通信架构可靠性设计。",
+      "llm_tldr_en": "AXI4-based SoC interconnects lack timeout mechanisms, risking deadlocks in mixed-criticality systems. The authors propose a configurable hardware IP for runtime detection of AXI4 protocol/timing faults and liveness restoration via cut-and-drain isolation, offering three granularity versus area monitors.",
+      "llm_tldr_cn": "在混合关键性SoC中，基于AXI4的片上互连缺少协议级超时机制，器件故障或停滞可能造成死锁和实时性破坏。该文提出一款配置型非侵入式硬件IP，能够运行时检测AXI4协议违规与超时错误，并通过cut-and-drain隔离机制恢复互连活性。为了权衡监控粒度与面积，作者给出三种不同精度的设计变体，为片上互连的可靠性与实时监控提供了可扩展方案。",
+      "llm_tldr": "在混合关键性SoC中，基于AXI4的片上互连缺少协议级超时机制，器件故障或停滞可能造成死锁和实时性破坏。该文提出一款配置型非侵入式硬件IP，能够运行时检测AXI4协议违规与超时错误，并通过cut-and-drain隔离机制恢复互连活性。为了权衡监控粒度与面积，作者给出三种不同精度的设计变体，为片上互连的可靠性与实时监控提供了可扩展方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network-on-chip interconnect design and communication architecture",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.01735v1",
+      "source": "arxiv",
+      "title": "CircuitsDNA: Discovering Unconventional Multi-Accuracy Arithmetic Circuits via Evolutionary Synthesis",
+      "abstract": "Emerging edge AI workloads increasingly require arithmetic units that can trade computational accuracy for efficiency on demand. However, existing approximate arithmetic circuits are typically fixed-accuracy or rely on predefined structures for runtime configurability. This work introduces CircuitsDNA, an evolutionary framework that automatically evolves accuracy-configurable arithmetic circuits supporting multiple accuracy modes within a single circuit. It integrates three key features: 1) multi-threshold verifiability miter to enforce mode-specific accuracy requirements, 2) resource-limited verifiability-driven search to reduce verification overhead without sacrificing correctness, enabling efficient exploration of large circuit design, and 3) feedback-driven adaptive mutation to prioritize effective structural modifications and accelerate search convergence. Experimental results show that the 8-bit multiplier variants synthesized in 28-nm CMOS reduce the area-power product by up to 56% on INT8 DNN workload and 93% under exhaustive activity, compared with an exact 8-bit multiplier. Across CNNs and DeiTs, the accuracy loss relative to FP32 remains below 2% after fine-tuning under worst-case error (WCE) budgets of at most 1%. CircuitsDNA eliminates all search stalls observed in conventional methods across 8/12/16-bit multipliers, while adaptive mutation provides up to 1.33 times faster convergence than its non-adaptive counterpart.",
+      "authors": [
+        "Ruichen Qi",
+        "Junyi Luo",
+        "Xinting Jiang",
+        "Quan Cheng",
+        "Gregory Kielian",
+        "Ben Laurie",
+        "Dennis Sylvester",
+        "Mehdi Saligane"
+      ],
+      "primary_category": "cs.NE",
+      "categories": [
+        "cs.NE"
+      ],
+      "published": "2026-09-01T18:03:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.01735v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evolutionary synthesis of multi-accuracy arithmetic circuits for edge AI processing",
+      "llm_evidence_cn": "面向边缘AI计算的进化式多精度算术电路综合",
+      "llm_evidence": "面向边缘AI计算的进化式多精度算术电路综合",
+      "canonical_evidence": "面向边缘AI计算的进化式多精度算术电路综合",
+      "llm_tldr_en": "CircuitsDNA automatically evolves arithmetic circuits with multiple accuracy modes in one netlist for edge AI. Multi-threshold verifiability miters and resource-limited verification search let it synthesize run-time accuracy-configurable units efficiently, enabling on-demand accuracy-efficiency trade-offs.",
+      "llm_tldr_cn": "现有近似算术电路通常精度固定或结构预定义。CircuitsDNA提出进化综合框架，可在同一电路中生成支持多精度模式的算术单元。它引入多阈值等价性检查约束以及资源受限的验证驱动搜索，在保证精度的前提下降低验证开销、扩大搜索规模，从而实现边缘AI按需的精度-能耗权衡。",
+      "llm_tldr": "现有近似算术电路通常精度固定或结构预定义。CircuitsDNA提出进化综合框架，可在同一电路中生成支持多精度模式的算术单元。它引入多阈值等价性检查约束以及资源受限的验证驱动搜索，在保证精度的前提下降低验证开销、扩大搜索规模，从而实现边缘AI按需的精度-能耗权衡。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.01948v1",
+      "source": "arxiv",
+      "title": "An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions",
+      "abstract": "The rapid advancement of deep learning has presented significant energy efficiency challenges to the conventional von Neumann architecture. In-memory computing (IMC) architectures based on emerging non-volatile memory (eNVM) are widely regarded as a promising solution for accelerating neural network training due to their high parallelism and low power consumption. However, the intrinsic non-idealities of eNVM devices can cause conductance updates to deviate from target values, thereby limiting the performance of on-chip training. To address this challenge, this paper presents a Non-ideality Optimized eNVM Accelerator (NOVA) architecture for on-chip training. Specifically, we first fabricate a two-dimensional (2D) ferroelectric field-effect transistor (FeFET) and develop a conductance modulation behavioral model calibrated with experimental data. Building upon this device model, we propose, for the first time, a Non-ideality Avoidance Training (NAT) algorithm tailored for eNVM devices, which mitigates accuracy degradation by guiding weight convergence toward the most stable conductance regions of eNVM devices. Experimental results demonstrate that, even under severe device asymmetry, NAT improves the accuracy by an average of 15.1\\% over the baseline methods across multiple benchmark tasks. Meanwhile, the NOVA achieves an average energy efficiency gain of approximately 33.58$\\times$ compared with the peak energy efficiency of graphics processing units (GPUs).",
+      "authors": [
+        "Peng Dang",
+        "Youna Huang",
+        "Yintao He",
+        "Huawei Li"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-01T23:42:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.01948v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "eNVM on-chip training accelerator architecture with non-ideality mitigation",
+      "llm_evidence_cn": "基于eNVM的片上神经训练架构及非理想性缓解",
+      "llm_evidence": "基于eNVM的片上神经训练架构及非理想性缓解",
+      "canonical_evidence": "基于eNVM的片上神经训练架构及非理想性缓解",
+      "llm_tldr_en": "eNVM in-memory computing promises high parallelism and low power for neural network training, but device non-idealities distort weight updates. The paper fabricates a 2D array and proposes NOVA, an on-chip training architecture that uses bipolar weight distributions to mitigate conductance-update deviations and improve training accuracy.",
+      "llm_tldr_cn": "基于新兴非易失存储(eNVM)的存内计算架构以高并行和低功耗加速神经网络训练，但器件非理想性会使电导更新偏离目标，降低片上训练精度。论文制作二维eNVM器件阵列，并提出非理想性优化的NOVA加速器架构，通过双极权重分布有效缓解电导漂移等非理想效应。原型验证表明该方法能抑制训练过程中的权重更新误差，使片上训练收敛性和可靠性明显提升。该工作为低功耗高并行神经训练芯片提供了器件与架构协同设计的新思路。",
+      "llm_tldr": "基于新兴非易失存储(eNVM)的存内计算架构以高并行和低功耗加速神经网络训练，但器件非理想性会使电导更新偏离目标，降低片上训练精度。论文制作二维eNVM器件阵列，并提出非理想性优化的NOVA加速器架构，通过双极权重分布有效缓解电导漂移等非理想效应。原型验证表明该方法能抑制训练过程中的权重更新误差，使片上训练收敛性和可靠性明显提升。该工作为低功耗高并行神经训练芯片提供了器件与架构协同设计的新思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "neural processing unit architecture for AI inference and training",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.04266v1",
+      "source": "arxiv",
+      "title": "Compute-in-Memory Attention: A Time-Domain Analog Softmax Circuit with RC-Tunable Temperature",
+      "abstract": "Softmax is a key operation in Transformer attention, but its exponentiation and normalization add significant overhead in compute-in-memory (CIM) accelerators, especially when analog attention scores must first be converted to the digital domain. This work presents a tunable-temperature analog softmax circuit in GlobalFoundries 22-nm fully depleted silicon-on-insulator (FDSOI) technology that operates directly on CIM-generated score voltages without intermediate analog-to-digital conversion. Each input score is converted into a time-domain event using a shared falling ramp. The corresponding comparator transition samples an RC-decaying reference to generate an exponential weight, which is then processed by an in-circuit normalization stage. In contrast to analog softmax circuits that rely on transistor weak-inversion behavior for exponentiation, the proposed architecture controls the softmax response through the ramp slope and RC time constant, enabling programmable effective temperature. The 128-element architecture is evaluated using transistor-level and post-layout extracted simulations, including multi-level input vectors, capacitance variation and mismatch, process and temperature variation, monte carlo analysis, and shared-interconnect parasitics. The complete 128-element implementation occupies 9453.42~$μ\\mathrm{m}^{2}$ including the shared global ramp circuitry, while each replicated softmax element occupies 70.2~$μ\\mathrm{m}^{2}$. The circuit achieves a 242.97-ns evaluation latency at 13.44~mW total power, corresponding to 25.5~pJ per output element. The simultaneous 128-element evaluation achieves an RMSE of 24.46~mV relative to the ideal softmax response. The extracted circuit characteristics are further incorporated into a MemTorch-based hardware-aware Transformer model, where the proposed softmax achieves a validation loss within 2.5\\% of the ideal-softmax baseline.",
+      "authors": [
+        "Ankur Singh",
+        "Ashish Gautam",
+        "Shruti R. Kulkarni",
+        "Guojing Cong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-09-02T18:43:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.04266v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Analog time-domain softmax circuit for compute-in-memory Transformer attention directly optimizes deep learning accelerator hardware.",
+      "llm_evidence_cn": "面向存内计算Transformer注意力的模拟Softmax电路，直接降低深度学习加速器中的注意力计算开销。",
+      "llm_evidence": "面向存内计算Transformer注意力的模拟Softmax电路，直接降低深度学习加速器中的注意力计算开销。",
+      "canonical_evidence": "面向存内计算Transformer注意力的模拟Softmax电路，直接降低深度学习加速器中的注意力计算开销。",
+      "llm_tldr_en": "A 22nm FDSOI analog softmax circuit computes Transformer attention in memory, avoiding ADC of scores. Shared ramps generate time events and RC decay creates exponentials, while in-circuit normalization completes softmax, reducing overhead in compute-in-memory accelerators.",
+      "llm_tldr_cn": "Transformer注意力中的Softmax因指数和归一化计算而在存内计算加速器中开销显著，通常还需将模拟注意力分数转成数字域。该文提出一种采用RC可调温度的时域模拟Softmax电路，在22nm FDSOI工艺上直接处理CIM生成的分数电压，省去逐级模数转换。共享斜坡将每个分数转化为时域事件，比较器跳变对RC衰变参考采样产生指数权重，并由电路内归一化完成Softmax。该设计降低了Transformer加速器注意力路径的模拟-数字转换与计算开销，提升了CIM系统的能效潜力。",
+      "llm_tldr": "Transformer注意力中的Softmax因指数和归一化计算而在存内计算加速器中开销显著，通常还需将模拟注意力分数转成数字域。该文提出一种采用RC可调温度的时域模拟Softmax电路，在22nm FDSOI工艺上直接处理CIM生成的分数电压，省去逐级模数转换。共享斜坡将每个分数转化为时域事件，比较器跳变对RC衰变参考采样产生指数权重，并由电路内归一化完成Softmax。该设计降低了Transformer加速器注意力路径的模拟-数字转换与计算开销，提升了CIM系统的能效潜力。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

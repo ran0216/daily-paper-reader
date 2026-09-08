@@ -1,0 +1,605 @@
+Title: Compute-in-Memory Attention: A Time-Domain Analog Softmax Circuit with RC-Tunable Temperature
+
+URL Source: https://arxiv.org/pdf/2609.04266v1
+
+Published Time: Mon, 07 Sep 2026 00:05:48 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> 1
+
+# Compute-in-Memory Attention: A Time-Domain Analog Softmax Circuit with RC-Tunable Temperature 
+
+Ankur Singh 1, Ashish Gautam 2, Shruti R. Kulkarni 2 and Guojing Cong 2
+
+Abstract —Softmax is a key operation in Transformer atten-tion, but its exponentiation and normalization add significant overhead in compute-in-memory (CIM) accelerators, especially when analog attention scores must first be converted to the digital domain. This work presents a tunable-temperature analog softmax circuit in GlobalFoundries 22-nm fully depleted silicon-on-insulator (FDSOI) technology that operates directly on CIM-generated score voltages without intermediate analog-to-digital conversion. Each input score is converted into a time-domain event using a shared falling ramp. The corresponding comparator transition samples an RC-decaying reference to generate an exponential weight, which is then processed by an in-circuit normalization stage. In contrast to analog softmax circuits that rely on transistor weak-inversion behavior for exponentiation, the proposed architecture controls the softmax response through the ramp slope and RC time constant, enabling programmable effective temperature. The 128-element architecture is evaluated using transistor-level and post-layout extracted simulations, in-cluding multi-level input vectors, capacitance variation and mis-match, process and temperature variation, monte carlo analysis, and shared-interconnect parasitics. The complete 128-element implementation occupies 9453.42 μm2 including the shared global ramp circuitry, while each replicated softmax element occupies 70.2 μm2. The circuit achieves a 242.97-ns evaluation latency at 13.44 mW total power, corresponding to 25.5 pJ per output element. The simultaneous 128-element evaluation achieves an RMSE of 24.46 mV relative to the ideal softmax response. The extracted circuit characteristics are further incorporated into a MemTorch-based hardware-aware Transformer model, where the proposed softmax achieves a validation loss within 2.5% of the ideal-softmax baseline. 
+
+Index Terms —Analog softmax, compute-in-memory, attention accelerator, time-domain computing, transformer accelerators. 
+
+I. I NTRODUCTION 
+
+Transformer networks have become the dominant archi-tecture for large language models (LLMs) and sequence-processing tasks due to their self-attention mechanism [1]. In scaled dot-product attention, query, key, and value matrices are used to compute 
+
+Attention( Q, K, V) = Softmax 
+
+ QK T
+
+√dk
+
+
+
+V, (1) where the softmax function converts each attention-score vec-tor into normalized weights. Unlike conventional classifiers, where softmax is typically applied only at the output layer, transformer models use softmax repeatedly across attention heads and layers. As sequence length and model size increase,        
+
+> 1Department of Electrical and Computer Engineering, University of Wis-consin–Madison, Madison, WI, USA. Email: ankur.singh@wisc.edu. ORNL Oak Ridge, Tennessee, USA. Emails: {gautama, kulkarnisr, congg }@ornl.gov.
+
+softmax becomes a non-negligible operation because it re-quires exponentiation, maximum search for numerical stability, accumulation, and normalization [2]. Compute-in-memory (CIM) architectures are attractive for transformer acceleration because they reduce data movement by performing matrix–vector or matrix–matrix operations close to, or inside, the memory array [3]. This property is well matched to the dot-product operations used to generate attention scores. However, integrating softmax with analog CIM remains challenging. A CIM array can naturally generate analog score voltages or currents, but softmax requires a nonlinear exponential operation followed by vector-wide nor-malization. Conventional approaches therefore often rely on digital or mixed-signal peripheral blocks, such as lookup-based exponentiation, low-precision arithmetic, reciprocal/division units, or online normalization schemes [2]. These techniques reduce digital cost but still require dedicated softmax hardware and may introduce conversion overhead when interfaced with analog CIM outputs. Recent analog in-memory attention work further illus-trates this challenge. In [4], the attention computation is implemented with analog gain-cell arrays and charge-to-pulse conversion, avoiding intermediate analog-to-digital converters (ADCs) between attention stages. However, instead of imple-menting softmax directly, the architecture uses a HardSigmoid nonlinearity, since softmax normalization requires an addi-tional interconnection along the sequence dimension, which is difficult to realize efficiently in analog hardware [4]. This motivates compact analog softmax circuits that can interface directly with CIM-generated score signals while preserving the normalization behavior required by attention. Direct analog softmax circuits have been investigated using source-coupled transistor arrays. A representative approach implements softmax with bipolar junction transistor (BJT) or NMOS differential structures, where the normalized branch current follows the softmax form [5]. For the NMOS imple-mentation, however, the exponential current–voltage relation-ship is obtained only when the input transistors operate in sub-threshold. In this condition, the drain current is exponentially related to VGS , and the normalized current ratio approximates softmax with an effective slope determined by nU T , where n
+
+is the subthreshold factor and UT is the thermal voltage [5], [6]. This operating condition also restricts the usable input-voltage range, since all input devices must remain within the weak-inversion region for the exponential relationship to remain valid. As the input voltage increases toward moderate or strong inversion, the current–voltage characteristic deviates from the desired exponential dependence, thereby limiting the dynamic range over which accurate softmax behavior arXiv:2609.04266v1 [cs.AR] 2 Sep 2026 2
+
+can be maintained. Although common threshold-dependent factors cancel in the ideal matched current ratio, practical operation therefore remains constrained by the narrow weak-inversion input range, temperature dependence, leakage, tail-current accuracy, device mismatch, and the need to keep all input devices in the intended operating region. This work presents a programmable-temperature analog softmax circuit for CIM attention in 22-nm CMOS. Instead of relying on weak-inversion MOS exponential behavior, the proposed approach generates the exponential function in the time domain using a shared voltage ramp, comparator-based event detection, and RC-decay sampling. The effective soft-max temperature is controlled by the ramp slope and RC time constant, enabling flexible tuning of the score-to-weight mapping within practical circuit constraints. The key features and contributions of the proposed time-domain analog softmax architecture are summarized as fol-lows: 1) The proposed architecture realizes exponential-weight generation through score-to-time conversion using ashared ramp and RC-decay sampling, avoiding reliance on the weak-inversion exponential characteristics con-ventionally employed in analog softmax circuits. 2) A programmable-temperature softmax operation is achieved by controlling the ramp slope and RC time con-stant. The relationship between these circuit parameters and the effective softmax selectivity is analytically de-rived and validated through transistor-level simulations. 3) The proposed circuit evaluates a 128-element softmax vector in parallel within 242.97 ns at 25.5 pJ per ele-ment, achieving an RMSE of 24.46 mV for simultaneous 128-element operation, with robustness validated under capacitance variation, analog nonidealities, process cor-ners, and monte carlo mismatch. 4) Post-layout extraction quantifies the impact of device and interconnect parasitics on accuracy and perfor-mance. The implemented softmax element occupies 70.2 μm2, corresponding to 9453.42 μm2 for the com-plete 128-element array. 5) The extracted circuit characteristics are incorporated into a MemTorch-based hardware-aware decoder-only Transformer model, achieving a validation loss of 1.7868 versus 1.7435 for ideal softmax ( ≈2.5% degradation) and confirming applicability to Transformer inference. The remainder of this paper is organized as follows. Section II describes the proposed time-domain analog soft-max architecture and its theoretical formulation. Section III presents circuit-level validation, including softmax accuracy, programmable-temperature operation, analog nonideality anal-ysis, process and monte-carlo characterization, and post-layout extracted results. Section IV presents the MemTorch-based Transformer evaluation, compares the proposed architecture with prior softmax hardware, and discusses future implemen-tation and scalability. Finally, Section V concludes the paper. II. P ROPOSED TIME -D OMAIN ANALOG SOFTMAX CIRCUIT 
+
+A. Temperature-Programmable Softmax 
+
+Softmax is a fundamental operation in attention mechanisms that converts raw similarity scores into a probability distribu-tion. It enables the model to emphasize more relevant tokens while suppressing less important ones. Softmax transforms an attention-score vector s = [ s1, s 2, . . . , s N ] into normalized attention weights as 
+
+pi = exp ( si/T )
+
+> N
+
+X
+
+> j=1
+
+exp ( sj /T )
+
+, i = 1 , . . . , N, (2) where pi denotes the attention weight corresponding to score 
+
+si, and T is the softmax temperature. The normalization ensures that PNi=1 pi = 1 , allowing the resulting weights to represent the relative importance of tokens in the attention operation. The temperature controls the selectivity of the attention distribution. A lower T increases the relative weight of the largest scores and produces a sharper distribution, whereas a higher T produces smoother and more uniform attention weights. The softmax characteristic can equivalently be expressed using the inverse-temperature coefficient, or softmax gain, γ,defined as 
+
+γ = 1
+
+T . (3) Accordingly, (2) can be rewritten as 
+
+pi = exp ( γs i)
+
+> N
+
+X
+
+> j=1
+
+exp ( γs j )
+
+. (4) A larger γ corresponds to a lower effective temperature and produces a sharper probability distribution, whereas a smaller 
+
+γ produces a smoother distribution. In CIM-based Transformer accelerators, the score range can vary with attention head, layer, array gain, and analog non-idealities. Therefore, a programmable softmax characteristic enables the score-to-weight mapping to be adjusted without modifying the preceding CIM dot-product operation. In the proposed circuit, this programmability is achieved through the slope of a shared ramp and the time constant of an RC-decay waveform. As derived in the following subsection, these circuit parameters directly determine the effective softmax tempera-ture and the corresponding inverse-temperature coefficient γ.
+
+B. Time-Domain Analog Softmax Architecture 
+
+Fig. 1 illustrates the proposed time-domain analog soft-max architecture, which comprises a shared ramp gen-erator, a comparator [7] array for score-to-time conver-sion, RC-based exponential-weight generators, local pulse-generation and sampling circuits, and an approximate in-circuit normalization block. The CIM-generated score voltages 
+
+VIN ,1, V IN ,2, . . . , V IN ,N are applied to comparator cells sharing a common falling ramp voltage, VRAMP (t). Each comparator switches when the ramp reaches its corresponding input volt-age. 3    
+
+> Fig. 1. Proposed time-domain analog softmax architecture: (a) CIM array generating the input score voltages VIN ,n ; (b) shared ramp generator and comparator array for score-to-time conversion; (c) comparator-triggered pulse generation and RC-decay sampling to store exponential weights VE,n ; (d) approximate in-circuit normalizer generating VP,n ; and (e) timing sequence of the three operating phases.
+> Fig. 2. Schematic diagram of the static comparator.
+
+The resulting comparator transition is processed by the local pulse-generation circuit shown in Fig. 1(c) to produce a short complementary sampling pulse, WE n/WEB n, which enables the associated transmission gate. The exponentially decaying reference voltage, VEXP (t), is then sampled onto the exponent-storage capacitor to generate VE,n for the nth input. These stored voltages represent exponential weights and are subsequently applied to the normalization block to generate the output voltages VP, 1, V P, 2, . . . , V P,N . The voltage VP,n 
+
+represents the normalized attention weight corresponding to 
+
+VIN ,n .The circuit operation, illustrated by the timing sequence in Fig. 1(e), is divided into three phases: 1) initialization, 2) exponential-weight generation, and 3) approximate in-circuit normalization. 
+
+1) Initialization phase: At the beginning of each softmax operation, the active-low PMOS precharge signals PRE R and 
+
+PRE E are asserted. The ramp capacitor CR and exponential-generator capacitor CE are consequently charged to approx-imately VDD . The memristive element [8], [9] in the expo-nential generator is programmed before inference to a high-resistance state, denoted by RHRS , such that the required RC time constant is obtained. This programming operation is performed only when the desired softmax operating condition is configured and is not repeated for every input vector. Simultaneously, the exponent-storage capacitors CC,n and probability-output capacitors CP,n are reset to 0 V. After the initialization interval, PRE R and PRE E are deasserted, turning off the PMOS precharge devices. The ramp capacitor is discharged through a bias-controlled current path. Assuming an approximately constant discharge current 
+
+IR(VBIAS ), the falling ramp is expressed as 
+
+VRAMP (t) = VDD − SR(t − t0), SR = IR(VBIAS )
+
+CR
+
+, (5) where t0 denotes the beginning of the evaluation interval and 
+
+SR is the ramp slope. Therefore, VBIAS provides electrical control of the ramp slope. At the same time, CE discharges through the programmed memristive resistance. Assuming that the resistance remains approximately constant over the selected operating range, the exponentially decaying voltage is expressed as 
+
+VEXP (t) = VDD exp 
+
+
+
+− t − t0
+
+τE
+
+
+
+, τE = RHRS CE , (6) where τE denotes the exponential-generator time constant. 
+
+2) Exponential-weight generation phase: The input voltages 
+
+VIN ,1, V IN ,2, . . . , V IN ,N correspond to the analog attention-score outputs of a preceding CIM dot-product operation [10], [11]. In this work, VIN ,n denotes the analog score voltage from the preceding CIM stage, whose detailed circuit implementa-tion is outside the scope of this work. Each score voltage VIN ,n is compared with the common falling ramp. The nth comparator switches when 
+
+VRAMP (tn) = VIN ,n . (7) 4
+
+Substituting (5), the corresponding switching time is 
+
+tn − t0 = VDD − VIN ,n 
+
+SR
+
+. (8) Hence, a larger input score produces an earlier comparator transition. The comparator output is processed by the local pulse-generation circuit to produce a narrow complementary sam-pling pulse, WE n/WEB n. The pulse turns on the correspond-ing transmission gate and samples VEXP (t) onto CC,n . For a sampling pulse width TW satisfying 
+
+RTG CC,n ≪ TW ≪ τE , (9) where RTG denotes the on-resistance of the transmission gate, the sampled voltage can be approximated as 
+
+VE,n ≈ VEXP (tn). (10) Substituting (8) into (6) gives 
+
+VE,n = VDD exp 
+
+
+
+− VDD − VIN ,n 
+
+SRτE
+
+
+
+. (11) Equation (11) can be rewritten as 
+
+VE,n = AE exp 
+
+ VIN ,n 
+
+Teff 
+
+
+
+, (12) where 
+
+AE = VDD exp 
+
+
+
+− VDD 
+
+SRτE
+
+
+
+(13) is common to all branches, and 
+
+Teff = SRτE . (14) Since AE is common to all branches, the sampled voltage is proportional to the exponential softmax numerator: 
+
+VE,n ∝ exp 
+
+ VIN ,n 
+
+Teff 
+
+
+
+. (15) Using τE = RHRS CE , the effective temperature can be written explicitly in terms of circuit parameters as 
+
+Teff = SRRHRS CE . (16) Furthermore, since SR = IR(VBIAS )/C R,
+
+Teff = IR(VBIAS )
+
+CR
+
+RHRS CE . (17) Therefore, the exponential mapping can be programmed through either the ramp slope SR or the RC time constant 
+
+τE . The ramp bias provides dynamic electrical control of the score-to-time conversion, while the programmable resistance provides an additional means of selecting the RC operating point. A smaller Teff produces a sharper exponential response, whereas a larger Teff produces a smoother response. 
+
+3) Approximate in-circuit normalization phase: After the exponent-storage capacitors retain their sampled voltages, 
+
+VE, 1, V E, 2, . . . , V E,N are applied to the gates of matched NMOS transistors. The source terminals of all N NMOS transistors are connected to a common node terminated by the reference current sink IREF . For analysis, the voltage developed at this common source node is denoted by VS . Each NMOS drain is connected to the input branch of a PMOS current mirror, while the corresponding mirror-output branch charges the probability capacitor CP,n . The PMOS source rail is connected to VDD through the VSAMP -controlled switch. After all exponential weights have been stored, VSAMP is asserted for the normalization interval, enabling the current-mirror network. For the nth NMOS transistor, 
+
+VGS,n = VE,n − VS , VDS,n = VD,n − VS , (18) where VD,n denotes the corresponding NMOS drain voltage. The saturation condition is 
+
+VDS,n ≥ VGS,n − VTH , (19) or equivalently, 
+
+VD,n ≥ VE,n − VTH . (20) Omitting channel-length modulation in the first-order ana-lytical model, the branch current is 
+
+In ≈ β
+
+2 (VE,n − VS − VTH )2 , (21) where 
+
+β = μnCox 
+
+WL . (22) Since all NMOS source terminals share the same node, Kirchhoff’s current law gives 
+
+IREF =
+
+> N
+
+X
+
+> k=1
+
+Ik. (23) Defining the common offset 
+
+V0 = VS + VTH , (24) the normalized branch-current ratio can be written as 
+
+In
+
+IREF 
+
+≈ (VE,n − V0)2
+
+> N
+
+X
+
+> k=1
+
+(VE,k − V0)2
+
+. (25) From the exponential-weight generation phase, 
+
+VE,n = AE exp 
+
+ VIN ,n 
+
+Teff 
+
+
+
+. (26) Therefore, 
+
+In
+
+IREF 
+
+≈
+
+
+
+AE exp 
+
+ VIN ,n 
+
+Teff 
+
+
+
+− V0
+
+2
+
+> N
+
+X
+
+> k=1
+
+
+
+AE exp 
+
+ VIN ,k 
+
+Teff 
+
+
+
+− V0
+
+2 . (27) For a first-order closed-form relation between the circuit parameters and the softmax temperature, the common offset 
+
+V0 is neglected in the dominant input-dependent term. The normalized current ratio then reduces to 
+
+In
+
+IREF 
+
+≈
+
+exp 
+
+ 2VIN ,n 
+
+Teff 
+
+
+
+> N
+
+X
+
+> k=1
+
+exp 
+
+ 2VIN ,k 
+
+Teff 
+
+ . (28) 5
+
+Therefore, the square-law normalization stage introduces an additional factor of two in the exponential coefficient. The effective softmax temperature at the normalized output is 
+
+Tsat = Teff 
+
+2 = SRτE
+
+2 . (29) The corresponding theoretical inverse-temperature coefficient is 
+
+γth = 1
+
+Tsat 
+
+= 2
+
+SRτE
+
+. (30) Using τE = RHRS CE ,
+
+γth = 2
+
+SRRHRS CE
+
+, (31) and since SR = IR(VBIAS )/C R,
+
+γth = 2CR
+
+IR(VBIAS )RHRS CE
+
+. (32) Equations (30)–(32) directly relate the softmax selectivity to the ramp and RC operating conditions. Increasing SR increases the effective temperature and reduces γth , whereas increasing the RC time constant also reduces γth . The finite common-source voltage, threshold voltage, channel-length modulation, and current-mirror nonidealities are retained in the transistor-level simulations and therefore contribute to the difference between the theoretical and simulated softmax responses. During the VSAMP interval, the PMOS current mirrors trans-fer the NMOS branch currents to the corresponding output capacitors. For matched 1:1 current mirrors, 
+
+IP,n ≈ In, (33) where IP,n denotes the mirrored current charging CP,n . The output capacitors are initially reset such that VP,n ≈ 0, and during the normalization interval, 
+
+CP,n 
+
+dVP,n 
+
+dt = IP,n . (34) Integrating over the VSAMP pulse width TSAMP gives 
+
+VP,n = 1
+
+CP,n 
+
+Z TSAMP 
+
+> 0
+
+IP,n (t) d t. (35) For equal output capacitors and an approximately constant current ratio during the short normalization interval, 
+
+VP,n ≈ VFS 
+
+exp 
+
+ VIN ,n 
+
+Tsat 
+
+
+
+> N
+
+X
+
+> k=1
+
+exp 
+
+ VIN ,k 
+
+Tsat 
+
+ , VFS = IREF TSAMP 
+
+CP
+
+.
+
+(36) Using γth = 1 /T sat , the output relation can equivalently be expressed as 
+
+VP,n ≈ VFS 
+
+exp ( γth VIN ,n )
+
+> N
+
+X
+
+> k=1
+
+exp ( γth VIN ,k )
+
+. (37) Thus, apart from the common output-scaling factor VFS ,the proposed circuit realizes an approximate vector-wise normalized exponential response whose first-order inverse-temperature coefficient is determined by the ramp slope and                                 
+
+> TABLE I TRANSISTOR DIMENSIONS OF THE COMPARATOR CIRCUIT
+> Device Width ( W)Length ( L)
+> M5–M64μm50 nm
+> M7–M9300 nm 100 nm
+> IN V 1, IN V 2GF22 standard-cell library TABLE II NOMINAL CIRCUIT PARAMETERS AND THEORETICAL SOFTMAX GAIN
+> Parameter Nominal Value
+> Extracted ramp slope, SR4.501 mV/ns Programmed resistance, RHRS 1.5 M Ω
+> Exponential capacitance, CE25 fF RC time constant, τE37.5 ns Effective softmax temperature, Tsat 84.4 mV Theoretical softmax gain, γth 11.85 V −1
+
+RC time constant. The effects of the neglected circuit nonideal-ities are quantified through the transistor-level and post-layout simulations in Section III. III. R ESULTS AND DISCUSSION 
+
+A. Softmax Accuracy and Programmable Temperature 
+
+The viability of the proposed softmax architecture is eval-uated using the cadence virtuoso analog design environment in the GlobalFoundries 22-nm FDSOI technology [12]. All active and passive circuit components, including transistors, capacitors, and resistors, are implemented using the corre-sponding technology models. The nominal simulations use 
+
+VDD = 1 .1 V, a ramp capacitance of CR = 200 fF, VBIAS =0.34 V, an exponential-generator capacitance of CE = 25 fF, an exponent-storage capacitance of CC = 2 fF, a probability-output capacitance of CP = 2 fF, and a flip-flop clock period of 200 ps. All capacitances are implemented using metal– oxide–metal (MOM) capacitors available in the technology. The transistor dimensions of the comparator circuit shown in Fig. 2 are summarized in Table I. The programmable resistive element is configured to a nominal high-resistance state of RHRS = 1 .5 MΩ. From the nominal transient response, the ramp slope SR is extracted directly from VRAMP (t),while the exponential-decay time constant is determined from 
+
+τE = RHRS CE . Using the relationship derived in Section II, the theoretical inverse-temperature coefficient is 
+
+γth = 2
+
+SRτE
+
+. (38) For the nominal operating condition, the circuit parameters used to determine the theoretical softmax gain are summarized in Table II. The extracted ramp slope of SR = 4 .501 mV/ns and RC time constant of τE = 37 .5 ns yield a theoretical inverse-temperature coefficient of γth = 11 .85 V−1. Inde-pendently, fitting the transistor-level softmax response yields 
+
+γsim = 11 .36 V−1.To first characterize the fundamental transfer behavior of the proposed normalizer, VIN ,1 is swept while the remaining 127 input voltages, VIN ,2–VIN ,128 , are maintained at 0.7 V. Fig. 3(a) shows the corresponding simulated output voltages VP, 1 and 6
+
+VP,n , where VP,n denotes the output of a representative branch 
+
+n ∈ { 2, . . . , 128 } receiving the fixed 0.7 V input. As VIN ,1
+
+increases, VP, 1 increases while VP,n decreases, and the two responses intersect near the equal-input condition of VIN ,1 =0.7 V. This complementary behavior confirms that the output branches compete through a common normalization denomi-nator rather than behaving as independent nonlinear transfer functions. Fig. 3(b) compares the corresponding normalized transistor-level response with the ideal softmax characteristic using the nominal circuit-derived inverse-temperature coeffi-cient. The simulated outputs exhibit the expected monotonic and complementary softmax behavior over the input-voltage range and achieve an RMSE of approximately 4.3% with respect to the ideal response. This controlled single-input experiment provides a direct characterization of the nominal softmax transfer and common-denominator normalization. To evaluate the vector-level softmax accuracy under differ-ent input conditions, the proposed circuit was simulated with a 128-element interleaved multi-level input vector instead of the controlled single-input sweep described above. Eight voltage levels, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, and 0.82 V, were used to activate all 128 input channels simultaneously. Each voltage level was applied to 16 channels and interleaved across the 128-channel array. Specifically, channels 8k re-ceived 0.50 V, channels 8k + 1 received 0.55 V, and so forth, up to channels 8k + 7 receiving 0.82 V, for k = 0 , . . . , 15 .Fig. 4 illustrates the corresponding transient operation for the eight representative input levels. The shared VRAMP waveform generates different crossing times for the eight inputs, resulting in the corresponding write-enable signals W E 1–W E 8. These signals sample the common exponential waveform VEXP at different instants and store the resulting voltages at VE, 1–
+
+VE, 8. Earlier sampling therefore captures a larger VEXP value, whereas later sampling produces a smaller stored voltage. Since the same eight-level input sequence is repeated over the complete array, these transient waveforms represent the eight operating conditions simultaneously distributed across the 128 softmax channels. The resulting transistor-level outputs of all 128 channels are shown in Fig. 5 and compared with the corresponding ideal softmax values calculated using the circuit-derived inverse-temperature coefficient. The proposed circuit preserves the relative ordering and normalized distribution of the multi-level input vector, with an overall RMSE of approximately 24.46 mV over the 128 elements with respect to the ideal softmax response. These results demonstrate vector-wise nor-malization under simultaneous multi-element excitation and validate the scalability of the proposed architecture to 128-element softmax operation. 
+
+B. Analog Non-idealities 
+
+Analog nonidealities can have a significant impact [13] on the critical storage nodes of the proposed circuit, particularly at VE,n and VP,n , as well as at the associated transmission-gate interfaces. Although the nominal storage and probability-output capacitances are CC = CP = 2 fF, the effective capacitance at these nodes also includes contributions from         
+
+> Fig. 3. Simulated softmax characteristics: (a) measured transfer, (b) nominal transfer.
+> Fig. 4. Transient operation for the eight representative input levels used in the 128-element vector evaluation, showing the shared VRAMP and VEXP
+> waveforms, the corresponding write-enable signals W E 1–W E 8, and the sampled voltages VE, 1–VE, 8.
+> Fig. 5. Vector-level validation of the proposed softmax circuit: applied 128-element multi-level input-score vector.
+
+interconnect, transmission-gate parasitics, connected-device capacitances, and capacitive coupling [14]. Accordingly, the effective capacitance can be expressed as 
+
+Ceff = Cdes + Cwire + CTG + Cdevice + Ccoupling (39) 7   
+
+> Fig. 6. Sensitivity of the proposed softmax circuit of CC,n (a) 128-element output response for different capacitance values and (b) corresponding RMSE with respect to the theoretical softmax reference.
+
+where Cdes denotes the intended capacitance. Since these parasitic components can become comparable to the nominal capacitance at the femtofarad scale, they can alter the sampled exponential voltage and the subsequent normalization process, thereby increasing the deviation from the theoretical softmax response. To evaluate this sensitivity, CC and CP were independently varied over a ±25% range while applying the same 128-element input vector used for the nominal characterization. The resulting softmax outputs were compared with the the-oretical reference and the corresponding RMSE presented. As expected, larger deviations from the nominal capacitance increase the output error. For instance, increasing CP to 2.5 fF results in an RMSE of approximately 110 mV with respect to the nominal theoretical softmax response. However, this capacitance-induced shift can be compensated by recalibrating the ramp slope, since the ramp slope directly determines the theoretical inverse-temperature coefficient γth and hence the effective softmax temperature. Therefore, the programmable ramp provides a means of recovering the desired softmax char-acteristic in the presence of systematic capacitance variation. In addition to the uniform capacitance sweep, element-to-element capacitance mismatch was evaluated at the array level. The 128 softmax elements were divided into eight capacitor groups, with 16 elements assigned to each capacitance value. Starting from the nominal 2 fF capacitance, eight values spanning approximately 1.8–2.37 fF were assigned across the array. Two separate simulations were performed: in the first, CC was varied according to the assigned group values while CP was maintained at its nominal value, whereas in the second, the same mismatch profile was applied to CP while 
+
+CC was kept nominal. The same 128-element interleaved input vector was applied in all cases. Fig. 8 compares the resulting 
+
+CC and CP mismatched outputs with the nominal case in which CC = CP = 2 fF. The grouped mismatch produces an RMSE of approximately 23 .6 mV for CC variation and 
+
+32 .7 mV for CP variation relative to the nominal 128-channel response, demonstrating the propagation of local capacitance variation to the final normalized softmax output. The effect of transmission-gate charge injection was also examined at the small-capacitance exponential storage node. Fig. 9 shows a magnified transient response around the turn-off transition of W E 8. During the active sampling interval, 
+
+VE, 8 follows the common VEXP waveform. When W E 8 is         
+
+> Fig. 7. Sensitivity of the proposed softmax circuit of CP,n (a) 128-element output response for different capacitance values and (b) corresponding RMSE with respect to the theoretical softmax reference.
+> Fig. 8. Effect of element-to-element capacitance mismatch on the 128-channel softmax response. Eight capacitance values are distributed across groups of 16 elements for separate CCand CPmismatch evaluations and compared with the nominal 2-fF case.
+
+deasserted, the transmission gate is disconnected and the sampled voltage is retained at VE, 8. A small voltage pertur-bation is observed at the storage node during the switching transition due to charge injection. The resulting sampling error is evaluated from the difference between the intended VEXP 
+
+value at the switching instant and the subsequently held VE, 8
+
+voltage. The globally shared VRAMP network is also susceptible to interconnect loading and distributed resistance [15]. Since the ramp is distributed to all comparator branches, the effective capacitance seen by the ramp generator can be expressed as 
+
+CR,eff = CR + CRAMP ,par (40) where CR is the designed ramp capacitance and CRAMP ,par 
+
+includes the contributions from the global interconnect, via connections, and comparator-input loading. The corresponding effective ramp slope is therefore approximately 
+
+SR,eff ≈ IR(VBIAS )
+
+CR + CRAMP ,par 
+
+. (41) Since the inverse-temperature coefficient is given by γth =2/(SRτE ), an increase in the effective ramp capacitance reduces the ramp slope and consequently modifies the softmax temperature. This common-mode shift can be compensated by 8      
+
+> Fig. 9. Magnified transient response around the turn-off transition of W E 8,showing VEXP and the corresponding stored voltage VE, 8for evaluating transmission-gate charge injection.
+
+adjusting VBIAS to restore the desired ramp slope. In addi-tion, distributed interconnect resistance can introduce position-dependent timing differences between comparator branches. The physical loading and routing-induced effects of the shared ramp are quantified using Calibre xACT parasitic extraction in Section III-D. 
+
+C. Variability Analysis 
+
+Cadence Monte Carlo simulations were performed with the full GF22-FDSOI PDK statistical models enabled, including transistor and modeled passive-component variations. The memristor is excluded from the foundry statistical variation because it is implemented using an external Verilog-A model rather than a native GF22-FDSOI PDK device. Fig. 10(a)–(b) presents the softmax transfer characteristics across temperature and process corners for both the swept-channel output ( VP, 1)and the common reference-channel output ( VP,n ). Over tem-perature, Fig. 10(a) shows the extracted softmax gain γ varying from 11.36 V −1 at 27 ◦C (TT) to 19.2 V −1 at 80 ◦C, over the temperature range from −30 ◦C to 80 ◦C. Across process corners, Fig. 10(b) shows the corresponding VP,n response exhibits a consistently tighter agreement with the theoretical characteristic and preserves the complementary softmax be-havior, intersecting VP, 1near the equal-input condition for all corners. Fig. 11 shows the Monte Carlo distribution of the softmax output voltage. The distribution is approximately Gaussian, with μ = 0.348 V and σ = 12 mV, corresponding to a relative spread of approximately 3.4%. This indicates that the softmax output remains reasonably robust to device-level mismatch variation. As discussed in Section III-B, the most critical nonidealities arise at the small-capacitance nodes, where element-to-element capacitance variation can perturb the sampled voltage and consequently the softmax output. The sensitivity to such capacitance mismatch was explicitly evaluated through the array-level CC and CP mismatch anal-ysis. Comparator offset represents another source of error however, it can be mitigated using standard offset-calibration  
+
+> Fig. 10. Simulated softmax characteristics: (a) temperature, (b) process curve.
+> Fig. 11. Monte Carlo distribution of the softmax output voltage.
+
+techniques without modifying the proposed softmax operation. Collectively, the monte carlo, temperature, and process-corner results demonstrate that the proposed circuit maintains the expected softmax behavior across the considered variability conditions. 
+
+D. Layout and Post-Layout Extraction Results 
+
+To evaluate the physical implementation of the proposed softmax architecture, a layout of the complete softmax ele-ment was implemented in the GlobalFoundries 22-nm FDSOI technology. The layout of one softmax element occupies an area of 13 .41 μm × 5.22 μm, corresponding to approximately 
+
+70 .2 μm2. The complete 128-element softmax architecture occupies approximately 1811 .5 μm × 5.22 μm, including the replicated K elements and shared peripheral circuitry. Fig. 12 shows the layout of the proposed softmax element and the corresponding 128-element floorplan. To quantify the physical loading of the globally distributed 
+
+VRAMP network in the 128-channel softmax architecture, the shared ramp interconnect was routed on C5 using a 1.2 μmwire width and extracted using Calibre xACT. The extracted network exhibits approx. 210 fF of total parasitic capacitance, including ground and coupling components, together with an interconnect resistance of approximately 120 Ω . The extracted parasitic network captures the combined loading introduced by the global interconnect, via connections, and the connected comparator input branches. The complete distributed RC net-work is retained in the post-layout simulation such that both 9 
+
+> Fig. 12. Layout of the proposed design
+
+capacitive loading and routing resistance are included in the circuit-level evaluation. The shared VRAMP interconnect was designed using aparasitic-aware approach. Since the long global ramp line provides significant intrinsic capacitance, the explicit ramp capacitor was reduced from the schematic value of 200 fF to 50 fF in layout. The extracted interconnect capacitance therefore contributes directly to the effective ramp capacitance, reducing explicit capacitor area. Any residual shift in ramp slope is compensated through VBIAS .Since the effective ramp slope is approximately 
+
+SR, eff ≈ IR(VBIAS )
+
+CR + CRAMP ,par 
+
+, (42) any residual shift in the extracted ramp slope can be compen-sated by adjusting VBIAS . This provides post-layout control of the effective softmax temperature without modifying the physical ramp network. The area contribution of the major circuit blocks is summa-rized in Table III. The comparator, pulse-generation circuit, exponential generator, and normalization circuitry constitute the primary replicated area components, whereas the ramp generator is implemented once as shared peripheral circuitry. Fig. 13(a) shows the relative area distribution of the major per-element circuit blocks. The comparator and normalization circuits occupy the largest fractions of the softmax-element area, followed by the exponential generator and pulse gener-ator. Fig. 13(b) and Table IV summarize the power consump-tion of the complete 128-element softmax architecture. The comparator and pulse-generation circuits dominate the power consumption, while the normalizer, exponential generator, and shared ramp contribute only a small fraction of the total. The complete architecture consumes approximately 13 .44 mW at 
+
+VDD = 1 .1 V. Post-layout simulations were performed using the complete parasitic-extracted network to evaluate whether the physical implementation preserves the nominal softmax characteristic. The extracted results are compared with the schematic-level transfer characteristic previously shown in Fig. 3(a), where 
+
+VIN ,1 is swept while the remaining 127 inputs are held at 0.7 V. In the schematic simulation, VP, 1 increases with 
+
+VIN ,1, whereas VP,n decreases because all branches share the common normalization denominator, with the two responses                                                      
+
+> Fig. 13. Area and power breakdown of the proposed 128-element softmax architecture: (a) per-element layout area and (b) full-array average power. TABLE III LAYOUT AREA BREAKDOWN OF THE PROPOSED SOFTMAX CIRCUIT
+> Circuit Block Length ( μm) Width ( μm) Area ( μm2)
+> Ramp generator 12.1 4.2 50.82 Exponential generator 3.80 3.08 11.70 Comparator 4.2 5.12 21.50 Pulse generator 6.28 0.54 3.39 Normalization circuit 5.22 2.81 14.67 Routing ––18.94 TABLE IV POWER BREAKDOWN OF THE 128-E LEMENT SOFTMAX CIRCUIT
+> Circuit Block Count Power ( μW) Total Power (mW)
+> Comparator 128 66.45 8.506 Pulse generator 128 37.32 4.777 Normalizer 128 1.061 0.1358 Exponential generator 128 0.159 0.0204 Global ramp generator 10.445 0.00045
+> Total –105.43 13.44
+> Fig. 14. Pre vs post-layout analysis of the proposed softmax.
+
+intersecting near the equal-input condition VIN ,1 = 0 .7 V. The same characterization presented in Fig. 14 using the extracted circuit to directly quantify the impact of routing and device parasitics. To further verify that the softmax temperature remains programmable after parasitic extraction, VBIAS was varied from 350 to 380 mV using the complete extracted circuit. Increasing VBIAS increases the ramp current and reduces the ramp fall time, resulting in a larger effective ramp slope 10                                    
+
+> Fig. 15. Post-layout extracted programmable softmax response under ramp-bias control (a) vector-level validation (b) responses for VBIAS = 350 , 360, 370, and 380 mV are compared with theoretical softmax characteristics calcu-lated using the corresponding extracted ramp slopes and γth = 2 /(SRτE).TABLE V POST -L AYOUT EXTRACTED SOFTMAX PROGRAMMABILITY UNDER
+> RAMP -B IAS CONTROL
+> VBIAS tfall SRγth RMSE (mV) (ns) (mV/ns) (V −1)(mV) 350 300 3.66 14.55 18.61 360 283 3.89 13.72 14.12 370 241 4.56 11.68 21.25 380 202 5.45 9.79 29.36
+
+SR. According to γth = 2 /(SRτE ), the corresponding soft-max gain therefore decreases as the ramp becomes steeper. Fig. 15(b) compares the PEX-measured responses with the the-oretical softmax characteristics calculated using the extracted ramp slopes. The gradual change in the response confirms that the softmax temperature remains programmable in the presence of extracted interconnect and device parasitics. To further verify vector-level operation, the extracted circuit was evaluated using the complete 128-element interleaved input vector containing eight voltage levels of 0.50 , 0.55 , 0.60 , 0.65 ,
+
+0.70 , 0.75 , 0.80 , and 0.82 V. Fig. 15(a) shows a representative result at VBIAS = 360 mV, where the PEX-measured output closely follows the theoretical softmax response obtained using 
+
+γth = 13 .72 V−1, yielding an RMSE of 14.12 mV across the 128 channels. The extracted ramp parameters and correspond-ing softmax accuracy for the investigated bias conditions are summarized in Table V. IV. A PPLICATION AND COMPARISON 
+
+A. Transformer-Level Evaluation Based on MemTorch 
+
+The application-level impact of the proposed softmax archi-tecture was investigated using a hardware-aware Transformer framework implemented with MemTorch [16]. A trained nanoGPT model containing approximately 1.8 million param-eters was considered, with its linear operations mapped to memristive crossbar equivalents. The circuit-derived softmax model was then incorporated into the attention path follow-ing the QK T /√dk operation. The ramp-based exponential generation, saturation-mode normalization, and corresponding inverse-temperature coefficient γth follow the circuit formula-tion derived in Section II. To interface the dimensionless Transformer attention scores with the analog input range of the proposed circuit, each attention row is first referenced to its maximum score and                   
+
+> TABLE VI PARAMETERS USED IN THE MEM TORCH HARDWARE -A WARE
+> EVALUATION
+> Parameter Value
+> Softmax input range 0.30–1.10 V Nominal γth 11.85 V −1
+> Score-to-voltage factor GSV 0.0844 V/score
+> VDD 1.1 V Channel-length modulation λ0Output full scale VFS 1.0 V Normalizer iterations 8Normalizer current model Square-law
+> Fig. 16. Hardware-aware Transformer evaluation. (a) Loss comparison of ideal and hardware softmax alternatives. (b) Temperature-dependent loss of the proposed softmax for different γth .
+
+mapped to the corresponding circuit input voltage according to 
+
+VIN ,i = VH + GSV (Si − Smax ) , (43) where Si is the ith attention score, Smax is the maximum score within the corresponding attention row, VH = 1 .1 V is the upper limit of the circuit input range, and GSV denotes the score-to-voltage conversion factor. The mapped voltage is restricted to the experimentally evaluated circuit range of 0.30–1.10 V. For the nominal hardware-aware evaluation, 
+
+GSV = 0 .0844 V/score was used together with the nominal circuit-derived coefficient γth = 11 .85 V−1. The remaining softmax operation follows the circuit behavior described in Section II. The principal hardware-aware parameters used in the MemTorch evaluation are summarized in Table VI. Fig. 16(a) compares the Transformer training and valida-tion losses obtained using the ideal softmax, sigmoid, hard-sigmoid, and the proposed hardware-aware softmax. The ideal softmax achieves training and validation losses of 1.4937 and 1.7435, respectively, whereas the proposed softmax results in corresponding losses of 1.5534 and 1.7868. Thus, the proposed circuit introduces only approximately a 2.48% increase in validation loss relative to the ideal softmax. In contrast, sigmoid and hard-sigmoid replacements increase the validation loss to 3.7356 and 3.6935, respectively, indicating substantially larger degradation of the attention behavior. These results show that the proposed hardware-aware softmax preserves the Transformer-level response much more closely than the simpler nonlinear replacements. The impact of circuit-level temperature variation was further evaluated by propagating the extracted inverse-temperature coefficients into the hardware-aware Transformer model. As shown in Fig. 16(b), the circuit-derived γth values are 12.0, 11 
+
+TABLE VII COMPARISON WITH STATE -OF -THE -A RT SOFTMAX HARDWARE IMPLEMENTATIONS                                                                                                                                                   
+
+> Metric Vatalaro [17] Jiang [18] Kouretas [19] Spagnolo [20] Base-2 [21] SoftAct [22] Kim [23] Wang [24] Hyft [25] This Work Technology 180 nm 28 nm 90 nm 28 nm FDSOI 28 nm 28 nm 28 nm 28 nm FPGA Zynq
+> 22 nm FDSOI Domain Analog Analog Digital Digital Digital Digital Digital Digital Digital Analog time-domain Exponential mechanism Subthresh. Subthresh. LUT Shift-add approx. SM-LUT PLF + penalty Bit-wise LUT Linear fit Hybrid fixed/float
+> Ramp + RC decay Precision Analog Analog 4-b MAC 8-b ADC 10-b fixed 16-b fixed 16-b fixed 16-b fixed 8-b fixed 8-/16-b fixed FP16/FP32 Analog Parallelism 10 410 10 10 1816/8 128 128 Computation mode Parallel Parallel Parallel comb. Parallel Parallel Serial Serial Serial Serial Parallel Supply (V) 0.5 0.9–1.8 1.0 1.0 N.R. 0.9 1.0 N.R. N.R. 1.1 Reported vector size (N) 10 410 10 10 1816 128 128 Total area (μm2)2570 1361 16,891 3595 5676 2872 7100 15,000 41,116 LUT+FF 9453.42 Area/element (μm2)257 340 1689 360 568 2872 888 938 321 LUT+FF 70.2 Total power (mW) 0.003 N.R. 1.612 24 13.12 3.46 22.82 51.60 4920 13.44 Power/element (μW) 0.3 N.R. 161.2 2400 1310 3460 2850 3230 38,400 105 Energy/element (pJ) 1.02 N.R. 0.47 0.96 †0.44 1.87 ∗0.91 1.15 ∗1073 25.5 Latency (ns)
+> 3410 single-shot 25 2.93 1.2 N.R. 141 ∗∼15 5.7 ∗27.9 242.97 single-shot Programmable temperature
+> Yes
+> VDD
+> No No No No No No No No Yes ramp + RC System-level validation None MobileViT-XXS LeNet/VGG/ ResNet LeNet/VGG/ ResNet/CIFAR ResNet/ CIFAR MobileViT-XXS Random vectors LeNet-5 BERT/GLUE/ SQuAD
+> Transformer MemTorch
+> †Directly reported by the source, not derived. ∗Computed from reported power and throughput; excludes pipeline fill and one-time stages such as logarithm or reciprocal evaluation. N.R.: not reported.
+
+13.1, 11.36, 15.6, and 19.2 V −1 at −30 , 0, 27, 40, and 
+
+80 ◦C, respectively. The corresponding validation losses are 1.7751, 1.7931, 1.7868, 1.8357, and 1.9015. The nominal 
+
+27 ◦C condition therefore remains close to the proposed-softmax result, while the largest degradation occurs at 80 ◦Cdue to the increased circuit-derived γth . Nevertheless, the proposed hardware softmax maintains considerably lower loss than the sigmoid and hard-sigmoid alternatives across the evaluated temperature range. 
+
+B. Comparison with Prior Softmax Hardware 
+
+The proposed softmax array was evaluated for the 128 column outputs of a 128 × 128 vector–matrix multiplication (VMM) array. Each VMM output column is connected to one softmax branch therefore, the 128 branches collectively per-form one 128-element softmax evaluation. The complete array, including precharge, exponential-weight generation, sampling, and normalization, operates in parallel and completes a 128-element softmax operation in 242.97 ns. The total power con-sumption of the 128-branch array is 13.44 mW, corresponding to approximately 105 μW per element. Using the single-shot evaluation latency, the total energy per 128-element softmax evaluation is approximately 3.27 nJ, or 25.5 pJ per output element. Table VII compares the proposed architecture with state-of-the-art analog and digital softmax hardware implementations. Because the reported vector sizes and degrees of parallelism differ considerably among prior works, both total and per-element area, power, and energy are included to provide a more direct comparison. The proposed architecture supports 128-way parallel operation, whereas most of the custom ASIC implementations [17]–[24] in Table VII evaluate vectors of 1–16 elements. Despite implementing 128 parallel softmax branches, the proposed design occupies 9453.42 μm2, cor-responding to 70 μm2 per element, which is the smallest per-element area among the compared implementations [17]– [25]. The architecture also achieves a per-element power of approximately 105 μW while performing the complete 128-element operation in a single 242.97-ns evaluation. Unlike digital implementations that approximate the expo-nential function using LUTs, shift–add operations, piecewise-linear functions, or other arithmetic approximations [19], [21], [23], the proposed circuit directly generates the exponential response in the analog time domain using a shared ramp and RC decay. Earlier analog softmax circuits typically exploit 12 
+
+MOSFET subthreshold behavior, for which the exponential characteristic is confined to a relatively narrow operating range and is sensitive to device and temperature variations [17], [18]. In contrast, the proposed exponential generator is governed by the ramp swing and RC time constant, al-lowing operation over the demonstrated 0.30–1.10 V input range. Moreover, the effective softmax temperature can be programmed through the ramp slope and RC time constant, providing an additional degree of control that is unavailable in most of the compared implementations. Finally, the pro-posed architecture is evaluated at the system level using a Transformer with MemTorch, demonstrating its applicability beyond isolated circuit-level softmax evaluation. 
+
+C. Future Works and Scalability 
+
+Future work will investigate the scalability of the proposed architecture to softmax dimensions beyond 128 elements. As the number of branches increases, the parasitic loading of the shared VRAMP interconnect is expected to increase, which can alter the ramp slope and the corresponding γth .This can be addressed through hierarchical partitioning of the softmax array, where smaller groups of branches employ replicated ramp-driving circuits while operating in parallel. In addition, the proposed softmax architecture can be integrated with physical crossbar-based VMM arrays to enable complete hardware-level evaluation of Transformer operations. Such an implementation would allow the effects of device and circuit nonidealities, data-conversion overhead, and interface circuitry to be evaluated jointly with application-level Transformer accuracy. The memristive element used in the exponential-decay path is modeled using an external Verilog-A model because a memristor device is not available in the employed GF22-FDSOI PDK. In a compatible resistive-memory tech-nology, the memristor can be integrated in the back-end-of-line (BEOL) interconnect stack above the underlying CMOS circuitry. Since such a device can be vertically integrated without requiring a dedicated front-end-of-line (FEOL) silicon region, its inclusion is expected to cause only a limited increase in the effective implementation footprint, primarily due to routing and integration constraints. Hence, the overall per-element area is expected to remain comparable to the CMOS footprint reported in this work. V. C ONCLUSION 
+
+This work presents a 128-channel time-domain analog soft-max architecture for CIM output processing using a shared falling ramp, RC-decay-based exponential generation, and in-circuit normalization. The circuit supports a wide 0.30–1.10 V input range and provides programmable softmax temperature through the ramp slope and RC time constant. Post-layout extracted simulations verify the operation of the complete 128-channel array, which occupies approximately 9453.42 μm2,corresponding to 70.2 μm2 per element. The array performs all 128 softmax outputs in parallel with a latency of 242.97 ns at 13.44 mW, corresponding to approximately 25.5 pJ per output element. The circuit also demonstrates robustness under ca-pacitance variation, process, monte carlo, and extracted inter-connect parasitics. MemTorch-based Transformer evaluation further demonstrates its applicability to CIM-based attention processing. Future work will focus on integration with phys-ical VMM arrays and complete hardware-level Transformer evaluation. REFERENCES [1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin, “Attention is all you need,” Advances in neural information processing systems , vol. 30, 2017. [2] J. R. Stevens, R. Venkatesan, S. Dai, B. Khailany, and A. Raghunathan, “Softermax: Hardware/software co-design of an efficient softmax for transformers,” in 2021 58th ACM/IEEE Design Automation Conference (DAC) . IEEE, 2021, pp. 469–474. [3] A. Sebastian, M. Le Gallo, R. Khaddam-Aljameh, and E. Eleftheriou, “Memory devices and applications for in-memory computing,” Nature nanotechnology , vol. 15, no. 7, pp. 529–544, 2020. [4] N. Leroux, P.-P. Manea, C. Sudarshan, J. Finkbeiner, S. Siegel, J. P. Strachan, and E. Neftci, “Analog in-memory computing attention mech-anism for fast and energy-efficient large language models,” Nature Computational Science , vol. 5, no. 9, pp. 813–824, 2025. [5] J. Sillman, “Analog implementation of the softmax function,” arXiv preprint arXiv:2305.13649 , 2023. [6] C. C. Enz, F. Krummenacher, and E. A. Vittoz, “An analytical mos transistor model valid in all regions of operation and dedicated to low-voltage and low-current applications,” Analog integrated circuits and signal processing , vol. 8, no. 1, pp. 83–114, 1995. [7] R. J. Baker, CMOS: circuit design, layout, and simulation . John Wiley & Sons, 2019. [8] C. Li, W. Niu, D. Wan, L. Tang, Z. Xie, K. Zhang, Y. Liu, Q. Liu, L. Liao, X. Zou et al. , “High-speed energy-efficient memristor confined in sub-5 nm space with elemental oxygen reservoir layer,” Nature Communications , vol. 17, no. 1, p. 4117, 2026. [9] A. Singh, S. S. Borah, and M. Ghosh, “Current differencing buffered amplifier based memristive quadrature oscillator,” in 2021 International Conference on Electronics, Information, and Communication (ICEIC) .IEEE, 2021, pp. 1–4. [10] S. Chakraborty, A. Singh, and A. R. Jaiswal, “Gem3d-cim: General purpose matrix computation using 3-d-integrated sram–edram hybrid compute-in-memory-on-memory architecture,” IEEE Transactions on Circuits and Systems I: Regular Papers , 2026. [11] S.-G. Gi, A. Singh, and B.-G. Lee, “Memristor-based neural network hardware with hybrid stochastic neuron for fully in-situ training,” 
+
+Neurocomputing , p. 132525, 2025. [12] R. Carter, J. Mazurier, L. Pirro, J. Sachse, P. Baars, J. Faul, C. Grass, G. Grasshoff, P. Javorka, T. Kammler et al. , “22nm fdsoi technology for emerging mobile, internet-of-things, and rf applications,” in 2016 IEEE International Electron Devices Meeting (IEDM) . IEEE, 2016, pp. 2–2. [13] M. Ronchi, S. Di Giacomo, M. Amadori, G. Borghi, M. Carminati, and C. Fiorini, “Design, implementation, and analysis of an integrated switched capacitor analog neuron for edge computing ai accelerators,” 
+
+IEEE Transactions on Circuits and Systems I: Regular Papers , vol. 72, no. 8, pp. 3947–3960, 2025. [14] Y. Wu, H. Song, Y. Peng, Y. Shen, F. Lu, and H. Zhang, “A 4.21-kw ultra-thin 1.2-mm stackable capacitive coupler for high-efficiency mhz capacitive power transfer,” IEEE Transactions on Power Electronics ,2026. [15] M. Rack, D. Lederer, and J.-P. Raskin, “High-resistivity substrates in 22-nm fd-soi—part i: Wideband modeling and impact on rf losses,” IEEE Transactions on Electron Devices , 2025. [16] C. Lammie, W. Xiang, B. Linares-Barranco, and M. R. Azghadi, “Memtorch: An open-source simulation framework for memristive deep learning systems,” Neurocomputing , vol. 485, pp. 124–133, 2022. [17] M. Vatalaro, T. Moposita, S. Strangio, L. Trojman, A. Vladimirescu, M. Lanuzza, and F. Crupi, “A low-voltage, low-power reconfigurable current-mode softmax circuit for analog neural networks,” Electronics ,vol. 10, no. 9, p. 1004, 2021. [18] L. Jiang, Y. Zhou, H. Zhang, and W. Kang, “Self-calibrating analog cir-cuitry for softmax-scaled function with analog computing-in-memory,” 
+
+IEEE Transactions on Very Large Scale Integration (VLSI) Systems ,2026. [19] I. Kouretas and V. Paliouras, “Simplified hardware implementation of the softmax activation function,” in 2019 8th international conference on modern circuits and systems technologies (MOCAST) . IEEE, 2019, pp. 1–4. 13 
+
+[20] F. Spagnolo, S. Perri, and P. Corsonello, “Aggressive approximation of the softmax function for power-efficient hardware implementations,” 
+
+IEEE Transactions on Circuits and Systems II: Express Briefs , vol. 69, no. 3, pp. 1652–1656, 2021. [21] Y. Zhang, Y. Zhang, L. Peng, L. Quan, S. Zheng, Z. Lu, and H. Chen, “Base-2 softmax function: Suitability for training and efficient hardware implementation,” IEEE Transactions on Circuits and Systems I: Regular Papers , vol. 69, no. 9, pp. 3605–3618, 2022. [22] Y. Fu, C. Zhou, T. Huang, E. Han, Y. He, and H. Jiao, “Softact: A high-precision softmax architecture for transformers supporting nonlin-ear functions,” IEEE Transactions on Circuits and Systems for Video Technology , vol. 34, no. 9, pp. 8912–8923, 2024. [23] J. Kim, S. Kim, K. Choi, and I.-C. Park, “Hardware-efficient softmax architecture with bit-wise exponentiation and reciprocal calculation,” 
+
+IEEE Transactions on Circuits and Systems I: Regular Papers , vol. 71, no. 10, pp. 4574–4585, 2024. [24] M. Wang, S. Lu, D. Zhu, J. Lin, and Z. Wang, “A high-speed and low-complexity architecture for softmax function in deep learning,” in 2018 IEEE asia pacific conference on circuits and systems (APCCAS) . IEEE, 2018, pp. 223–226. [25] T. Xia and S. Q. Zhang, “Hyft: A reconfigurable softmax accelerator with hybrid numeric format for both training and inference,” in Pro-ceedings of the 29th ACM/IEEE International Symposium on Low Power Electronics and Design , 2024, pp. 1–6.

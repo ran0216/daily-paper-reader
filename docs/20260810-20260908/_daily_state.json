@@ -1,0 +1,521 @@
+{
+  "date": "20260810-20260908",
+  "date_label": "2026-08-10 ~ 2026-09-08",
+  "generated_at": "2026-09-08 08:56:24 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.24664v1",
+      "route": "20260810-20260908/2608.24664v1-maia-200-a-software-defined-dataflow-system-for-large-scale-ai-acceleration",
+      "title": "Maia 200: A Software Defined Dataflow System for Large-scale AI Acceleration",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "面向AI推理的大规模软件定义数据流加速器架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.09252v1",
+      "route": "20260810-20260908/2608.09252v1-fsgen-agile-fused-and-sparse-accelerator-generator-with-accurate-power-model-for-llm-applications",
+      "title": "FSGen: Agile Fused and Sparse Accelerator Generator with Accurate Power Model for LLM Applications",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向LLM工作负载的AI加速器生成器，聚焦人工智能加速器硬件架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.13790v1",
+      "route": "20260810-20260908/2608.13790v1-ppaplace-differentiable-cross-stage-objectives-for-chip-placement-optimization",
+      "title": "PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向芯片宏布局的可微分跨阶段PPA优化目标，直接作用于数字集成电路物理设计实现。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.19628v1",
+      "route": "20260810-20260908/2608.19628v1-a-thread-register-decoupled-gpu-execution-model-for-efficient-tensor-computation",
+      "title": "A Thread-Register Decoupled GPU Execution Model for Efficient Tensor Computation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出面向AI工作负载的线程-寄存器解耦GPU执行架构FIBER，以提升张量计算效率",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.21288v1",
+      "route": "20260810-20260908/2608.21288v1-assessing-triple-modular-redundancy-for-wide-link-low-latency-noc-routers-reliability-and-physical-design-challenges",
+      "title": "Assessing Triple Modular Redundancy for Wide-Link, Low-Latency NoC Routers: Reliability and Physical Design Challenges",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向物理AI瓦片加速器的宽链路低延迟NoC路由器可靠性评估，直接契合多核AI加速器系统NoC互连",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.22613v1",
+      "route": "20260810-20260908/2608.22613v1-nova-technology-architecture-co-design-of-near-memory-processing-for-attention-ssm-moe-hybrid-llm-inference",
+      "title": "NOVA: Technology-Architecture Co-Design of Near-Memory Processing for Attention-SSM-MoE Hybrid LLM Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向混合大模型推理的近内存处理技术-架构协同设计",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.24351v1",
+      "route": "20260810-20260908/2608.24351v1-small-world-communication-fabrics-for-neuromorphic-multicore-socs",
+      "title": "Small-World Communication Fabrics for Neuromorphic Multicore-SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "比较两种神经形态多核系统的小世界通信结构，直接属于片上网络互连设计与通信架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.24478v1",
+      "route": "20260810-20260908/2608.24478v1-noc-out-a-formally-verified-network-on-chip-library-for-rule-based-hardware-designs",
+      "title": "NoC-Out: A Formally-verified Network-on-Chip Library for Rule-based Hardware Designs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "首个生成形式化验证k维NoC设计的库，直接命中片上网络互连设计需求",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.26220v1",
+      "route": "20260810-20260908/2608.26220v1-meshreduce-u-compiler-guided-communication-reduction-for-irregular-neural-reductions-on-mesh-nocs",
+      "title": "MeshReduce-U: Compiler-Guided Communication Reduction for Irregular Neural Reductions on Mesh NoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向网格片上网络不规则神经归约的编译器引导通信缩减与路由",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.26418v2",
+      "route": "20260810-20260908/2608.26418v2-redwood-a-frontier-ai-accelerator-designed-verified-and-deployed-from-scratch-in-2-weeks-by-ai",
+      "title": "Redwood: A Frontier AI Accelerator Designed, Verified, and Deployed from Scratch in 2 Weeks by AI",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "直接涉及AI加速器硬件架构的设计、验证与部署，与需求高度一致",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.28048v1",
+      "route": "20260810-20260908/2608.28048v1-ai-hardware-accelerators-for-large-language-models-architectures-and-the-memory-wall",
+      "title": "AI Hardware Accelerators for Large Language Models: Architectures and the Memory Wall",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "横跨GPU/ASIC/FPGA/存内/神经形态/光子等架构的AI加速器综述，直接构成面向AI负载的芯片架构比较。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.30509v1",
+      "route": "20260810-20260908/2608.30509v1-chipsmore-compute-in-interconnect-and--memory-chiplets-for-multi-mode-multi-request-llm-inference-acceleration",
+      "title": "CHIPSMORE: Compute-in-Interconnect and -Memory Chiplets for Multi-Mode Multi-Request LLM Inference Acceleration",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出融合计算互连和存内计算的Chiplet LLM推理加速器，异构PE由RRAM模拟CIM与SRAM数字CIM构成，直接属于AI加速器硬件设计。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.30932v1",
+      "route": "20260810-20260908/2608.30932v1-beacon-llm-multi-agent-driven-hardware-design-space-exploration-for-heterogeneous-multi-chiplet-deep-learning-accelerators",
+      "title": "Beacon: LLM Multi-Agent Driven Hardware Design Space Exploration for Heterogeneous Multi-Chiplet Deep Learning Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "异构多芯粒深度学习加速器的硬件设计空间探索",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.00421v1",
+      "route": "20260810-20260908/2609.00421v1-vara-a-voltage-aware-reram-based-accelerator-for-energy-efficient-computing",
+      "title": "VARA: A Voltage-Aware ReRAM-Based Accelerator for Energy-Efficient Computing",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出电压感知ReRAM存算一体加速器，利用激活稀疏性降低MVM能耗，属于深度学习加速器硬件设计与优化。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.00701v1",
+      "route": "20260810-20260908/2609.00701v1-falcon-fault-tolerant-magnetic-tunnel-junction-based-in-memory-stochastic-architecture-for-reliability-critical-edge-ai-applications",
+      "title": "FALCON: Fault-Tolerant Magnetic Tunnel Junction-Based In-Memory Stochastic Architecture for Reliability-Critical Edge AI Applications",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向可靠性关键的边缘AI提出基于磁隧道结的容错存内随机计算架构，兼顾能效与可靠性，属边缘AI芯片硬件设计。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.00857v1",
+      "route": "20260810-20260908/2609.00857v1-llm-inference-on-imc-noc-architecture-with-balanced-dataflow-and-fine-grained-parallelism",
+      "title": "LLM Inference on IMC-NoC Architecture with Balanced Dataflow and Fine-Grained Parallelism",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出统一存内计算与片上网络的IMC-NoC处理通信架构，正对应深度学习加速器加片上网络微架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.01084v1",
+      "route": "20260810-20260908/2609.01084v1-hardware-acceleration-of-block-diffusion-llm-for-edge-devices",
+      "title": "Hardware Acceleration of Block-Diffusion LLM for Edge Devices",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出面向边缘大模型推理的硬件协同设计，含宽IO存储系统与输入驻留混合精度脉动阵列，直接对应AI加速器硬件架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.03594v1",
+      "route": "20260810-20260908/2609.03594v1-levelsyn-physical-aware-logic-synthesis-via-level-asynchronous-graph-neural-networks",
+      "title": "LevelSyn: Physical-Aware Logic Synthesis via Level-Asynchronous Graph Neural Networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于层级异步图神经网络、面向数字集成电路的物理感知逻辑综合方法",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.11116v1",
+      "route": "20260810-20260908/2608.11116v1-you-only-charge-once-20--a-end-to-end-analog-computing-in-memory-architecture-with-reconfigurable-switched-capacitors",
+      "title": "You Only Charge Once 2.0 : A End-to-End Analog Computing-in-Memory Architecture with Reconfigurable Switched Capacitors",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向DNN的模拟存算一体加速器架构，缓解ADC墙瓶颈",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.11577v1",
+      "route": "20260810-20260908/2608.11577v1-uni-sfu-algorithm-hw-co-design-for-universal-sfus-via-mixed-degree-piecewise-approximation",
+      "title": "Uni-SFU: Algorithm-HW Co-Design for Universal SFUs via Mixed-Degree Piecewise Approximation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向DNN加速器与GPU非线性激活函数SFU的算法硬件协同设计，属于人工智能加速器硬件架构范畴",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.13293v1",
+      "route": "20260810-20260908/2608.13293v1-nas-driven-hardware-accelerator-exploration-for-edge-ai-and-quantization-effects-on-the-pareto-space",
+      "title": "NAS-Driven Hardware Accelerator Exploration for Edge AI and Quantization Effects on the Pareto Space",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向边缘AI的硬件感知NAS与后训练量化映射结合，在可重构加速器上进行自动化硬件搜索，属于边缘AI芯片设计探索。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.15636v1",
+      "route": "20260810-20260908/2608.15636v1-algorithm-architecture-co-design-for-efficient-vla-inference-via-speculative-inference-and-verification",
+      "title": "Algorithm-Architecture Co-Design for Efficient VLA Inference via Speculative Inference and Verification",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向VLA推理专用加速器的算法-架构协同投机设计",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.17266v1",
+      "route": "20260810-20260908/2608.17266v1-the-road-less-traveled-congestion-aware-noc-placement-and-packet-routing-for-fpgas",
+      "title": "The Road Less Traveled: Congestion-Aware NoC Placement and Packet Routing for FPGAs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向NoC增强FPGA的拥塞感知布局与包路由方法，直接涉及片上网络互连设计与通信架构",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.17523v1",
+      "route": "20260810-20260908/2608.17523v1-completion-path-credits-multi-resource-control-for-scale-up-fabrics",
+      "title": "Completion-Path Credits: Multi-Resource Control for Scale-Up Fabrics",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向GPU与AI加速器scale-up互联的多资源接收端控制，匹配片上网络与通信架构需求",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.19395v1",
+      "route": "20260810-20260908/2608.19395v1-hydra-a-heterogeneous-chiplet-dse-framework-for-serving-dynamic-hybrid-llm-workloads",
+      "title": "HYDRA: A Heterogeneous Chiplet DSE Framework for Serving Dynamic Hybrid LLM Workloads",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向混合LLM的异构芯粒AI加速器设计空间探索，包含芯粒放置、互联带宽与运行时调度，契合芯片架构复合主题",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.22378v1",
+      "route": "20260810-20260908/2608.22378v1-precision-aware-variable-bit-processing-elements-for-hardware-efficient-systolic-array-designs",
+      "title": "Precision-Aware Variable Bit Processing Elements for Hardware-Efficient Systolic Array Designs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向深度学习脉动阵列处理单元的变位宽浮点乘法器近似设计",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.22602v1",
+      "route": "20260810-20260908/2608.22602v1-architecting-the-next-generation-of-asynchronous-distributed-gpus-for-the-ai-era",
+      "title": "Architecting the Next Generation of Asynchronous, Distributed GPUs for the AI Era",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向Ampere/Hopper/Blackwell等现代AI GPU架构的周期级模拟框架，支撑AI加速用CPU/GPU架构设计",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.25781v1",
+      "route": "20260810-20260908/2608.25781v1-update-disturbance-resilient-analog-reram-crossbar-arrays-for-in-memory-deep-learning-accelerators",
+      "title": "Update Disturbance-Resilient Analog ReRAM Crossbar Arrays for In-Memory Deep Learning Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用于存内深度学习加速器的模拟ReRAM交叉阵列研究，直接属于人工智能加速器硬件架构方向",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2608.30435v1",
+      "route": "20260810-20260908/2608.30435v1-scalable-axi4-transaction-monitoring-for-mixed-criticality-socs-from-phase-level-precision-to-id-level-efficiency",
+      "title": "Scalable AXI4 Transaction Monitoring for Mixed-Criticality SoCs: From Phase-Level Precision to ID-Level Efficiency",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "针对AXI4片上互连的协议/时序监控与恢复硬件，契合片上互连与通信架构可靠性设计。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.01735v1",
+      "route": "20260810-20260908/2609.01735v1-circuitsdna-discovering-unconventional-multi-accuracy-arithmetic-circuits-via-evolutionary-synthesis",
+      "title": "CircuitsDNA: Discovering Unconventional Multi-Accuracy Arithmetic Circuits via Evolutionary Synthesis",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向边缘AI计算的进化式多精度算术电路综合",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.01948v1",
+      "route": "20260810-20260908/2609.01948v1-an-emerging-nvm-based-on-chip-training-architecture-with-non-ideality-mitigation-through-bipolar-weight-distributions",
+      "title": "An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于eNVM的片上神经训练架构及非理想性缓解",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    },
+    {
+      "paper_id": "2609.04266v1",
+      "route": "20260810-20260908/2609.04266v1-compute-in-memory-attention-a-time-domain-analog-softmax-circuit-with-rc-tunable-temperature",
+      "title": "Compute-in-Memory Attention: A Time-Domain Analog Softmax Circuit with RC-Tunable Temperature",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向存内计算Transformer注意力的模拟Softmax电路，直接降低深度学习加速器中的注意力计算开销。",
+      "first_seen_at": "2026-09-08 08:56:24 UTC",
+      "updated_at": "2026-09-08 08:56:24 UTC"
+    }
+  ]
+}

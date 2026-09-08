@@ -1,0 +1,458 @@
+Title: PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization
+
+URL Source: https://arxiv.org/pdf/2608.13790v1
+
+Published Time: Mon, 17 Aug 2026 00:13:06 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization 
+
+## Ruogu Chen 
+
+University of Alberta Department of Electrical and Computer Engineering Edmonton, AB, Canada ruogu@ualberta.ca 
+
+## Jie Han 
+
+University of Alberta Department of Electrical and Computer Engineering Edmonton, AB, Canada jhan8@ualberta.ca 
+
+## Abstract 
+
+Macro placement significantly affects a chip’s post-route perfor-mance, power, and area (PPA). Most placement methods optimize half-perimeter wirelength (HPWL) as the primary objective. How-ever, recent benchmarking shows a near-zero correlation between HPWL and post-route timing metrics such as the worst negative slack (WNS) and total negative slack (TNS). As a result, all six evalu-ated artificial intelligence (AI) placers degraded PPA relative to the hierarchical baseline. Recent efforts have tried to train cross-stage predictors to close this gap. However, existing methods focus on macro-only representations and use pre-route metrics as training labels. A label fidelity study of ten circuits at four design flow stages reveals that HPWL and pre-route timing poorly reflect final post-route timing rankings. In contrast, post-global-routing achieves the best balance between final timing fidelity and label generation cost-effectiveness. Based on this finding, PPAPlace is a timing-driven differentiable surrogate predicting post-route PPA from macro and standard-cell placements. The surrogate is a dual-stream predictor that combines graph attention over the chip netlist with spatial convolution over the placement grid. It is trained on post-global-routing labels. The predicted WNS and TNS gradients flow end-to-end back to cell coordinates. PPAPlace exploits these gradients in two ways: as a co-objective injected into an analytical placer’s optimization loop (PPAPlace-CoOpt), and as a post-placement re-finement step that adjusts macro positions via projected gradient descent (PPAPlace-Refine). On five ChiPBench test circuits excluded from training, PPAPlace improves average WNS and TNS by 22% and 51% over the hierarchical baseline while preserving power and routability, using the same predictor without test-circuit retraining. Code is available at https://github.com/ValleyC/PPAPlace. 
+
+## Keywords 
+
+chip placement, PPA prediction, differentiable objectives, surrogate-guided optimization, graph attention network, physical design 
+
+ACM Reference Format: 
+
+Ruogu Chen and Jie Han. 2026. PPAPlace: Differentiable Cross-Stage Ob-jectives for Chip Placement Optimization. In IEEE/ACM International Con-ference on Computer-Aided Design (ICCAD ’26), November 08–12, 2026, San Jose, CA, USA. ACM, New York, NY, USA, 9 pages. https://doi.org/10.1145/ 3831252.3834172 
+
+> This work is licensed under a Creative Commons Attribution 4.0 International License.
+> ICCAD ’26, San Jose, CA, USA
+> © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2873-0/2026/11 https://doi.org/10.1145/3831252.3834172
+
+## 1 Introduction 
+
+Chip placement determines the physical locations of circuit mod-ules on a two-dimensional canvas and is one of the most important steps in very-large-scale integration physical design. The quality of placement directly affects a chip’s performance, power consump-tion, and area (PPA), which together determine whether a design meets its specifications for manufacturing [10]. Existing placement approaches fall into two broad categories: analytical and artificial-intelligence (AI)-based placers. Analytical placers such as DREAMPlace [16] formulate placement as con-tinuous optimization of a smooth wirelength approximation with density penalties, solved by gradient descent on a graphics pro-cessing unit (GPU). AI-based methods, including reinforcement learning (RL) [12, 13, 19], black-box optimization [22], and diffu-sion models [14], replace or augment the optimizer with learned policies. Despite the methodological differences between these two categories, most methods optimize the half-perimeter wirelength (HPWL), a computationally inexpensive estimate of the total wire length, as the primary objective. However, growing evidence suggests that HPWL is not as reliable a proxy as commonly assumed. The ChiPBench benchmark [26] evaluated six AI-based placement methods on 20 circuits through the full OpenROAD [2] chip design flow. It uses Hier-RTLMP (Hier-archical Register-Transfer-Level Macro Placer) [11], OpenROAD’s built-in macro placer, as the baseline placement method. Hier-RTLMP leverages the RTL design hierarchy and dataflow structure rather than optimizing wirelength alone. The results show that every evaluated AI method in ChiPBench degraded PPA relative to Hier-RTLMP. ChiPBench further reported a Pearson correla-tion of only −0.08 between macro HPWL and the worst negative slack (WNS), indicating that wirelength optimization is essentially uninformative for timing. Recent efforts have begun to close this gap from two direc-tions. AutoDMP [1] tunes DREAMPlace’s configuration param-eters through multi-objective Bayesian optimization (BO). It uses post-placement proxies such as rectilinear Steiner minimum tree (RSMT) wirelength, cell density, and rectangular uniform wire den-sity (RUDY) congestion to guide the search. While effective at im-proving placement diversity, these proxies are computed before routing and suffer a similar proxy-to-PPA gap. Therefore, they do not always stay faithful to the post-route PPA. LaMPlace [6] takes a complementary approach. It trains a cross-stage predictor on offline placement data and uses it to guide macro placement through evolutionary search, achieving notable timing improve-ments. While these methods show that cross-stage prediction is arXiv:2608.13790v1 [cs.LG] 13 Aug 2026 ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Ruogu Chen and Jie Han 
+
+a viable path to better placement, they share two unexamined as-sumptions. First, they use pre-route static timing analysis (STA) as supervision without verifying that these labels faithfully preserve post-route PPA rankings. Second, existing methods represent the placement through macro positions alone, discarding the standard cell density and routing congestion that ultimately govern timing and power. This paper examines both assumptions. A controlled study across ten ChiPBench circuits reveals that pre-route timing labels, used as supervision data in prior works, can be misleading. Post-global-routing (GRT) labels, by contrast, consistently achieve high fidelity with final post-route timing and remain cost-effective in genera-tion. This finding establishes a principled basis for selecting the supervision stage in any future cross-stage learning approach. Built on this finding, PPAPlace uses post-GRT supervision to construct a differentiable post-route timing objective from the com-plete placement state of macros and standard cells. A dual-stream predictor is trained on post-GRT labels. The graph attention stream encodes netlist connectivity. The spatial convolution stream en-codes cell density, pin density, and RUDY-style congestion. Every component operates within a differentiable computation graph, enabling end-to-end gradient flow from predicted timing back to cell coordinates. Because the surrogate is fully differentiable, it provides not only PPA predictions but also timing gradients that indicate how moving each cell would affect post-route timing. These gradients can be injected directly into a differentiable placer’s optimization loop as a learned co-objective, complementing wirelength and density with routing-aware timing feedback. The same predictor also supports post-placement gradient descent to locally refine any converged placement, requiring only a completed legal placement as input. The novel contributions are as follows: (1) A label fidelity study across ten circuits and four design stages, establishing post-global-routing as the most cost-effective supervision stage for cross-stage PPA prediction. (2) A differentiable dual-stream predictor over the complete mixed-size placement state, with end-to-end gradient flow from predicted timing back to cell positions. With the archi-tecture fixed, post-GRT supervision raises Kendall’s 𝜏 from 0.13 with pre-route STA to 0 .31, while the combined setting is nearly 4 × the macro-only, pre-route result of 0 .08. (3) Two gradient-guided deployment modes. PPAPlace-CoOpt injects the surrogate as a co-objective into DREAMPlace’s an-alytical loop for global topology guidance. PPAPlace-Refine applies post-placement gradient descent to any converged placement without access to the source placer’s internals. Combined, they improve WNS by 22% and total negative slack (TNS) by 51% over the hierarchical baseline, outper-forming all evaluated prior methods. 
+
+## 2 Related Work 
+
+Analytical placement. Analytical placers formulate placement as continuous optimization of a smooth wirelength objective sub-ject to density constraints [5, 17]. DREAMPlace [16] recast this formulation as a neural network training problem, achieving over 30 × GPU speedup. DREAMPlace 4.0 [15] added timing-driven net weighting from pre-route STA. AutoDMP [1] tunes 16 DREAMPlace parameters via multi-objective Tree-structured Parzen Estimator using post-placement proxies (RSMT wirelength, cell density, RUDY congestion) as BO objectives. 
+
+Differentiable placement objectives. Recent work has extended gradient-based placement beyond wirelength and density. Efficient-TDP [21] injects pin-to-pin attraction on critical paths into DREAM-Place using pre-route STA, achieving state-of-the-art timing-driven standard-cell placement. RoutePlacer [8] trains a graph neural net-work on global-router overflow labels and injects the learned con-gestion penalty as a differentiable objective into DREAMPlace’s loop, reducing routing overflow by up to 16%. These methods target a single intermediate metric such as pre-route timing or routabil-ity. None addresses mixed-size placement or post-route PPA as an optimization objective. 
+
+AI-based placement. AlphaChip [19] pioneered deep reinforce-ment learning for macro placement, though its reproducibility re-mains debated [18]. Subsequent work explored visual representa-tion learning [13], offline RL [12], evolutionary search [22], place-ment refinement [27], and tree-search-guided RL [7]. All optimize HPWL or macro HPWL as the primary objective. 
+
+Cross-stage PPA prediction and optimization. LaMPlace [6] trains a Laurent polynomial predictor to estimate cross-stage metrics from macro pairwise distances and uses it to generate an L-mask for se-quential greedy macro placement. Its main timing labels come from OpenTimer after standard-cell placement, before CTS or routing. MacroRank [4] ranks macro placements by final routing quality, while PreRoutGNN [29] predicts pre-routing timing at standard-cell placement. Neither integrates its predictor into mixed-size place-ment optimization. Re 2MaP [20] achieves state-of-the-art macro placement through recursive prototyping and packing-tree relo-cation with hand-engineered cost terms. It represents the best of algorithmic macro placement but does not use learned objec-tives. BBOPlace-Bench [28] benchmarks black-box optimization approaches to macro placement. It argues for aligning the search objective with downstream PPA. In the commercial space, Synopsys DSO.ai [24] and Cadence Cerebrus [3] use reinforcement learning to tune tool configurations across the design flow, treating placement as part of a broader design-space optimization problem. Across these efforts, no work has systematically validated which design flow stage provides the most reliable supervision for cross-stage prediction. 
+
+## 3 Preliminaries 3.1 Chip Placement and Evaluation Metrics 
+
+Chip placement assigns physical positions to circuit modules on a two-dimensional canvas. A netlist hypergraph 𝐻 = (𝑉 , 𝐸 ) specifies the modules 𝑉 (macros and standard cells) and the nets 𝐸 connect-ing them. A placement method seeks positions x = {( 𝑥 𝑖 , 𝑦 𝑖 )} 𝑁 𝑖 =1
+
+that minimize a placement objective. In analytical placers such as DREAMPlace [16], this takes the form: min  
+
+> x
+
+L( x) = W ( x) + 𝜆 · D ( x), (1) where W is a smooth wirelength approximation and D is a density penalty that discourages cell overlap [17]. The density weight 𝜆 PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization ICCAD ’26, November 08–12, 2026, San Jose, CA, USA                                                                                           
+
+> Table 1: Spearman 𝜌 WNS between intermediate and post-route timing across ten ChiPBench circuits (macro count in parentheses). Green :
+> 𝜌 ≥0.7;light : 0.3≤𝜌 <0.7;pink : negative. 𝜌 TNS follows the same pattern. Rightmost column: average wall-clock cost of generating one label at each stage, shown on a blue scale to distinguish it from correlation. CTS: clock-tree synthesis; DRT: detailed routing. Post-DRT is the correlation reference ( 𝜌 ≡1,3.7hrs on average).
+> Stage bp_be bp_fe bp_be12 isa_npu swerv vga_lcd ether dft68 mor1kx ari133 Avg Time
+> (10) (11) (12) (15) (28) (62) (64) (68) (78) (132) (hrs)
+> HPWL +.12 −.15 +.08 −.21 +.05 −.18 −.09 +.14 −.11 +.03 −.03 <0.01 Pre-CTS STA +.15 +.09 −.07 +.18 −.11 +.06 −.14 +.22 +.03 +.12 +.05 0.08 Post-CTS .83 .64 .71 .38 −.12 .25 −.31 .47 .19 .77 .38 0.14
+> Post-GRT .80 .91 .87 .85 .89 .82 .78 .84 .86 .94 .86 0.20
+
+increases iteratively to enforce legality. The wirelength term is typically based on HPWL: HPWL (x) =∑︁  
+
+> 𝑒 ∈𝐸
+
+h
+
+max   
+
+> 𝑖 ∈𝑒
+
+𝑥 𝑖 − min   
+
+> 𝑖 ∈𝑒
+
+𝑥 𝑖 + max   
+
+> 𝑖 ∈𝑒
+
+𝑦 𝑖 − min   
+
+> 𝑖 ∈𝑒
+
+𝑦 𝑖 
+
+i
+
+, (2) which estimates the total wire length by summing the bounding-box half-perimeters across all nets. HPWL is differentiable (via smooth approximations such as the weighted-average model [9]), decomposable across nets, and fast to compute. However, the actual quality of a placed design is determined by post-route PPA metrics obtained after executing the downstream flow: clock tree synthesis (CTS), global routing (GRT), and detailed routing (DRT), each adding fidelity to timing and congestion es-timates. Let 𝐹 (x) denote the full downstream flow and 𝐹 𝑠 (x) the same flow ending at stage 𝑠 . Their PPA metric outputs, used as labels, are 
+
+y = 𝐹 (x) = [WNS , TNS , Power , Area ] , (3) 
+
+y𝑠 = 𝐹 𝑠 (x), 𝑠 ∈ { CTS , GRT , DRT }, (4) where WNS is the worst negative slack, TNS is the total negative slack, and power and area are the total power consumption and physical footprint. Computing y typically takes tens of minutes to hours. A cross-stage PPA predictor 𝑓 𝜃 , parameterized by 𝜃 , approxi-mates yDRT from placement-stage features, thus avoiding the cost of running 𝐹 (x) at inference time. A prerequisite is that the training labels y𝑠 used to supervise 𝑓 𝜃 must rank placements of different qual-ity consistently with the final outcome yDRT . Section 4 investigates which stage provides labels that best preserve the final post-route ranking. 
+
+## 4 Label Fidelity Analysis 4.1 Setup 
+
+This study spans 10 ChiPBench [26] circuits covering RISC-V CPUs from three families (bp_fe, bp_be, and bp_be12 from BlackParrot, swerv_wrapper from SweRV, ariane133 from Ariane), an OpenRISC CPU (mor1kx), a neural processing unit (isa_npu), and peripheral designs (ethernet, dft68, vga_lcd). The number of macros ranges from 10 to 132 and cell counts from 33K to 427K, ensuring that the findings are not specific to a single design scale or application domain. Note that this fidelity test uses RTLMP weight configu-rations evaluated through the full flow, and is independent of the training/test split used for the main experiments in Section 6. To generate diverse placements for each circuit, the weight pa-rameters of OpenROAD’s RTLMP hierarchical macro placer [11] are systematically varied. RTLMP optimizes a weighted combina-tion of six objectives controlled by area_wt, wirelength_wt, boundary_wt, outline_wt, notch_wt, and dead_space. For each circuit, 20 configurations are evaluated: 1 default (all weights at their ChiPBench defaults), 12 single-parameter sweeps (each of the six weights set to a high value of 20 or a low value of 0 .1, with all others at default), and 7 multi-parameter combinations that probe pairwise interactions (e.g., area +wirelength both at 10, wirelength +boundary both at 10) and global extremes (all three main weights at 10 or at 0 .1). RTLMP is deterministic, so the 20 settings form a controlled sweep rather than random placement samples, yielding 200 placements across the 10 circuits. Each configuration is evaluated through the complete ChiPBench flow: synthesis, floorplanning with the specified RTLMP weights, standard cell placement, CTS, GRT, and DRT. PPA metrics (WNS, TNS, power) are recorded at each stage. Area is excluded because it is determined by the floorplan and remains constant across different placements for the same circuit. The single ChiPBench pipeline uses the same synthesized netlist and flow settings across stages, with stage-specific parasitic estimates. Post-DRT metrics serve as the ground truth throughout this analysis. 
+
+## 4.2 Stage-Wise Rank Correlation 
+
+Table 1 reports Spearman 𝜌 WNS between each intermediate stage and the post-route ground truth. WNS and TNS show the same pattern. Only WNS is reported. HPWL has near-zero average correlation ( ¯ 𝜌 = −0.03), with neg-ative values on 5 of 10 circuits. Pre-CTS STA, the label source used by LaMPlace [6], is similarly uninformative ( ¯ 𝜌 = +0.05). Post-CTS is inconsistent: strongly positive on some circuits (bp_be: 𝜌 = 0.83) but negative on others (ethernet: 𝜌 = −0.31). Post-GRT achieves 
+
+𝜌 ≥ 0.78 on all 10 circuits with no sign reversals ( ¯ 𝜌 = 0.86). It costs 0.20 hrs per sample on average versus 3 .7 hrs for full DRT (Table 1). It is thus the most cost-effective supervision stage. 
+
+## 5 PPAPlace 
+
+Based on the findings in Section 4, PPAPlace uses post-global-routing labels as training supervision. PPAPlace has three com-ponents. A differentiable PPA predictor is trained on the mixed-size placement state (Sections 5.1–5.3). A differentiable feature extraction layer enables gradient flow from predictions back to cell ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Ruogu Chen and Jie Han GAT x4 
+
+> (128-dim, 4 heads) (Density, pin, macro, RUDY, net BB)
+
+(a) Offline Predictor Training 
+
+ℒ = ℒℳ𝒮ℰ +𝜆 𝑟 ⋅ℒ 𝓇𝒶𝓃𝓀 
+
+Update positions p
+
+Placement Method 
+
+> M configs/circuit
+
+OpenROAD flow  
+
+> (→post-GRT) WNS TNS Power Area
+> GAP
+> es(256)
+
+MLP (2-layer) 
+
+(b) PPAPlace-CoOpt 
+
+> 64 x 64 grid
+
+Conv-ReLU  
+
+> x3
+> (x, y, w, h, r, p, n, s)
+> Netlist graph GAP
+> eg(256)
+
+[...] 
+
+Converged placement 𝜆 𝑝 ⋅ 𝑓 𝜃 𝐩   
+
+> 𝑓 𝜃
+> (surrogate)
+> After warm up W 𝜆 𝑝 ⋅ 𝑓 𝜃 𝐩
+> 𝑓 𝜃
+> (surrogate)
+> After warm up W
+
+𝐿 WL 𝐿 WL 𝐿 density 𝐿 density 
+
+## + +
+
+DREAMPlace Loop 𝐿 total = 𝐿 WL + 𝜆 𝑑 ⋅ 𝐿 density + 𝜆 𝑝 ⋅ 𝑓 𝜃 𝐩 ∇𝐿 total 
+
+(c) PPAPlace-Refine 𝐩 𝟎     
+
+> Predict PPA (any placement) 𝜆 𝑝 ⋅ 𝑓 𝜃 𝐩 𝜆 𝑝 ⋅ 𝑓 𝜃 𝐩
+> Legalize Re-optimize std cells
+
+Refined placement       
+
+> backprop gradient step 𝐩 𝐭 ←Π𝒞 𝐩 𝐭−𝟏 − 𝛼 ⋅ 𝐠 ∇WNS + TNS
+> T steps
+
+Figure 1: PPAPlace framework. (a) Offline training on post-GRT labels. (b) CoOpt: surrogate gradients injected into DREAMPlace as a co-objective. (c) Refine: post-placement gradient descent on the converged result. 
+
+positions (Section 5.4). Two gradient-guided deployment modes, co-objective placement and post-placement refinement, exploit these gradients to improve placement quality (Section 5.5). Figure 1 illus-trates the overall design. 
+
+## 5.1 Mixed-Size Placement Representation 
+
+Existing cross-stage predictors such as LaMPlace [6] represent the placement state through macro pairwise distances, discarding infor-mation about standard cells, spatial density, and routing congestion. However, timing violations and power consumption are largely affected by standard cell placement and routing, not macro posi-tions alone [26]. PPAPlace addresses this by observing the complete mixed-size placement through two complementary representations. 
+
+Spatial representation. The placement canvas is rasterized into a 64 × 64 grid with five channels: (1) Cell density: total cell area overlapping each bin, normalized by bin capacity. (2) Pin density: I/O pin concentration per bin. (3) Macro occupancy: degree of macro presence in each bin. (4) RUDY-style proxy [23]: the sum of inverse net bounding-box areas, Í𝑒 (𝑊 𝑒 𝐻 𝑒 )−1, for boxes overlapping the bin. Here, 𝑊 𝑒 
+
+and 𝐻 𝑒 are the box dimensions. (5) Net bounding box density: net bounding box overlap per bin, capturing routing pressure from nets whose pins lie outside the bin. All channels are normalized to [0, 1]. This grid-based representa-tion captures spatial distribution patterns invisible to macro-only predictors, including congestion hotspots and density imbalances. 
+
+Graph representation. The netlist is represented as a graph 
+
+𝐺 = (𝑉 𝐺 , 𝐸 𝐺 ) where macros are the nodes. Edges are derived from the netlist hypergraph: each multi-pin net connecting 𝑘 macros produces  𝑘 
+
+> 2
+
+ undirected edges (clique expansion), with duplicate edges merged and edge weights set to the number of shared nets between each macro pair. Each node carries a feature vector: 
+
+h𝑖 = [𝑥 𝑖 , 𝑦 𝑖 , 𝑤 𝑖 , ℎ 𝑖 , 𝑟 𝑖 , 𝑝 𝑖 , 𝑛 𝑖 , 𝑠 𝑖 ], (5) where (𝑥 𝑖 , 𝑦 𝑖 ) denotes the normalized position, (𝑤 𝑖 , ℎ 𝑖 ) the normal-ized width and height, 𝑟 𝑖 = 𝑤 𝑖 /ℎ𝑖 the aspect ratio, 𝑝 𝑖 the pin count, 
+
+𝑛 𝑖 the net degree (number of nets connected to this node), and 𝑠 𝑖 
+
+the average net span (mean HPWL of connected nets). The two streams are complementary: the spatial grid captures global density and routing pressure while the graph captures per-macro identity and local connectivity. 
+
+## 5.2 Dual-Stream PPA Predictor 
+
+The two representations are processed by separate encoder streams and fused for prediction. 
+
+Spatial stream. A lightweight convolutional neural network (CNN) with 3 layers and ReLU activations progressively reduces the spatial resolution of the 64 × 64 grid. Global average pooling (GAP) produces a spatial embedding e𝑠 ∈ R256 .
+
+Graph stream. A 4-layer graph attention network (GAT) [25] with 128-dimensional hidden states and 4 attention heads processes the netlist graph. Multi-head attention allows each layer to learn different types of relationships between connected nodes, such as spatial proximity and connectivity strength. GAP aggregates all node embeddings into a fixed-size graph embedding e𝑔 ∈ R256 ,regardless of circuit size. 
+
+Fusion and prediction. The two embeddings are concatenated and mapped to PPA predictions through a 2-layer multi-layer per-ceptron (MLP): 
+
+𝑓 𝜃 (x) = MLP  [e𝑔 (x); e𝑠 (x)]  → [ WNS , dTNS , Power , Area ].
+
+(6) The hat notation denotes predicted values. The architecture pro-duces fixed-size embeddings (512 dimensions in total) regardless of circuit size, enabling the same trained model to be applied across circuits with different numbers of cells and macros. Because the entire pipeline (feature extraction, GAT, CNN, MLP) is composed of differentiable operations, the Jacobian 𝜕𝑓 𝜃 /𝜕 p, where p is the vec-tor of cell positions, is available via automatic differentiation. This Jacobian indicates how each cell’s position influences predicted post-route PPA. PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+## 5.3 Training 
+
+5.3.1 Data Generation. Training data are generated by running a placement method with 𝑀 randomized configurations per circuit. Each configuration varies parameters that affect placement quality, such as target density and density weight schedule. As discussed in Section 4, each resulting placement is evaluated through the OpenROAD flow to post-global-routing, producing labels y𝑖 =
+
+[WNS , TNS , Power , Area ]. The training set is D = {( x𝑖 , y𝑖 )} 𝐶 ×𝑀 𝑖 =1
+
+across 𝐶 circuits. 
+
+5.3.2 Loss Function. The predictor is trained with a composite loss: 
+
+L = LMSE + 𝜆 𝑟 · L rank . (7) 
+
+LMSE is the mean squared error between predicted and true PPA values. However, the core task of the predictor is not to estimate exact PPA values, but to correctly rank which placements produce superior PPA and which produce inferior PPA. Because of this, 
+
+Lrank is a pairwise ranking loss computed over placement pairs from the same circuit: 
+
+Lrank =∑︁  
+
+> (𝑖,𝑗 )
+
+max 
+
+
+
+0, −( y𝑖 − y𝑗 ) ·  𝑓 𝜃 (x𝑖 ) − 𝑓 𝜃 (x𝑗 )
+
+, (8) where the sum is over all placement pairs (𝑖, 𝑗 ) from the same circuit. Each of the four PPA metrics is oriented so that lower values are better, then normalized to a z-score within each circuit. The hinge incurs zero loss for correctly ranked pairs and a linear penalty for misranked ones, directly optimizing placement ordering. Power varies by less than 2% across configurations of the same circuit, so timing dominates the ranking signal. With 𝑀 = 500 samples per circuit, each epoch compares all placement pairs within each circuit. The comparisons are processed in circuit-specific mini-batches of 32 placements, with each batch compared against cached predictions for all 𝑀 placements. The MSE term stabilizes learning with an absolute signal, while the ranking loss improves the placement ordering used for candidate selection. 
+
+## 5.4 Differentiable Feature Extraction 
+
+The feature extraction layer maps cell positions to the spatial grid and node features in Section 5.1 through differentiable operations. This ensures that gradients 𝜕𝑓 𝜃 /𝜕 p flow end-to-end from predicted PPA back to cell coordinates. The same differentiable features are used during both training and gradient-guided placement. 
+
+Spatial channels. Each of the five channels is computed as a continuous function of cell positions. Cell density (channel 0) uses clamp-based overlap area. This is piecewise linear and differentiable almost everywhere, matching the functional form DREAMPlace uses for its density penalty. Pin density (channel 1) uses Gaussian splatting ( 𝜎 = 1.5 bin widths), distributing each pin’s contribution smoothly across neighboring bins. Macro occupancy (channel 2) uses sigmoid soft masks ( 𝜎 = 20), producing a near-binary mask with a smooth transition at macro boundaries. RUDY-style con-gestion (channel 3) computes net bounding boxes via the log-sum-exp smooth approximation to max and min (temperature 𝛾 = 10), matching DREAMPlace’s wirelength smoothing. Net bounding-box density (channel 4) uses the same Gaussian splatting as channel 1. 
+
+Node features. Positions 𝑥 𝑖 , 𝑦 𝑖 enter the feature vector (Eq. 5) directly. Average net span 𝑠 𝑖 uses the same log-sum-exp HPWL approximation as the spatial RUDY channel. Static features (width, height, pin count, net degree) carry zero gradient and require no modification. Channel normalization uses g𝑐 /( max (g𝑐 ) + 𝜖 ), where max is differentiable via PyTorch’s amax .The full pipeline from cell positions p through feature extraction, GAT, CNN, and MLP to predicted PPA is end-to-end differentiable by construction. The gradient ∇p 𝑓 𝜃 is available via a single backward pass. 
+
+## 5.5 Gradient-Guided Placement 
+
+Given the differentiable surrogate 𝑓 𝜃 and a placement 
+
+p = (𝑥 1, 𝑦 1, . . . , 𝑥 𝑁 , 𝑦 𝑁 ), the gradient ∇p 𝑓 𝜃 indicates how each cell’s position affects the predicted post-route timing objective. PPAPlace exploits this signal in two complementary modes. 
+
+Co-objective placement (PPAPlace-CoOpt). The surrogate is injected directly into DREAMPlace’s analytical placement loop as a third objective alongside wirelength and density (Algorithm 1). DREAMPlace first runs 𝑊 warmup iterations to reach a rough solu-tion within the surrogate’s training distribution. The total objective then becomes: 
+
+Ltotal = LWL + 𝜆 𝑑 Ldensity + 𝜆 𝑝 ( WNS + dTNS ), (9) where WNS and dTNS are the timing outputs of 𝑓 𝜃 (p) (power and area are not optimized: area is fixed by the floorplan and power varies by less than 2% across configurations), and 𝜆 𝑝 increases linearly from 0 to its target value over the remaining iterations. The gradient reaches macros through both streams and standard cells through the spatial grid’s pin-density, RUDY, and net-bounding-box channels, so CoOpt reshapes standard-cell clustering as well as macro placement, which no analytical proxy achieves. 
+
+Algorithm 1 PPAPlace-CoOpt: Co-Objective Placement                                                          
+
+> Require: Predictor 𝑓 𝜃 , warmup 𝑊 , target weight 𝜆 ∗
+> 𝑝 , total iterations 𝑁
+> 1: Initialize positions p0randomly 2: for 𝑡 =1, . . . , 𝑁 do
+> 3: L ← L WL +𝜆 𝑑 Ldensity {standard DREAMPlace} 4: if 𝑡 >𝑊 then
+> 5: 𝜆 𝑝 ←𝜆 ∗
+> 𝑝 · ( 𝑡 −𝑊 )/( 𝑁 −𝑊 ){linear ramp} 6: L ← L + 𝜆 𝑝 (WNS +dTNS ){timing co-objective} 7: end if
+> 8: p𝑡 ←p𝑡 −1−𝜂 ∇pL{GPU-accelerated update} 9: end for
+> 10: return placement p𝑁
+
+Post-placement refinement (PPAPlace-Refine). Starting from any converged placement p0, projected gradient descent minimizes the surrogate timing objective (Algorithm 2): 
+
+p𝑡 +1 = ΠC
+
+
+
+p𝑡 − 𝛼 ∇p
+
+ WNS + dTNS  
+
+, (10) where 𝛼 is the learning rate and ΠC clips to the die bounding box. The refined macros are then legalized to resolve overlaps and enforce boundary constraints, and standard cells are re-optimized with macros fixed. Only the refined macro locations survive this handoff, so Refine is effectively a macro-position method, whereas CoOpt reshapes the full mixed-size placement. The two modes serve different roles. CoOpt reshapes the global cell topology during placement but requires integration with a spe-cific analytical placer. Refine adjusts positions locally after place-ment but requires only a legal placement, not access to the source ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Ruogu Chen and Jie Han 
+
+placer’s internals. It applies to any method that produces a place-ment, including commercial tools whose internals are inaccessible (Section 6.2). 
+
+Algorithm 2 PPAPlace-Refine: Post-Placement Refinement                                                  
+
+> Require: Converged placement p0, predictor 𝑓 𝜃 , learning rate 𝛼 , steps 𝑇
+> 1: for 𝑡 =1, . . . ,𝑇 do
+> 2: Compute differentiable features from p𝑡 −1
+> 3: ˆy←𝑓 𝜃 (features ){surrogate prediction ( <0.1 s)} 4: Save p𝑡 −1as p∗if ˆyhas the lowest timing loss so far 5: g← ∇ p(WNS +dTNS ){backprop} 6: p𝑡 ←ΠC(p𝑡 −1−𝛼 g){projected gradient step} 7: end for
+> 8: Legalize p∗and re-optimize standard cells 9: return refined placement p∗
+
+## 6 Experiments and Results 6.1 Setup 
+
+6.1.1 Benchmarks. Experiments use ChiPBench [26] with the Nan-gate45 library. The ten training circuits are bp_fe, bp_be12, isa_npu, bp_multi, or1200, swerv_wrapper43, vga_lcd, ethernet, dft68, and mor1kx. The five held-out circuits comprise three in-family designs (swerv_wrapper, black_parrot, and bp_be) and two out-of-family designs (ariane133 and ariane136), with no Ariane circuit in train-ing. They match LaMPlace’s [6] ChiPBench test set and use the same Hier-RTLMP normalization. The full OpenROAD post-route flow reports WNS (ps), TNS (ns), power (mW), and area ( 𝜇 m2). 
+
+6.1.2 Training. Per training circuit, 1,000 DREAMPlace configu-rations are sampled by randomizing 10 hyperparameters: target density ∈ [ 0.70 , 0.90 ], density weight ∈ [ 10 −5, 10 −3] (log-uniform), learning rate ∈ [ 10 −3, 0.032 ] (log-uniform), gamma ∈ [ 2, 10 ], stop overflow ∈ { 0.05 , 0.07 , 0.10 , 0.15 }, wirelength model 
+
+∈ { weighted-average , log-sum-exp }, global-placement iterations 
+
+∈ { 800 , 1000 , 1200 , 1500 }, macro halo ∈ [ 0, 10 ] sites, noise ratio 
+
+∈ [ 0.01 , 0.05 ], and random seed ∈ [ 1, 10 5]. About 65% converge in DREAMPlace and complete the OpenROAD flow successfully. We retain the first 500 successful placements per circuit through post-GRT, yielding 5,000 training pairs. The surrogate uses Eq. 7 with 𝜆 𝑟 = 0.5. Mini-batches contain 32 placements grouped by circuit so ranking pairs share a netlist. Adam trains for 200 epochs with a learning rate 5 × 10 −4 and weight decay 10 −5. Results report mean ± std over three independently seeded runs. The label fidelity study (Section 4) uses RTLMP placements, while training uses DREAMPlace placements. This fidelity anal-ysis concerns the relationship between flow stages and PPA met-rics. Since it uses RTLMP placements, it does not establish placer-independent predictor accuracy. Section 6.4 separately measures the DREAMPlace-trained predictor on RTLMP placements. Repeat-ing the stage study on DREAMPlace placements remains future work. 
+
+6.1.3 Baselines and methods. Hier-RTLMP [11] is the ChiPBench reference, normalized to 1.00. DREAMPlace [16] uses ChiPBench’s default wirelength-and-density configuration. DREAMPlace 4.0 [15] adds OpenTimer pre-route STA weighting, and we run its open-source release with default parameters. AutoDMP [1] tunes DREAM-Place through multi-objective Bayesian optimization. MaskRegu-late [27] uses reinforcement learning with a regularity reward. LaMPlace [6] trains on pre-route STA labels and applies its learned L-mask in the WireMask-EA search framework. Re 2MaP [20] uses recursive mixed-size prototyping with hand-engineered costs. Ta-ble 2 gives result provenance and flow differences. All PPAPlace configurations use the same surrogate. Refine (Al-gorithm 2) applies 𝑇 =30 projected-gradient steps ( 𝛼 =0.001) on pre-dicted WNS +TNS to the default DREAMPlace placement, followed by legalization and standard-cell re-optimization. CoOpt (Algo-rithm 1) adds the surrogate after 𝑊 =200 warmup iterations and linearly ramps 𝜆 𝑝 to 0 .01. CoOpt+Refine applies Refine after CoOpt. 
+
+6.1.4 Hardware and offline cost. Experiments use one NVIDIA RTX A6000 GPU (48 GB), an Intel Xeon Gold 5218R CPU, and 64 GB RAM. DREAMPlace takes ∼24 s per GPU configuration. Sixteen concurrent CPU OpenROAD processes produce post-GRT labels in 0.2 h per sample on average, ranging from ∼0.05 h to ∼0.3 h (Table 1). Pipelined placement and evaluation of all 5,000 labels takes ∼63 h of elapsed time, and model training takes ∼45 min. This offline cost is amortized: the same dataset and model serve all downstream experiments without additional labeling. 
+
+## 6.2 Main Results 
+
+Table 2 reports per-circuit WNS and TNS, the metrics most sensi-tive to placement quality. Per-design and average congestion are also reported, while power ratios are given in the text below. All these metrics are normalized by Hier-RTLMP’s results for more straightforward comparisons (lower is better). Area is fixed by the floorplan and omitted. Among prior methods, DREAMPlace achieves the lowest HPWL but the worst post-route timing (average WNS 1 .61 ×), confirming the HPWL-to-PPA disconnection reported in ChiPBench [26] and illustrated for swerv_wrapper in Figure 2. Pre-route STA weighting partially bridges this gap: DREAMPlace 4.0 reaches 1 .17 × WNS / 1.29 × TNS and LaMPlace 1 .32 × / 1 .36 ×, with uneven per-circuit gains (ariane133 WNS drops from 2 .90 to 1 .65, while near-baseline circuits see marginal changes). AutoDMP (1 .20 × WNS) and MaskReg-ulate (1 .01 × WNS) improve timing through configuration tuning and RL, though MaskRegulate exhibits high variance (ariane133 0.60 × vs. ariane136 TNS 3 .42 ×). Re 2MaP (0 .89 × WNS, 0 .61 × TNS) is the strongest prior method, with particularly notable TNS on black_parrot (0 .02 ×) and bp_be (0 .51 ×). HPWL = 3.66×10⁶ mHPWL = 0.45×10⁶ TNS = −490 WNS = −0.57     
+
+> (a) Hier-RTLMP
+> HPWL = 2.35×10⁶ mHPWL = 0.28×10⁶ TNS = −1,067 WNS = −3.02
+> (b) DREAMPlace (default)
+> HPWL = 3.08×10⁶ mHPWL = 0.67×10⁶ TNS = −289 WNS = −0.43
+> (c) PPAPlace-CoOpt+Refine
+
+Figure 2: Placement comparison on swerv_wrapper : (a) Hier-RTLMP, (b) DREAMPlace, (c) PPAPlace-CoOpt+Refine. PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+Table 2: Post-route timing and global-routing wire-density congestion, each normalized per circuit by Hier-RTLMP (lower is better). PPAPlace rows report mean ± std over 3 independently seeded runs; baselines are deterministic or from published results. Bold : best; underline : second best. †: from [6]; ‡: from ChiPBench [26]; §: ratios computed from [20] (same OpenROAD flow; std-cell placement differs).                                                                                                                                                                                                                 
+
+> swerv_wrap ariane133 black_parrot bp_be ariane136 Average
+> Method WNS TNS Cong WNS TNS Cong WNS TNS Cong WNS TNS Cong WNS TNS Cong WNS TNS Cong
+> Prior placement methods
+> Hier-RTLMP [11] 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 DREAMPlace ‡[16] 1.13 0.93 1.04 2.90 0.61 0.98 0.94 1.82 1.05 0.87 0.86 1.06 2.23 5.37 0.94 1.61 1.92 1.01 DREAMPlace 4.0 [15] 1.02 0.88 1.05 1.65 0.58 0.99 0.91 1.30 1.06 0.82 0.83 1.08 1.45 2.85 0.96 1.17 1.29 1.03 AutoDMP ‡[1] 1.43 1.47 1.09 1.44 1.76 0.91 1.01 0.85 1.06 0.49 1.03 1.18 1.62 3.69 0.94 1.20 1.76 1.04 MaskRegulate ‡[27] 1.02 0.84 1.00 0.60 0.24 1.02 0.91 0.14 1.01 0.85 0.83 0.88 1.67 3.42 1.04 1.01 1.09 0.99 LaMPlace †[6] 1.55 1.21 0.99 1.48 1.77 1.10 1.18 1.28 1.02 1.25 1.38 1.05 1.12 1.15 0.97 1.32 1.36 1.03 Re 2MaP §[20] 0.78 0.62 0.88 0.93 0.99 1.02 0.98 0.02 1.01 0.85 0.51 0.90 0.92 0.91 1.00 0.89 0.61 0.96
+> Gradient-guided placement (ours)
+> PPAPlace-Refine 1.02 ±.03 0.85 ±.03 1.03 ±.02 2.15 ±.08 0.52 ±.04 0.98 ±.02 0.88 ±.02 1.20 ±.05 1.04 ±.02 0.78 ±.02 0.72 ±.04 1.05 ±.03 1.65 ±.06 3.50 ±.10 0.95 ±.02 1.30 ±.04 1.36 ±.05 1.01 ±.02 PPAPlace-CoOpt 0.82 ±.03 0.68 ±.04 1.01 ±.02 0.90 ±.04 0.50 ±.03 0.96 ±.02 0.84 ±.02 0.22 ±.04 1.03 ±.02 0.72 ±.02 0.55 ±.04 1.05 ±.03 0.88 ±.03 0.90 ±.05 0.94 ±.02 0.83 ±.03 0.57 ±.04 1.00 ±.02 PPAPlace-CoOpt+Refine 0.76 ±.03 0.59 ±.04 1.00 ±.02 0.85 ±.04 0.42 ±.03 0.96 ±.02 0.81 ±.02 0.15 ±.04 1.03 ±.02 0.65 ±.02 0.48 ±.05 1.04 ±.03 0.84 ±.03 0.82 ±.04 0.94 ±.02 0.78 ±.03 0.49 ±.04 0.99 ±.02
+
+PPAPlace-Refine alone applies gradient descent to DREAMPlace’s default placement, reducing average WNS from 1 .61 to 1 .30 and TNS from 1 .92 to 1 .36. This improves over untuned DREAMPlace but the local nature of gradient refinement limits gains on circuits where the starting topology is already misaligned (ariane133 WNS remains 2 .15 ×). PPAPlace-CoOpt injects the surrogate co-objective into DREAM-Place’s loop, achieving average WNS of 0 .83 and TNS of 0 .57. The gap over DREAMPlace 4.0 demonstrates the value of post-route supervision over pre-route STA. Post-DRT reports confirm zero design-rule-check violations and routed wirelength within 3% of default, so the co-objective does not degrade routability. CoOpt+Refine’s WNS/TNS ratios (improvements) are 0 .74 /0.41 (26% /59%) for in-family circuits, 0 .85 /0.62 (15% /38%) for out-of-family Ariane circuits, and 0 .78 /0.49 (22% /51%) overall. This sur-passes Re 2MaP’s algorithmic approach (0 .89/0 .61) on both met-rics, demonstrating that a learned post-route objective can outper-form hand-engineered placement heuristics. Unlike MaskRegulate’s circuit-specific gains, CoOpt+Refine improves consistently across all test circuits (Figure 3(a)). It achieves the best per-circuit result on 6 of 10 circuit–metric pairs and the best average on both WNS and TNS. On the remaining four pairs, it yields the second-best result except for the TNS of black_parrot. The power ratios (0 .99– 1.02 ×) confirm that PPAPlace’s timing improvements do not in-crease power. On the same hardware, standard DREAMPlace takes about 24 seconds per placement, while CoOpt completes in under one minute, giving a placement-time overhead below 2 .5×.swerv_w ari133 bp bp_be ari136 0.0 0.5 1.0 1.5 2.0 2.5       
+
+> Norm. WNS (lower is better)  2.90
+> (a) Per-circuit WNS comparison
+> DREAMPlace LaMPlace CoOpt CoOpt+Refine
+> RTLMP
+> 0510 15 20 25 30
+> Gradient descent step
+> 0.72 0.74 0.76 0.78 0.80 0.82 0.84 0.86
+> Norm. WNS (lower is better)  CoOpt start best true (step 20)
+> OOD
+> (b) Gradient refinement convergence
+> Surrogate pred. True post-GRT
+
+Figure 3: (a) Per-circuit normalized WNS (Table 2). (b) True vs. surro-gate WNS during gradient refinement on swerv_wrapper. 
+
+All the results reported in Table 2 are final post-DRT PPA metrics. Although the surrogate is trained on post-GRT labels, the improve-ments carry through to full detailed routing. This is consistent with the fidelity analysis in Section 4, where post-GRT rankings preserve post-DRT outcomes with ¯ 𝜌 = 0.86. 
+
+## 6.3 Gradient Quality 
+
+Gradient-guided placement requires directionally accurate gradi-ents. torch.autograd.gradcheck confirms numerical correctness (relative error < 10 −6) on 30 test placements. To assess directional alignment, we perturb converged placements along 100 random directions per circuit and measure true PPA changes via post-GRT. Table 3 reports cosine similarity between surrogate and true gra-dients: average 0 .53 for WNS and 0 .46 for TNS, positive on all circuits. 
+
+Table 3: Cosine similarity between surrogate gradient and true post-GRT PPA change (100 perturbation directions per circuit). 
+
+swerv ari133 black bp_be ari136 Avg. cos( ∇ WNS) 0.49 0.58 0.51 0.62 0.43 0.53 cos( ∇ TNS) 0.43 0.49 0.46 0.53 0.37 0.46 
+
+Figure 3(b) validates this on swerv_wrapper: gradient descent reduces true post-GRT WNS from 0 .82 to 0 .76 over 20 steps, closely tracked by the surrogate. Beyond step 22, true WNS rises as the placement exits the training distribution. The refinement loop re-turns the checkpoint with the lowest surrogate loss across all 𝑇 
+
+steps, mitigating moderate overshoot. We sweep 𝜆 𝑝 ∈ {0.001 , 0.005 , 0.01 , 0.05 } on swerv_wrapper, yielding WNS of {0.92 , 0.87 , 0.82 , 0.90 }; 𝜆 𝑝 = 0.01 provides the best trade-off and is reused unchanged across all test circuits. For refine-ment steps, 𝑇 ∈ { 10 , 20 , 30 , 50 } gives WNS {0.79 , 0.77 , 0.76 , 0.77 },with 𝑇 =30 best and 𝑇 =50 slightly worse. The learning rate 𝛼 =0.001 is selected by grid search. 
+
+## 6.4 Generalization 
+
+Table 4 evaluates 500 held-out DREAMPlace placements per circuit. Average WNS Spearman 𝜌 is 0 .77, Kendall 𝜏 is 0 .58, and top-5 accuracy is 68% versus 1% for random selection. Accuracy ranges from 𝜌 = 0.72 on ariane136 to 0 .83 on bp_be. Three test circuits ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Ruogu Chen and Jie Han 
+
+share training-circuit lineages (bp_be/bp_be12, swerv_wrapper/ swerv_wrapper43, black_parrot/bp_fe). Shared design lineages can make these three cases easier than unseen design families. The Ariane circuits, both absent from training, reach 𝜌 = 0.81 and 0 .72, respectively, with ariane136 lowest. 
+
+Table 4: Surrogate generalization: ranking accuracy on held-out placements and cross-placer transfer to RTLMP.   
+
+> Metric swerv ari133 black bp_be ari136 bp_fe tether tAvg.
+> Held-out (DREAMPlace)
+
+𝜌 0.74 0.81 0.77 0.83 0.72 N/A N/A 0.77 
+
+𝜏 0.56 0.62 0.55 0.65 0.51 N/A N/A 0.58 Top-5 60% 80% 60% 80% 60% N/A N/A 68% 
+
+> Cross-placer (RTLMP)
+
+𝜌 WNS 0.63 0.58 0.60 0.72 0.54 0.68 0.55 0.61 
+
+𝜌 TNS 0.57 0.54 0.53 0.66 0.50 0.60 0.52 0.56 
+
+> tTraining circuit (cross-placer only).
+
+Leave-one-circuit-out (LOCO) cross-validation (Figure 4(a)) trains on 9 circuits and evaluates on the tenth. Per-circuit 𝜏 ranges from 0.07 on isa_npu to 0 .28 on mor1kx, which is sufficient to identify above-average placements. bp_fe bp_be12 isa_npu bp_multi or1200 swerv43 vga_lcd ether dft68 mor1kx  
+
+> 0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35
+> Kendall's  τ
+> (a) Cross-circuit generalization (LOCO)
+> WNS TNS
+> Macro poly. GAT only CNN only GAT+CNN (ours) 0.0 0.1 0.2 0.3 0.4
+> Kendall's  τ (WNS)
+> 0.18 0.18 0.22 0.31
+> (b) Predictor architecture ablation
+
+Figure 4: (a) Leave-one-circuit-out (LOCO) cross-circuit generaliza-tion (Kendall’s 𝜏 ). (b) Predictor architecture ablation (Kendall’s 𝜏 ). 
+
+The cross-placer rows of Table 4 apply the DREAMPlace-trained predictor to unseen RTLMP placements. WNS 𝜌 is 0 .61 versus 0 .77 on DREAMPlace and remains significant ( 𝑝 < 0.01) on every circuit. This drop indicates a placement-distribution gap rather than placer independence. Table 5 evaluates the same checkpoint zero-shot on 100 IBM 45 nm Superblue16/18 placements, 50 per circuit. WNS/TNS Spear-man 𝜌 is 0 .68 /0.62, with 56% top-5 accuracy. Against LaMPlace [6], PPAPlace ranks second in WNS, first on superblue16 TNS, and within 3.2% on superblue18 TNS. 
+
+## 6.5 Ablation Studies 
+
+6.5.1 Label Fidelity and Representation. The upper section of Ta-ble 6 crosses two label stages with two representations under iden-tical training. LaMPlace’s macro-only + pre-route STA setting has weak ranking agreement ( 𝜏 = 0.08). Both axes contribute indepen-dently. Post-GRT doubles macro-only 𝜏 from 0 .08 to 0 .18, GAT+CNN raises pre-route 𝜏 from 0 .08 to 0 .13, and combining both reaches 0.31. 
+
+Table 5: Final timing on Superblue16/18, with baselines from LaM-Place [6]. WNS is in 10 3 ps and TNS in 10 5 ps. Values closer to zero are better.       
+
+> superblue16 superblue18 Method WNS TNS WNS TNS DREAMPlace [16]
+
+−107 .05 −1526 .10 −88 .11 −751 .27  
+
+> WireMask-EA [22]
+
+−635 .89 −18343 .30 −78 .25 −406 .01  
+
+> ChiPFormer [12]
+
+−322 .05 −15426 .07 −80 .57 −378 .90  
+
+> LaMPlace [6]
+
+−36 .87 −1514 .73 −66 .93 −426 .91  
+
+> PPAPlace zero-shot
+
+−68 .50 −1380 .50 −73 .40 −440 .50 
+
+Table 6: Ablation on labels and representation (Kendall’s 𝜏 , WNS). Upper: two label stages × two representations. Lower: label stages with GAT+CNN fixed.   
+
+> Training labels Architecture
+
+𝜏 (WNS) Top-1  
+
+> Label stage
+
+× representation   
+
+> Pre-route STA Macro-only poly. 0.08
+
+±.02 n/a Pre-route STA GAT+CNN 0.13 ±.03 26% Post-GRT Macro-only poly. 0.18 ±.02 n/a Post-GRT GAT+CNN 0.31 ±.02 52%   
+
+> Label stage (GAT+CNN fixed)
+> Post-CTS GAT+CNN 0.16
+
+±.03 30% Post-DRT GAT+CNN 0.34 ±.02 56% 
+
+With GAT+CNN fixed, 𝜏 rises from 0 .13 with pre-route STA to 0.16 with post-CTS and 0 .31 with post-GRT, isolating the super-vision stage. Post-DRT reaches 0 .34 but costs 3 .7 hours per label versus 0 .20 hours for post-GRT, which supports more training data under the same offline budget. 
+
+6.5.2 Predictor Architecture. Figure 4(b) compares four post-GRT variants: macro-only polynomial ( 𝜏 = 0.18), CNN-only (0 .22), GAT-only (0 .18), and GAT+CNN (0 .31). The combined model outperforms either stream alone, showing that density patterns and netlist con-nectivity provide complementary information. 
+
+## 7 Conclusion 
+
+PPAPlace demonstrates that a differentiable surrogate trained on post-GRT labels can provide gradient-based PPA feedback that no analytical proxy achieves. CoOpt+Refine improves average WNS and TNS by 22% and 51% over Hier-RTLMP on five held-out circuits. Despite the performance gains, several limitations suggest promis-ing future directions. Training uses Nangate45, while the zero-shot Superblue test uses the IBM 45 nm library. Broader validation across technology nodes and standard-cell libraries remains a natural next step. The raw refinement trajectory exhibits out-of-distribution degradation after about 20 steps (Figure 3(b)). Distribution-aware stopping or trust-region constraints could improve robustness. Cross-placer transfer ( 𝜌 = 0.61) lags behind within-placer accu-racy (0 .77). Targeted fine-tuning or domain-adaptation techniques could narrow this gap. Finally, CoOpt currently requires integration with a differentiable placer. Extending the co-objective paradigm to commercial tools that expose only final placements remains an open challenge that the input-compatible Refine mode partially addresses. PPAPlace: Differentiable Cross-Stage Objectives for Chip Placement Optimization ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+## Acknowledgments 
+
+Supported by the Natural Sciences and Engineering Research Coun-cil of Canada (NSERC) (RES0048688, RES0051374, and RES0054326) and Alberta Innovates (RES0053965). 
+
+## References 
+
+[1] Anthony Agnesina, Puranjay Rajvanshi, Tian Yang, Geraldo Pradipta, Austin Jiao, Ben Keller, Brucek Khailany, and Haoxing Ren. 2023. AutoDMP: Automated DREAMPlace-based Macro Placement. In Proceedings of the International Sympo-sium on Physical Design (ISPD) . ACM, 149–157. doi:10.1145/3569052.3578923 [2] Tutu Ajayi, Vidya A. Chhabria, Mateus Fogaça, Soheil Hashemi, Abdelrahman Hosny, Andrew B. Kahng, Minsoo Kim, Jeongsup Lee, Uday Mallappa, Marina Neseem, Geraldo Pradipta, Sherief Reda, Mehdi Saligane, Sachin S. Sapatnekar, Carl Sechen, Mohamed Shalan, William Swartz, Lutong Wang, Zhehong Wang, Mingyu Woo, and Bangqi Xu. 2019. INVITED: Toward an Open-Source Digital Flow: First Learnings from the OpenROAD Project. In Proceedings of the 56th Annual Design Automation Conference (DAC) . ACM, 1–4. doi:10.1145/3316781. 3326334 [3] Cadence. 2021. Cadence Cerebrus Intelligent Chip Explorer. https: //www.cadence.com/en_US/home/tools/digital-design-and-signoff/soc-implementation-and-floorplanning/cerebrus-intelligent-chip-explorer.html. Accessed August 12, 2026. [4] Yifan Chen, Jing Mai, Xiaohan Gao, Muhan Zhang, and Yibo Lin. 2023. Macro-Rank: Ranking Macro Placement Solutions Leveraging Translation Equivariancy. In Asia and South Pacific Design Automation Conference (ASP-DAC) . ACM, 258– 263. doi:10.1145/3566097.3567899 [5] Chung-Kuan Cheng, Andrew B. Kahng, Ilgweon Kang, and Lutong Wang. 2019. RePlAce: Advancing Solution Quality and Routability Validation in Global Place-ment. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 38, 9 (2019), 1717–1730. doi:10.1109/TCAD.2018.2859220 [6] Zijie Geng, Jie Wang, Ziyan Liu, Siyuan Xu, Zhentao Tang, Shixiong Kai, Mingx-uan Yuan, Jianye Hao, and Feng Wu. 2025. LaMPlace: Learning to Optimize Cross-Stage Metrics in Macro Placement. In International Conference on Learning Representations (ICLR) . https://proceedings.iclr.cc/paper_files/paper/2025/hash/ 04c0399a47ee4107cd03b08f1f8c3eeb-Abstract-Conference.html [7] Zijie Geng, Jie Wang, Ziyan Liu, Siyuan Xu, Zhentao Tang, Mingxuan Yuan, Jianye Hao, Yongdong Zhang, and Feng Wu. 2024. Reinforcement Learning within Tree Search for Fast Macro Placement. In Proceedings of the 41st International Conference on Machine Learning (ICML) (Proceedings of Machine Learning Research, Vol. 235) . PMLR, 15402–15417. https://proceedings.mlr.press/v235/geng24b.html [8] Yunbo Hou, Haoran Ye, Yingxue Zhang, Siyuan Xu, and Guojie Song. 2024. RoutePlacer: An End-to-End Routability-Aware Placer with Graph Neural Net-work. In Proceedings of the 30th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD) . ACM, 1085–1095. doi:10.1145/3637528.3671895 [9] Meng-Kai Hsu, Valeriy Balabanov, and Yao-Wen Chang. 2013. TSV-Aware Analyti-cal Placement for 3-D IC Designs Based on a Novel Weighted-Average Wirelength Model. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 32, 4 (2013), 497–509. doi:10.1109/TCAD.2012.2226584 [10] Andrew B. Kahng, Jens Lienig, Igor L. Markov, and Jin Hu. 2022. VLSI Physical Design: From Graph Partitioning to Timing Closure (2nd ed.). Springer. doi:10. 1007/978-3-030-96415-3 [11] Andrew B. Kahng, Ravi Varadarajan, and Zhiang Wang. 2024. Hier-RTLMP: A Hierarchical Automatic Macro Placer for Large-Scale Complex IP Blocks. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 43, 5 (2024), 1552–1565. doi:10.1109/TCAD.2023.3346284 [12] Yao Lai, Jinxin Liu, Zhentao Tang, Bin Wang, Jianye Hao, and Ping Luo. 2023. ChiPFormer: Transferable Chip Placement via Offline Decision Transformer. In Proceedings of the 40th International Conference on Machine Learning (ICML) (Proceedings of Machine Learning Research, Vol. 202) . PMLR, 18346–18364. https: //proceedings.mlr.press/v202/lai23c.html [13] Yao Lai, Yao Mu, and Ping Luo. 2022. MaskPlace: Fast Chip Placement via Reinforced Visual Representation Learning. In Advances in Neural Information Processing Systems (NeurIPS) , Vol. 35. 24019–24030. doi:10.52202/068431-1744 [14] Vint Lee, Minh Nguyen, Leena Elzeiny, Chun Deng, Pieter Abbeel, and John Wawrzynek. 2025. Chip Placement with Diffusion Models. In Proceedings of the 42nd International Conference on Machine Learning (ICML) (Proceedings of Machine Learning Research, Vol. 267) . PMLR, 33499–33514. https://proceedings. mlr.press/v267/lee25y.html [15] Peiyu Liao, Siting Liu, Zhitang Chen, Wenlong Lv, Yibo Lin, and Bei Yu. 2022. DREAMPlace 4.0: Timing-Driven Global Placement with Momentum-Based Net Weighting. In Design, Automation and Test in Europe Conference (DATE) . IEEE, 939–944. doi:10.23919/DATE54114.2022.9774725 [16] Yibo Lin, Shounak Dhar, Wuxi Li, Haoxing Ren, Brucek Khailany, and David Z. Pan. 2019. DREAMPlace: Deep Learning Toolkit-Enabled GPU Acceleration for Modern VLSI Placement. In Proceedings of the 56th Annual Design Automation Conference (DAC) . ACM, 1–6. doi:10.1145/3316781.3317803 [17] Jingwei Lu, Pengwen Chen, Chin-Chih Chang, Lu Sha, Dennis Jen-Hsin Huang, Chin-Chi Teng, and Chung-Kuan Cheng. 2014. ePlace: Electrostatics Based Placement Using Nesterov’s Method. In Proceedings of the 51st Annual Design Automation Conference (DAC) . ACM, 1–6. doi:10.1145/2593069.2593133 [18] Igor L. Markov. 2024. Reevaluating Google’s Reinforcement Learning for IC Macro Placement. Commun. ACM 67, 11 (2024), 60–71. doi:10.1145/3676845 [19] Azalia Mirhoseini, Anna Goldie, Mustafa Yazgan, Joe Wenjie Jiang, Ebrahim Songhori, Shen Wang, Young-Joon Lee, Eric Johnson, Omkar Pathak, Azade Nova, Jiwoo Pak, Andy Tong, Kavya Srinivasa, William Hang, Emre Tuncer, Quoc V. Le, James Laudon, Richard Ho, Roger Carpenter, and Jeff Dean. 2021. A Graph Placement Methodology for Fast Chip Design. Nature 594, 7862 (2021), 207–212. doi:10.1038/s41586-021-03544-w [20] Yunqi Shi, Xi Lin, Zhiang Wang, Siyuan Xu, Shixiong Kai, Yao Lai, Chengrui Gao, Ke Xue, Mingxuan Yuan, Chao Qian, and Zhi-Hua Zhou. 2026. Re 2MaP: Macro Placement by Recursively Prototyping and Packing Tree-based Relocating. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (2026). Early Access. doi:10.1109/TCAD.2026.3699957 [21] Yunqi Shi, Siyuan Xu, Shixiong Kai, Xi Lin, Ke Xue, Mingxuan Yuan, and Chao Qian. 2025. Timing-Driven Global Placement by Efficient Critical Path Extraction. In Design, Automation and Test in Europe Conference (DATE) . IEEE, 1–7. doi:10. 23919/DATE64628.2025.10993273 [22] Yunqi Shi, Ke Xue, Lei Song, and Chao Qian. 2023. Macro Placement by Wire-Mask-Guided Black-Box Optimization. In Advances in Neural Information Pro-cessing Systems (NeurIPS) , Vol. 36. 6825–6843. doi:10.52202/075280-0299 [23] Peter Spindler and Frank M. Johannes. 2007. Fast and Accurate Routing Demand Estimation for Efficient Routability-Driven Placement. In Design, Automation and Test in Europe Conference (DATE) . IEEE, 1–6. doi:10.1109/DATE.2007.364463 [24] Synopsys. 2020. DSO.ai: AI-Driven Design Applications. https://www.synopsys. com/ai/ai-powered-eda/dso-ai.html. Accessed August 12, 2026. [25] Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, and Yoshua Bengio. 2018. Graph Attention Networks. In International Con-ference on Learning Representations (ICLR) . https://openreview.net/forum?id= rJXMpikCZ [26] Zhihai Wang, Zijie Geng, Zhaojie Tu, Jie Wang, Yuxi Qian, Zhexuan Xu, Ziyan Liu, Siyuan Xu, Zhentao Tang, Shixiong Kai, Mingxuan Yuan, Jianye Hao, Bin Li, and Feng Wu. 2025. Benchmarking End-To-End Performance of AI-Based Chip Placement Algorithms. In Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track , Vol. 38. 22670–22696. doi:10.52202/ 085713-0673 [27] Ke Xue, Ruo-Tong Chen, Xi Lin, Yunqi Shi, Shixiong Kai, Siyuan Xu, and Chao Qian. 2024. Reinforcement Learning Policy as Macro Regulator Rather than Macro Placer. In Advances in Neural Information Processing Systems (NeurIPS) ,Vol. 37. 140565–140588. doi:10.52202/079017-4462 [28] Ke Xue, Ruo-Tong Chen, Rong-Xi Tan, Xi Lin, Yunqi Shi, Siyuan Xu, Mingxuan Yuan, and Chao Qian. 2026. BBOPlace-Bench: Benchmarking Black-Box Opti-mization for Chip Placement. IEEE Transactions on Evolutionary Computation 
+
+(2026). Early Access. doi:10.1109/TEVC.2026.3712410 [29] Ruizhe Zhong, Junjie Ye, Zhentao Tang, Shixiong Kai, Mingxuan Yuan, Jianye Hao, and Junchi Yan. 2024. PreRoutGNN for Timing Prediction with Order Preserving Partition: Global Circuit Pre-Training, Local Delay Learning and Attentional Cell Modeling. Proceedings of the AAAI Conference on Artificial Intelligence 38, 15 (2024), 17087–17095. doi:10.1609/aaai.v38i15.29653
