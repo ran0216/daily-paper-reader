@@ -25,3 +25,65 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: chip-design
+      description: 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: digital integrated circuit design
+          keyword_cn: 数字集成电路设计
+          query: digital integrated circuit design and implementation techniques
+        - keyword: NPU architecture
+          keyword_cn: NPU体系结构
+          query: neural processing unit architecture for AI inference and training
+        - keyword: network-on-chip interconnect
+          keyword_cn: 片上网络互连
+          query: network-on-chip interconnect design and communication architecture
+        - keyword: AI accelerator
+          keyword_cn: 人工智能加速器
+          query: artificial intelligence accelerator hardware architecture
+        - keyword: deep learning accelerator
+          keyword_cn: 深度学习加速器
+          query: deep learning accelerator design and optimization
+        - keyword: AI chip design
+          keyword_cn: AI芯片设计
+          query: artificial intelligence chip design for edge and cloud computing
+      intent_queries:
+        - query: architecture design of CPU GPU and NPU for artificial intelligence acceleration
+          query_cn: 面向人工智能加速的CPU、GPU和NPU架构设计
+          enabled: true
+          source: manual
+          note: ''
+        - query: network on chip interconnect architecture for many core AI accelerator systems
+          query_cn: 面向众核AI加速器系统的片上网络互联架构
+          enabled: true
+          source: manual
+          note: ''
+        - query: hardware microarchitecture of deep learning accelerators with on chip networking
+          query_cn: 具有片上网络的深度学习加速器硬件微架构
+          enabled: true
+          source: manual
+          note: ''
+        - query: comparative analysis of digital chip architectures for neural processing and AI workloads
+          query_cn: 面向神经处理和AI工作负载的数字芯片架构比较分析
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-09-08T08:30:34.065Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
