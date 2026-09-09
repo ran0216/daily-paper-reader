@@ -1,0 +1,233 @@
+{
+  "date": "20260909",
+  "date_label": "",
+  "generated_at": "2026-09-09 22:18:33 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.05982v1",
+      "route": "202609/09/2609.05982v1-cmd-an-integrated-cgra-framework-with-cluster-based-distributed-memory-design",
+      "title": "CMD: An Integrated CGRA Framework with Cluster-Based Distributed Memory Design",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向粗粒度可重构阵列的簇式分布式存储架构与编译协同设计综合框架",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.08424v1",
+      "route": "202609/09/2609.08424v1-penda-an-efficient-processing-element-via-norm-of-difference-for-deep-learning-accelerators",
+      "title": "PENDA: An Efficient Processing Element via Norm-of-Difference for Deep Learning Accelerators",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出基于范数差的新型深度学习加速器处理单元架构，直接面向人工智能加速器硬件设计",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.08446v1",
+      "route": "202609/09/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向脉冲神经网络的数字存内计算加速器，属于人工智能加速器硬件架构",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.05960v1",
+      "route": "202609/09/2609.05960v1-gpu-accelerated-gate-level-time-based-power-analysis-via-event-density-aware-partitioning-and-kernel-fusion",
+      "title": "GPU-Accelerated Gate-Level Time-Based Power Analysis via Event-Density-Aware Partitioning and Kernel Fusion",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向芯片设计流程的门级时基功耗分析GPU加速方法，属于数字集成电路设计与实现技术。",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.06125v1",
+      "route": "202609/09/2609.06125v1-wafertrans-enabling-iommu-free-distributed-virtual-address-translation-for-wafer-scale-gpus",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向晶圆级GPU的免IOMMU分布式虚拟地址翻译微架构设计",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.06408v1",
+      "route": "202609/09/2609.06408v1-differentiable-partitioning-with-placement-and-hybrid-bonding-terminal-awareness-for-optimized-3d-placement",
+      "title": "Differentiable Partitioning with Placement and Hybrid Bonding Terminal Awareness for Optimized 3D Placement",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向混合键合3D IC的可微布局感知层划分方法",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.06796v1",
+      "route": "202609/09/2609.06796v1-hardware-trojan-threats-to-multi-chiplet-photonic-neural-network-accelerators",
+      "title": "Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "分析融合光子计算与芯粒集成的多芯粒光子神经网络加速器所面临的硬件木马威胁",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.08682v1",
+      "route": "202609/09/2609.08682v1-hda-moe-hybrid-parallelism-and-dynamic-adaptive-scheduling-for-mixture-of-experts-with-3d-near-memory-processing",
+      "title": "HDA-MoE: Hybrid Parallelism and Dynamic, Adaptive Scheduling for Mixture-of-Experts with 3D Near-Memory Processing",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向3D近内存处理架构的MoE混合并行与动态调度，聚焦AI加速器架构及大模型推理性能优化",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.07907v1",
+      "route": "202609/09/2609.07907v1-a-28nm-27648-spin-multichip-digital-ising-accelerator-with-pegasus-connectivity",
+      "title": "A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "28nm四芯片数字Ising加速器，含时分复用自旋更新阵列",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.04058v1",
+      "route": "202609/09/2609.04058v1-ai-assisted-design-of-a-post-quantum-cryptographic-accelerator-a-deployed-silicon-case-study",
+      "title": "AI-Assisted Design of a Post-Quantum Cryptographic Accelerator: A Deployed-Silicon Case Study",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "一个数字密码加速器的已流片硅案例研究",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.04105v1",
+      "route": "202609/09/2609.04105v1-hardware-aware-fp4-flashattention-4",
+      "title": "Hardware-Aware FP4 FlashAttention-4",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向Blackwell张量核的硬件感知低精度注意力优化",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.05764v1",
+      "route": "202609/09/2609.05764v1-interface-aware-kv-cache-quantization-for-dense-on-chip-nvm-in-long-context-llm-decoding",
+      "title": "Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向片上NVM优化KV缓存量化，针对LLM解码内存带宽瓶颈，属AI推理存储架构优化",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.06781v1",
+      "route": "202609/09/2609.06781v1-blink-batch-normalization-based-integrity-checkpoints-for-in-situ-detection-and-mitigation-of-diverse-weight-corruptions-in-dnn-accelerators",
+      "title": "BLINK: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in DNN Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向DNN加速器的片上批归一化权重损坏检测与缓解方法，关联AI加速器硬件架构与可靠性。",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    },
+    {
+      "paper_id": "2609.07577v1",
+      "route": "202609/09/2609.07577v1-gpu-accelerated-hypergraph-partitioning-and-placement-to-map-snns-on-neuromorphic-hardware",
+      "title": "GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将SNN映射到多核神经形态硬件的多核阵列上，优化核间通信流量",
+      "first_seen_at": "2026-09-09 22:18:33 UTC",
+      "updated_at": "2026-09-09 22:18:33 UTC"
+    }
+  ]
+}

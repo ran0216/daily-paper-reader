@@ -1,0 +1,575 @@
+Title: A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity
+
+URL Source: https://arxiv.org/pdf/2609.07907v1
+
+Published Time: Wed, 09 Sep 2026 02:53:49 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity 
+
+Tong Wu 1, Atharva Raut 1, Ian Khor 2, Ziyad Alswaidan 1, Ting-Yu Lee 1,Hongchang Kuang 1, Navid Anjum Aadit 3, Anand Raju 1, Dhruv Chinmay 1,Siddharth Das 1, Ken Mai 1, Kerem Camsari 4, Tathagata Srimani 11Carnegie Mellon University; 2University of Michigan; 
+
+> 3
+
+Stanford University; 4University of California, Santa Barbara 
+
+Abstract 
+
+We present a 28nm digital Ising accelerator with 27,648 spins across four chips. A time-multiplexed spin-update array with local SRAM and scheduled interchip transfers delivers 41.5G updates/s at 1.2pJ/update. Degree-15 Pegasus connectivity and 10b coefficients increase native connectivity and precision over degree-8, 5b multichip annealers. Programmable couplings sup-port optimization and probabilistic logic, with a four-chip planted-MaxCut trace reaching the solution for 27,069 nodes in 3.3 μs. 
+
+Combinatorial optimization problems (COPs) arise in graph partitioning, routing, resource al-location, scheduling, and circuit design. Many COPs and Boolean satisfiability problems can be expressed as Ising models, motivating programmable accelerators that search for low-energy spin configurations [1]. Their hardware cost is set by both the number of spins and the connections between them. Fully connected digital accelerators support arbitrary pairwise interactions, but require O(N 2) coefficient storage and an O(N )-term weighted sum per spin for an N -spin prob-lem [2,3]. Sparse accelerators bound the number of neighbors, reducing coefficient storage to O(N )
+
+and allowing independent spins to update in parallel [4, 5]. However, embedding a problem onto a sparse graph introduces additional physical spins to represent missing connections, limiting the logical problem size that fits on one chip [3]. Multichip integration increases this capacity, but dependent updates must now exchange spin states across chips. Prior two- and nine-chip CMOS annealers use degree-8 King’s graphs [6, 7]; the latter supports 5b coefficients and adapts spin-data compression during annealing to accommodate interchip latency. An 8K-spin accelerator supports up to 31 two- and three-body interactions through reconfigurable spin groups connected along a chip chain [8]. Scaling sparse accelerators therefore requires co-designing graph connectivity, local storage, and interchip transfer. This work uses degree-15 Pegasus connectivity to improve embedding efficiency while retaining the bounded storage and arithmetic cost of a sparse graph (Fig. 1). Developed for quantum anneal-ing, Pegasus adds connections to the degree-6 Chimera graph, providing fifteen neighbors per spin without full connectivity [9, 10]. In the illustrated embedding of a 32-spin fully connected problem, Pegasus requires 133 physical spins versus 1,885 on a King’s graph. Programmable 10b couplings and biases support general-purpose Ising and quadratic unconstrained binary optimization (QUBO) mappings within the available spin capacity and coefficient precision. Different problem graphs are supported through coefficient programming and embedding, without application-specific datapaths. The 28nm digital accelerator implements this graph with three circuit and architecture tech-niques: (1) local coefficient SRAM feeding parallel probabilistic spin-update circuits, with no multi-pliers or per-coupling destination addresses; (2) a time-multiplexed processing-element (PE) array that stores 6,912 spins per chip and schedules independent updates in four color groups; and (3) chip-to-chip (C2C) links that exchange fixed-length boundary-state packets while the PEs process local spins. The update order creates a transfer interval before remote states are needed, allowing 1arXiv:2609.07907v1 [cs.AR] 7 Sep 2026 computation and communication to overlap. Four chips support 27,648 physical spins at 41.5G up-dates/s and 1.2pJ/update. Five representative workloads, spanning optimization and probabilistic logic, evaluate both programmability and operation on the coupled multichip graph. The accelerator searches for low-energy states of H = − ∑ 
+
+> i<j
+
+Jij sisj − ∑ 
+
+> i
+
+hisi, where si ∈{− 1, +1 }, Jij is a coupling coefficient, and hi is a local bias. A probabilistic bit (p-bit) computes the local field Ii = hi + ∑ 
+
+> j
+
+Jij sj and samples si = sgn [tanh (βI i) − ri], where β is the inverse temperature and ri ∈ [−1, 1] is a uniform pseudorandom value [5]. The four-color Pegasus partition groups spins that are not directly coupled. Updating one color at a time exposes parallelism within each group while preserving the dependencies of block Gibbs sampling [10], including interchip couplings. Fig. 2 shows the chip architecture: nine Ising units (IUs) in a 3 × 3 array, each integrating six PEs, coefficient SRAM, and spin-state registers. The 54 PEs update one color in parallel, and four sequential color updates produce 216 spin updates per global-clock cycle. To increase spin capacity without replicating the arithmetic circuits, the array processes 32 positions arranged as an 8 × 4
+
+grid (Fig. 3). Each position contains nine 24-spin Pegasus cells, giving 32 × 9 × 24 = 6 ,912 stored spins per chip. A shared 7b address, comprising 5b position and 2b color indices, selects the SRAM word, neighbor states, and writeback registers. Each PE serves 128 stored spins. One pass through all position/color addresses completes a Monte Carlo sweep, updating every spin once. The SRAM organization matches the operand bandwidth of the PE array. Each spin requires a 160b record containing fifteen signed 10b coupling coefficients and one signed 10b bias. Within an IU, four 128 × 240 b single-port banks supply six records in parallel as a 960b word. Across nine IUs, the 36 banks store 1,105,920b of coefficients and biases; spin-state registers and communication buffers are separate. Fixed Pegasus connections select neighbor registers without per-coefficient addresses; zero coefficients disable unused connections. The memory-access sequence is unchanged across problems, and the per-IU SRAM bandwidth is independent of chip count. Each PE implements the weighted sum with sign-selection logic and an adder tree (Fig. 2). Since 
+
+sj is binary, Jij sj selects either Jij or its negation, eliminating general-purpose multipliers. The tree accumulates fifteen coupling terms and the bias, after which a clamp circuit limits the input to a hyperbolic-tangent lookup table (LUT). A 7b magnitude address selects the LUT entry, while the input sign controls the comparison polarity. Comparing the LUT output with a linear-feedback shift register (LFSR) word implements P (si = +1) = [1 + tanh (βI i)]/2 . The sampled bit is written to the state register selected by the shared address. The host applies temperature scaling to the programmed coefficients and biases, so the PE requires no separate temperature multiplier. The C2C interface supplies neighbor states residing on an adjacent chip. Received bits are stored in boundary registers and selected through the same input multiplexers as on-chip states. Coupling coefficients remain in the destination SRAM; only 1b spin states cross the interface. To hide their transfer latency, the position sequence in Fig. 3 separates boundary-state generation from the dependent updates by half of the 32-position sweep. The PEs process intervening positions while the interface transmits these states. Each chip repeats this exchange without increasing PE fan-in, SRAM word width, or packet length. The packetizer exploits the fixed boundary connections to avoid address overhead (Fig. 2). Three edge IUs each contribute 14 north-boundary or 18 south-boundary states, forming 42b and 54b payloads, respectively. The serializer uses 6b north and 7b south data paths, with padding to complete each packet in eight I/O cycles; a shared 7b circuit accommodates both formats. At the receiver, the fixed bit order maps the reconstructed payload directly to boundary registers. Unlike 2activity-dependent compression, this fixed-length exchange transfers all required boundary states at every annealing stage. Source-synchronous signaling and asynchronous first-in, first-out (FIFO) buffers decouple the I/O and compute clocks. The transmitter forwards its I/O clock with the serialized data. A 32 × 7bFIFO at each endpoint uses binary read/write pointers for local addressing and synchronized Gray-coded pointers for full/empty detection. Ready/valid handshaking prevents overflow and underflow. The controller checks packet availability before executing a dependent update; if a packet is late, it holds the position/color address and disables spin writeback. This backpressure preserves update order, while transfers completed within the scheduled interval overlap computation without stalling the array. Coefficients and LFSR seeds are loaded through the scan interface, which also reads captured spin states. The four-chip prototype is evaluated on planted-MaxCut, spin-glass, frustrated-loop, semiprime-factorization, and 3SAT workloads. Fig. 4 shows a planted-MaxCut instance with 27,069 logical nodes and couplings spanning the chip boundaries. The planted solution forms an “IEEE” pat-tern across the four chips, with ground-state energy −13 ,824 . The displayed convergence trace reaches this state in 3.3 μs of compute time, exercising the interchip couplings during the search. Reprogramming the couplings for spin-glass instances produces the sampled-energy distributions and ASIC/CPU convergence traces in the same figure. ASIC samples concentrate at lower energies in the displayed distribution, while both implementations approach similar energies over the longer trace. The 16-spin energy landscape is a separate illustration of competing minima. Fig. 5 evaluates frustrated-loop optimization over planted-loop densities α of 0.5 to 8, where α
+
+is the number of loops per p-bit. The reported time to solution at 99% success probability, TTS 99 ,targets an energy within 2% of the known ground state and counts ASIC-active time at 10MHz. In a separate four-chip experiment at α = 8 , two of sixteen runs reach the exact ground state, at 2.9s and 8.9s. Probabilistic logic is implemented by programming the couplings and biases of the corresponding logic cells, reusing the same PE circuit and update schedule. For semiprime factorization, the output distributions peak at 13 and 11 for the target product 143. For Boolean satisfiability with three literals per clause (3SAT), the plotted TTS 99 ranges from approximately 0.8 to 1.3s for 200 to 1,200 clauses, with twelve samples per point. Fig. 6 compares the accelerator with digital CMOS Ising implementations spanning different graph structures and coefficient precisions [8, 12–14, 16]. Sparse SRAM macros and reconfigurable PE arrays trade connectivity against storage and routing cost [11, 12, 15]. Relative to the nine-chip King’s-graph annealer [7], this design increases native degree from 8 to 15 and coefficient precision from 5b to 10b while retaining O(N ) storage. At a 48MHz global clock and 0.9V core supply, with 24MHz I/O at 1.2V, the four-chip array supports 216 × 4 × 48 M updates/s, or 41.5G updates/s. This is the aggregate update-attempt rate, including updates that retain the previous state, rather than a workload-dependent solution rate. The reported 1.2pJ/update corresponds to 49.8mW at this aggregate rate. Fabricated in 28nm HPC+ CMOS, each chip occupies approximately 1.5mm 2, with a 1.203 ×
+
+0.703 mm 2 core (0.846mm 2) and 0.299mm 2 of coefficient SRAM (Fig. 7). The core, I/O pad ring, and pad-to-core channel account for 56%, 33%, and 11% of die area, respectively. A field-programmable gate array (FPGA) on the test board configures the chips and captures spin states. Together, Pegasus embedding, local SRAM, and scheduled C2C transfers support parallel spin updates on a programmable 27,648-spin multichip graph. 3References 
+
+[1] A. Lucas, “Ising formulations of many NP problems,” Frontiers in Physics , vol. 2, Art. no. 5, 2014. [2] K. Yamamoto et al., “STATICA: A 512-spin 0.25M-weight full-digital annealing processor with a near-memory all-spin-updates-at-once architecture for combinatorial optimization with complete spin-spin interactions,” in IEEE ISSCC Dig. Tech. Papers , 2020, pp. 138–140. [3] M. M. H. Sajeeb et al., “Scalable connectivity for Ising machines: Dense to sparse,” Physical Review Applied , vol. 24, no. 1, Art. no. 014005, Jul. 2025. [4] M. Yamaoka et al., “20k-spin Ising chip for combinational optimization problem with CMOS annealing,” in IEEE ISSCC Dig. Tech. Papers , 2015, pp. 1–3. [5] N. A. Aadit et al., “Massively parallel probabilistic computing with sparse Ising machines,” Nature Electronics , vol. 5, no. 7, pp. 460–468, Jul. 2022. [6] T. Takemoto, M. Hayashi, C. Yoshimura, and M. Yamaoka, “A 2 × 30 k-spin multi-chip scalable CMOS annealing processor based on a processing-in-memory approach for solving large-scale combinatorial optimization problems,” IEEE Journal of Solid-State Circuits , vol. 55, no. 1, pp. 145–156, Jan. 2020. [7] T. Takemoto et al., “A 144Kb annealing system composed of 9 × 16 Kb annealing processor chips with scalable chip-to-chip connections for large-scale combinatorial optimization problems,” in IEEE ISSCC Dig. Tech. Papers , 2021, pp. 64–66. [8] J. Kim and J.-Y. Sim, “An 8K-spin Ising machine IC with reconfigurable many-body spin interactions and limitless multichip extension,” in Proc. Symp. VLSI Technology and Circuits , 2025, pp. 1–3. [9] N. Dattani, S. Szalay, and N. Chancellor, “Pegasus: The second connectivity graph for large-scale quantum annealing hardware,” arXiv:1901.07636, 2019. [10] S. Niazi et al., “Training deep Boltzmann networks with sparse Ising machines,” Nature Electronics , vol. 7, no. 7, pp. 610–619, Jul. 2024. [11] J. Bae, C. Shim, and B. Kim, “e-Chimera: A scalable SRAM-based Ising macro with enhanced-Chimera topology for solving combinatorial optimization problems within memory,” in IEEE ISSCC Dig. Tech. Papers , 2024, pp. 286–288. [12] Y. Su, T. T.-H. Kim, and B. Kim, “FlexSpin: A scalable CMOS Ising machine with 256 flexible spin processing elements for solving complex combinatorial optimization problems,” in IEEE ISSCC Dig. Tech. Papers , 2022, pp. 1–3. [13] K. Kawamura et al., “Amorphica: 4-replica 512 fully connected spin 336MHz metamorphic annealer with programmable optimization strategy and compressed-spin-transfer multi-chip extension,” in IEEE ISSCC Dig. Tech. Papers , 2023, pp. 42–44. [14] Y.-C. Chu, Y.-C. Lin, Y.-C. Lo, and C.-H. Yang, “A fully integrated annealing processor for large-scale autonomous navigation optimization,” in IEEE ISSCC Dig. Tech. Papers , 2024, pp. 488–490. [15] Y. Wu, J. Bae, C. Shim, and B. Kim, “m-Zephyr: A digital in-memory Ising chip with 240 spins featuring enhanced connectivity based on a modified 3D Zephyr topology,” in Proc. Symp. VLSI Technology and Circuits , 2025, pp. 1–3. [16] Y. Wu, J. Bae, S. Shin, and B. Kim, “COBI: A degree-of-56 column-bipartite densely connected digital Ising chip with 8b spin coefficients,” in IEEE ISSCC Dig. Tech. Papers , 2026, pp. 182–184. 
+
+4Sparsification and **MGE to Regular Graph 
+
+All-to-all (degree = ***N) Pegasus (This Work) (degree = 15) King’s (degree = 8) *QUBO Problems 
+
+*QUBO: Quadratic Unconstrainted Binary Optimization Problems 
+
+Key Feature #2. Multi-chip Streaming Interconnect 
+
+Generalized to 2D system Solution Space Ising Energy 
+
+𝐻 𝜎 = − % 𝐽 !" 𝜎 !𝜎 " − ℎ !𝜎 !
+
+𝐽 !" : Spin Interaction; ℎ!: Self Bias; 𝜎 : Spin State 
+
+ℎ!
+
+𝐽 !" 
+
+𝜎 !
+
+𝜎 "
+
+ℎ"
+
+**MGE: Minor Graph Embedding; Dwave Publicized Version Used ***N: the total number of spins 
+
+Key Feature #1. Scalable Dense Graph 
+
+Simulated Annealing and Iterative Search 
+
+Prior Work This Work Prior Work Dense Quasi-dense Sparse 
+
+⨉ Scaling limits: 𝐽 !" 
+
+footprint and chip-bisection traffic 
+
+⨉ High embedding pressure and long spin chains 
+
+Multi-chip Mapping for Large N 
+
+Ising Workflow for This Work 
+
+> Temperature ( 1/𝛽)
+
+Time 
+
+100% Scaling Efficiency 
+
+Host 
+
+𝛽 % 𝐽 !" ; 𝛽 % ℎ ! ;
+
+LFSR seed 
+
+𝜎 
+
+Boundary 𝜎 
+
+Prior Work Core I/O Core I/O 
+
+Cycle k Stall Cycle k+1 Stall Communication Stall Cycle k Cycle k+1 Cycle k+2 Communication Communication Communication 
+
+This Work: Zero Stall 
+
+6912 spins/chip, 4 chips demonstrated, infinitely scalable 
+
+Infinitely Scalable 
+
+Sparse Cost, Dense Expressiveness 
+
+✓ Low routing pressure 
+
+✓ Small memory footprint 
+
+✓ Scalable connectivity 
+
+Key Feature #3. 10b Coeff., 27k Spins for Diverse QUBOs 
+
+Spins used after **MGE of a 32 spin all-to-all 
+
+All-to-all Pegasus King’s 32 133 1885 
+
+✓ Direct problem mapping and minimal embedding 
+
+MaxCut 
+
+367 353 359 193 
+
+70,831 
+
+...191 197 ... ......
+
+Factorization 3SAT 
+
+-1 1
+
+1-2 
+
+Frustrated-loop 
+
+-1 
+
+> -1 +1 -1 -1 -1 -1 -1 -1 -1 -1 -1 +1 +1 +1 +1 +1 +1
+
+Spin-glass Fig. 1: Problem mapping and multichip system overview. A quadratic unconstrained binary optimization (QUBO) problem maps to an Ising model. Minor embedding represents a logical variable by coupled physical spins. The illustrated 32-spin fully connected problem uses 133 Pegasus spins and 1,885 King’s-graph spins. Boundary-state streaming overlaps computation and interchip transfer in the four-chip implementation. 
+
+532×7b Reg Array 
+
+Depacketize 
+
+Async FIFO (CDC) Data[j] 
+
+addr[6:0] 
+
+{jump[6:2], color[1:0]} 
+
+> Scheduler + buffer control
+
+Ising Unit (IU) ×9 
+
+Chimera cells ×3
+
+SRAM... SRAM... SRAM... 
+
+SRAM Banks x4 
+
+scan-out 𝜎 
+
+stream color select 
+
+> graph mapping
+
+J[14:0][9:0] 
+
+Adder Tree Tanh() Lookup LFSR (RNG) 
+
+<
+
+Ext. State Conn from adjacent PEs h[9:0] 
+
+> clamp
+> I[14:0]
+
+s[14:0] 
+
+I[6:0] I[7] >
+
+Processing Element (PE) 
+
+-I[6:0] 
+
+Pegasus P-Bit Core 
+
+Graph parameters 
+
+Ctrl 
+
+MUX MUX 
+
+-
+
+> MUX
+
+DeMUX State Value Reg 
+
+> Ctrl Sig Data Sig Flits[k]
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Bank1 
+
+h, 60b J, 180b J, 240b 
+
+Bank4 
+
+Chimera cells ×3 
+
+SRAM Banks x4 (128 x 240b) 
+
+Chip-to-Chip IO 
+
+North Tx North Rx South Rx South Tx 
+
+ctrl 
+
+> (weights)
+
+PE 
+
+Jh
+
+𝜎 
+
+Chimera cells ×3 
+
+> neighboring  𝜎
+
+𝜎 
+
+Shift in J, h, LFSR seed 
+
+𝜎 
+
+scan in 
+
+clk_io clk_compute 
+
+Async FIFO (CDC) 
+
+Full? addr_incr 
+
+Ctrl 32×7b Reg Array 
+
+Flits[k+1] Select Flits 
+
+I/O Clk I/O Ctrl Output Regs Out MUX I/O Data 
+
+Data[i] ready valid CLK_FWD 
+
+Packetize 
+
+Data Flits[j] 
+
+Ctrl I/O Clk I/O Ctrl I/O Data 
+
+addr_incr Empty? 
+
+Data goes into PE Array 
+
+Circular Buffer 
+
+> ……
+
+1010101 0101100 1111111 0101010 1110000 0000000 Data/Jump South: 18 bits/IU * 3 IUs North: 14 bits/IU * 3 IUs Data Packet South: 7b / flit North: 6b / flit 
+
+> Chip Boundary
+> init. scan in
+> write-mode
+
+TX 
+
+8 I/O Cycles / packet Fig. 2: Digital Ising accelerator architecture with nine Ising units, local coefficient SRAM, PE datapaths, and C2C interfaces. The north and south payloads contain 42b and 54b of spin states across three edge units. The serializer transfers each packet in eight I/O cycles using 6b and 7b data paths. Asynchronous FIFOs and ready/valid control connect the compute and I/O clock domains. 
+
+6…8x4 …
+
+Robust & scalable chip-to-chip interfaces 
+
+> …
+
+8x4 …
+
+Virtual copy on adjacent chip à Updated after subgraph updates Processing unit time-division multiplexing schedule Only boundary sub-graphs transmitted over IO 
+
+Sub-graph computed in one timestep (physical compute resources) ... ... 0Clock Compute 03 28 17 18 19 20 13 14 31 029 30 1 2 3 15 16 31 0 1 2... ... 
+
+Read Causality 
+
+Top Row on IO Bottom Row on IO 
+
+Write Causality 
+
+IO RW 4
+
+Algorithm 1: Compute and IO Control Scheme 1. state: (subgraph, color) ← (0, 0) // color ∈{0..3}, subgraph ∈{0..31} 2. on compute_clk: 3. if needs_IN(subgraph, color):wait in_fifo≠empty;read_in() 4. compute_update(subgraph, color) 5. if needs_OUT(subgraph, color): wait out_fifo≠full; write_out() 6. color ← (color+1) mod 4; if color=0 then subgraph ← next_subgraph 7. on shift_clk: 8. if shift_ctr=0 then snapshot() 9. else shift_out(shift_ctr) 10. shift_ctr ← (shift_ctr+1) mod N 11. on IO_clk: 12. slave_ready ← !in_fifo_full 13. data_valid ← !out_fifo_empty 
+
+Infinitely scalable multi-chip topology 
+
+19 23 27 31 15 11 7318 22 26 30 14 10 6217 21 25 29 13 95116 20 24 28 12 840
+
+IO scheduling algorithm for stall-free system operation across all chips Graph mapping to hardware 
+
+IU IU IU IU IU IU IU IU IU Pegasus Cell projected to 2D Hardware mapping to Ising Unit (IU) 
+
+Differently colored nodes need non-concurrent updates Hardware IU shares compute resources between 4 graph nodes 
+
+4-colorable Pegasus graph - node update order 
+
+Chimera Graph 2D, Degree 6 
+
+Pegasus Graph 3D, Degree 15 
+
+Dense inter-layer connectivity 
+
+3 × Chimera Layers in Pegasus Graph 
+
+Sparser 2D connectivity 
+
+Sub-graph computation moves in lock-step on connected chips 
+
+Latency hidden à No stalls 4 colors / subgraph Fig. 3: Pegasus mapping, time-multiplexed PE execution, and interchip transfer order. Each chip stores 32 positions with four color groups per position. The position sequence separates boundary-state production from dependent updates, allowing transfer to overlap computation. FIFO checks preserve dependencies if a packet is delayed. The repeated interface supports graph extension beyond the demonstrated four-chip configuration. 
+
+7Benchmark #1: MaxCut 4-ASIC 27k-Spin Planted-Ising Convergence Spin-glass: Randomized Weight Exact ground state in 3.3 μs Benchmark #2: Spin-glass Converging     
+
+>     $"%)( " '  !  ! ! !    #&+    *(&$)#  
+
+Fig. 4: Planted-MaxCut convergence and randomized-coupling Ising results. The four-chip trace reaches the planted state at energy −13 ,824 in 3.3 μs of compute time. The spin-glass panels show a separate 16-spin energy-landscape illustration, sampled-energy distributions, and ASIC/CPU convergence traces. 
+
+8FA FA FA 1 0 0 11Clause 1 Clause 2 Clause n 
+
+Benchmark #4 and #5: Factorization and 3SAT 
+
+-1 -1 -1 1
+
+-1 1
+
+-1 1-2 
+
+LOOP 2 LOOP 1 
+
+Benchmark #3: Frustrated-loop        
+
+> 𝐽 = 2
+> 𝐽 = 2
+> 𝐽 = -1
+> 𝐽 = 2
+> 𝐽 = 2
+> 𝐶 ℎ = 2
+> 𝐽 = -1
+
+FA 
+
+Probabilistic Logic Cells                      
+
+> 𝐽 = -1 𝐽 = -1
+> 𝐽 = 1𝐽 = 2
+> 𝐽 = 2
+> 𝐽 = 2
+> 𝐽 = -1
+> 𝐽 = 1
+> 𝐽 = -1
+> 𝐽 = 1
+> 𝑐 !"#
+> ℎ = 0
+> 𝑠 ℎ = 0
+> 𝑐 $%
+> ℎ = 0
+> 𝐴 ℎ = 0
+> 𝐵 ℎ = 0𝐶 ℎ = -2
+> 𝐴 ℎ = 1
+> 𝐵 ℎ = 1
+> 𝐴 ℎ = -1
+> 𝐵 ℎ = -1
+
+Semiprime Factorization 3SAT Fig. 5: Frustrated-loop optimization, semiprime factorization, and 3SAT. The loop-density study reports TTS 99 for an energy gap of at most 2% at 10MHz. The separate α = 8 trace records two exact-ground-state hits in sixteen four-chip runs, at 2.9s and 8.9s. Factor histograms show 143 = 13 × 11 . The 3SAT curve projects measured 10MHz times to 48MHz using a 10/48 factor, with twelve samples per clause count. 
+
+9This work ISSCC’26 [16] VLSI’25 [8] ISSCC’24 [14] ISSCC’23 [13] ISSCC’22 [12] 
+
+28nm CMOS (Digital) 65nm CMOS (Digital) 28nm CMOS (Digital) 40nm CMOS (Digital) 40nm CMOS (Digital) 65nm CMOS (Digital) 
+
+Technology (Circuit Type) 
+
+Digital MAC-like Digital MAC Digital Coefficient Accumulation Digital Accumulation Digital Accumulation Digital MAC Spin Interaction 
+
+0.9V 0.8-1.2V 0.8-1.1 V 1.0V 0.8-1.1V 1.0-1.2V Core Voltage 
+
+40MHz 111.1MHz 150-330MHz 200MHz 336MHz 64MHz Clock frequency 
+
+6,912 × 464 × 18,192 × 41,024 × 8512 × 41,024 × 2# of Spins Per Chip 
+
+× # of chip(s) 
+
+41.5 @48MHz 0.89 †
+
+2.64 †
+
+N/A (433 task/s) 0.336 †
+
+0.819 †Throughput (G-flips / sec) 
+
+Pegasus Column-bipartite Reconfigurable Global-sparse Complete/Sparse Fully Connected Reconfigurable Global-sparse 
+
+Connectivity 
+
+15 56 16-31 N/A (problem-dependent) 2K 7-28 
+
+# of Interactions Per Spin 10bit 8bit 8bit 6bit 8bit 8bit 
+
+Coefficient Precision 74.1 1400 298 516 4,814 61.3 
+
+Normalized Area per Spin (μm 2) †
+
+3.3us for 27k spin MaxCut for 48MHz <72 ns for 64-spin for MaxCut N/R 2.31 ms for 101-station path planning <1 ms for 2k-spin MaxCut <62.5μs for 2k-spin MaxCut 
+
+Time-to-Solution for Problem* 
+
+MaxCut, Spin-glass, Frustrated-loop, Factorization, 3SAT MaxCut, Community Detection, MIMO MaxCut, Soduku, 3SAT Path Planning, Collision Avoidance MaxCut MaxCut 
+
+Applications (COPs) 
+
+49.8 @0.9V 0.518 @1.2V 48.4 @1.1V 110 @1V 151.6-474.9 @ 1.1V 1.167 @1.2 V Power (mW) 
+
+1.2 pJ/spin 0.583 †
+
+73 †N/A (254.1μJ per task †)1,090 †
+
+2.85 †
+
+Energy-per-flip (pJ) 
+
+Yes No Yes Yes Yes Yes Multichip scalability 
+
+100% N/A 94% *** 81% 25% †
+
+N/A 
+
+Weak-scaling Efficiency** 
+
+Half-rotation Latency-hiding Schedule N/A Pipelined Compute/Comm. Overlap N/A Double-buffered Compute/Comm. Overlap N/A 
+
+I/O Scheduling 
+
+* The time-to-solution metric is strongly dependent on problem size (number of spin), how hard this problem is and the graph topology. ** Scaling efficiency = Throughput for multichip / #chip * single chip throughput *** Estimated scaling efficiency  
+
+> †
+
+Derived from reported data; not directly reported. Fig. 6: Comparison with digital CMOS Ising accelerators [8, 12–14, 16]. This work’s 41.5G updates/s is the aggregate four-chip update-attempt rate at a 48MHz global clock. The updated table lists 1.2pJ/update and a 3.3 μs planted-MaxCut solve time. Prior-work entries use their cited metric conventions and span different graph structures, problem sizes, and solution criteria. 
+
+10 28 nm HPC+ CMOS Technology 
+
+Scalable Digital Ising Chip Test Chip 
+
+9× Pegasus IU Array Core Circuit 
+
+Die: 1mm × 1.5mm Core : 1.203mm × 0.703mm 
+
+Area 
+
+Core : 0.9V, I/O: 1.2V Supply 
+
+36 banks of 128b ×240b (Total: 1.1 Mb, 0.299 mm 2)
+
+SRAM 
+
+49.8mW @ Core: 48MHz, 0.9V, IO: 24MHz, 1.2V Power 
+
+> 0.7 mm
+
+1.2 mm 
+
+## Pegasus Ising Core 
+
+> I/O Logic & Driver I/O Logic & Driver I/O Logic & Driver I/O Logic & Driver
+
+Infinitely scalable with 100% scaling efficiency 
+
+Host Xilinx ZCU104 
+
+To Board-1 To Board-1 Fig. 7: Die micrograph, test board, area breakdown, and operating-point summary. Each die integrates nine Ising units and 36 coefficient SRAM banks. The core occupies 0.846mm 2 and the SRAM banks occupy 0.299mm 2. An FPGA host configures the chips and captures spin states. The table identifies separate core and I/O supplies and clocks. 
+
+11

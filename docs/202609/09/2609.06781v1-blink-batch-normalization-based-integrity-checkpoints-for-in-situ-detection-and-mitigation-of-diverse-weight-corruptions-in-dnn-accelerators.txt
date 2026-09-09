@@ -1,0 +1,234 @@
+Title: BLINK: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in DNN Accelerators
+
+URL Source: https://arxiv.org/pdf/2609.06781v1
+
+Published Time: Wed, 09 Sep 2026 01:32:09 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# BLINK: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in DNN Accelerators 
+
+# Marzia Khan 
+
+Purdue University West Lafayette, Indiana, USA khan637@purdue.edu 
+
+# Akul Malhotra 
+
+Purdue University West Lafayette, Indiana, USA malhot23@purdue.edu 
+
+# Sumeet Kumar Gupta 
+
+Purdue University West Lafayette, Indiana, USA guptask@purdue.edu 
+
+## Abstract 
+
+In safety-critical deployments, AI hardware must remain reliable against a broad spectrum of threats such as radiation-induced up-sets, aging, hard faults, and adversarial attacks (e.g. progressive bit flip attack (PBFA)). All of these corrupt stored weights while the chip keeps producing confident (but inaccurate) predictions. Detecting and mitigating such weight perturbations is crucial for safety-critical platforms. To that end, we propose BLINK, an on-chip batch normalization (BN)-based on-the-fly detection and mitigation approach, which is based on continual sensing of the shift in the activation statistics, targeting a wide variety of weight corruptions (random and localized faults as well as adversarial bit flips). BLINK operates in two phases: (1) off-line pre-characterization of the rela-tionship of the activation shifts with inference accuracy drop (2) on-chip runtime detection and mitigation of weight corruptions. Our technique is designed so that benign perturbations stay silent while harmful faults are flagged. Upon detection, the flagged layer is re-centered to bring it closer to its stored clean reference within the same forward pass. BLINK is fully autonomous, eliminating the need for host communication, operation halts, or access to fine-tuning data. If the residual shift after mitigation indicates that ac-curacy has fallen below a user-set floor, a held-out watcher aborts the inference. Evaluated on ResNet-20/50 and MobileNetV2 for CIFAR-10/100, BLINK detects harmful corruptions with > 99% pre-cision across all fault types. Furthermore, it recovers accuracy from 10% to 85.88% under 0.5% random bit flips (Resnet-50/CIFAR-10), up to 84% for localized faults (MobileNetV2/CIFAR-10), and from random-guess accuracy to 80%-83% under PBFA (ResNet-20/CIFAR-10), entirely on chip, within the same inference pass. This comes with < 2% latency cost and 0 .53% computation overhead. 
+
+## 1 Introduction 
+
+Deep neural networks (DNNs) are increasingly being deployed in safety-critical applications such as autonomous driving, industrial automation and medical imaging, where incorrect predictions can lead to catastrophic consequences. Such considerations are becom-ing even more significant as DNN inference is steadily moving from cloud servers to edge accelerators operating under strict resource constraints. To meet the performance targets, edge accelerators of-ten employ techniques such as aggressive voltage scaling. However, such approaches adversely impact the memory operation, exposing weight memories to a broad range of failures. These failures arise from several distinct mechanisms. Transient faults or gradual wear out manifest as bit flips in stored weights which produce silent data corruption. Hard faults such as stuck-at faults lead to persistent weight corruption that degrades model accuracy from the outset. Failures may be randomly distributed or spatially localized producing structured corruption patterns (e.g., de-fective SRAM banks, thermal hotspots, or regional voltage droops). In addition to such environment-induced faults, weight memories are susceptible to adversarial corruption such as progressive bit-flip attacks (PBFA), in which an adversary flips a small number of high-impact bits to maximize degradation [21, 22], a threat made practical by injection primitives such as Rowhammer. To mitigate the impact of weight corruptions, several approaches have been explored but with several limitations. First, a majority of them [7, 20] are designed to address a single fault class or a limited subset of failure mechanisms. Second, with a couple of exceptions [10, 17], no technique is fully autonomous and requires halting the inference upon detection of faults, require communication with a host, need access to labeled dataset, and/or rely on knowledge of per-chip fault maps. The ones that are indeed autonomous either monitor only a portion of the network for corruptions (limiting their efficacy) [17] or are designed for specific AI architectures [10]. Autonomy in AI accelerators is crucial for mission critical appli-cations and a truly autonomous system must continuously monitor the integrity of its weights during normal operation and detect such corruptions as they occur (e.g. due to weight drifts over time, or due to a sudden adversarial attack). Once a corruption is identified, it must mitigate the error in situ. Moreover, detection/mitigation must occur without pausing inference, ensuring that no mission-critical inputs are missed, and without relying on an external host, retraining or fine-tuning data, or any other external intervention. With this objective in mind, we design BLINK to provide full au-tonomy (as defined above) while remaining AI architecture-agnostic and broadly applicable to diverse weight corruption scenarios, including random and localized perturbations, PBFA, and other reliability-induced weight errors. In addition, BLINK flags harmful perturbations while remaining silent on the benign ones. For this, we use batch normalization (BN) layers as in-situ monitors of the drifts in activation distributions caused by the weight corruptions to detect harmful perturbations. If flagged, BLINK adjusts the nor-malization parameters to bring the activation distributions closer to the clean reference. In addition, if it detects that the faulty chip is unsalvageable, it issues an abort signal. It is important to note that BN has been used in previous works for repair or fault tolerance, such as in Forward Parameter Tun-ing (FPT) [20] for stuck-at faults, BN-Fine Tuning (BN-FT) [1] for ReRAM-based computing-in-memory designs targeting IR-drop arXiv:2609.06781v1 [cs.AR] 6 Sep 2026 mitigation, and calibration of analog in-memory inference [8]. How-ever, all these techniques rely on an offline step invoked after dam-age is flagged and require a host and/or labeled data for mitigation. In summary, this paper makes the following contributions: 
+
+• We propose BLINK, an on-the-fly and autonomous detec-tion and mitigation technique for diverse weight corrup-tions. 
+
+• BLINK enables continual in-situ monitoring of activation statistics and upon detection mitigation involves re-centering and re-scaling the activations partially nullifying the weight perturbation-induced shifts. 
+
+• We incorporate a held-out watcher in BLINK that monitors residual shift after mitigation and triggers an abort alarm. 
+
+• We evaluate BLINK across various weight corruption types and show excellent detection and comparable mitigation performance (with respect to previous techniques), all with full autonomy. 
+
+• We discuss how BLINK can be combined with other tech-niques for further improvement in inference accuracy. 
+
+## 2 Related Works 
+
+The classical approaches for fault tolerance include redundancy [16], algorithm based fault tolerance (ABFT) [6, 25], and error correction codes (ECC) [3]. These methods are generally effective, but incur significant overheads, partly due to their inability to distinguish benign and harmful perturbations in the context of DNN workloads. Clipping out of range activations [2, 5] is another technique, which suppresses the damage but is less effective for in-range perturba-tions. Several works have explored fault aware training [4, 9, 23] but these methods are expensive and the hardening is only as good as the fault assumed during training. More recently, on-the-fly and autonomous detection and mitiga-tion methods have been explored [17] [10]. Dr.DNA[17] calculates the activation distribution signature and matches it with a profiled value for some selected portion of the network. It may not be as effective for localized faults, especially those which fall outside of these selected regions. MENDNet [10] measures energy-based uncertainty at the exits of a multi-exit network and infers from an exit that remains confident. It routes around the damage instead of repairing it and requires trained early-exit heads. FPT [20], BN-FT [1], and analog-CIM calibration [8] all use BN statistics as an offline repair mechanism. [20] and [8] both updates the BN running statistics with unlabeled data either [20] once before deployment and or [8] periodically. BN-FT [1] instead backpropa-gates through the BN affine parameters, recovering more accuracy but requiring labeled data and a host. For PBFA, defenses such as hash signatures [7], encoding-based checks [14], honeypots [15], group-zeroing recovery [11], host-side reconstruction [12], and T-BFA-specific hardening [24] have shown promise but share three limitations: (1) The protected region is fixed offline so flips outside it pass unchecked. (2) Detection methods do not distinguish between benign and harmful perturbations. (3) Recovery is either lossy [11] or routed through the host [12], which under Rowhammer is the very machine running the attack. Each of these methods commits to a fault model. [2, 5, 6, 10, 16, 17, 25] are targeted for random faults, [4, 7, 11, 12, 14, 15, 24] for bit-flip attacks, [13, 18–20] for stuck-at faults, and [1, 8] for analog drift and device variability. BLINK is a generalized approach covering a broad spectrum of faults with BN based detection and mitigation completely au-tonomously. 
+
+## 3 BLINK: The Key Idea 
+
+Layer Score as Weight Corruption Indicator . During infer-ence, a BN layer normalizes activations using fixed running statis-tics ( 𝜇 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 , 𝜎 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 ) and affine parameters ( 𝛾 and 𝛽 ), all frozen after training. ˆ𝑥 = 𝑥 − 𝜇 running 
+
+𝜎 running 
+
+, 𝑦 = 𝛾 ˆ𝑥 + 𝛽, (1) Here, 𝑥 and 𝑦 are BN inputs and outputs, respectively. The core foundation of BLINK is that the frozen running statistics serve as a per-channel reference for healthy activations. An upstream weight fault pulls the inference-time batch statistics away from this reference, leaving a deviation that we quantify per channel and average into a layer score ( 𝑆 ℓ ) with Eqn. 2. 
+
+𝑧 𝑙,𝑐 𝜇 = 𝜇 𝑙,𝑐 𝑏 − 𝜇 𝑙,𝑐 
+
+> running
+
+𝜎 𝑙,𝑐 
+
+> running
+
+, 𝑆 𝑙 = 1
+
+𝐶 
+
+> 𝐶
+
+∑︁ 
+
+> 𝑐 =1
+
+𝑧 𝑙,𝑐 𝜇 . (2) Here, 𝜇 𝑙,𝑐 𝑏 is the inference-time batch mean of channel 𝑐 at layer 𝑙 
+
+and 𝐶 is the channel count. 
+
+Overview of BLINK . Fig. 1 explains BLINK at a glance, illustrat-ing the two phases: (1) offline pre-characterization and (2) on-chip detection and mitigation. BLINK rests on a key observation: weight corruptions, especially the ones likely to impair accuracy, do not stay hidden in the weights but shift and scale the activation dis-tribution. The larger this shift, the larger the eventual accuracy degradation is likely to be (Fig. 1(g)). BLINK quantifies the shift at each BN layer with the layer score 𝑆 ℓ (see (2)) and utilizes its cor-relation with the end-to-end accuracy drop (Fig. 1(b)) for runtime prediction of the expected accuracy degradation due to accumu-lated perturbations. During offline characterization, the profile of accuracy drop versus 𝑆 ℓ is used to calibrate a detection threshold, 
+
+𝑇 ℓ (Fig. 1(b, c)). Also, the clean BN reference for each checkpoint is characterized and stored on-chip (Fig. 1(d)), providing the target for mitigation. During runtime, layer score ( 𝑆 ℓ ) is computed (Fig. 1(e)) and com-pared with 𝑇 ℓ , leading to the following three scenarios: (1) If all scores stay below their thresholds ( 𝑆 ℓ < 𝑇 ℓ ), activations pass down-stream normally. (2) If a checkpoint crosses its threshold ( 𝑆 ℓ > 𝑇 ℓ ), it passes through the BN layer with updated running statistics, where the activation distribution is recentered and rescaled to mitigate the effect of weight corruptions before sending it to the next layer (Fig. 1(f, g)). (3) If the residual shift after mitigation shows that the model has been pushed past its recoverability bound, a watcher aborts the inference to avert the generation of unreliable outputs. We note two important points. First, BLINK is not limited to mod-els with BN layers. The same concept can be applied to BN-fused architectures with 𝜇 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 and 𝜎 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 replaced by 0 and 1, respec-tively, but requires a separate detection/mitigation layer. In this paper, our analyses focus on the former models. Second, if BLINK 
+
+> 2
+
+Figure 1: BLINK overview. Offline: fault-injection profiling calibrates per-layer thresholds and stores clean BN targets 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 , 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 .Online: each BN layer scores its shift 𝑆 ℓ ; a flagged layer ( 𝑆 ℓ > 𝑇 ℓ ) is recalibrated in place before activations propagate. 
+
+mitigation is not sufficient (depending on the accuracy targets), BLINK can be used primarily for detection and complemented with other mitigation techniques [1, 20] based on system needs and re-sources (access to host, labeled data). However, if BLINK mitigation is sufficient, it offers a distinct advantage of full autonomy. To explain BLINK’s operation in detail, we start by discussing the on-chip detection and mitigation process, including the BLINK pa-rameters and thresholds needed. With the understanding of on-chip operation, we present the offline pre-characterization procedure of the BLINK parameters, which emulates the on-chip functionality to achieve high detection/mitigation efficacy. 
+
+## 4 On-chip Operation 
+
+BLINK parameters stored on-chip . To carry out on-the-fly de-tection and mitigation, the accelerator needs to store the following parameters (obtained through offline characterization - see Section 5): (1) Detection threshold for each layer 𝑙 (𝑇 ℓ ), (2) Abort threshold for the watcher ( 𝑇 𝑤 ), (3) Recentering and rescaling parameters for each channel 𝑐 of each layer 𝑙 (𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 and 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 , respectively), and (4) trust gate bit (TGB) for each layer. 
+
+Detection and Mitigation . During inference, as each layer pro-duces the output activations, BLINK computes batch mean of the activation 𝜇 𝑙,𝑐 𝑏 and the layer score 𝑆 𝑙 based on Eqn. (2). In addition, the standard deviation of the activations 𝜎 𝑙,𝑐 𝑏 is computed. If 𝑆 ℓ >
+
+𝑇 ℓ , a flag signal ( 𝑓 𝑙𝑎𝑔 𝑙 ) is asserted. In this case, BLINK replaces 
+
+𝜇 𝑙,𝑐 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 and 𝜎 𝑙,𝑐 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 with 𝜇 𝑙,𝑐 𝑛𝑒𝑤 and 𝜎 𝑙,𝑐 𝑛𝑒𝑤 , respectively for batch normalization, with an objective to bring the activations closer to the clean distribution. Here, 
+
+𝜇 𝑙,𝑐 𝑛𝑒𝑤 = 𝜇 𝑙,𝑐 𝑏 − 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 𝜎 𝑙,𝑐 𝑛𝑒𝑤 𝜎 𝑙,𝑐 𝑛𝑒𝑤 = 𝜎 𝑙,𝑐 𝑏 
+
+𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 
+
+(3) Note that mitigation exploits the fact that BN already stores a ref-erence for healthy activation statistics. For each channel, we adjust the running mean to reduce the shift due to weight corruptions and rescale the running variance toward its stored target. This process is repeated at each flagged layer. Thus, BLINK re-centers the cor-rupted signal at its point of origin, flowing near-clean activations into the subsequent layers and preventing the corruptions from compounding downstream (Fig. 1(g)). 
+
+Abort using a Watcher . If weight corruptions are too large to be mitigated, BLINK issues an abort signal indicating that the chip is not usable. In other words, mitigation may be applied at many layers, yet the accelerator may remain too damaged to use. To enable the abort mode, we set the final BN layer as our watcher layer, since the activation coming to final BN layer will carry all the previous perturbation and mitigation information. Besides, since the abort situation is expected to be uncommon, we do not keep too many checkpoints to avoid unnecessary overhead. At the watcher layer, we compute the watcher score 𝑆 𝑤 (similar to the layer score) and if 𝑆 𝑤 > 𝑇 𝑤 , an abort signal is issued, else normal operation continues. 
+
+> 3
+
+BLINK + Other Mitigation Approaches . As we will discuss in Section 7.2, BLINK significantly boosts the accuracy of DNNs under weight corruptions, while remaining fully autonomous. However, if the system allows trading-off autonomy to some extent (for in-stance, permitting communication with the host, or having access to labeled data), other mitigation approaches such as FPT [20] and BN-FT [1] can provide even better accuracy recovery under cer-tain conditions (details later). It may be mentioned that although BN-FT in [1] has been proposed for weight drifts in in-memory computing (IMC) architectures; here, we re-purpose it to combat a variety of weight corruptions while also extending its applicability to non-IMC platforms. However, such techniques, on their own, still cannot provide continuous monitoring (required, for instance, to combat silent data corruption, weight drifts and other similar scenarios). In this context, we propose using BLINK primarily for detection based on continuous monitoring of harmful corruptions. For this, we utilize a trust gate bit (TGB) for each layer (more details in Section 5). TGB = 1 denotes that the detection of the layer should be trusted, else, it should be suppressed (see Fig. 1). If 𝑓 𝑙𝑎𝑔 𝑙 signal of any trusted layer is asserted, an alarm signal is raised. In this case, BLINK’s mitigation can be combined with FPT or BN-FT to provide even better accuracy. For example, if drift gradually corrupts the weights, BLINK would raise an alarm once this corruption is large enough to impair accuracy. Now, the system can halt the operation, apply FPT or BN-FT and resume inference. Thus, BLINK could be utilized either as a stand-alone fully autonomous detection and mit-igation framework (as discussed in the first three sub-sections), or in conjunction with other mitigation techniques trading-off auton-omy for better mitigation performance while providing continuous on-the-fly detection. 
+
+## 5 Offline Profiling and BLINK Parameters 
+
+Offline pre-characterization of BLINK parameters ( 𝑇 ℓ , 𝑇 𝑤 , 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 and 
+
+𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 ) is an important step which determines BLINK’s efficacy. This process requires detailed profiling of the dependence of accuracy drop on the layer score considering clean and corrupted models and using these trends to set the thresholds and reference parameters based on the user specifications of target accuracy recovery. 
+
+Profiling Procedure and Setting Thresholds . The profiling of layer (watcher) score with respect to the accuracy drop sets 𝑇 𝑙 (𝑇 𝑤 )and therefore, must emulate the on-chip operation (as discussed in the previous section). To profile layer 𝑘 (Fig.1(a)), we inject weight perturbations into the sub-network from the input up to layer 𝑙 
+
+and sweep the fault rate. For every upstream layer that is flagged, we apply BLINK mitigation (based on recentering and rescaling -see Section 4), exactly as would be applied during the inference. We then note the residual layer score 𝑆 𝑙 at the still-faulted layer 
+
+𝑙 and pair it with the resulting accuracy drop. Layer 𝑙 itself is left uncorrected, since it is the layer whose detectability we are char-acterizing. Repeating this across all layers and fault rates yields, per checkpoint, a set of layer score and accuracy drop observations. Because each checkpoint is read only after its upstream faults have been corrected, its score reflects the damage that originates at or propagates past that point, rather than damage that an upstream correction would already have mitigated. Plotting these numbers gives us a layer score versus accuracy drop trend (Fig. 1(b)). For a fixed user-specified accuracy drop 𝜏 (= 10% in Fig. 1(c)) and a variable layer score, 4 sub regions of this plot are obtained which yield true positives (TP), true negatives (TN), false positives (FP) and false negatives (FN). This is repeated for different layer score values and a receiver operating characteristic (ROC) curve is obtained (Fig. 1(c)). Note, the parameter 𝜏 denotes the threshold for accuracy drop above which, the corruptions are deemed harmful. Thus, the area under the ROC curve (AUC) mea-sures how well the layer score ranks corrupted models above clean ones, independently of where any threshold is placed. The AUC is also called reliability score of that layer. Now, using this ROC, we determine the detection threshold 𝑇 ℓ
+
+which corresponds to 1% false-negative rate (Fig. 1(c)). It is impor-tant to note that the two types of errors, FP and FN (Fig. 1(b)) are not equally costly for a stand-alone BLINK detection and mitigation. A missed harmful fault (FN) propagates to the output leading to incorrect inference. In contrast, a false alarm (FP) only triggers miti-gation, which merely induces a negligible recentering and rescaling of a healthy layer’s activation distribution, causing no meaningful degradation. Thus, we constrain FNR and let FPR follow. Note that the target for BLINK detection is not just catastrophic collapse, which produces large and easily flagged deviations. For instance, previous works in [2, 7, 11] work well for accuracy drops as large as 50%. In contrast, BLINK works well for subtle degradations as well, with a moderate accuracy drop (e.g. 5% or 10%). Similarly, we set the abort threshold ( 𝑇 𝑤 ). The only difference is that instead of 𝜏 , we use a larger accuracy drop 𝜏 𝑎𝑏𝑜𝑟𝑡 (=50%) to obtain the ROC. Here, 𝜏 𝑎𝑏𝑜𝑟𝑡 denotes the catastrophic accuracy degradation which BLINK can easily detect but cannot meaningfully mitigate. 
+
+Recentering and Rescaling Parameters . The recentering and rescaling parameters ( 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 and 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 , respectively) are defined as follows. 
+
+𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 = 𝜇 clean − 𝜇 running 
+
+𝜎 running 
+
+, 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 = 𝜎 clean 
+
+𝜎 running 
+
+. (4) Here, 𝜇 clean and 𝜎 clean are the mean and standard deviation of the activation distribution on clean model. From (4), we get per chan-nel 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 and 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 for each batch. We run a clean model over 200 training batches of size 128, compute parameters from (4) and cal-culate their median to obtain 𝑧 𝑙,𝑐 𝜇,𝑡𝑔𝑡 and 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 . Using the median values suppresses batch-to-batch noise and bounds 𝑧 𝑙,𝑐 𝜎,𝑡𝑔𝑡 to [.5, 2]
+
+for numerical stability. 
+
+Trust Gates for Enhancing BLINK Detection . As discussed before, when BLINK is used as a standalone detection/mitigation framework, FPs are not particularly harmful and can be traded off to achieve low FNR. However, when BLINK is used in conjunction with other mitigation techniques (see Section 4), it primarily serves to continually monitor to detect issues on-the-fly, which invokes mitigation processes (such as FPT and BN-FT) that may be costly. In this case, reducing FPs is also important to avert unnecessary mitigation calls. To enhance the detection efficacy of BLINK, we use trust gates. For this, we run the clean model over the training set at the profiling batch size with all thresholds active, and count which layers raise an alarm. Our analysis shows that mostly the layers with 
+
+> 4
+
+smaller AUC flag unnecessarily. Hence, we find the largest AUC among those extra sensitive layers and use that AUC threshold as 
+
+𝐴𝑈𝐶 𝑡ℎ during detection. Any layer with 𝐴𝑈𝐶 > 𝐴𝑈𝐶 𝑡ℎ is allowed to flag, while for the other layers, flagging is suppressed. This helps reduce both FN and FP. 
+
+## 6 Experimental Setup 
+
+We evaluate ResNet-20(clean accuracy (CA)=88.95% on CIFAR-10), ResNet-50(CA=94.35%/78.56% on CIFAR-10/100) and MobileNetV2(CA = 91.96%/69.89% on CIFAR-10/100). Weights are quantized to 8-bits in the 2’s complement form following a symmetric per layer fixed point method. Activations are in FP32 format. 
+
+Fault Injection Setup: We evaluate BLINK under four fault models implemented by injecting bit-corruptions in the 8-bit weights. 
+
+Global random faults are injected uniformly across the whole accelerator considering the stuck-at fault (SAF) and bit-flip mod-els. These model transient upsets (radiation induced faults, thermal noise), near-threshold voltage scaling[23] or aging . We sweep fault rates from 0% to 2% and report an average over 100 independent trials with a fresh test batch and fault pattern. The safety-abort analysis uses this random-fault model at elevated rates 0.50%-4%. 
+
+Spatially localized faults: In a bit-sliced layout, each bit position of the INT8 weight is stored in a separate memory array. Consid-ering the worst case, we pick the arrays with most significant bits (MSBs) only. We randomly select a contiguous block of size 𝐵 𝑏𝑙𝑜𝑐𝑘 
+
+and consider that a sub-block of size 𝑓 𝑆𝐵 𝐵 𝑏𝑙𝑜𝑐𝑘 is corrupted. Within this sub-block, we randomly flip the MSB of fraction (c) of weight bits. Sweeping 𝑓 𝑆𝐵 ∈ { 0.05 , 0.1, 0.2, 0.5} and 𝑐 ∈ { 0.1, 0.2, 0.3, 0.5}
+
+gives an effective damaged fraction 𝑓 eff = 𝑓 SB · 𝑐 from 0 .5% to 25%. Progressive bit-flip attacks (PBFA) follow the progressive bit search of [21]. Each iteration ranks candidate bits by gradient magnitude ( 𝜕𝐿 /𝜕𝑤 ) and flips the single most damaging bit in each iteration. The corrupted model is re-ranked following the same process in the next iteration. We assume a non-adaptive attacker that does not jointly optimize damage and detector evasion. We run 100 independent attacks with an attack batch size of 128 and track accuracy over the first ten flips. 
+
+BLINK + Other BN-based techniques: We explore the use of BLINK’s detection with two previously proposed BN-based recov-ery methods using the configurations reported in the original works. For (FPT) [20], we re-estimate 𝜇 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 and 𝜎 𝑟𝑢𝑛𝑛𝑖𝑛𝑔 using forward passes over a small, unlabeled calibration set of 32 images for 32 iteration cycles to produce the best case for the baseline [20]. For BN-FT [1], we fine-tune the BN affine parameters ( 𝛾 and 𝛽 ) via su-pervised gradient descent for 5 epochs with 5000 training images. 
+
+## 7 Results 
+
+Since mitigation is ingrained in the detection process in BLINK, detection is evaluated with mitigation enabled. The only difference is the use of trust gates for detection evaluation, while for BLINK mitigation analysis, trust gates are disabled. 
+
+## 7.1 Detection 
+
+For detection, a trial is declared harmful when at least one trusted layer crosses its threshold at any point during the pass. The ground truth is measured with end-to-end accuracy drop and the detection results are based on comparing BLINK detection with the ground truth. Trials are graded in three zones: (1) Clean trials, where no corruption is injected, determine the false-positive rate (FPR). (2) Trials with sufficiently high faults rates such that the accuracy drop 
+
+≥ 𝜏 are deemed harmful and score the true-positive rate (TPR) and FNR. (3) Trials with lower fault rates result in accuracy drop below 
+
+𝜏 form a gray zone . Since the detector was not calibrated for this regime, gray-zone alarms are reported separately to illustrate the detection efficacy of BLINK beyond its calibrated regime. Precision (= TP/(TP+FP)) is computed over the clean and harmful trials only. We evaluate BLINK at 𝜏 = 10% and 𝜏 = 5%. The thresholds are calibrated once for 𝜏 = 10%. The same thresholds are used to ana-lyze 𝜏 = 5% to test the effectiveness of BLINK in catching milder degradations than it was calibrated for. 
+
+False positive rate: Since FPR depends only on clean trials, it is the same for all types of weight corruptions. Table. 1 shows that BLINK achieves very small FPR (1.1%) by virtue of the trust gates. 
+
+Random Bit-Flip Faults: As seen from Table 1, the BLINK detector never misses a harmful case for the trials conducted (TPR = 100% and FNR = 0) for both cases 𝜏 = 10% and 5% as intended by FNR constrained calibration. We can also see a high gray zone detection rate 83 .5% for 𝜏 = 10% and 73 .6% for 𝜏 = 5%. 
+
+Random Stuck-at Faults: These are tested for Resnet-50/Cifar-10 with accuracy drop of 10% and with around 2500 trials showing 100% TPR. 
+
+Spatially Localized Bit-Flip Faults: Amongst all corruption scenarios considered, the localized faults represent the worst case for activation shift detection. This is because it is challenging to detect faults which are concentrated in the later layers or final classifiers (FC), where few or no BN layers remain downstream to detect the activation shift. Despite that, BLINK exhibits excellent detection performance for localized faults (TPR around 98% - see Table. 1). 
+
+Bit Flip Attacks: For bit flip attacks, the detection is easier than all the other scenarios because of a large accuracy drop jump. The detector performance is 100% TPR and 0% FNR. A few trials fall into gray zone because the first iteration accuracy drop is very small. 
+
+Safety Abort: We evaluate the single-watcher gate (watcher at last BN) on MobileNetV2/CIFAR-10 over 150 trials spanning global fault rates 0 .5% − 4%. Treating a trial as positive when its corrected accuracy falls below 𝜏 𝑎𝑏𝑟𝑡 = 50%, the abort score 𝑆 𝑤 sep-arates recoverable from unrecoverable inferences with reliability score (AUC) of 0.98 shown in Fig. 2(e). The watcher gate achieves a recall (=TP/(TP+FN)) of 94 .4% and a false-abort rate of 7 .0%. 
+
+## 7.2 Mitigation 
+
+In this section, we will compare the mitigated accuracies for three methods. (i) standalone BLINK (ii) BLINK+ FPT (iii) BLINK+ BN-FT as described in Section. 4. All the mitigated accuracy numbers are averaged over several trials with multiple ( ∼ 100) fresh batches and fault patterns. Fig. 2 shows that BLINK recovers substantial accuracy entirely on the fly with no data access or host intervention. For random bit-flip faults , (Fig. 2(a), MobilenetV2/Cifar-10), BLINK recovers accuracy from 4% − 86% for different fault rates, only with the help of profiled parameters. For different workloads 
+
+> 5
+
+Figure 2: BLINK mitigation across all four fault types, stand-alone and combined with offline BN methods (BLINK+FPT, BLINK+BN-FT). (a) Random bit flips (MobileNetV2/CIFAR-10). (b) Stuck-at faults (ResNet-50/CIFAR-10). (c.1) Localized faults (MobileNetV2/CIFAR-10): recovered vs. faulty accuracy; dashed diagonal is no recovery. (c.2) Same, BLINK-only, colored by fault depth. (d) PBFA (ResNet-20/CIFAR-10): accuracy vs. bit flips. (e) Safety abort: accuracy drop vs. watcher score;  
+
+> 𝜏 𝑎𝑏𝑜𝑟𝑡 separates keep from abort. (f) Qualitative comparison of all methods.
+
+Table 1: Detection of random and spatially localized bit-flip faults (MobileNetV2/CIFAR-10, batch = 128) Corruption Metric 𝜏 =10% 𝜏 =5% Clean (no fault) FPR 1.1 1.1 Random/PBFA Harmful (TPR) 100 100 
+
+Gray zone detection 83.5 73.6 Precision 99.6 99.8 Localized Harmful (TPR) 98.5 96.6 Grey zone detection 39.7 34.0 Precision 99.8 99.9 and with varying fault rates, accuracy recovery achieved by BLINK is shown in Table. 2. Similarly, for random stuck-at faults (Fig. 2(b)), BLINK’s mitigation achieves excellent recovery even for very large fault rates. For spatially localized faults in Fig. 2(c.2), re-coveries depend on fault depth. For early (yellow) and mid (purple) region, we observe a substantial accuracy recovery (data points far above the zero-recovery line). Even for some late-region (green) trials, mild recovery is observed. However, for some late region trials, recovery is not seen because few or no BN layers remain downstream to mitigate the damage. In particular, the final classifier has no BN layer after it and is therefore outside BLINK’s protection, which is a limitation of our approach. For PBFA [21] we evaluate ResNet-20/CIFAR-10. The results are shown in Fig. 2(d) where solid lines are the mean and shaded bands 
+
+Table 2: Top-1 accuracy (%) under random bit-flips for differ-ent fault rates. FA: faulty accuracy; RA: Recovered accuracy (BLINK). 
+
+Network Dataset 0.10% 0.20% 0.50% FA RA FA RA FA RA 
+
+ResNet-50 CIFAR-10 90.14 91.19 14.48 84.55 10.00 85.88 ResNet-50 CIFAR-100 70.80 73.84 54.24 69.64 1.00 62.65 MobileNetV2 CIFAR-10 85.83 88.78 76.76 86.80 47.60 82.20 MobileNetV2 CIFAR-100 41.77 61.73 35.37 58.80 7.84 52.01 
+
+are ±1 standard deviation. Without any defense (red dashed), the attack is devastating, and a handful of flips drives accuracy from the clean 88 .9% down to 10%. The wide red band shows that the outcome is also highly erratic from trial to trial. BLINK stops the collapse and recovers accuracy significantly. Across all fault types, method (ii) and (iii) recovers a few points more than standalone BLINK, at the cost of halting inference and us-ing host access or using data access (Fig. 2(f)) . The gap is largest for the most severe localized faults (Fig. 2(c)), where method (iii) recov-ers nearly to clean accuracy in the regime where BLINK and method (ii) do not perform that well. Labeled data and back-propagation buy that recovery for BLINK+BN-FT. 
+
+## 8 Hardware Overhead 
+
+We estimate the hardware overhead considering a 128 × 128 weight stationary systolic array structure with the assumption of 100% 
+
+> 6
+
+array utilization with a functional unit of 128 ops/cycle to compute the extra computation. Inside the functional unit, we assume that the cost of computing one addition, multiplication or comparison is equal to one multiply-accumulate (MAC). Note that this leads to conservative overheads of BLINK. For full inference, several arrays are utilized to perform the per layer convolution operations. For BLINK, the calculation of parameters, 𝜇 𝑏 and 𝜎 𝑏 lead to computational overhead but no additional latency cycles because they are computed in parallel as the activations are generated. The computation of the comparison with threshold and the BN recalibration parameters ( 𝜇 𝑛𝑒𝑤 and 𝜎 𝑛𝑒𝑤 ) cost extra cycles as well as computation. The computation overhead is calculated based on the number of MAC/addition/multiplication/comparison operations and the latency overhead is obtained based on the number of cycles needed for each operation. Based on this estimation model, the computation overhead of BLINK for batch size of 128 is 0 .53% for Resnet-50 and 4 .5% for MobilenetV2 for the worst-case scenario (in which each layer is flagged and mitigated). The corresponding latency overhead is 0 .03% for Resnet-50 and 1 .05% for MobilenetV2. 
+
+## 9 Conclusion 
+
+We present BLINK, an autonomous on-chip BN based in-situ de-tection and mitigation technique for a broad spectrum of weight corruptions. BLINK is based on monitoring the shifts in the acti-vation statistics due to weight perturbations and recentering them upon detection of harmful corruptions. BLINK achieves excellent detection efficacy across various fault types and PBFA, and recovers significant amount of accuracy on-the-fly depending only on of-fline profiling and pre-characterization of parameters, leading to a fully autonomous approach. Hardware overhead estimation shows a negligible computational and latency costs incurred by BLINK. Combining BLINK detection with prior recovery methods brings accuracy even closer to the ideal value but at the cost of autonomy. 
+
+## Acknowledgment 
+
+This work was supported in part by the Center for the Co-Design of Cognitive Systems (CoCoSys), one of seven centers in JUMP 2.0, a Semiconductor Research Corporation (SRC) program sponsored by DARPA. 
+
+## References 
+
+[1] Abhiroop Bhattacharjee, Abhishek Moitra, Youngeun Kim, Yeshwanth Venkate-sha, and Priyadarshini Panda. Examining the role and limits of batchnorm optimization to mitigate diverse hardware-noise in in-memory computing. In 
+
+Proceedings of the Great Lakes Symposium on VLSI 2023 , pages 619–624, 2023. [2] Zitao Chen, Guanpeng Li, and Karthik Pattabiraman. A low-cost fault corrector for deep neural networks through range restriction. In 2021 51st Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN) , pages 1–13. IEEE, 2021. [3] Lucian Cojocar, Kaveh Razavi, Cristiano Giuffrida, and Herbert Bos. Exploiting correcting codes: On the effectiveness of ECC memory against Rowhammer attacks. In 2019 IEEE Symposium on Security and Privacy (SP) , pages 55–71. IEEE Computer Society, 2019. [4] Zhezhi He, Adnan Siraj Rakin, Jingtao Li, Chaitali Chakrabarti, and Deliang Fan. Defending and harnessing the bit-flip based adversarial weight attack. In 
+
+IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. [5] Le-Ha Hoang, Muhammad Abdullah Hanif, and Muhammad Shafique. FT-ClipAct: Resilience analysis of deep neural networks and improving their fault tolerance using clipped activation. In 2020 Design, Automation & Test in Europe Conference & Exhibition (DATE) , pages 1241–1246. IEEE, 2020. [6] Kuang-Hua Huang and Jacob A. Abraham. Algorithm-based fault tolerance for matrix operations. IEEE Transactions on Computers , C-33(6):518–528, 1984. [7] Mojan Javaheripi and Farinaz Koushanfar. HASHTAG: Hash signatures for online detection of fault-injection attacks on deep neural networks. In 2021 IEEE/ACM International Conference On Computer Aided Design (ICCAD) , pages 1–9, 2021. [8] Vinay Joshi, Manuel Le Gallo, Simon Haefeli, Irem Boybat, Sasidharan Rajalek-shmi Nandakumar, Christophe Piveteau, Martino Dazzi, Bipin Rajendran, Abu Sebastian, and Evangelos Eleftheriou. Accurate deep neural network inference using computational phase-change memory. Nature communications , 11(1):2473, 2020. [9] Sung Kim, Patrick Howe, Thierry Moreau, Armin Alaghi, Luis Ceze, and Visvesh Sathe. MATIC: Learning around errors for efficient low-voltage neural network accelerators. In Design, Automation & Test in Europe Conference (DATE) , 2018. [10] Shamik Kundu, Mirazul Haque, Sanjay Das, Wei Yang, and Kanad Basu. MEND-Net: Just-in-time fault detection and mitigation in AI systems with uncertainty quantification and multi-exit networks. In Proceedings of the 61st ACM/IEEE Design Automation Conference , pages 1–6, 2024. [11] Jingtao Li, Adnan Siraj Rakin, Zhezhi He, Deliang Fan, and Chaitali Chakrabarti. RADAR: Run-time adversarial weight attack detection and accuracy recovery. In 
+
+2021 Design, Automation & Test in Europe Conference & Exhibition (DATE) , pages 790–795, 2021. [12] Jingtao Li, Adnan Siraj Rakin, Yan Xiong, Liangliang Chang, Zhezhi He, Deliang Fan, and Chaitali Chakrabarti. Defending bit-flip attack through DNN weight reconstruction. In 2020 57th ACM/IEEE Design Automation Conference (DAC) ,pages 1–6. IEEE, 2020. [13] Chenchen Liu, Miao Hu, John Paul Strachan, and Hai Li. Rescuing memristor-based neuromorphic design with high defects. In 2017 54th ACM/EDAC/IEEE Design Automation Conference (DAC) , pages 1–6, 2017. [14] Qi Liu, Wujie Wen, and Yanzhi Wang. Concurrent weight encoding-based detec-tion for bit-flip attack on neural network accelerators. In IEEE/ACM International Conference on Computer-Aided Design (ICCAD) , 2020. [15] Qi Liu, Jieming Yin, Wujie Wen, Chengmo Yang, and Shi Sha. NeuroPots: Realtime proactive defense against bit-flip attacks in neural networks. In 32nd USENIX Security Symposium (USENIX Security 23) , pages 6347–6364, 2023. [16] Robert E Lyons and Wouter Vanderkulk. The use of triple-modular redundancy to improve computer reliability. IBM journal of research and development , 6(2):200– 209, 1962. [17] Dongning Ma, Fred Lin, Alban Desmaison, Joel Coburn, Daniel Moore, Sriram Sankar, and Xun Jiao. Dr. DNA: Combating silent data corruptions in deep learning using distribution of neuron activations. In Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 3 , pages 239–252, 2024. [18] Akul Malhotra and Sumeet Kumar Gupta. Weight transformations in bit-sliced crossbar arrays for fault tolerant computing-in-memory: Design techniques and evaluation framework. arXiv preprint arXiv:2512.18459 , 2025. [19] Fanruo Meng, Fateme S Hosseini, and Chengmo Yang. A self-test framework for detecting fault-induced accuracy drop in neural network accelerators. In 
+
+Proceedings of the 26th Asia and South Pacific Design Automation Conference ,pages 722–727, 2021. [20] Chenghao Quan, Mohammed E Fouda, Sugil Lee, Giju Jung, Jongeun Lee, Ahmed E Eltawil, and Fadi Kurdahi. Training-free stuck-at fault mitigation for ReRAM-based deep learning accelerators. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems , 42(7):2174–2186, 2023. [21] Adnan Siraj Rakin, Zhezhi He, and Deliang Fan. Bit-flip attack: Crushing neural network with progressive bit search. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 1211–1220, 2019. [22] Adnan Siraj Rakin, Zhezhi He, and Deliang Fan. T-BFA: Targeted bit-flip adversar-ial weight attack. IEEE Transactions on Pattern Analysis and Machine Intelligence ,2022. [23] David Stutz, Nandhini Chandramoorthy, Matthias Hein, and Bernt Schiele. Bit error robustness for energy-efficient DNN accelerators. Proceedings of Machine Learning and Systems , 3:569–598, 2021. [24] Xiaohui Wei, Xiaonan Wang, Yumin Yan, Ning Jiang, and Hui Yue. ALERT: A lightweight defense mechanism for enhancing DNN robustness against T-BFA. 
+
+Journal of Systems Architecture , 152:103160, 2024. [25] Kai Zhao, Sheng Di, Sihuan Li, Xin Liang, Yujia Zhai, Jieyang Chen, Kaiming Ouyang, Franck Cappello, and Zizhong Chen. FT-CNN: Algorithm-based fault tolerance for convolutional neural networks. IEEE Transactions on Parallel and Distributed Systems , 32(7):1677–1689, 2021.

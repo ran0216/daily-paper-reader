@@ -1,0 +1,563 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-09T22:09:01.161363+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 8,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 8,
+    "quick_skim_target": 11,
+    "quick_selected": 8
+  },
+  "deep_dive": [
+    {
+      "id": "2609.05982v1",
+      "source": "arxiv",
+      "title": "CMD: An Integrated CGRA Framework with Cluster-Based Distributed Memory Design",
+      "abstract": "Coarse-Grained Reconfigurable Arrays (CGRAs) are a promising solution for achieving high energy efficiency and reconfigurability across various application domains, but their performance is often crippled by rigid memory architectures that limit the number and location of tiles that can access data memory. This creates a significant bottleneck for kernels with intensive memory accesses. To address this, we propose CMD, an integrated CGRA framework featuring cluster-based distributed memory design with a co-designed compilation toolchain. The compiler includes a novel memory-aware mapper and a design space exploration (DSE) mechanism that identifies the optimal memory architecture design for specific kernels. Experimental results show that our post-DSE CMD CGRAs achieve an average speedup of $1.39\\times$ over a conventional CGRA while simultaneously reducing the total area to an average of $0.912\\times$ of the conventional CGRA.",
+      "authors": [
+        "Shangkun Li",
+        "Cheng Tan",
+        "Zeyu Li",
+        "Jinming Ge",
+        "Jiawei Liang",
+        "Hao Yang",
+        "Linfeng Du",
+        "Jiang Xu",
+        "Wei Zhang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T08:55:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.05982v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "integrated CGRA framework with cluster-based distributed memory design and co-designed compiler",
+      "llm_evidence_cn": "面向粗粒度可重构阵列的簇式分布式存储架构与编译协同设计综合框架",
+      "llm_evidence": "面向粗粒度可重构阵列的簇式分布式存储架构与编译协同设计综合框架",
+      "canonical_evidence": "面向粗粒度可重构阵列的簇式分布式存储架构与编译协同设计综合框架",
+      "llm_tldr_en": "CMD integrates a cluster-based distributed memory design with a co-designed compilation toolchain for CGRAs, including a memory-aware mapper and design space exploration that selects the best memory architecture for each kernel.",
+      "llm_tldr_cn": "CGRA的性能常受刚性存储架构限制，导致可访问数据内存的瓦片数量和位置固定。本文提出CMD集成框架，将基于簇的分布式存储设计与编译工具链协同起来。编译器内置内存感知映射器和设计空间探索机制，可为特定内核找到最优存储架构配置。实验验证该框架能缓解内存访问瓶颈并提升能效，为CGRA芯片架构与工具链设计提供了完整方案。",
+      "llm_tldr": "CGRA的性能常受刚性存储架构限制，导致可访问数据内存的瓦片数量和位置固定。本文提出CMD集成框架，将基于簇的分布式存储设计与编译工具链协同起来。编译器内置内存感知映射器和设计空间探索机制，可为特定内核找到最优存储架构配置。实验验证该框架能缓解内存访问瓶颈并提升能效，为CGRA芯片架构与工具链设计提供了完整方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.08424v1",
+      "source": "arxiv",
+      "title": "PENDA: An Efficient Processing Element via Norm-of-Difference for Deep Learning Accelerators",
+      "abstract": "Inner product computation dominates the computational cost of deep learning models; thus, accelerating this primitive is key to improving hardware efficiency. However, most existing techniques rely on approximations, which can degrade model accuracy. To preserve exactness while optimizing hardware, this paper presents PENDA (processing element via norm-of-difference architecture), which leverages the law of cosines to recast multiplications as squared-difference operations. Replacing multiply-accumulate units with the proposed norm-of-difference units yields 11~36%, 5~48%, and 11~19% reductions in area, energy, and clock period, respectively, for the PE array of a deep learning accelerator.",
+      "authors": [
+        "Kai-Chieh Hsu",
+        "Tian-Sheuan Chang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:32:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.08424v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes a new norm-of-difference processing element architecture for deep learning accelerators, replacing MAC units for exact and efficient AI hardware compute",
+      "llm_evidence_cn": "提出基于范数差的新型深度学习加速器处理单元架构，直接面向人工智能加速器硬件设计",
+      "llm_evidence": "提出基于范数差的新型深度学习加速器处理单元架构，直接面向人工智能加速器硬件设计",
+      "canonical_evidence": "提出基于范数差的新型深度学习加速器处理单元架构，直接面向人工智能加速器硬件设计",
+      "llm_tldr_en": "PENDA replaces multiply-accumulate units in deep learning accelerator PE arrays with exact norm-of-difference units, reducing area, energy and clock period by 11-36%, 5-48% and 11-19%, respectively, offering a low-cost hardware primitive for AI acceleration.",
+      "llm_tldr_cn": "深度学习加速器的核心开销来自内积计算，现有加速方式多为近似计算而牺牲精度。PENDA基于余弦定理将乘法重写为平方差操作，设计范数差处理单元，在保持精确性的同时优化硬件开销。在深度学习加速器PE阵列中替换乘累加单元后，面积、能量和时钟周期分别降低11%—36%、5%—48%和11%—19%。该成果为AI加速器处理单元微架构提供了新的精确计算路径，对芯片架构设计有直接参考价值。",
+      "llm_tldr": "深度学习加速器的核心开销来自内积计算，现有加速方式多为近似计算而牺牲精度。PENDA基于余弦定理将乘法重写为平方差操作，设计范数差处理单元，在保持精确性的同时优化硬件开销。在深度学习加速器PE阵列中替换乘累加单元后，面积、能量和时钟周期分别降低11%—36%、5%—48%和11%—19%。该成果为AI加速器处理单元微架构提供了新的精确计算路径，对芯片架构设计有直接参考价值。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.08446v1",
+      "source": "arxiv",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "abstract": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "authors": [
+        "Nicolas Chauvaux",
+        "Adrian Kneip",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:50:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.08446v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Digital compute-in-memory accelerator for spiking neural networks, an artificial intelligence accelerator hardware architecture",
+      "llm_evidence_cn": "面向脉冲神经网络的数字存内计算加速器，属于人工智能加速器硬件架构",
+      "llm_evidence": "面向脉冲神经网络的数字存内计算加速器，属于人工智能加速器硬件架构",
+      "canonical_evidence": "面向脉冲神经网络的数字存内计算加速器，属于人工智能加速器硬件架构",
+      "llm_tldr_en": "FlexSpIM proposes a digital CIM accelerator for SNNs with support for arbitrary operand precision and layer-wise hybrid weight/output stationary dataflow, enabling flexible and low-energy edge vision inference.",
+      "llm_tldr_cn": "脉冲神经网络(SNN)存内计算加速器有望实现微秒级延迟和超低能耗的边缘视觉推理，但电路与系统层面灵活性不足，使其难以适配多样负载，且数据搬运开销大。FlexSpIM提出数字存内计算架构，在统一存储权重与膜电位的条件下支持任意操作数精度和形状，进而实现层间混合权重-输出驻留数据流。该设计在电路功能层面最大化操作数重复利用，减少片上与片外数据移动，为事件驱动型SNN加速器提供更高能效与灵活性的实现路径。",
+      "llm_tldr": "脉冲神经网络(SNN)存内计算加速器有望实现微秒级延迟和超低能耗的边缘视觉推理，但电路与系统层面灵活性不足，使其难以适配多样负载，且数据搬运开销大。FlexSpIM提出数字存内计算架构，在统一存储权重与膜电位的条件下支持任意操作数精度和形状，进而实现层间混合权重-输出驻留数据流。该设计在电路功能层面最大化操作数重复利用，减少片上与片外数据移动，为事件驱动型SNN加速器提供更高能效与灵活性的实现路径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.05960v1",
+      "source": "arxiv",
+      "title": "GPU-Accelerated Gate-Level Time-Based Power Analysis via Event-Density-Aware Partitioning and Kernel Fusion",
+      "abstract": "Power analysis is crucial in modern chip design flow. Particularly, time-based power analysis can provide fine-grained power consumption information to facilitate the diagnosis of power issues and guide power optimization accordingly. However, it may take tens of hours to conduct time-based power analysis on modern large-scale circuits, which greatly slows down the power optimization flow. In this paper, we present the first GPU-accelerated gate-level time-based power analysis framework. We propose a novel data structure to enable efficient state-dependent power retrieval. To accommodate the imbalanced event distribution across gates, we propose an event-density-aware partitioning strategy that allocates GPU threads based on gate event density. Finally, we fuse the power computation into a single kernel invocation to reduce redundant work in separate kernels. Experimental results show that our proposed framework achieves high accuracy while delivering up to 37.63x end-to-end speedup compared to multi-threaded Synopsys PrimeTime PX.",
+      "authors": [
+        "Weihao Wang",
+        "Yikang Ouyang",
+        "Hongyuan Liu",
+        "Yuzhe Ma"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T07:53:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.05960v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "GPU-accelerated gate-level time-based power analysis for chip design flow; a digital IC design/implementation technique.",
+      "llm_evidence_cn": "面向芯片设计流程的门级时基功耗分析GPU加速方法，属于数字集成电路设计与实现技术。",
+      "llm_evidence": "面向芯片设计流程的门级时基功耗分析GPU加速方法，属于数字集成电路设计与实现技术。",
+      "canonical_evidence": "面向芯片设计流程的门级时基功耗分析GPU加速方法，属于数字集成电路设计与实现技术。",
+      "llm_tldr_en": "Introduces a GPU-accelerated framework for gate-level time-based power analysis, using state-dependent power retrieval, event-density-aware thread partitioning, and kernel fusion to accelerate multi-hour chip design flows.",
+      "llm_tldr_cn": "时基功耗分析能提供细粒度功耗信息来缩短芯片功耗诊断和优化，但处理大规模电路可能需要数十小时。该工作提出首个GPU加速的门级时基功耗分析框架，通过新数据结构支持高效状态相关功耗检索，并设计事件密度感知划分策略平衡不平衡的门级事件分布，同时采用内核融合减少同步开销。实验证明该方法能大幅提升大规模电路功耗分析的效率，有助于现代芯片设计中的功耗优化迭代。这为EDA工具引入GPU并行计算提供了可借鉴的加速途径。",
+      "llm_tldr": "时基功耗分析能提供细粒度功耗信息来缩短芯片功耗诊断和优化，但处理大规模电路可能需要数十小时。该工作提出首个GPU加速的门级时基功耗分析框架，通过新数据结构支持高效状态相关功耗检索，并设计事件密度感知划分策略平衡不平衡的门级事件分布，同时采用内核融合减少同步开销。实验证明该方法能大幅提升大规模电路功耗分析的效率，有助于现代芯片设计中的功耗优化迭代。这为EDA工具引入GPU并行计算提供了可借鉴的加速途径。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06125v1",
+      "source": "arxiv",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "abstract": "Wafer-scale GPUs (WSGs) provide sufficient on-wafer bandwidth to make near-lossless Unified Memory feasible. However, existing designs still rely on a CPU-IOMMU to translate remote virtual-address accesses. This centralized mechanism scales poorly to tens of GPU dies: translation requests must traverse costly off-wafer hierarchies and contend for limited CPU-side resources, making address translation a critical bottleneck. We propose WaferTrans, an IOMMU-free distributed virtual-address translation design for WSGs. WaferTrans introduces PTE Presence Consistency (PTE-PC), a lightweight consistency model that tracks PTE insertions and removals, and equips each GPU with a PTE Presence Directory (PPD) that locates the GPU holding a requested PTE. It further employs a distributed PTE-PC mapping and a cooperative query mechanism to localize PTE-PC maintenance while preserving complete lookup coverage. Together, these mechanisms enable the GPU array to resolve remote translations within the wafer, eliminating its dependence on the CPU-IOMMU. Compared with the SOTA Trans-FW design, WaferTrans improves performance by 2.5x on average.",
+      "authors": [
+        "Xinru Tang",
+        "Jingxiang Hou",
+        "Guanghong Wu",
+        "Yang Hu",
+        "Shouyi Yin"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T14:47:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.06125v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "wafer-scale GPU microarchitecture with distributed IOMMU-free virtual address translation",
+      "llm_evidence_cn": "面向晶圆级GPU的免IOMMU分布式虚拟地址翻译微架构设计",
+      "llm_evidence": "面向晶圆级GPU的免IOMMU分布式虚拟地址翻译微架构设计",
+      "canonical_evidence": "面向晶圆级GPU的免IOMMU分布式虚拟地址翻译微架构设计",
+      "llm_tldr_en": "Wafer-scale GPU address translation via a CPU-IOMMU is a bottleneck; WaferTrans removes the centralized IOMMU, giving each GPU a PTE presence directory and a lightweight PTE-presence consistency model for scalable distributed translation across dozens of dies.",
+      "llm_tldr_cn": "晶圆级GPU要使统一内存在片内带宽下接近无损，但现有依赖CPU-IOMMU的集中式地址翻译难以扩展到几十个GPU裸片。本文提出WaferTrans，为每个GPU设置页表项存在性目录（PPD），并采用轻量级PTE存在性一致性模型维护页表插入与删除，从而把虚拟地址翻译分布到各GPU片内。这样可避免片外多层翻译与CPU端资源争用，提升晶圆级GPU可扩展性和统一内存效率，是大规模GPU体系结构层面的一项关键设计。",
+      "llm_tldr": "晶圆级GPU要使统一内存在片内带宽下接近无损，但现有依赖CPU-IOMMU的集中式地址翻译难以扩展到几十个GPU裸片。本文提出WaferTrans，为每个GPU设置页表项存在性目录（PPD），并采用轻量级PTE存在性一致性模型维护页表插入与删除，从而把虚拟地址翻译分布到各GPU片内。这样可避免片外多层翻译与CPU端资源争用，提升晶圆级GPU可扩展性和统一内存效率，是大规模GPU体系结构层面的一项关键设计。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "architecture design of CPU GPU and NPU for artificial intelligence acceleration",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.06408v1",
+      "source": "arxiv",
+      "title": "Differentiable Partitioning with Placement and Hybrid Bonding Terminal Awareness for Optimized 3D Placement",
+      "abstract": "Research on 3D-ICs physical design has expanded rapidly in recent years. Hybrid bonding-enabled 3D integrated circuits (3D-ICs) offer substantial benefits in interconnect scaling and system integration, yet tier assignment remains challenging because it jointly determines 3D wirelength and hybrid bonding terminal (HBT) assignment. This paper presents a differentiable partitioning framework that directly optimizes placement-aware tier assignment for 3D-ICs through gradient-based optimization. Discrete tier assignment is relaxed to continuous probabilities, and a Dual-Max 3D wirelength model is introduced to capture per-tier half-perimeter wirelength (HPWL). In addition, a terminal-aware cutsize penalty selectively suppresses cross-die nets in HBT-congested regions, and a local balance constraint enforces grid-cell density equilibrium across tiers. Experimental results on OpenROAD benchmarks show that our method reduces D2D HPWL by 2.0% on average over two min-cut baselines and by 12.1% over the state-of-the-art 3D placer. We open-source our partition code with 3D placement flow to support reproducibility.",
+      "authors": [
+        "Liwen Jiang",
+        "Xu Shi",
+        "Rufeng Xiao",
+        "Changhao Yan",
+        "Rujun Jiang",
+        "Zhiang Wang",
+        "Keren Zhu"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET"
+      ],
+      "published": "2026-09-06T05:56:14+00:00",
+      "link": "https://arxiv.org/pdf/2609.06408v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "differentiable placement-aware tier partitioning for hybrid-bonding 3D ICs",
+      "llm_evidence_cn": "面向混合键合3D IC的可微布局感知层划分方法",
+      "llm_evidence": "面向混合键合3D IC的可微布局感知层划分方法",
+      "canonical_evidence": "面向混合键合3D IC的可微布局感知层划分方法",
+      "llm_tldr_en": "Proposes a differentiable partitioning framework for hybrid-bonding-based 3D IC placement, relaxing tier assignment to probabilities with a Dual-Max 3D wirelength model and terminal-aware cut penalty, enabling gradient-based layout-aware optimization.",
+      "llm_tldr_cn": "面向混合键合3D集成电路的布局困难，该文提出一个可微划分框架，将离散层分配松弛为连续概率，并用Dual-Max 3D线长模型刻画各层半周长线长，同时引入终端感知割惩罚来维护混合键合终端分布。梯度优化直接以布局后的线长和终端分配为目标，避免传统两阶段方法的割裂。该方法为3D-IC物理设计中的层分配问题提供端到端可优化路线，有望减少3D线长并提升可布线性。",
+      "llm_tldr": "面向混合键合3D集成电路的布局困难，该文提出一个可微划分框架，将离散层分配松弛为连续概率，并用Dual-Max 3D线长模型刻画各层半周长线长，同时引入终端感知割惩罚来维护混合键合终端分布。梯度优化直接以布局后的线长和终端分配为目标，避免传统两阶段方法的割裂。该方法为3D-IC物理设计中的层分配问题提供端到端可优化路线，有望减少3D线长并提升可布线性。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.06796v1",
+      "source": "arxiv",
+      "title": "Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators",
+      "abstract": "Multi-chiplet photonic neural network accelerators (MCPNAs) combine photonic computation, photonic communica-tion, and heterogeneous chiplet integration to enable scalable and energy-efficient AI acceleration. However, their distributed archi-tecture and reliance on third-party chiplets introduce significant hardware security risks. This paper examines Hardware Trojan (HT) threats to MCPNAs across three dimensions: confidentiality, integrity, and availability.",
+      "authors": [
+        "Sudeep Pasricha"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-06T19:35:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.06796v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "analyzes hardware Trojan threats in multi-chiplet photonic neural network accelerators combining photonic compute and chiplet integration for AI",
+      "llm_evidence_cn": "分析融合光子计算与芯粒集成的多芯粒光子神经网络加速器所面临的硬件木马威胁",
+      "llm_evidence": "分析融合光子计算与芯粒集成的多芯粒光子神经网络加速器所面临的硬件木马威胁",
+      "canonical_evidence": "分析融合光子计算与芯粒集成的多芯粒光子神经网络加速器所面临的硬件木马威胁",
+      "llm_tldr_en": "This paper examines Hardware Trojan threats to multi-chiplet photonic neural network accelerators across confidentiality, integrity, and availability, highlighting security risks in distributed chiplet-based AI hardware.",
+      "llm_tldr_cn": "多芯粒光子神经网络加速器(MCPNA)通过光子计算、光子通信和异构芯粒集成实现可扩展高能效AI加速，但其分布式结构与第三方芯粒带来安全挑战。论文从机密性、完整性和可用性三个维度系统分析了硬件木马威胁，指出攻击者可利用芯粒间通信链路或恶意芯粒破坏系统。这类安全分析对MCPNA等新型AI加速器架构的可靠部署具有重要意义，也为后续加固设计提供指引。",
+      "llm_tldr": "多芯粒光子神经网络加速器(MCPNA)通过光子计算、光子通信和异构芯粒集成实现可扩展高能效AI加速，但其分布式结构与第三方芯粒带来安全挑战。论文从机密性、完整性和可用性三个维度系统分析了硬件木马威胁，指出攻击者可利用芯粒间通信链路或恶意芯粒破坏系统。这类安全分析对MCPNA等新型AI加速器架构的可靠部署具有重要意义，也为后续加固设计提供指引。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.07907v1",
+      "source": "arxiv",
+      "title": "A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity",
+      "abstract": "We present a 28nm digital Ising accelerator with 27,648 spins across four chips. A time-multiplexed spin-update array with local SRAM and scheduled interchip transfers delivers 41.5G updates/s at 1.2pJ/update. Degree-15 Pegasus connectivity and 10b coefficients increase native connectivity and precision over degree-8, 5b multichip annealers. Programmable couplings support optimization and probabilistic logic, with a four-chip planted-MaxCut trace reaching the solution for 27,069 nodes in 3.3$μ$s.",
+      "authors": [
+        "Tong Wu",
+        "Atharva Raut",
+        "Ian Khor",
+        "Ziyad Alswaidan",
+        "Ting-Yu Lee",
+        "Hongchang Kuang",
+        "Navid Anjum Aadit",
+        "Anand Raju",
+        "Dhruv Chinmay",
+        "Siddharth Das",
+        "Ken Mai",
+        "Kerem Camsari",
+        "Tathagata Srimani"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.ET"
+      ],
+      "published": "2026-09-07T19:19:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.07907v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "28nm four-chip digital Ising accelerator with time-multiplexed spin updates",
+      "llm_evidence_cn": "28nm四芯片数字Ising加速器，含时分复用自旋更新阵列",
+      "llm_evidence": "28nm四芯片数字Ising加速器，含时分复用自旋更新阵列",
+      "canonical_evidence": "28nm四芯片数字Ising加速器，含时分复用自旋更新阵列",
+      "llm_tldr_en": "Presents a 28nm four-chip digital Ising accelerator holding 27,648 spins, using time-multiplexed updates with local SRAM and scheduled interchip transfers to reach 41.5G updates/s and 1.2pJ/update.",
+      "llm_tldr_cn": "针对组合优化和概率逻辑加速需求，该文在28nm工艺上设计了一个包含27648个自旋的四芯片数字伊辛加速器。采用时分复用的自旋更新阵列、本地SRAM和调度化片间传输，达到了41.5G次更新每秒和1.2pJ每次更新的能效。相比以往多芯片退火器，它提供度数为15的Pegasus连接与10位系数，并以四芯片planted MaxCut案例证明了规模化离散优化求解能力。",
+      "llm_tldr": "针对组合优化和概率逻辑加速需求，该文在28nm工艺上设计了一个包含27648个自旋的四芯片数字伊辛加速器。采用时分复用的自旋更新阵列、本地SRAM和调度化片间传输，达到了41.5G次更新每秒和1.2pJ每次更新的能效。相比以往多芯片退火器，它提供度数为15的Pegasus连接与10位系数，并以四芯片planted MaxCut案例证明了规模化离散优化求解能力。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.04058v1",
+      "source": "arxiv",
+      "title": "AI-Assisted Design of a Post-Quantum Cryptographic Accelerator: A Deployed-Silicon Case Study",
+      "abstract": "Post-quantum migration is mandated on published timelines, and silicon that ships with a defect cannot be patched remotely. The standard acceptance gate cannot detect an entire class of ML-DSA defects. Signing resamples until a candidate meets its norm bounds, so the executed path varies with the message, whereas known-answer tests (KATs) sample fixed values and reach only the depths their seeds trigger. Our accelerator passed its full KAT regression while carrying a norm check that outran block-RAM latency, leaving each candidate's final coefficients unverified; the escape surfaced at reject-loop iteration 5. The blind spot lies in the instrument, not the engineer; care cannot remove it. We replace that gate. A byte-exact golden-reference oracle paired with randomized adversarial soak drives the rejection loop past any fixed vector, closing the gap: 301,343 data-dependent signings, zero escapes. Because the gate judges artifacts and never authors, trust becomes separable from authorship, making AI authorship an answerable question. We report 232 logged experiments in which an agentic large language model drove a unified ML-KEM-768 and ML-DSA-65 accelerator with on-chip key custody from RTL to PCIe bring-up on one Kintex-7 XC7K160T, shipped at 98.5% slice occupancy. Success was 71.6%, following a hardware-coupling gradient, 77-85% for documentation and research against 50-53% for synthesis and bring-up, which observability can explain: failure concentrates where corrective signals are physical-side only. That so unreliable an author produced an artifact byte-exact across all six FIPS operations -- its deployed baseline surviving the same 779,945-check zero-failure soak -- is the claim.",
+      "authors": [
+        "Jungmin Park",
+        "Eunha Kim",
+        "Wooseop Kim",
+        "Seongjoon Cho",
+        "Byungho Cha"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AR"
+      ],
+      "published": "2026-09-03T16:34:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.04058v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "deployed-silicon case study of a digital cryptographic accelerator",
+      "llm_evidence_cn": "一个数字密码加速器的已流片硅案例研究",
+      "llm_evidence": "一个数字密码加速器的已流片硅案例研究",
+      "canonical_evidence": "一个数字密码加速器的已流片硅案例研究",
+      "llm_tldr_en": "A deployed-silicon case study showing that KAT regression can miss ML-DSA norm-check timing defects; the paper replaces such a validation gate to catch failures hidden in rejection-loop execution paths.",
+      "llm_tldr_cn": "针对后量子ML-DSA签名加速器在流片后无法远程修复的缺陷问题，该案例研究指出，已知答案测试(KAT)只覆盖种子触发的固定路径，会漏掉重采样循环中的规范检查缺陷。作者用字节精确金模型替换标准验收门，使此类误差在验证中可被发现。这表明AI辅助验证需覆盖动态执行路径，对密码加速器的可靠流片具有重要意义。",
+      "llm_tldr": "针对后量子ML-DSA签名加速器在流片后无法远程修复的缺陷问题，该案例研究指出，已知答案测试(KAT)只覆盖种子触发的固定路径，会漏掉重采样循环中的规范检查缺陷。作者用字节精确金模型替换标准验收门，使此类误差在验证中可被发现。这表明AI辅助验证需覆盖动态执行路径，对密码加速器的可靠流片具有重要意义。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "digital integrated circuit design and implementation techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.08682v1",
+      "source": "arxiv",
+      "title": "HDA-MoE: Hybrid Parallelism and Dynamic, Adaptive Scheduling for Mixture-of-Experts with 3D Near-Memory Processing",
+      "abstract": "Mixture-of-Experts (MoE) architectures have become a key technique for scaling Large Language Models (LLMs), enabling high model capacity with reduced computational cost. However, this efficiency comes at the expense of increased memory capacity and bandwidth demands. Recent 3D Near-Memory Processing (NMP) architectures, which vertically integrate memory and compute through hybrid bonding, provide high internal bandwidth and energy efficiency, making them attractive for accelerating MoE inference. Nevertheless, the distributed memory and compute organization of NMP systems introduces new challenges for mapping MoE workloads. Existing parallelization strategies, such as Tensor Parallelism (TP) and Expert Parallelism (EP), suffer from either high communication costs or unbalanced computation utilization, leading to inferior efficiency. In addition, the dynamic routing behavior of MoE models further complicates efficient deployment. To address these challenges, we present HDA-MoE, a framework that optimizes MoE execution on NMP architectures through hybrid parallel deployment and runtime scheduling. HDA-MoE integrates an offline hybrid parallel mapping algorithm with an online dynamic and adaptive scheduling mechanism to reduce communication overhead while improving computation utilization. Experimental results show that HDA-MoE achieves a speedup of 1.1x--3.4x over TP, 1.1x--1.5x over EP, 1.1x--3.7x over the Hybrid TP-EP compute-balanced baseline, and 1.1x--1.3x over HD-MoE. Source code is available at https://github.com/PKU-SEC-Lab/HDA-MoE-TCAD26.",
+      "authors": [
+        "Haochen Huang",
+        "Shuzhang Zhong",
+        "Shengxuan Qiu",
+        "Zhe Zhang",
+        "Shuangchen Li",
+        "Cong Li",
+        "Dimin Niu",
+        "Hongzhong Zheng",
+        "Guangyu Sun",
+        "Runsheng Wang",
+        "Meng Li"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T12:51:23+00:00",
+      "link": "https://arxiv.org/pdf/2609.08682v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "MoE inference acceleration on 3D near-memory processing architecture with hybrid parallelism and dynamic adaptive scheduling",
+      "llm_evidence_cn": "面向3D近内存处理架构的MoE混合并行与动态调度，聚焦AI加速器架构及大模型推理性能优化",
+      "llm_evidence": "面向3D近内存处理架构的MoE混合并行与动态调度，聚焦AI加速器架构及大模型推理性能优化",
+      "canonical_evidence": "面向3D近内存处理架构的MoE混合并行与动态调度，聚焦AI加速器架构及大模型推理性能优化",
+      "llm_tldr_en": "Mixture-of-Experts LLM inference faces high memory capacity and bandwidth demands. HDA-MoE maps MoE workloads onto 3D near-memory processing architectures using hybrid parallelism and dynamic adaptive scheduling, tackling distributed memory and compute mapping challenges.",
+      "llm_tldr_cn": "混合专家MoE在扩增大模型能力时带来很高的内存容量和带宽需求，3D近内存处理架构通过垂直集成存储与计算提供高带宽，但其分布式存储和计算组织使专家负载映射困难。HDA-MoE面向3D近内存处理结构提出混合并行策略与动态自适应调度，合理安排专家分布和计算任务。该方法在MoE推理场景中能降低通信与调度开销，为新型存算融合加速架构上的大模型部署提供了可行方案。",
+      "llm_tldr": "混合专家MoE在扩增大模型能力时带来很高的内存容量和带宽需求，3D近内存处理架构通过垂直集成存储与计算提供高带宽，但其分布式存储和计算组织使专家负载映射困难。HDA-MoE面向3D近内存处理结构提出混合并行策略与动态自适应调度，合理安排专家分布和计算任务。该方法在MoE推理场景中能降低通信与调度开销，为新型存算融合加速架构上的大模型部署提供了可行方案。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.04105v1",
+      "source": "arxiv",
+      "title": "Hardware-Aware FP4 FlashAttention-4",
+      "abstract": "Blackwell's 4-bit floating-point (FP4) tensor cores do not automatically make attention faster because softmax conversion and on-chip dependencies dominate once its matrix products shrink. We address this with \\emph{Direct-P} for noncausal inference and a causal path that passes the forward quantization directly into backward. Direct-P maps scores directly to FP4 probabilities and reaches up to 2.13$\\times$ the bfloat16 (BF16) forward throughput on an NVIDIA GB200. The causal path reconstructs probabilities from saved quantized queries and keys and uses 8-bit floating-point (FP8) gradient operands, accelerating a complete single-GPU 8-billion-parameter update by up to 1.14$\\times$. Matched distributed training retains FP8 probabilities and values; every tested MXFP4 probability/value training trajectory diverges.",
+      "authors": [
+        "Robert Hu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-03T17:12:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.04105v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "hardware-aware low-precision attention optimization for Blackwell tensor cores",
+      "llm_evidence_cn": "面向Blackwell张量核的硬件感知低精度注意力优化",
+      "llm_evidence": "面向Blackwell张量核的硬件感知低精度注意力优化",
+      "canonical_evidence": "面向Blackwell张量核的硬件感知低精度注意力优化",
+      "llm_tldr_en": "Proposes Direct-P and causal FP4 attention paths that map scores to FP4 probabilities directly and reuse forward quantization in backward, up to 2.13x BF16 forward throughput and 1.14x speedup for an 8B-parameter update on GB200.",
+      "llm_tldr_cn": "针对FP4张量核虽快但softmax转换和片上依赖成为注意力瓶颈的问题，该文为Blackwell GPU设计了Direct-P与因果低比特路径：Direct-P将分数直接量化到FP4概率，免去BF16转换，因果路径从保存量化Q/K中重建概率并采用FP8梯度操作数。在GB200上非因果前向吞吐最高为BF16的2.13倍，单卡8B参数更新加速1.14倍，分布式训练也保持数值稳定。这展示了软硬协同的低比特注意力优化可为大规模Transformer训练和推理释放实际算力。",
+      "llm_tldr": "针对FP4张量核虽快但softmax转换和片上依赖成为注意力瓶颈的问题，该文为Blackwell GPU设计了Direct-P与因果低比特路径：Direct-P将分数直接量化到FP4概率，免去BF16转换，因果路径从保存量化Q/K中重建概率并采用FP8梯度操作数。在GB200上非因果前向吞吐最高为BF16的2.13倍，单卡8B参数更新加速1.14倍，分布式训练也保持数值稳定。这展示了软硬协同的低比特注意力优化可为大规模Transformer训练和推理释放实际算力。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.05764v1",
+      "source": "arxiv",
+      "title": "Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding",
+      "abstract": "The key-value (KV) cache is the dominant memory bottleneck in long-context large language model (LLM) decoding: every step reads it entirely, so decoding is memory-bandwidth bound. Holding a quantized KV cache in dense on-chip non-volatile memory (NVM) removes the off-chip transfer. Existing KV quantization methods, however, were designed for GPU-style memory systems: KIVI attaches per-group metadata, adding about 25% to the stored KV cache; KVQuant keeps sparse full-precision outliers that a dense array cannot hold in place. This paper examines what these structures cost when the KV cache resides in NVM behind fixed-range converters, and designs a quantization scheme matched to that interface. The architecture stores the quantized KV cache in dense on-chip NVM, uses a small static analog crossbar only for the fixed rotation, and keeps attention in on-chip digital logic. A randomized rotation and per-vector normalization give every coordinate the same range, so one fixed codebook for keys and one for values, each shared across all tokens of the corresponding tensor type, serve the entire KV cache. The codebook thresholds are programmed once as the read converter's reference levels, enabling fixed-range digitization with no per-token converter reconfiguration. Dequantization is a sixteen-entry lookup and one norm multiply; the only per-vector metadata is one scalar, about 3%. Across models from 3B to 14B and contexts to 32k tokens, the four-bit KV cache maintains accuracy under storage and crossbar noise simulated at realistic device levels. KIVI and KVQuant remain more accurate in software; the advantage of our format lies at the memory interface: 3.1-3.6x lower KV read energy than both mapped to the same NVM, and 8x lower metadata overhead than KIVI. The contribution is a KV quantization co-designed with the NVM memory interface rather than a new accuracy record.",
+      "authors": [
+        "Jiahao Zheng",
+        "Yifan Qin",
+        "Xiaobo Sharon Hu",
+        "Yiyu Shi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-09-04T22:58:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.05764v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Optimizes KV cache quantization for dense on-chip NVM in long-context LLM decoding, an AI inference memory architecture optimization",
+      "llm_evidence_cn": "面向片上NVM优化KV缓存量化，针对LLM解码内存带宽瓶颈，属AI推理存储架构优化",
+      "llm_evidence": "面向片上NVM优化KV缓存量化，针对LLM解码内存带宽瓶颈，属AI推理存储架构优化",
+      "canonical_evidence": "面向片上NVM优化KV缓存量化，针对LLM解码内存带宽瓶颈，属AI推理存储架构优化",
+      "llm_tldr_en": "This paper designs an interface-aware KV cache quantization scheme matched to dense on-chip NVM and fixed-range converters, avoiding the overhead of prior GPU-oriented methods for long-context LLM decoding.",
+      "llm_tldr_cn": "长上下文大模型解码每一步须读取全部KV缓存，是典型的内存带宽瓶颈；将量化后KV缓存放入片上NVM可避免离片传输，但KIVI等方案的组元数据或稀疏异常值不能适配固定范围转换器与稠密阵列。本文面向NVM接口重新设计KV量化格式，去除与接口不匹配的额外结构和开销，从而降低片外读取并提升解码带宽利用。该工作为LLM推理芯片的片上存储与量化器协同优化提供了新方向。",
+      "llm_tldr": "长上下文大模型解码每一步须读取全部KV缓存，是典型的内存带宽瓶颈；将量化后KV缓存放入片上NVM可避免离片传输，但KIVI等方案的组元数据或稀疏异常值不能适配固定范围转换器与稠密阵列。本文面向NVM接口重新设计KV量化格式，去除与接口不匹配的额外结构和开销，从而降低片外读取并提升解码带宽利用。该工作为LLM推理芯片的片上存储与量化器协同优化提供了新方向。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "deep learning accelerator design and optimization",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.06781v1",
+      "source": "arxiv",
+      "title": "BLINK: Batch Normalization-based Integrity Checkpoints for In-Situ Detection and Mitigation of Diverse Weight Corruptions in DNN Accelerators",
+      "abstract": "In safety-critical deployments, AI hardware must remain reliable against a broad spectrum of threats such as aging, soft errors, hard faults, and adversarial attacks (e.g. progressive bit flip attack (PBFA)). All of these corrupt stored weights while the chip keeps producing confident but inaccurate predictions. Detecting and mitigating such weight perturbations is crucial for safety-critical platforms. To that end, we propose BLINK, an on-chip batch normalization (BN)-based on-the-fly detection and mitigation approach, which is based on continual sensing of the shift in the activation statistics, and targets a wide variety of weight corruptions (random and localized faults as well as adversarial bit flips). BLINK operates in two phases: (1) off-line pre-characterization of the relationship of the activation shifts with inference accuracy drop, and (2) on-chip runtime detection and mitigation of weight corruptions. Upon detection, the flagged layer is re-centered to bring it closer to its stored clean reference within the same forward pass. BLINK is fully autonomous, eliminating the need for host communication, operation halts, or access to fine-tuning data. If the residual shift after mitigation indicates that accuracy has fallen below a user-set floor, a held-out watcher aborts the inference. Evaluated on ResNet-20/50 and MobileNetV2 for CIFAR-10/100, BLINK detects harmful corruptions with >99% precision across all fault types. Further, it recovers accuracy from 10% to 85.88% under 0.5% random bit flips (Resnet-50/CIFAR-10), up to 84% for localized faults (MobileNetV2/CIFAR-10), and from random-guess accuracy to 80%-83% under PBFA (ResNet-20/CIFAR-10). Hardware overhead estimates indicate that BLINK incurs negligible costs, with less than a 2% increase in latency and only a 0.53% increase in computation overhead.",
+      "authors": [
+        "Marzia Khan",
+        "Akul Malhotra",
+        "Sumeet Kumar Gupta"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-06T18:56:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.06781v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "On-chip batch-normalization-based weight-corruption detection and mitigation for DNN accelerators; relevant to AI accelerator hardware architecture.",
+      "llm_evidence_cn": "面向DNN加速器的片上批归一化权重损坏检测与缓解方法，关联AI加速器硬件架构与可靠性。",
+      "llm_evidence": "面向DNN加速器的片上批归一化权重损坏检测与缓解方法，关联AI加速器硬件架构与可靠性。",
+      "canonical_evidence": "面向DNN加速器的片上批归一化权重损坏检测与缓解方法，关联AI加速器硬件架构与可靠性。",
+      "llm_tldr_en": "BLINK uses on-chip batch normalization statistics to continuously sense activation shifts, enabling in-situ detection and mitigation of diverse weight corruptions in DNN accelerators for safety-critical deployment.",
+      "llm_tldr_cn": "安全关键场景下的AI硬件可能因老化、软错误、硬故障和比特翻转攻击产生权重损坏，却仍给出高度自信的错误预测。BLINK提出基于批归一化(BN)的片上连续检测机制，利用运行中激活统计的变化识别异常，并针对随机和局部故障等情况实施缓解。实验结果验证了对多种权重损坏的检测与恢复能力，有助于提升DNN加速器的可靠性。这样利用DNN自身结构的原位监测策略为可信AI硬件设计提供了新思路。",
+      "llm_tldr": "安全关键场景下的AI硬件可能因老化、软错误、硬故障和比特翻转攻击产生权重损坏，却仍给出高度自信的错误预测。BLINK提出基于批归一化(BN)的片上连续检测机制，利用运行中激活统计的变化识别异常，并针对随机和局部故障等情况实施缓解。实验结果验证了对多种权重损坏的检测与恢复能力，有助于提升DNN加速器的可靠性。这样利用DNN自身结构的原位监测策略为可信AI硬件设计提供了新思路。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "artificial intelligence accelerator hardware architecture",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07577v1",
+      "source": "arxiv",
+      "title": "GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware",
+      "abstract": "SNNs running on neuromorphic hardware use spikes to achieve sparse and energy-efficient communication over a mesh of cores. In turn, system performance heavily depends on the assignment of neurons to cores: the mapping. Since hardware features inter-core multicast and intra-core replication of spikes, we model SNNs as hypergraphs to exploit both opportunities for reducing communication traffic. Mapping thus comprises two NP-hard problems: hypergraph partitioning and placement on the lattice of cores. High-quality solutions to both are critical, yet increasingly difficult as networks scale to millions of neurons. Therefore, we propose a GPU-accelerated pipeline for SNN mapping: a multi-level partitioning scheme is devised around hardware constraints, while placement is initialized through recursive bisection, followed by refinement pulling together strongly connected cores through repeated swaps. Model-based experiments show upwards of 16% lower latency and 42% lower energy for spike movements over existing sequential tools, while our parallel mapper is on average 18-280x faster.",
+      "authors": [
+        "Marco Ronzani",
+        "Cristina Silvano"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-07T14:52:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.07577v1",
+      "tags": [
+        "keyword:chip-design",
+        "query:chip-design"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "maps SNNs on mesh-of-core neuromorphic hardware, optimizing inter-core communication traffic",
+      "llm_evidence_cn": "将SNN映射到多核神经形态硬件的多核阵列上，优化核间通信流量",
+      "llm_evidence": "将SNN映射到多核神经形态硬件的多核阵列上，优化核间通信流量",
+      "canonical_evidence": "将SNN映射到多核神经形态硬件的多核阵列上，优化核间通信流量",
+      "llm_tldr_en": "Proposes a GPU-accelerated pipeline for mapping SNNs onto mesh-based neuromorphic hardware, using hypergraph partitioning and placement to cut communication traffic, enabling high-quality mapping at million-neuron scale.",
+      "llm_tldr_cn": "在神经形态多核硬件上，SNN的核间通信开销取决于神经元到核的映射质量，但网络扩到百万神经元后映射极难。本文将SNN建模为超图，同时利用核间多播与核内复制减少流量，并将映射形式化为超图划分与布局两个NP难问题。提出的GPU加速多级划分与布局流水线可在百万规模下生成高质量映射方案，为大规模神经形态AI芯片上的高效部署提供了可行工具。",
+      "llm_tldr": "在神经形态多核硬件上，SNN的核间通信开销取决于神经元到核的映射质量，但网络扩到百万神经元后映射极难。本文将SNN建模为超图，同时利用核间多播与核内复制减少流量，并将映射形式化为超图划分与布局两个NP难问题。提出的GPU加速多级划分与布局流水线可在百万规模下生成高质量映射方案，为大规模神经形态AI芯片上的高效部署提供了可行工具。",
+      "llm_tags": [
+        "query:chip-design"
+      ],
+      "matched_query_tag": "query:chip-design",
+      "matched_query_text": "network on chip interconnect architecture for many core AI accelerator systems",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
