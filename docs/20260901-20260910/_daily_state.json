@@ -1,0 +1,137 @@
+{
+  "date": "20260901-20260910",
+  "date_label": "2026-09-01 ~ 2026-09-10",
+  "generated_at": "2026-09-10 05:55:34 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.00857v1",
+      "route": "20260901-20260910/2609.00857v1-llm-inference-on-imc-noc-architecture-with-balanced-dataflow-and-fine-grained-parallelism",
+      "title": "LLM Inference on IMC-NoC Architecture with Balanced Dataflow and Fine-Grained Parallelism",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向LLM推理的IMC-NoC架构与均衡片上数据流",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.09746v1",
+      "route": "20260901-20260910/2609.09746v1-minimal-deadlock-free-routing-for-degree-six-triangular-lattice-meshes-and-tori-with-two-forbidden-turns",
+      "title": "Minimal Deadlock-Free Routing for Degree-Six Triangular-Lattice Meshes and Tori with Two Forbidden Turns",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "三角晶格片上网络的两禁止转向无死锁路由与虚拟通道",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.01948v1",
+      "route": "20260901-20260910/2609.01948v1-an-emerging-nvm-based-on-chip-training-architecture-with-non-ideality-mitigation-through-bipolar-weight-distributions",
+      "title": "An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向片上训练的eNVM存内计算AI加速器",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.08446v1",
+      "route": "20260901-20260910/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向边缘脉冲神经网络的数字存内计算AI加速器架构",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.01821v1",
+      "route": "20260901-20260910/2609.01821v1-scaling-inference-prefill-with-high-radix-photonic-interconnects",
+      "title": "Scaling Inference Prefill with High-Radix Photonic Interconnects",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向AI推理扩展的高基数光子互连",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.03594v1",
+      "route": "20260901-20260910/2609.03594v1-levelsyn-physical-aware-logic-synthesis-via-level-asynchronous-graph-neural-networks",
+      "title": "LevelSyn: Physical-Aware Logic Synthesis via Level-Asynchronous Graph Neural Networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向数字集成电路设计PPA收敛的物理感知逻辑综合",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.04168v1",
+      "route": "20260901-20260910/2609.04168v1-para-pipe-exploiting-hierarchical-operator-parallelism-of-ml-computational-graphs-on-socs",
+      "title": "Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "异构SoC上多片上处理单元间的边缘深度学习算子并行",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    },
+    {
+      "paper_id": "2609.06125v1",
+      "route": "20260901-20260910/2609.06125v1-wafertrans-enabling-iommu-free-distributed-virtual-address-translation-for-wafer-scale-gpus",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "晶圆级GPU架构与片上互连和地址转换",
+      "first_seen_at": "2026-09-10 05:55:34 UTC",
+      "updated_at": "2026-09-10 05:55:34 UTC"
+    }
+  ]
+}
