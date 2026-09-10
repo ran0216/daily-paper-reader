@@ -1,0 +1,284 @@
+Title: GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware
+
+URL Source: https://arxiv.org/pdf/2609.07577v1
+
+Published Time: Wed, 09 Sep 2026 03:14:10 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware 
+
+# Marco Ronzani 
+
+DEIB, Politecnico di Milano Milan , Italy 
+
+# Cristina Silvano 
+
+DEIB, Politecnico di Milano Milan , Italy 
+
+## Abstract 
+
+SNNs running on neuromorphic hardware use spikes to achieve sparse and energy-efficient communication over a mesh of cores. In turn, system performance heavily depends on the assignment of neurons to cores: the mapping. Since hardware features inter-core multicast and intra-core replication of spikes, we model SNNs as hypergraphs to exploit both opportunities for reducing commu-nication traffic. Mapping thus comprises two NP-hard problems: hypergraph partitioning and placement on the lattice of cores. High-quality solutions to both are critical, yet increasingly difficult as networks scale to millions of neurons. Therefore, we propose a GPU-accelerated pipeline for SNN mapping: a multi-level partitioning scheme is devised around hardware constraints, while placement is initialized through recursive bisection, followed by refinement pulling together strongly connected cores through repeated swaps. Model-based experiments show upwards of 16% lower latency and 42% lower energy for spike movements over existing sequential tools, while our parallel mapper is on average 18-280 × faster. 
+
+ACM Reference Format: 
+
+Marco Ronzani and Cristina Silvano. 2027. GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware. In 
+
+N/A. ACM, New York, NY, USA, 7 pages. 
+
+## 1 Introduction 
+
+Spiking Neural Networks (SNNs) are a brain-inspired, event-based artificial intelligence paradigm with major potential for energy ef-ficiency and temporal awareness [9, 31]. These advantages are at their best when SNNs are run on NeuroMorphic Hardware (NMH), dedicated accelerators designed to leverage their sparse activity [1, 5, 40]. Recently, SNNs exceeded ten million neurons and are head-ing toward brain-scale [25, 28], while NMH accelerators already manage several million neurons [24]. Between network and hard-ware, however, lies the challenge of determining how the former should execute on the latter: the mapping problem . Its complexity grows with system size, and final runtime performance depends on the quality of its solution [17, 42]. A SNN comprises neurons whose axons connect to downstream neurons through multiple synapses; information propagates as spikes over these one-to-many connections. Accordingly, we model SNNs as hypergraphs , one axon, one hyperedge [34]. The perfor-mance for running a SNN on NMH directly depends on the distance traveled by spikes between cores, as every hop adds energy and time to its delivery [17, 37]. Hence, the role of a mapping is to assign neurons to cores while minimizing the ensuing spike traffic. Formally, mapping reduces to two well-known problems: hyper-graph partitioning , packing neurons into core-compliant parti-tions, and hypergraph placement , assigning partitions to cores. The two minimize the volume of spikes moving around and the path length they cover, respectively. Both problems are notoriously NP-hard and must be solved via heuristics [6, 23]. Several approaches exist to handle these problems, both in gen-eral and specifically for SNN mapping. Classic works on hypergraph partitioning are hMETIS [19], KaHyPar [14, 39], and BiPart [30]. Placement has been widely studied for process assignment in paral-lel computing [7, 23], and VLSI [21, 36]. Yet all such methods lack support for the costs and constraints of NMH, instead focusing on 𝑘 -way balanced partitioning and quadratic assignment prob-lem variants. Therefore, specialized SNN mapping algorithms have been proposed, like DFSynthesizer [42], EdgeMap [47], SNNcut [17, 18, 46], and others [2, 13, 27, 45]. However, these tools had to forgo the former’s optimized heuristics in favor of greedier, faster alternatives. Otherwise, scaling to networks with millions of neu-rons would lead to days of execution time [34]. Yet, to date, their algorithms remain inherently sequential and implemented on CPU. As such, massively parallel partitioning and placement heuristics become a compelling approach when scaling SNNs and NMH. A few exist, namely HyperG [26], gHyPart [44], and Frishman et al. [11]. Though, once more, they target different problem formulations, pre-cluding their use in SNN mapping. Nonetheless, they show attrac-tive results, exceeding a 100 × speedup over sequential execution. Following this direction, we develop GPU algorithms for hy-pergraph partitioning and placement tailored to SNN mapping on NMH. Massive parallelism is used to efficiently handle the problem at its largest, during partitioning, and then simultaneously explore many placements. This enables mapping SNNs with hundreds of millions of synapses in minutes without sacrificing solution quality. Altogether, to the best of our knowledge, this work presents the first GPU-accelerated pipeline for mapping spiking neural networks on neuromorphic hardware. In particular, it introduces: (1) a multi-level hypergraph partitioning algorithm specialized for NMH constraints and minimizing spike traffic volume. (2) a multi-start placement routine using recursive bisection to produce a high-locality assignment of neuron groups, fol-lowed by force-directed refinement of their hardware layout. Tested on 12 SNNs ranging from 0.8 M to 577 M synapses, our al-gorithms achieve mappings with mean analytical costs of 0 .58 ×
+
+energy consumption and 0 .84 × average spike delivery latency com-pared to the best from SoTA tools. Meanwhile, on a per-tool average, our mapping construction is between 18-280 × faster. 
+
+## 2 Preliminaries 
+
+Spiking Neural Networks. A SNN is composed of neurons connected via axons and synapses. Neurons integrate incoming spikes and, upon crossing a threshold, emit a spike along their axon to all downstream neurons. The network, per se, is asynchronous, though it is simulated in discrete spike propagation steps. Consequently, information is encoded via the timing or rate of spike events [5, 31]. Several kinds of SNNs exist. Some are derived from Artificial Neural Networks (ANNs), achieving similar accuracy in static do-mains. Others are trained natively, a topic of ongoing research with arXiv:2609.07577v1 [cs.DC] 7 Sep 2026 N/A, N/A, N/A Anonymous 
+
+> Figure 1: SNN mapping problem overview.
+
+promising results on event-driven tasks [9]. These two families differ a lot in topology. ANN-based networks are feedforward, thus acyclic and with local, regular connections. Instead, native ones own a small-world structure, with cycles and dense neighborhoods [34]. 
+
+Neuromorphic Hardware. NMH mimics the distributed, event-driven nature of SNNs to accelerate their simulation. It comprises a mesh of cores, each hosting several neurons and connected over a network-on-chip that circulates spikes. Typical core arrangements are a 2D lattice or a toroid [3, 12]. Crucial to its power efficiency, most of the hardware is active solely upon receiving a spike. Sim-ulation speed is instead bound by spike delivery latency. Hence, performance depends on communication, being governed by the volume of transmitted spikes and their travel distance [1, 40]. Central to NMH are two mechanisms that exploit the one-to-many propagation of spikes to reduce communication traffic: intra-core replication and inter-core multicast. When two neurons slated to receive the same spike are in the same core, the spike is deliv-ered to the core only once, and replicated internally. When two destination neurons are in different cores, instead, spike multicast is used over the interconnect to progressively fan it out. Notable instances of NMH are TrueNorth [1], Loihi [8], SpiN-Naker [12], and Neurogrid [3], but many others exist [29, 40, 41, 43]. 
+
+SNN and Hardware Models. By representing each neuron as a node and its axon as a hyperedge (h-edge) with a pin per synapse, SNNs are naturally modeled by a hypergraph (h-graph). A hypergraph generalizes the concept of graph with edges – h-edges – connecting more than two nodes. In particular, a SNN is a weighted directed h-graph where every h-edge has exactly one source and every node has at most one outbound h-edge. For the purpose of mapping, weights are per-h-edge and represent its spike frequency, how many spikes it is expected to carry in any one-second window [34]. Formally, let 𝐺 = (𝑁 , 𝐸, 𝜔 ) be a h-graph, with 𝑁 its set of nodes and 𝐸 its h-edges. Each h-edge 𝑒 ∈ 𝐸 connects a subset of nodes (pins) 𝑒 ⊆ 𝑁 and has source 𝑠𝑟𝑐 (𝑒 ), with 𝑠𝑟𝑐 : 𝐸 → 𝑁 and destina-tions 𝑑𝑠𝑡 (𝑒 ), with 𝑑𝑠𝑡 : 𝐸 → P ( 𝑁 ). Where P (·) is the power set and naturally 𝑑𝑠𝑡 (𝑒 ) = 𝑒 − 𝑠𝑟𝑐 (𝑒 ). Let 𝜔 : 𝐸 → R assign weights – spike frequencies – to h-edges. In addition, we denote a node 
+
+𝑛 ’s inbound h-edges as 𝑖𝑛 (𝑛 ) = {𝑒 ∈ 𝐸 | 𝑛 ∈ 𝑑𝑠𝑡 (𝑒 )} and its out-bound h-edge as the singleton 𝑜𝑢𝑡 (𝑛 ) = {𝑒 ∈ 𝐸 | 𝑛 = 𝑠𝑟𝑐 (𝑒 )} , with 
+
+I ( 𝑛 ) = 𝑖𝑛 (𝑛 ) ∪ 𝑜𝑢𝑡 (𝑛 ) as the set of h-edges incident to 𝑛 . Lastly, we define the neighbors of 𝑛 as N ( 𝑛 ) = {𝑚 ∈ 𝑒 | 𝑒 ∈ I ( 𝑛 )} \ { 𝑛 }.
+
+> Figure 2: Cost model for a spike’s propagation on NMH.
+
+The model for NMH is a 2D lattice where each point represents a core: 𝐻 = {( 𝑥, 𝑦 ) | 𝑥 ∈ { 1, . . . width }, 𝑦 ∈ { 1, . . . height }} . For a core 
+
+ℎ ∈ 𝐻 , let J ( ℎ) = {( ℎ𝑥 + 1, ℎ 𝑦 ), (ℎ𝑥 − 1, ℎ 𝑦 ), (ℎ𝑥 , ℎ 𝑦 + 1), (ℎ𝑥 , ℎ 𝑦 −
+
+1)} ∩ 𝐻 be the set of cores adjacent and connected to it. Moreover, each core has a maximum number of neurons it can handle Ω, axons it can receive spikes from Δ, and synapses it can store Φ.
+
+## 3 The Mapping Problem 
+
+The mapping problem consists of assigning each SNN neuron to a NMH core while minimizing the resulting spike traffic and can be addressed in two sub-problems. First, partitioning groups neurons within core constraints while minimizing the volume of spikes crossing between groups. Then, placement uniquely assigns groups to cores, minimizing the distance between densely communicating groups. Our formulation is a complete rethinking for h-graphs of the ideas in [17, 34]. Fig. 1 shows the full process. 
+
+Partitioning Definition. A partitioning of a SNN’s h-graph 𝐺 is a set 
+
+𝑃 ⊂ P ( 𝑁 ) of disjoint non-empty subsets of its nodes, such that 
+
+Ð𝑝 ∈𝑃 𝑝 = 𝑁 . Equivalently, it can be defined by 𝜌 : 𝑁 → 𝑃 where 
+
+𝜌 (𝑛 ) = 𝑝 iff 𝑛 ∈ 𝑝 . Its objective is the connectivity, minimizing the weight of connections that are cut between partitions: 
+
+𝐶𝑜𝑛𝑛 𝐺 (𝜌 ) =∑︁  
+
+> 𝑒 ∈𝐸
+
+𝜔 (𝑒 ) · (|{ 𝜌 (𝑛 ) | 𝑛 ∈ 𝑒 }| − 1) . (1) Hardware imposes three constraints per partition: a maximum number of nodes ∀𝑝 ∈ 𝑃, |𝑝 | ≤ Ω; of distinct inbound h-edges, 
+
+Ð𝑛 ∈𝑝 𝑖𝑛 (𝑛 ) ≤ Δ; and of inbound pins, Í𝑛 ∈𝑝 |𝑖𝑛 (𝑛 )| ≤ Φ.By applying the 𝜌 map to both nodes and h-edges of 𝐺 , we define another h-graph among partitions: 𝐺 𝑃 = {𝑃, 𝐴, 𝜂 }. Where 
+
+𝐴 = {𝜌 (𝑒 ) | 𝑒 ∈ 𝐸 } and 𝜂 : 𝐴 → R is derived for every 𝑎 ∈ 𝐴 as 
+
+𝜂 (𝑎 ) = Í𝑒 ∈𝐸 s.t. 𝜌 (𝑒 )=𝑎 𝜔 (𝑒 ). After breaking self-cycles by discarding destinations, 𝑠𝑟𝑐 (·) and 𝑑𝑠𝑡 (·) analogously exist over 𝐴 .
+
+Placement Definition. A placement of the partitioned SNN h-graph 
+
+𝐺 𝑃 on a hardware lattice 𝐻 consists of an injective map 𝛾 : 𝑃 → 𝐻 .Local costs on every h-edge 𝑎 ∈ 𝐴 or core ℎ ∈ 𝐻 are threefold: energy (𝑎 ) = ℎ𝑜𝑝𝑠 (𝛾 (𝑎 )) · ( 𝐸 𝑅 + 𝐸 𝑇 ) + 𝐸 𝑅 , (2) latency (𝑎 ) = max   
+
+> 𝑑 ∈𝑑𝑠𝑡 (𝑎 )
+
+𝑑𝑖𝑠𝑡 (𝛾 (𝑠𝑟𝑐 (𝑎 )) , 𝛾 (𝑑 )) · ( 𝐿 𝑅 + 𝐿 𝑇 ) + 𝐿 𝑅 , (3) congestion (ℎ) = Í𝑎 ∈𝐴 𝜂 (𝑎 ) · 𝑝 -𝑡𝑟𝑎𝑛𝑠𝑖𝑡 (ℎ, 𝛾 (𝑎 )) . (4) Where 𝑑𝑖𝑠𝑡 : 𝐻 × 𝐻 → N is the shortest path length on 𝐻 between two placed nodes; on a 2D lattice, 𝑑𝑖𝑠𝑡 is the Manhattan distance. Then, ℎ𝑜𝑝𝑠 : P ( 𝐻 ) → N counts the core-core links traversed by a spike to reach all destinations of an h-edge from its source. And 𝑝 -𝑡𝑟𝑎𝑛𝑠𝑖𝑡 : 𝐻 × P ( 𝐻 ) → [ 0, 1] is the probability of a spike traversing core ℎ while it propagates between an h-edge’s terminals. By aggregating local costs, we define a global model of mapping GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware N/A, N/A, N/A 
+
+performance. Its quality metrics – to minimize – are defined as: Tot. Energy = Í𝑎 ∈𝐴 𝜂 (𝑎 ) · energy (𝑎 ) , (5) Avg. Latency = (1/Í𝑎 ∈𝐴 𝜂 (𝑎 )) · Í𝑎 ∈𝐴 𝜂 (𝑎 ) · latency (𝑎 ) , (6) Max. Congestion = max ℎ∈𝐻 congestion (ℎ) . (7) These are analytical communication metrics, abstracting away platform-specific execution details. Total energy captures only spike traffic, as neuron-update energy is unaffected by mapping. Average latency is the frequency-weighted spike delivery completion time. Maximum congestion tracks peak routing pressure across cores. The definition of ℎ𝑜𝑝𝑠 and 𝑝 -𝑡𝑟𝑎𝑛𝑠𝑖𝑡 depends on routing policies. We therefore model multicast under a router-agnostic lower bound: each spike spans its endpoints with a minimum Steiner tree over the hardware mesh [36]. Concrete routers may incur higher costs, but a lower Steiner cost means that the mapping leaves less irreducible multicast traffic for the implementation to realize. Formally: 
+
+𝑇 𝐻 (ℎ𝑠 ) = {𝑡 ⊆ 𝐻 | ℎ𝑠 ⊆ 𝑡 and 𝑡 spans a tree in 𝐻 } , (8) 
+
+𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) = argmin 𝑡 ∈𝑇 𝐻 (ℎ𝑠 ) |𝑡 | , (9) 
+
+ℎ𝑜𝑝𝑠 (ℎ𝑠 ) = 𝑡 ★ − 1 for any 𝑡 ★ ∈ 𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) , (10) 
+
+𝑝 -𝑡𝑟𝑎𝑛𝑠𝑖𝑡 (ℎ, ℎ𝑠 ) = {𝑡 ∈ 𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) | ℎ ∈ 𝑡 } / 𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) . (11) Where 𝑇 𝐻 (ℎ𝑠 ) is the set of core sets that support a tree spanning terminals ℎ𝑠 over 𝐻 . Thus, any 𝑡 ★ ∈ 𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) encodes a minimum-size Steiner tree containing 𝑡 ★ − 1 links. Terminal roles as sources or destinations do not alter the 𝑇 ★ 
+
+> 𝐻
+
+(ℎ𝑠 ) set. Trees are represented by their core sets; edge variations that induce identical core traversals are disregarded, as congestion is modeled per-core. See Fig. 2. Since Steiner tree construction is also NP-hard, we use it only to compute exact final metrics, after mapping. Heuristics, instead, rely on proxy metrics for the number of hops and transit probability. The hardware-specific costs 𝐸 𝑅 , 𝐸 𝑇 and 𝐿 𝑅 , 𝐿 𝑇 represent, respec-tively, the energy and latency for routing and transmitting a spike towards a core. The final 𝐸 𝑅 and 𝐿 𝑅 terms in Eqs. 2 and 3 account for the source core’s dispatch cost. Reference values for this work are based on the Loihi platform [8] and given in Tab. 1. 
+
+Capturing Hardware Behavior. During partitioning, h-edges natively expose intra-core spike replication. When an h-edge reaches multi-ple destinations inside the same partition, connectivity still counts it as one cut, matching the cost of a single spike being delivered. For placement, h-edges materialize as spike multicast trees. Defin-ing hops over all of an h-edge’s pins does not just pull destinations closer to the source, but encourages the whole h-edge to contract, effectively allowing spikes to fork closer to their endpoints. Consequently, minimizing connectivity (Eq. 1) amounts to maxi-mizing intra-core replication, while lower placement costs (Eqs. 2, 3, 4) reflect efficient and localized inter-core multicast. Existing SNN mapping tools adopt a graph SNN model, thereby underexploiting both such dynamics [34]. These nuances also distinguish SNN map-ping from standard partitioning and placement formulations, and motivate algorithms specialized for hypergraph-defined objectives.                      
+
+> NMH Cost Value
+> 𝐸 𝑅 1.7 pJ
+> 𝐿 𝑅 2.1 ns
+> 𝐸 𝑇 3.5 pJ
+> 𝐿 𝑇 5.3 ns
+> Constraint Value
+> small large
+> neurons / core Ω1024 4096
+> axons / core Δ4096 65536
+> synapses / core Φ16384 262144
+> width ×height 64 ×64
+> Table 1: Reference hardware costs [8] and constraints [17].
+
+## 4 GPU-based Mapping Pipeline 
+
+The GPU execution model exposes hierarchical parallelism: in CUDA terminology, threads are organized into blocks, each in-ternally scheduled as 32-thread warps under SIMT execution. For an h-graph 𝐺 (𝑁 , 𝐸, 𝜔 ), problem size scales with nodes |𝑁 |,h-edges |𝐸 |, and pins Í𝑒 ∈𝐸 |𝑒 |, whereas local structural parameters, namely h-edge cardinality |𝑒 | and node incidence degree |I ( 𝑛 )| ,remain comparatively small in practice. This separation makes the nested traversals used by h-graph algorithms amenable to GPUs. Outer traversals over 𝑁 or 𝐸 expose coarse-grained parallelism and map to blocks and warps; intermediate nested levels run as warp-synchronous serial loops; the innermost bounded expansion over pins or incidence lists is processed cooperatively within warps. Thus, sequential work is confined to small neighborhoods, while most parallelism is extracted from the h-graph’s outer dimensions. To support this traversal pattern, we store h-graphs in com-pressed sparse form by concatenating local structures [22]. In the resulting layout, each warp processes contiguous sub-arrays, en-suring coalesced accesses while limiting control divergence. 
+
+## 4.1 Partitioning 
+
+For partitioning, we adopt a multi-level approach, which is the leading technique to reach near-optimal results at scale [6, 10, 19, 39]. Ours is developed from [35], adding support for all constraints 
+
+Ω, Δ, Φ via neighbor-counting and a simplified event-based pipeline. The multi-level framework has two phases, as Fig. 3 shows. Through a series of coarsening levels, strongly connected nodes are merged into super-nodes, that form the next level’s h-graph. When constraints forbid nodes from further merging, final super-nodes define initial partitions. Then, as levels uncoarsen one by one, nodes are moved between partitions to reduce cut h-edges. Each level’s h-graph is materialized from its predecessor while propagating each super-node’s constrained state: size, inbound h-edges set, and pin count. This way, all constraints are enforced on every super-node, guaranteeing partition validity throughout. 
+
+Coarsening. Coarsening’s goal is to form disjoint pairs of nodes of maximum total connection strength within constraints. Each node 𝑛 ∈ 𝑁 computes a histogram over its neighbors 𝑚 ∈ N ( 𝑛 ),accumulating their shared h-edge weight and shared inbound count 
+
+|𝑖𝑛 (𝑛 ) ∩ 𝑖𝑛 (𝑚 )| . This overlap term lets us test the merged inbound set against Δ. Neighbors violating node, pin, or inbound h-edge limits are discarded, and 𝑛 selects the valid maximum as its pairing candidate, tie-breaking by node id: 
+
+𝑐𝑎𝑛𝑑 (𝑛 ) = argmax valid  
+
+> 𝑚 ∈ N ( 𝑛 )
+
+𝑠𝑐𝑜𝑟𝑒 (𝑛, 𝑚 )
+
+where 𝑠𝑐𝑜𝑟𝑒 (𝑛, 𝑚 ) = Í{𝜔 (𝑒 ) | 𝑒 ∈ I ( 𝑛 ), 𝑚 ∈ 𝑒 } . (12) To form super-nodes, candidate pairs must be disjoint; therefore, coarsening requires a high-weight matching over the directed candi-date graph. Since each node has at most one candidate, this graph is functional. Moreover, histograms are symmetric and candidates are maxima, so selected scores are non-decreasing along arcs, and tie-breaking restricts cycles to two nodes. Thus, the graph is a pseudo-forest rooted at two-cycles. We therefore use the simultaneous-walk matching procedure of [35]. A thread per node walks upward along candidate arcs to its root two-cycle, atomically acquiring candidates with conflicts resolved by score. After synchronization, two-cycles are matched and threads walk downward by retracing their paths, N/A, N/A, N/A Anonymous 
+
+> Figure 3: Partitioning phases – coarsening in green, uncoarsening and refinement in red – and steps with key algorithm highlights.
+
+matching nodes that still hold their acquisitions when revisited. The resulting matching is characterized recursively as: 
+
+𝑚𝑎𝑡𝑐ℎ (𝑛 ) =
+
+
+
+𝑐𝑎𝑛𝑑 (𝑛 ) if 𝑐𝑎𝑛𝑑 (𝑐𝑎𝑛𝑑 (𝑛 )) = 𝑛 
+
+or 𝑚𝑎𝑡𝑐ℎ (𝑐𝑎𝑛𝑑 (𝑛 )) = 𝑛 ,argmax 𝑚 s.t. 𝑐𝑎𝑛𝑑 (𝑚 )=𝑛 𝑠𝑐𝑜𝑟𝑒 (𝑛, 𝑚 ) if 𝑚 exists . (13) Lastly, the coarse h-graph is built, or, if no candidates are pro-posed, an initial 𝜌 is formed with a partition per super-node. 
+
+Uncoarsening and Refinement. With a 𝜌 providing provisional par-titions, super-nodes come undone level by level while refinement moves nodes so to disconnect h-edges from as many partitions as possible. For a disconnection to happen, a node must be the last one for an h-edge in a partition. Thus, to find favorable moves, the pin count per partition is precomputed as 𝑝𝑖𝑛𝑠 (𝑝, 𝑒 ) = |{ 𝑛 ∈ 𝑒 | 𝑛 ∈ 𝑝 }| .Each node 𝑛 computes the spared cuts cost for leaving its current partition as 𝑠𝑎𝑣𝑒 (𝑛 ) =Í{𝜔 (𝑒 ) | 𝑒 ∈ I ( 𝑛 ), 𝑝𝑖𝑛𝑠 (𝜌 (𝑛 ), 𝑒 ) =1}. At the same time, for all partitions 𝑝 besides its own, it finds the cost for entering them as 𝑙𝑜𝑠𝑠 (𝑛, 𝑝 ) =Í{𝜔 (𝑒 ) | 𝑒 ∈ I ( 𝑛 ), 𝑝𝑖𝑛𝑠 (𝑝, 𝑒 ) =0}.Now 𝑠𝑎𝑣𝑒 (𝑛 ) − 𝑙𝑜𝑠𝑠 (𝑛, 𝑝 ) is the connectivity gain for moving to 𝑝 ;each 𝑛 proposes the best such move that is by itself feasible. While every node proposes a move, not all can be applied at once, as mutual interference could break their favorability and va-lidity. We therefore greedily sort moves by decreasing gain [26] and interpret refinement as selecting the best improving prefix of this sequence. To evaluate each prefix, we first recompute every move’s gain assuming all preceding moves have already been ap-plied. A prefix sum of these updated gains identifies the cumulative improvement of each prefix. What remains is to determine, in the same move order, which prefixes produce a valid state. Validity is determined by emitting sparse events along the move sequence. Each move emits signed events for changes in the con-strained quantities directly affected by its node: partition size and total inbound pin count. After grouping events by partition and scanning them in move order, crossings of the Ω and Φ thresholds update a per-move violation counter. Events for the inbound set size require one more step, as they arise only when an h-edge con-nects or disconnects from a partition. For each affected pair (𝑝, 𝑒 ),moves emit signed events describing the variation of 𝑝𝑖𝑛𝑠 (𝑝, 𝑒 ).Their prefix sum yields the running value of 𝑝𝑖𝑛𝑠 (𝑝, 𝑒 ), from which we test whether 𝑒 is inbound to 𝑝 as 𝑝𝑖𝑛𝑠 (𝑝, 𝑒 ) − 1[𝑠𝑟𝑐 (𝑒 ) ∈ 𝑝 ] > 0. Transitions of this condition generate signed events for the inbound set size of 𝑝 . Scanning these events by partition detects crossings of Δ and updates the same per-move violation counters. A move is valid iff the prefix sum of violation counters is zero at its position. We enact moves up to the highest cumulative gain prefix that is both improving and valid. 
+
+## 4.2 Placement 
+
+For placement, we adapt several ideas from h-graph combinatorial optimization [15, 16, 36, 38] and prior SNN mapping tools [17, 18]. Placement is performed in two phases: the construction of an initial solution, followed by its iterative refinement, see Fig. 4. The initial solution is obtained greedily, by flattening 𝐻 to a single di-mension and constructing a high-locality sequence of nodes over it. Subsequently, refinement lets h-edges "pull" on their nodes, in-ducing forces that promote swaps between adjacent cores. Reasonably assuming all partitions to be near-full, forming 𝐺 into 
+
+𝐺 𝑃 shrinks the node count by a factor of about min (Ω, Δ/max |𝑖𝑛 (𝑛 ) | ).With 𝐺 𝑃 relatively small, a multi-start method becomes practical: we refine Π placements concurrently from different initial condi-tions, and ultimately select the best one. For this work we set Π =64. 
+
+Initial Placement. First, 𝐻 is projected into a 1D sequence via the Hilbert curve, which preserves most of its 2D locality [17]. Then, a sequence of nodes minimizing the distance between strongly connected neighbors is built and nodes are assigned over 𝐻 in order. This is a 1D reduction of the problem, that we solve via recursive bisection followed by a tree-based orientation optimization. We distribute nodes over internally ordered sections {𝑠 0, 𝑠 1, . . . } ⊆ P ( 𝑃 ). Initially, all nodes belong to the same section 𝑠 0, in random order. At each recursion, every section 𝑠 𝑖 is split halfway in two child sections 𝑠 ′ 
+
+> 2𝑖
+
+and 𝑠 ′ 
+
+> 2𝑖 +1
+
+s.t. 𝑠 𝑖 = 𝑠 ′
+
+> 2𝑖
+
+++ 𝑠 ′
+
+> 2𝑖 +1
+
+. Follow several rounds of label propagation [6] that swap nodes between pairs of child sections, minimizing the total weight of h-edges cut in the bisection. The recursion halts once each section contains exactly one node, leaving behind a binary tree where leaves coincide with single nodes and branches with bisected sections. Now the sequence 
+
+𝑠 0, 𝑠 1, . . . , 𝑠 |𝑃 | − 1 of leaves already exhibits some locality; however, the order of child sections on each branch is still arbitrary. To construct the final node order from sections, the above bisec-tion tree is ascended while folding its branches. Starting from leaves, at each step, pairs of sibling sections are concatenated, and their rel-ative order is chosen by which one has the stronger total connection to the nodes in their parent’s sibling section. Intuitively, sections are oriented so that their most strongly connected sides face each other as folding reaches higher levels of the tree. Moreover, when-ever two sections flip positions their internal node order is also reversed. This effectively traps the strong connections identified at previous tree levels within each compound section. By the end, the root section contains a sequence with high local connectivity. We simultaneously construct Π initial placements in this way. 
+
+Swap Proposals. Each node 𝑝 ∈ 𝑃 , currently placed at ℎ = 𝛾 (𝑝 ),computes a force towards each adjacent core. A 𝑓 𝑜𝑟𝑐𝑒 : 𝑃 × 𝐻 → R
+
+represents the total weight of hops that could be spared in reaching GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware N/A, N/A, N/A 
+
+> Figure 4: Placement phases – initial 1D placement on the left, Hilbert curve and refinement on the right – and steps with node swap highlights.
+
+all of 𝑝 ’s neighbors by moving 𝑝 to any adjacent place: 
+
+∀𝑘 ∈ J ( ℎ), 𝑓 𝑜𝑟𝑐𝑒 (𝑝, 𝑘 ) ==∑︁  
+
+> 𝑎 ∈ I ( 𝑝 )
+
+𝜂 (𝑎 ) · ∑︁  
+
+> 𝑞 ∈𝑎 \{ 𝑝 }
+
+  𝑑𝑖𝑠𝑡 (ℎ, 𝛾 (𝑞 )) − max (𝑑𝑖𝑠𝑡 (𝑘, 𝛾 (𝑞 )) , 1)  (14) being zero for any other 𝑘 . A strictly positive force marks 𝑘 as a desirable placement for 𝑝 .By summing over all node-neighbor pairs, forces jointly capture sources pulling on destinations and destinations pulling on each other. Src-dst terms directly promote lower distance connections, addressing the latency objective in Eq. 3. Dst-dst terms instead en-courage the locality of pins within each h-edge, fostering multicast and acting as a surrogate for reducing ℎ𝑜𝑝𝑠 in accord with Eq. 10. With the focus shifting on cores, let us define the inverse place-ment 𝜋 : 𝐻 → 𝑃 as 𝜋 (ℎ) = 𝑝 if 𝛾 (𝑝 ) = ℎ; ⊥ if ℎ is empty. The lattice is densely packed with nodes, therefore a node chang-ing place means swapping it and the one currently occupying such place, if any. Hence, any force in favor of a new placement will be met by the opposing force of the node that is already there. The resulting 𝑡𝑒𝑛𝑠𝑖𝑜𝑛 : 𝐻 × 𝐻 → R between adjacent places is: 
+
+𝑡𝑒𝑛𝑠𝑖𝑜𝑛 (ℎ, 𝑘 ) = 1 
+
+> 𝜋 (ℎ)≠⊥
+
+· 𝑓 𝑜𝑟𝑐𝑒 (𝜋 (ℎ), 𝑘 ) + 1  
+
+> 𝜋 (𝑘 )≠⊥
+
+· 𝑓 𝑜𝑟𝑐𝑒 (𝜋 (𝑘 ), ℎ ) . (15) Naturally, the tension is symmetric, 𝑡𝑒𝑛𝑠𝑖𝑜𝑛 (ℎ, 𝑘 ) = 𝑡𝑒𝑛𝑠𝑖𝑜𝑛 (𝑘, ℎ ).A positive tension signifies that a swap would overall decrease the distance covered to connect the affected nodes. Consequently, the tension is a compound local proxy of both energy and latency based on h-edges locality [34]. Thus, every node 𝑝 proposes a swap with argmax 𝑘 ∈𝐻 𝑡𝑒𝑛𝑠𝑖𝑜𝑛 (𝛾 (𝑝 ), 𝑘 ), tie-breaking lexicographically over 𝑘 .Forces are computed with a single neighbors iteration: distances from the node’s placement to each pin are computed once, then reused to derive distances from adjacent placements incrementally. A second pass over adjacent core pairs updates forces to tensions. 
+
+Placement Refinement. For several swaps to be performed together, their cores must be disjoint. Hence, a high-total-tension matching is required between cores over the graph induced by proposed swaps. The same conditions as in Sec. 4.1 apply, with non-decreasing ten-sions along paths of proposed swaps leading to a two-cycle pseudo-forest. Consequently, we adopt the same matching procedure. Even with disjoint swaps, applying all of them at once may not be favorable, as they might interfere with each other’s tension. Thus, we sort swaps by tension into a sequence, following the same idea as in Sec. 4.1. Then, another neighborhood traversal updates each tension as if all swaps before it were already performed. Sub-sequently, a prefix sum of tensions and a reduce-max operation yield the best improving prefix in the sequence. All selected swaps are applied at once, with an update to 𝛾 and 𝜋 .Refinement repeats until no swaps occur. Convergence is guar-anteed by the pairwise-distance descent argument of [17]. The best multi-start result is chosen by minimum total residual distance. 
+
+## 5 Experimental Evaluation 
+
+To evaluate our approach, we compare with existing mapping tools, all running sequentially on CPU. SNNcut [46] employs a one-pass node-order partitioner (extended to cyclic networks via greedy or-dering [34]) and a Hilbert-curve force-directed placement scheme [17, 18], on which ours is based. Ronzani et al. [34] use greedy inbound set overlap maximization for partitioning and SNNcut’s same placement algorithm. EdgeMap [47] uses a streaming flow-based partitioner and a genetic placement algorithm. For placement only, we also include TrueNorth’s internal method [37]. DFSynthe-sizer [42] and others [2, 27] have been excluded because already dominated by the selected tools [46, 47] or missing public artifacts. We further compare with two multi-level h-graph partitioning tools: the classic hMETIS [20] sequential algorithm, adapted to our constraints [34], and the multi-threaded Mt-KaHyPar [14]. In addi-tion, Mt-KaHyPar supports a mapping mode under the Steiner tree objective [16], against which we compare for placement. Since Mt-KaHyPar does not support the distinct inbound h-edges constraint, we annotate the number of invalid partitions it produces and use it as an optimistic reference on h-graphs. To our knowledge, no GPU baseline exists for our tasks and constraints, e.g. HyperG [26] and gHyPart [44] only target 𝑘 -way balanced partitioning. Benchmarks comprise twelve publicly available SNNs [33], re-ported in Tab. 2 and ranging from million-scale to 577 M pins. They cover both ANN-derived acyclic feedforward networks, including the VGG-11-scaled -model family, and cyclic small-world networks, namely the Allen V1 [4] and -rand networks patterned after it. NMH configurations follow Tab. 1: networks use the "small" set-ting up to 2 26 pins and the "large" one beyond it, thereby evaluating each network on a realistically capable system for its size [40]. Following prior SNN mapping studies [17, 18, 34, 46], we evaluate all methods under the analytical communication model of Sec. 3, with hardware costs from Tab. 1. Using the same setup for every                                                                                                           
+
+> Figure 5: Partitioning results comparison. Lower is better. N/A, N/A, N/A Anonymous
+> Network 16 k-model lenet 16 k-rand 64 k-rand 64 k-model 256 k-rand allen-v1 256 k-model vgg11 alexnet 1M-model mobilenet
+> Topology acyclic acyclic cyclic cyclic acyclic cyclic cyclic acyclic acyclic acyclic acyclic acyclic
+> Target constraints small small small small small small large large large large large large
+> original
+> (𝐺 ) Node count 20 k14 k214 216 110 k218 231 k216 k194 k208 k302 k6.9 M
+> Pin count 766 k875 k2.1 M12.6 M23 M67.4 M70 M90 M133 M145 M256 M577 M
+> Mean node deg. 37.3 63.2 128 192 210.3 256 304.7 417.2 688.3 696.2 848.1 83.5
+> partitioned
+> (𝐺 𝑃  ) Node count 23 16 19 120 121 653 60 60 57 59 84 1.7 k
+> Pin count 535 298 19.2 k412 k5.7 k2.3 M558 k2.4 k1.3 k2.1 k5.9 k5.4 M
+> Mean node deg. 2.63 2.56 4.12 6.32 2.88 8.85 10.6 2.64 2.76 2.73 4.27 10.0
+
+Table 2: SNN hypergraphs, original and partitioned (with lowest-connectivity available), used in the experiments. 
+
+Figure 6: Scalability of mapping tools over pins. 
+
+Figure 7: Placement results comparison. Algorithms start from the same partitioning: the lowest-connectivity available one. Lower is better. 
+
+Figure 8: Mapping – partitioning and placement – results comparison with four sequential methods across twelve SNNs. Lower is better. 
+
+baseline, the resulting metrics focus the comparison on mapping-dependent spike-routing costs rather than hardware measurements. Experiments ran on an EPYC 7453 @ 2.75GHz CPU and an A100-SXM4-40GB GPU. Timings are end-to-end wall-clock, exclude post-hoc metric extraction, and average 5 runs with negligible variance. 
+
+Results Discussion. We perform three sets of experiments. First, partitioning methods are evaluated based on their connectivity and runtime. Second, placement techniques are fairly assessed by fixing their input to the same partitioning, the lowest-connectivity one available. Third, we compare the different pipelines end-to-end. Partitioning results are presented in Fig. 5. Our approach consis-tently outperforms SNN mapping tools, that yield a 1 .3-15 .9× higher connectivity. Our results also improve on h-graph partitioning tools: hMETIS’s mean connectivity is 1 .6× higher and Mt-KaHyPar’s is 1.9× so. Just the latter achieves better results on three occasions, but while producing tens of invalid partitions. Looking at execution time, our GPU-parallel approach shows a 25-2k × speedup over the sequential hMETIS, and 3-15 × over the multi-threaded Mt-KaHyPar (16 threads), both multi-level schemes too. We are also 5 × or faster than other mapping tools that iterate over pins (EdgeMap, Ronzani et al.), and at most 6 × slower than the single iteration over nodes of SNNcut. Notably, small-world net-works slow down other methods over irregular traversals or node ordering, whereas our runtime is mostly unaffected by topology. Placement-only results are reported in Fig. 7. With multi-start (Π = 64), our approach outperforms existing SNN mapping tools: their mappings incur 1 .02-1 .75 × the energy, 1 .02-1 .76 × the avg. latency, and 1 .04-2 .96 × the max. core congestion, with execution times bracketing ours (0 .04-22 ×). Remarkably, even without multi-start ( Π = 1), our method already improves over most baselines while being nearly the fastest, signaling the robustness of our initial placement strategy. Increasing Π beyond 64 yields negligible gains while incurring a proportional runtime overhead due to limited GPU resources, and is therefore not considered further. Mt-KaHyPar provides a useful reference for attainable place-ment quality, showing that mappings with metrics up to 10% lower than ours are sometimes possible. However, reaching them incurs prohibitively high execution times, and its placement algorithm is limited to at most 64 lattice nodes, hence the missing results. As such, our method remains the most effective scalable solution. All independent improvements transfer over to end-to-end map-ping quality, reported in Fig. 8. There, our pipeline demonstrates the best mappings overall. Taking, for each SNN and metric, the best competing result normalized to ours, existing tools still incur a mean 1 .72 × energy, 1 .18 × avg. latency, and 1 .98 × max. congestion. Our total runtime continues to exhibit a 4-1 .5k × speedup over non-trivial methods, while being competitive with SNNcut’s greedy heuristics. As shown in Fig. 6, mapping time generally scales near-linearly with pin count; our parallel solution preserves this trend while shifting the curve downward. In particular, on the largest 577 M-pins mobilenet SNN, we retain an execution time of a few minutes and GPU memory usage peaks at 28GB, while halving all mapping costs compared to SoTA methods. 
+
+## 6 Conclusion 
+
+In this work, we presented the first GPU-accelerated pipeline for mapping spiking neural networks on neuromorphic hardware. It achieves the highest mapping quality among the evaluated SoTA baselines while greatly reducing time-to-solution. Hence, the scala-bility of our approach positions it to handle ever-growing networks, with brain-scale systems as the long-term target. Having established mapping quality within this analytical framework, evaluation on hardware platforms is being pursued, pending integration with their software stacks. Our tools are available as open-source [32]. GPU-Accelerated Hypergraph Partitioning and Placement to Map SNNs on Neuromorphic Hardware N/A, N/A, N/A 
+
+## References 
+
+[1] Filipp Akopyan et al. 2015. TrueNorth: Design and Tool Flow of a 65 mW 1 Million Neuron Programmable Neurosynaptic Chip. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 34, 10 (2015), 1537– 1557. doi:10.1109/TCAD.2015.2474396 [2] Adarsha Balaji et al. 2020. Mapping Spiking Neural Networks to Neuromorphic Hardware. IEEE Transactions on Very Large Scale Integration (VLSI) Systems 28, 1 (2020), 76–86. doi:10.1109/TVLSI.2019.2951493 [3] Ben Varkey Benjamin et al. 2014. Neurogrid: A Mixed-Analog-Digital Multichip System for Large-Scale Neural Simulations. Proc. IEEE 102, 5 (2014), 699–716. doi:10.1109/JPROC.2014.2313565 [4] Yazan N. Billeh et al. 2020. Systematic Integration of Structural and Functional Data into Multi-scale Models of Mouse Primary Visual Cortex. Neuron 106, 3 (2020), 388–403.e18. doi:10.1016/j.neuron.2020.01.040 [5] Maxence Bouvier et al. 2019. Spiking Neural Networks Hardware Implementa-tions and Challenges: A Survey. J. Emerg. Technol. Comput. Syst. 15, 2, Article 22 (2019), 35 pages. doi:10.1145/3304103 [6] Ümit Çatalyürek et al. 2023. More Recent Advances in (Hyper)Graph Partitioning. 
+
+ACM Comput. Surv. 55, 12, Article 253 (2023), 38 pages. doi:10.1145/3571808 [7] Hu Chen et al. 2006. MPIPP: an automatic profile-guided parallel process place-ment toolset for SMP clusters and multiclusters. In Proceedings of the 20th Annual International Conference on Supercomputing . Association for Computing Machin-ery, New York, NY, USA, 353–360. doi:10.1145/1183401.1183451 [8] Mike Davies et al. 2018. Loihi: A Neuromorphic Manycore Processor with On-Chip Learning. IEEE Micro 38, 1 (2018), 82–99. doi:10.1109/MM.2018.112130359 [9] Lei Deng et al. 2020. Rethinking the performance comparison between SNNS and ANNS. Neural Networks 121 (2020), 294–307. doi:10.1016/j.neunet.2019.09.005 [10] C.M. Fiduccia and R.M. Mattheyses. 1982. A Linear-Time Heuristic for Improving Network Partitions. In 19th Design Automation Conference . IEEE, Piscataway, NJ, USA, 175–181. doi:10.1109/DAC.1982.1585498 [11] Yaniv Frishman and Ayellet Tal. 2007. Multi-Level Graph Layout on the GPU. 
+
+IEEE Transactions on Visualization and Computer Graphics 13, 6 (2007), 1310–1319. doi:10.1109/TVCG.2007.70580 [12] Steve B. Furber et al. 2014. The SpiNNaker Project. Proc. IEEE 102, 5 (2014), 652–665. doi:10.1109/JPROC.2014.2304638 [13] Francesco Galluppi et al. 2012. A hierachical configuration system for a mas-sively parallel neural hardware platform. In Proceedings of the 9th Conference on Computing Frontiers . Association for Computing Machinery, New York, NY, USA, 183–192. doi:10.1145/2212908.2212934 [14] Lars Gottesbüren et al. 2024. Scalable High-Quality Hypergraph Partitioning. 
+
+ACM Trans. Algorithms 20, 1, Article 9 (2024), 54 pages. doi:10.1145/3626527 [15] Charles H Heider. 1972. A computationally simplified pair-exchange algorithm for the quadratic assignment problem . Technical Report. Center for Naval Analysis. [16] Tobias Heuer. 2024. A Direct k-Way Hypergraph Partitioning Algorithm for Optimizing the Steiner Tree Metric. In Symposium on Algorithm Engineering and Experiments (ALENEX 2024) . SIAM, Philadelphia, PA, USA, 15–31. doi:10.1137/1. 9781611977929.2 [17] Ouwen Jin et al. 2023. Mapping Very Large Scale Spiking Neuron Network to Neuromorphic Hardware. In Proceedings of the 28th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 3 . Association for Computing Machinery, New York, NY, USA, 419–432. doi:10.1145/3582016.3582038 [18] Ouwen Jin et al. 2025. Mapping Large-Scale Spiking Neural Network on Arbitrary Meshed Neuromorphic Hardware. IEEE Transactions on Parallel and Distributed Systems 36, 11 (2025), 2325–2340. doi:10.1109/TPDS.2025.3601993 [19] George Karypis et al. 1999. Multilevel hypergraph partitioning: Applications in VLSI domain. IEEE Transactions on Very Large Scale Integration (VLSI) Systems 7, 1 (1999), 69–79. doi:10.1109/92.748202 [20] George Karypis and Vipin Kumar. 1999. Multilevel k-way hypergraph parti-tioning. In Proceedings of the 36th Annual ACM/IEEE Design Automation Con-ference . Association for Computing Machinery, New York, NY, USA, 343–348. doi:10.1145/309847.309954 [21] Andrew A. Kennings and Igor L. Markov. 2000. Analytical minimization of half-perimeter wirelength. In Proceedings of the 2000 Asia and South Pacific Design Automation Conference . Association for Computing Machinery, New York, NY, USA, 179–184. doi:10.1145/368434.368600 [22] Farzad Khorasani, Rajiv Gupta, and Laxmi N. Bhuyan. 2015. Scalable SIMD-Efficient Graph Processing on GPUs. In 2015 International Conference on Parallel Architecture and Compilation (PACT) . IEEE, Piscataway, NJ, USA, 39–50. doi:10. 1109/PACT.2015.15 [23] Konrad Von Kirchbach, Christian Schulz, and Jesper Larsson Träff. 2020. Better Process Mapping and Sparse Quadratic Assignment. ACM J. Exp. Algorithmics 
+
+25, Article 1.11 (2020), 19 pages. doi:10.1145/3409667 [24] Dhireesha Kudithipudi et al. 2025. Neuromorphic computing at scale. Nature 
+
+637, 8047 (2025), 801–812. doi:10.1038/s41586-024-08253-8 [25] Rin Kuriyama et al. 2025. Microscopic-Level Mouse Whole Cortex Simulation Composed of 9 Million Biophysical Neurons and 26 Billion Synapses on the Supercomputer Fugaku. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis . Association for Com-puting Machinery, New York, NY, USA, 2158–2171. doi:10.1145/3712285.3759819 [26] Wan Luan Lee et al. 2025. HyperG: Multilevel GPU-Accelerated k-way Hy-pergraph Partitioner. In Proceedings of the 30th Asia and South Pacific Design Automation Conference . Association for Computing Machinery, New York, NY, USA, 1031–1040. doi:10.1145/3658617.3697551 [27] Shiming Li et al. 2020. SNEAP: A Fast and Efficient Toolchain for Mapping Large-Scale Spiking Neural Network onto NoC-based Neuromorphic Platform. In Proceedings of the 2020 on Great Lakes Symposium on VLSI . Association for Computing Machinery, New York, NY, USA, 9–14. doi:10.1145/3386263.3406900 [28] Wenlian Lu et al. 2024. Simulation and assimilation of the digital human brain. 
+
+Nature Computational Science 4, 12 (2024), 890–898. doi:10.1038/s43588-024-00731-3 [29] De Ma et al. 2024. Darwin3: a large-scale neuromorphic chip with a novel ISA and on-chip learning. National Science Review 11, 5 (2024), nwae102. doi:10.1093/ nsr/nwae102 [30] Sepideh Maleki et al. 2021. BiPart: a parallel and deterministic hypergraph partitioner. In Proceedings of the 26th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming . Association for Computing Machinery, New York, NY, USA, 161–174. doi:10.1145/3437801.3441611 [31] João D. Nunes et al. 2022. Spiking Neural Networks: A Survey. IEEE Access 10 (2022), 60738–60764. doi:10.1109/ACCESS.2022.3179968 [32] Marco Ronzani. 2026. open-source artifact. https://github.com/EMJzero/ AxonCUDA. [33] Marco Ronzani. 2026. Spiking Neural Network Hypergraphs with Spike Frequency Data . Zenodo. doi:10.5281/zenodo.19194881 [34] Marco Ronzani and Cristina Silvano. 2026. A Case for Hypergraphs to Model and Map SNNs on Neuromorphic Hardware. arXiv:2601.16118 [cs.AR] [35] Marco Ronzani and Cristina Silvano. 2026. Incidence Constraints in Hypergraph Partitioning on GPU. arXiv:2604.14411 [cs.DC] Accepted at AsHES Workshop @ IPDPS 2026. [36] Jarrod A. Roy, James F. Lu, and Igor L. Markov. 2006. Seeing the forest and the trees: Steiner wirelength optimization in placement. In Proceedings of the 2006 International Symposium on Physical Design . Association for Computing Machinery, New York, NY, USA, 78–85. doi:10.1145/1123008.1123024 [37] Jun Sawada et al. 2016. Truenorth ecosystem for brain-inspired computing: scalable systems, software, and applications. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis .IEEE Press, Piscataway, NJ, USA, Article 12, 12 pages. [38] Sebastian Schlag et al. 2016. k-way Hypergraph Partitioning via n-Level Recursive Bisection. In 18th Workshop on Algorithm Engineering and Experiments, (ALENEX 2016) . 53–67. doi:10.1137/1.9781611974317.5 [39] Sebastian Schlag et al. 2023. High-Quality Hypergraph Partitioning. ACM J. Exp. Algorithmics 27, Article 1.9 (2023), 39 pages. doi:10.1145/3529090 [40] Catherine D. Schuman et al. 2017. A Survey of Neuromorphic Computing and Neural Networks in Hardware. arXiv:1705.06963 [cs.NE] [41] Luping Shi et al. 2015. Development of a neuromorphic computing system. In 
+
+2015 IEEE International Electron Devices Meeting (IEDM) . IEEE, Piscataway, NJ, USA, 4.3.1–4.3.4. doi:10.1109/IEDM.2015.7409624 [42] Shihao Song et al. 2022. DFSynthesizer: Dataflow-based Synthesis of Spiking Neural Networks to Neuromorphic Hardware. ACM Trans. Embed. Comput. Syst. 
+
+21, 3, Article 27 (2022), 35 pages. doi:10.1145/3479156 [43] Guangzhi Tang et al. 2023. SENECA: building a fully digital neuromorphic processor, design trade-offs and challenges. Frontiers in Neuroscience Volume 17 -2023 (2023), 1187252. doi:10.3389/fnins.2023.1187252 [44] Zhenlin Wu et al. 2025. gHyPart: GPU-friendly End-to-End Hypergraph Par-titioner. ACM Trans. Archit. Code Optim. 22, 1, Article 38 (2025), 25 pages. doi:10.1145/3711925 [45] Chao Xiao et al. 2024. Hierarchical Mapping of Large-Scale Spiking Convolutional Neural Networks Onto Resource-Constrained Neuromorphic Processor. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 43, 5 (2024), 1442–1455. doi:10.1109/TCAD.2023.3344070 [46] Qinghui Xing et al. 2025. SNNcut: An Efficient Partitioning Method for Large-Scale Spiking Neural Networks Using Spike-Sharing. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems PP, 99 (2025), 1–1. doi:10.1109/TCAD.2025.3648616 [47] Jianwei Xue et al. 2023. EdgeMap: An Optimized Mapping Toolchain for Spiking Neural Network in Edge Computing. Sensors 23, 14 (2023), 6548. doi:10.3390/ s23146548
