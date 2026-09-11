@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-10</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 7 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-10 21:15:30 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 21:21:39 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 7 篇推荐（精读 0 篇，速读 7 篇）</p>
-<p>速读：《FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity》（7.0/10）, 《An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions》（6.0/10）, 《Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>2026-09-11 日报精选 7 篇速读，聚焦芯片架构与硬件安全前沿。最值得看的是《Para-Pipe》用层次化算子并行加速 SoC 上的 ML 计算图，以及晶圆级 GPU 与光子神经网络加速器的安全威胁分析。建议普通读者从 Para-Pipe 入手，了解并行调度如何提升端侧推理效率。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -96,7 +94,7 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li><li><span class="dpr-home-dashboard-paper-title" title="An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions">An Emerging NVM-Based On-Chip Training Architecture with Non-Ideality Mitigation Through Bipolar Weight Distributions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs">Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs">Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs</span></li><li><span class="dpr-home-dashboard-paper-title" title="WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs">WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators">Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>7</strong></span></div>
 </section>

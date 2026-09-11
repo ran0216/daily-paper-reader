@@ -1,0 +1,121 @@
+{
+  "date": "20260911",
+  "date_label": "",
+  "generated_at": "2026-09-11 21:21:39 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.04168v1",
+      "route": "202609/11/2609.04168v1-para-pipe-exploiting-hierarchical-operator-parallelism-of-ml-computational-graphs-on-socs",
+      "title": "Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘深度学习的异构SoC算子并行调度",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.06125v1",
+      "route": "202609/11/2609.06125v1-wafertrans-enabling-iommu-free-distributed-virtual-address-translation-for-wafer-scale-gpus",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向晶圆级GPU的去IOMMU分布式地址翻译",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.06796v1",
+      "route": "202609/11/2609.06796v1-hardware-trojan-threats-to-multi-chiplet-photonic-neural-network-accelerators",
+      "title": "Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "多芯粒光子神经网络加速器的硬件木马威胁",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.07059v2",
+      "route": "202609/11/2609.07059v2-nova-cim-noise--and-correlation-tolerant-stochastic-interfaces-for-analog-compute-in-memory",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向模型加速的模拟存内计算加速器",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.08446v1",
+      "route": "202609/11/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘SNN推理的数字存内计算AI加速器架构",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.09559v1",
+      "route": "202609/11/2609.09559v1-differential-stochastic-simulated-annealing-processor-for-fully-connected-2048-spin-optimization",
+      "title": "Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "定制CMOS退火加速器芯片架构与实现",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    },
+    {
+      "paper_id": "2609.10970v1",
+      "route": "202609/11/2609.10970v1-fengshui-demystifying-chiplet-ecosystem-and-bespoke-neural-network-accelerator-codesign",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于chiplet的定制神经网络加速器协同设计",
+      "first_seen_at": "2026-09-11 21:21:39 UTC",
+      "updated_at": "2026-09-11 21:21:39 UTC"
+    }
+  ]
+}

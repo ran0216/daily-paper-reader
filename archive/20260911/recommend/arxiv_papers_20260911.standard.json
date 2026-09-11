@@ -1,0 +1,298 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-11T21:20:34.067061+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 7,
+    "quick_skim_target": 11,
+    "quick_selected": 7
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.04168v1",
+      "source": "arxiv",
+      "title": "Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs",
+      "abstract": "As edge-based deep learning applications become more complex, optimizing performance on heterogeneous System-on-Chips (SoCs) presents unique challenges. Traditional pipelining techniques distributing the computation across different on-chip processing units, while effective for throughput, do not address the latency demands posed by modern neural networks with complex interdependencies and extensive operator parallelism. There is a potential in leveraging operator parallelism to enable concurrent execution across multiple processing units, thereby reducing inference latency. However, prioritizing pipelining or parallel execution often necessitates a compromise, where optimizing one performance metric adversely impacts the other. This paper introduces Para-Pipe, a hierarchical mapping framework that integrates intra- and inter-stage operator parallelism within a pipelined architecture. Para-Pipe navigates the trade-off between throughput and latency by selectively fine-tuning parallelism levels within and across pipeline stages. This strategy can significantly reduce inter-processor communication overhead, significantly improving energy efficiency. Our evaluation demonstrates that Para-Pipe generates multiple Pareto-optimal configurations, achieving a balance between throughput and latency on an Amlogic SoC equipped with ARM big.LITTLE CPUs and GPU, as well as the Black Sesame Technology SoC featuring a deep learning accelerator and two DSPs. More importantly, throughput-optimized configurations under Para-Pipe on Amlogic SoC show an average energy efficiency improvement of 11.0% over purely pipelined strategies and 23.3% relative to non-pipelined parallel execution.",
+      "authors": [
+        "Yujie Zhang",
+        "Huiying Lan",
+        "Ehsan Aghapour",
+        "Zhiyuan Ning",
+        "Peng Zan",
+        "Weidong Shao",
+        "Anuj Pathania",
+        "Tulika Mitra"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.LG",
+        "cs.PF"
+      ],
+      "published": "2026-09-03T17:53:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.04168v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Operator parallelism of ML graphs on heterogeneous SoCs for edge deep learning",
+      "llm_evidence_cn": "面向边缘深度学习的异构SoC算子并行调度",
+      "llm_evidence": "面向边缘深度学习的异构SoC算子并行调度",
+      "canonical_evidence": "面向边缘深度学习的异构SoC算子并行调度",
+      "llm_tldr_en": "Edge deep learning on heterogeneous SoCs must balance throughput pipelining against latency from complex operator dependencies. Para-Pipe exploits hierarchical operator parallelism of ML computational graphs to run operators concurrently across on-chip units, aiming to cut inference latency without sacrificing throughput.",
+      "llm_tldr_cn": "边缘深度学习模型日益复杂，在异构SoC上传统流水线虽能提升吞吐，却难以应对复杂算子依赖带来的延迟需求。本文提出Para-Pipe，挖掘ML计算图的层次化算子并行性，将算子并发地映射到多个片上处理单元执行，以在吞吐与延迟之间取得更好折中。该工作面向边缘AI芯片的架构与调度设计，为降低推理延迟提供了新的并行化思路。",
+      "llm_tldr": "边缘深度学习模型日益复杂，在异构SoC上传统流水线虽能提升吞吐，却难以应对复杂算子依赖带来的延迟需求。本文提出Para-Pipe，挖掘ML计算图的层次化算子并行性，将算子并发地映射到多个片上处理单元执行，以在吞吐与延迟之间取得更好折中。该工作面向边缘AI芯片的架构与调度设计，为降低推理延迟提供了新的并行化思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.06125v1",
+      "source": "arxiv",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "abstract": "Wafer-scale GPUs (WSGs) provide sufficient on-wafer bandwidth to make near-lossless Unified Memory feasible. However, existing designs still rely on a CPU-IOMMU to translate remote virtual-address accesses. This centralized mechanism scales poorly to tens of GPU dies: translation requests must traverse costly off-wafer hierarchies and contend for limited CPU-side resources, making address translation a critical bottleneck. We propose WaferTrans, an IOMMU-free distributed virtual-address translation design for WSGs. WaferTrans introduces PTE Presence Consistency (PTE-PC), a lightweight consistency model that tracks PTE insertions and removals, and equips each GPU with a PTE Presence Directory (PPD) that locates the GPU holding a requested PTE. It further employs a distributed PTE-PC mapping and a cooperative query mechanism to localize PTE-PC maintenance while preserving complete lookup coverage. Together, these mechanisms enable the GPU array to resolve remote translations within the wafer, eliminating its dependence on the CPU-IOMMU. Compared with the SOTA Trans-FW design, WaferTrans improves performance by 2.5x on average.",
+      "authors": [
+        "Xinru Tang",
+        "Jingxiang Hou",
+        "Guanghong Wu",
+        "Yang Hu",
+        "Shouyi Yin"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T14:47:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.06125v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "IOMMU-free distributed address translation for wafer-scale GPUs",
+      "llm_evidence_cn": "面向晶圆级GPU的去IOMMU分布式地址翻译",
+      "llm_evidence": "面向晶圆级GPU的去IOMMU分布式地址翻译",
+      "canonical_evidence": "面向晶圆级GPU的去IOMMU分布式地址翻译",
+      "llm_tldr_en": "Wafer-scale GPUs enable near-lossless unified memory but still depend on a CPU-IOMMU for remote address translation, which scales poorly across tens of dies. WaferTrans proposes an IOMMU-free distributed translation design with a PTE presence consistency model and per-GPU PTE presence directory locating the owning die.",
+      "llm_tldr_cn": "晶圆级GPU片上带宽充足，使近无损统一内存成为可能，但远程虚拟地址访问仍依赖CPU-IOMMU集中翻译，在数十颗GPU芯粒上扩展性差、成为关键瓶颈。本文提出WaferTrans，一种去IOMMU的分布式地址翻译设计，引入PTE存在性一致性模型跟踪页表项增删，并为每颗GPU配备PTE存在目录以定位持有项的设备。该工作面向大规模GPU互连架构，缓解了晶圆级系统中的地址翻译瓶颈。",
+      "llm_tldr": "晶圆级GPU片上带宽充足，使近无损统一内存成为可能，但远程虚拟地址访问仍依赖CPU-IOMMU集中翻译，在数十颗GPU芯粒上扩展性差、成为关键瓶颈。本文提出WaferTrans，一种去IOMMU的分布式地址翻译设计，引入PTE存在性一致性模型跟踪页表项增删，并为每颗GPU配备PTE存在目录以定位持有项的设备。该工作面向大规模GPU互连架构，缓解了晶圆级系统中的地址翻译瓶颈。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.06796v1",
+      "source": "arxiv",
+      "title": "Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators",
+      "abstract": "Multi-chiplet photonic neural network accelerators (MCPNAs) combine photonic computation, photonic communica-tion, and heterogeneous chiplet integration to enable scalable and energy-efficient AI acceleration. However, their distributed archi-tecture and reliance on third-party chiplets introduce significant hardware security risks. This paper examines Hardware Trojan (HT) threats to MCPNAs across three dimensions: confidentiality, integrity, and availability.",
+      "authors": [
+        "Sudeep Pasricha"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-06T19:35:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.06796v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Hardware Trojan threats in multi-chiplet photonic neural network accelerators",
+      "llm_evidence_cn": "多芯粒光子神经网络加速器的硬件木马威胁",
+      "llm_evidence": "多芯粒光子神经网络加速器的硬件木马威胁",
+      "canonical_evidence": "多芯粒光子神经网络加速器的硬件木马威胁",
+      "llm_tldr_en": "Multi-chiplet photonic neural network accelerators combine photonic compute, photonic interconnect and heterogeneous chiplets for scalable AI, but their distributed third-party structure creates security risks. This paper analyzes hardware Trojan threats across confidentiality, integrity and availability dimensions.",
+      "llm_tldr_cn": "多芯粒光子神经网络加速器结合光子计算、光互连与异构芯粒集成，可实现可扩展、高能效的AI加速，但其分布式架构与第三方芯粒依赖带来严重安全风险。本文系统考察该类加速器面临的硬件木马威胁，从机密性、完整性与可用性三个维度展开分析。该工作面向AI加速器芯片与互连架构的安全设计，为多芯粒光子加速器的可信实现提供参考。",
+      "llm_tldr": "多芯粒光子神经网络加速器结合光子计算、光互连与异构芯粒集成，可实现可扩展、高能效的AI加速，但其分布式架构与第三方芯粒依赖带来严重安全风险。本文系统考察该类加速器面临的硬件木马威胁，从机密性、完整性与可用性三个维度展开分析。该工作面向AI加速器芯片与互连架构的安全设计，为多芯粒光子加速器的可信实现提供参考。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07059v2",
+      "source": "arxiv",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "abstract": "Analog compute-in-memory (CIM) enables energy-efficient model acceleration, but its reliance on ADC-based readout, which directly quantizes noisy column currents, makes inference accuracy highly sensitive to analog read noise, active-row scaling, and ADC precision. In this paper, we present NOVA-CIM, a noise- and correlation-tolerant stochastic interface for analog CIM by replacing multi-bit ADC readout with random-reference 1-bit sensing and reconstructing results through lightweight counting. By converting column currents into comparison probabilities, this probability-domain readout averages zero-mean dynamic read noise over stochastic samples while reducing dependence on high-resolution ADCs. We provide a unified robustness analysis showing that dynamic read noise is suppressed through temporal averaging and that spatial input-bitstream correlation increases instantaneous current variance rather than introducing first-order MAC bias. MAC-level experiments and end-to-end evaluation on ViT-Base validate the analysis: under read noise, Top-1 accuracy remains 84.48% near the 84.51% bfloat16 (BF16) baseline; under stochastic number generator (SNG) reuse, MAC bias stays near zero while root-mean-square error (RMSE) and stochastic cross-correlation (SCC) grow as predicted.",
+      "authors": [
+        "Jiachen Ren",
+        "Wenshuai Yao",
+        "Haobo Liu",
+        "Xincheng Feng",
+        "Chenxi Hu",
+        "Zhengwu Liu",
+        "Kechao Tang",
+        "Wenyong Zhou",
+        "Ngai Wong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-07T05:31:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.07059v2",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Analog compute-in-memory accelerator for energy-efficient model acceleration",
+      "llm_evidence_cn": "面向模型加速的模拟存内计算加速器",
+      "llm_evidence": "面向模型加速的模拟存内计算加速器",
+      "canonical_evidence": "面向模型加速的模拟存内计算加速器",
+      "llm_tldr_en": "Analog compute-in-memory accelerates models but its ADC readout is fragile against noise and precision limits. NOVA-CIM replaces multi-bit ADC readout with random-reference 1-bit sensing and probability-domain counting, averaging noise over stochastic samples while easing ADC demands, improving robustness of analog AI accelerators.",
+      "llm_tldr_cn": "模拟存内计算能高效加速模型，但其依赖ADC读出会直接量化带噪列电流，使推理精度极易受读噪声、行缩放与ADC精度影响。本文提出NOVA-CIM，用随机参考1比特感知替代多比特ADC读出，并通过轻量计数在概率域重建结果，从而在随机采样中平均掉零均值动态读噪声。该方法降低了对高分辨率ADC的依赖，为模拟AI加速器提供了更鲁棒的读出接口。",
+      "llm_tldr": "模拟存内计算能高效加速模型，但其依赖ADC读出会直接量化带噪列电流，使推理精度极易受读噪声、行缩放与ADC精度影响。本文提出NOVA-CIM，用随机参考1比特感知替代多比特ADC读出，并通过轻量计数在概率域重建结果，从而在随机采样中平均掉零均值动态读噪声。该方法降低了对高分辨率ADC的依赖，为模拟AI加速器提供了更鲁棒的读出接口。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.08446v1",
+      "source": "arxiv",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "abstract": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "authors": [
+        "Nicolas Chauvaux",
+        "Adrian Kneip",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:50:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.08446v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "digital compute-in-memory AI accelerator architecture for edge SNN inference",
+      "llm_evidence_cn": "面向边缘SNN推理的数字存内计算AI加速器架构",
+      "llm_evidence": "面向边缘SNN推理的数字存内计算AI加速器架构",
+      "canonical_evidence": "面向边缘SNN推理的数字存内计算AI加速器架构",
+      "llm_tldr_en": "SNN compute-in-memory accelerators offer microsecond latency but lack circuit and system flexibility. FlexSpIM is a digital CIM architecture with arbitrary operand resolution and shape, unified weight and membrane storage, and a layer-wise hybrid stationarity dataflow that cuts data movement.",
+      "llm_tldr_cn": "面向边缘视觉的脉冲神经网络存内计算加速器虽能实现微秒级推理与超低功耗，但电路与系统层面的灵活性不足，难以适配多样负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数分辨率与形状，并实现层内权重与输出混合驻留的数据流，从而最大化操作数复用、减少片上与片外数据搬运。该设计提升了SNN加速器对多种工作负载的适应能力，为高能效边缘AI推理提供了可重构的硬件基础。",
+      "llm_tldr": "面向边缘视觉的脉冲神经网络存内计算加速器虽能实现微秒级推理与超低功耗，但电路与系统层面的灵活性不足，难以适配多样负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数分辨率与形状，并实现层内权重与输出混合驻留的数据流，从而最大化操作数复用、减少片上与片外数据搬运。该设计提升了SNN加速器对多种工作负载的适应能力，为高能效边缘AI推理提供了可重构的硬件基础。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.09559v1",
+      "source": "arxiv",
+      "title": "Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization",
+      "abstract": "A 2,048-spin fully connected annealing processor based on differential stochastic simulated annealing (DSSA) is presented as an architectural design in TSMC 28 nm CMOS with a 3 mm x 4 mm post-layout area. The processor closes timing at 500 MHz, integrates a 16 Mb SRAM weight memory, and amortizes stochastic noise across 16 spins with area-efficient random number generators. DSSA keeps a serialized datapath for density but recomputes interactions only for spins that flip, shrinking the effective workload to the active frontier during each annealing run. Spin-select scheduling, priority-based weight reads, and a temperature controller that skips idle steps accelerate sparse updates without sacrificing full connectivity. Post-layout simulation results show 2.7 ms time-to-solution (TTS) and 0.86 mJ energy-to- solution on 2,000-spin problems at 316 mW (0.15 mW/spin), achieving 1.5x lower power and 3.5x lower TTS energy than projected prior fully connected annealers. These results demonstrate the potential of the proposed DSSA architecture for large-scale combinatorial optimization hardware under post-layout evaluation.",
+      "authors": [
+        "Naoya Onizawa",
+        "Md Mohaimenul Alam",
+        "Sean Smithson",
+        "Duckgyu Shin",
+        "Takahiro Hanyu"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-09T00:28:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.09559v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "custom CMOS annealing accelerator chip architecture and implementation",
+      "llm_evidence_cn": "定制CMOS退火加速器芯片架构与实现",
+      "llm_evidence": "定制CMOS退火加速器芯片架构与实现",
+      "canonical_evidence": "定制CMOS退火加速器芯片架构与实现",
+      "llm_tldr_en": "A 2048-spin fully connected annealing processor is designed in 28nm CMOS using differential stochastic simulated annealing, with spin-select scheduling and priority weight reads to accelerate sparse updates.",
+      "llm_tldr_cn": "组合优化硬件加速需求下，现有退火芯片在密度与全连接更新效率上受限。本文提出基于差分随机模拟退火的2048自旋全连接退火处理器架构，采用串行化数据通路、自旋选择调度、优先级权重读取与温度控制跳过空闲步。该设计在TSMC 28nm CMOS实现，版图面积3mm×4mm，500MHz时序收敛并集成16Mb SRAM权重存储器，稀疏更新加速且不牺牲全连接。该架构为大规模伊辛优化提供了可流片的面积高效加速器方案。",
+      "llm_tldr": "组合优化硬件加速需求下，现有退火芯片在密度与全连接更新效率上受限。本文提出基于差分随机模拟退火的2048自旋全连接退火处理器架构，采用串行化数据通路、自旋选择调度、优先级权重读取与温度控制跳过空闲步。该设计在TSMC 28nm CMOS实现，版图面积3mm×4mm，500MHz时序收敛并集成16Mb SRAM权重存储器，稀疏更新加速且不牺牲全连接。该架构为大规模伊辛优化提供了可流片的面积高效加速器方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10970v1",
+      "source": "arxiv",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "abstract": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "authors": [
+        "Haoran Jin",
+        "Jirong Yang",
+        "Zhiheng Zhang",
+        "Justin Shin",
+        "Barry Lyu",
+        "Kangqi Zhang",
+        "Yunpeng Liu",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T01:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.10970v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "chiplet-based bespoke neural network accelerator codesign",
+      "llm_evidence_cn": "基于chiplet的定制神经网络加速器协同设计",
+      "llm_evidence": "基于chiplet的定制神经网络加速器协同设计",
+      "canonical_evidence": "基于chiplet的定制神经网络加速器协同设计",
+      "llm_tldr_en": "Fengshui addresses the circular dependency between which chiplets to build and how to compose them into bespoke NN accelerators, enabling chiplet-based accelerator codesign to amortize NRE.",
+      "llm_tldr_cn": "现代机器学习负载对延迟和能耗要求苛刻，通用同构硬件难以高效运行，而按算子定制的加速器又面临高昂的非经常性工程成本。基于chiplet的集成可分摊NRE，但选择构建哪些chiplet与如何组合成加速器相互依赖，形成循环。本文提出Fengshui框架，联合优化chiplet池与定制神经网络加速器的协同设计。该工作为面向AI负载的chiplet加速器生态提供了设计方法与洞察。",
+      "llm_tldr": "现代机器学习负载对延迟和能耗要求苛刻，通用同构硬件难以高效运行，而按算子定制的加速器又面临高昂的非经常性工程成本。基于chiplet的集成可分摊NRE，但选择构建哪些chiplet与如何组合成加速器相互依赖，形成循环。本文提出Fengshui框架，联合优化chiplet池与定制神经网络加速器的协同设计。该工作为面向AI负载的chiplet加速器生态提供了设计方法与洞察。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
