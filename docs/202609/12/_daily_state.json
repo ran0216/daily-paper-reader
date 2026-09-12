@@ -1,0 +1,121 @@
+{
+  "date": "20260912",
+  "date_label": "",
+  "generated_at": "2026-09-12 21:38:33 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.10970v1",
+      "route": "202609/12/2609.10970v1-fengshui-demystifying-chiplet-ecosystem-and-bespoke-neural-network-accelerator-codesign",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于Chiplet的定制神经网络加速器协同设计与微架构定制",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.08446v1",
+      "route": "202609/12/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "具灵活数据流的数字AI加速器架构",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.05764v1",
+      "route": "202609/12/2609.05764v1-interface-aware-kv-cache-quantization-for-dense-on-chip-nvm-in-long-context-llm-decoding",
+      "title": "Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向LLM解码硬件的片上NVM KV缓存量化架构",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.06125v1",
+      "route": "202609/12/2609.06125v1-wafertrans-enabling-iommu-free-distributed-virtual-address-translation-for-wafer-scale-gpus",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "晶圆级GPU互连与地址转换架构",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.07059v2",
+      "route": "202609/12/2609.07059v2-nova-cim-noise--and-correlation-tolerant-stochastic-interfaces-for-analog-compute-in-memory",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向能效AI模型加速硬件的模拟存内计算接口",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.10126v1",
+      "route": "202609/12/2609.10126v1-sage-semantic-aware-geographic-error-recovery-for-ai-data-movement",
+      "title": "SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向AI互连数据搬运的语义感知错误恢复架构",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    },
+    {
+      "paper_id": "2609.10515v1",
+      "route": "202609/12/2609.10515v1-pascal-a-phase-aware-shared-cache-model-for-parallel-scans",
+      "title": "PASCAL: A Phase-Aware Shared-Cache Model for Parallel Scans",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向多核AI加速器与GPGPU的共享缓存模型",
+      "first_seen_at": "2026-09-12 21:38:33 UTC",
+      "updated_at": "2026-09-12 21:38:33 UTC"
+    }
+  ]
+}

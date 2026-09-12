@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-11</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-12</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 7 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-11 21:21:39 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-12 21:38:33 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-11 日报精选 7 篇速读，聚焦芯片架构与硬件安全前沿。最值得看的是《Para-Pipe》用层次化算子并行加速 SoC 上的 ML 计算图，以及晶圆级 GPU 与光子神经网络加速器的安全威胁分析。建议普通读者从 Para-Pipe 入手，了解并行调度如何提升端侧推理效率。</p>
+<p>2026-09-12 日报精选 7 篇，精读《Fengshui》探索 Chiplet 生态与定制化神经网络加速器的协同设计，另速读 FlexSpIM、KV Cache 量化、WaferTrans 等 6 篇。最值得关注 Chiplet 与定制加速器协同设计，以及基于事件的数字存内计算加速器方向。普通读者可先读精读文章把握芯片架构趋势，再按兴趣选读速读中存内计算或长上下文 LLM 优化相关篇目。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">7 篇</strong>
+    <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs">Para-Pipe: Exploiting Hierarchical Operator Parallelism of ML Computational Graphs on SoCs</span></li><li><span class="dpr-home-dashboard-paper-title" title="WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs">WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators">Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li><li><span class="dpr-home-dashboard-paper-title" title="Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding">Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding</span></li><li><span class="dpr-home-dashboard-paper-title" title="WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs">WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>7</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>6</strong></span></div>
 </section>
 </div>
 

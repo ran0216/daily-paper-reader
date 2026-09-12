@@ -1,0 +1,296 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-12T21:34:19.382551+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 6,
+    "quick_skim_target": 11,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2609.10970v1",
+      "source": "arxiv",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "abstract": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "authors": [
+        "Haoran Jin",
+        "Jirong Yang",
+        "Zhiheng Zhang",
+        "Justin Shin",
+        "Barry Lyu",
+        "Kangqi Zhang",
+        "Yunpeng Liu",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T01:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.10970v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "chiplet-based bespoke neural network accelerator codesign with microarchitecture tailoring",
+      "llm_evidence_cn": "基于Chiplet的定制神经网络加速器协同设计与微架构定制",
+      "llm_evidence": "基于Chiplet的定制神经网络加速器协同设计与微架构定制",
+      "canonical_evidence": "基于Chiplet的定制神经网络加速器协同设计与微架构定制",
+      "llm_tldr_en": "ML workloads struggle on homogeneous hardware, motivating operator-level disaggregation, but bespoke accelerators incur high NRE costs. Chiplet integration amortizes NRE, yet chiplet selection and composition are circularly dependent. Fengshui explores chiplet ecosystem and bespoke neural network accelerator codesign.",
+      "llm_tldr_cn": "现代机器学习工作负载对时延与能耗要求严苛，难以在均质通用硬件上高效运行。作者主张按算子拆分并定制微架构、批处理与存储层次，但高度定制的加速器会带来高昂的非经常性工程成本。Chiplet集成可分摊该成本，然而构建哪些chiplet及如何组合成加速器存在循环依赖。本文提出Fengshui，探索chiplet生态与定制神经网络加速器的协同设计，以在可控成本下获得更高效率。",
+      "llm_tldr": "现代机器学习工作负载对时延与能耗要求严苛，难以在均质通用硬件上高效运行。作者主张按算子拆分并定制微架构、批处理与存储层次，但高度定制的加速器会带来高昂的非经常性工程成本。Chiplet集成可分摊该成本，然而构建哪些chiplet及如何组合成加速器存在循环依赖。本文提出Fengshui，探索chiplet生态与定制神经网络加速器的协同设计，以在可控成本下获得更高效率。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.08446v1",
+      "source": "arxiv",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "abstract": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "authors": [
+        "Nicolas Chauvaux",
+        "Adrian Kneip",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:50:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.08446v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "digital AI accelerator architecture with flexible dataflow",
+      "llm_evidence_cn": "具灵活数据流的数字AI加速器架构",
+      "llm_evidence": "具灵活数据流的数字AI加速器架构",
+      "canonical_evidence": "具灵活数据流的数字AI加速器架构",
+      "llm_tldr_en": "FlexSpIM is a digital compute-in-memory accelerator for spiking neural networks supporting arbitrary operand resolution and layer-wise hybrid stationarity to cut data movement in edge vision.",
+      "llm_tldr_cn": "面向脉冲神经网络的存内计算加速器可实现微秒级推理时延与超低能耗，但其电路与系统灵活性不足，难以适配多样工作负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数位宽与形状，并实现逐层权重与输出混合驻留数据流。该设计提高了操作数复用率，减少片上片外数据搬运，为边缘视觉AI加速器提供了灵活高效的架构方案。",
+      "llm_tldr": "面向脉冲神经网络的存内计算加速器可实现微秒级推理时延与超低能耗，但其电路与系统灵活性不足，难以适配多样工作负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数位宽与形状，并实现逐层权重与输出混合驻留数据流。该设计提高了操作数复用率，减少片上片外数据搬运，为边缘视觉AI加速器提供了灵活高效的架构方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.05764v1",
+      "source": "arxiv",
+      "title": "Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding",
+      "abstract": "The key-value (KV) cache is the dominant memory bottleneck in long-context large language model (LLM) decoding: every step reads it entirely, so decoding is memory-bandwidth bound. Holding a quantized KV cache in dense on-chip non-volatile memory (NVM) removes the off-chip transfer. Existing KV quantization methods, however, were designed for GPU-style memory systems: KIVI attaches per-group metadata, adding about 25% to the stored KV cache; KVQuant keeps sparse full-precision outliers that a dense array cannot hold in place. This paper examines what these structures cost when the KV cache resides in NVM behind fixed-range converters, and designs a quantization scheme matched to that interface. The architecture stores the quantized KV cache in dense on-chip NVM, uses a small static analog crossbar only for the fixed rotation, and keeps attention in on-chip digital logic. A randomized rotation and per-vector normalization give every coordinate the same range, so one fixed codebook for keys and one for values, each shared across all tokens of the corresponding tensor type, serve the entire KV cache. The codebook thresholds are programmed once as the read converter's reference levels, enabling fixed-range digitization with no per-token converter reconfiguration. Dequantization is a sixteen-entry lookup and one norm multiply; the only per-vector metadata is one scalar, about 3%. Across models from 3B to 14B and contexts to 32k tokens, the four-bit KV cache maintains accuracy under storage and crossbar noise simulated at realistic device levels. KIVI and KVQuant remain more accurate in software; the advantage of our format lies at the memory interface: 3.1-3.6x lower KV read energy than both mapped to the same NVM, and 8x lower metadata overhead than KIVI. The contribution is a KV quantization co-designed with the NVM memory interface rather than a new accuracy record.",
+      "authors": [
+        "Jiahao Zheng",
+        "Yifan Qin",
+        "Xiaobo Sharon Hu",
+        "Yiyu Shi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-09-04T22:58:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.05764v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "on-chip NVM KV cache quantization architecture for LLM decoding hardware",
+      "llm_evidence_cn": "面向LLM解码硬件的片上NVM KV缓存量化架构",
+      "llm_evidence": "面向LLM解码硬件的片上NVM KV缓存量化架构",
+      "canonical_evidence": "面向LLM解码硬件的片上NVM KV缓存量化架构",
+      "llm_tldr_en": "Long-context LLM decoding is KV-cache bandwidth bound. Dense on-chip NVM can hold a quantized cache, but GPU-style quantization adds metadata or sparse outliers a dense array cannot hold. This paper designs an interface-aware quantization scheme for fixed-range NVM converters.",
+      "llm_tldr_cn": "长上下文大模型解码中KV缓存是主要内存瓶颈，每步需完整读取使其受限于内存带宽。将量化KV缓存放入密集片上非易失存储器可消除片外传输，但现有量化方法针对GPU式存储，会引入约25%元数据或依赖稀疏离群值。本文分析这些结构在固定范围转换器后的NVM接口下的代价，并设计与之匹配的量化方案，使密集阵列可原位存储量化后的KV缓存。",
+      "llm_tldr": "长上下文大模型解码中KV缓存是主要内存瓶颈，每步需完整读取使其受限于内存带宽。将量化KV缓存放入密集片上非易失存储器可消除片外传输，但现有量化方法针对GPU式存储，会引入约25%元数据或依赖稀疏离群值。本文分析这些结构在固定范围转换器后的NVM接口下的代价，并设计与之匹配的量化方案，使密集阵列可原位存储量化后的KV缓存。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.06125v1",
+      "source": "arxiv",
+      "title": "WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs",
+      "abstract": "Wafer-scale GPUs (WSGs) provide sufficient on-wafer bandwidth to make near-lossless Unified Memory feasible. However, existing designs still rely on a CPU-IOMMU to translate remote virtual-address accesses. This centralized mechanism scales poorly to tens of GPU dies: translation requests must traverse costly off-wafer hierarchies and contend for limited CPU-side resources, making address translation a critical bottleneck. We propose WaferTrans, an IOMMU-free distributed virtual-address translation design for WSGs. WaferTrans introduces PTE Presence Consistency (PTE-PC), a lightweight consistency model that tracks PTE insertions and removals, and equips each GPU with a PTE Presence Directory (PPD) that locates the GPU holding a requested PTE. It further employs a distributed PTE-PC mapping and a cooperative query mechanism to localize PTE-PC maintenance while preserving complete lookup coverage. Together, these mechanisms enable the GPU array to resolve remote translations within the wafer, eliminating its dependence on the CPU-IOMMU. Compared with the SOTA Trans-FW design, WaferTrans improves performance by 2.5x on average.",
+      "authors": [
+        "Xinru Tang",
+        "Jingxiang Hou",
+        "Guanghong Wu",
+        "Yang Hu",
+        "Shouyi Yin"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-05T14:47:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.06125v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "wafer-scale GPU interconnect and address translation architecture",
+      "llm_evidence_cn": "晶圆级GPU互连与地址转换架构",
+      "llm_evidence": "晶圆级GPU互连与地址转换架构",
+      "canonical_evidence": "晶圆级GPU互连与地址转换架构",
+      "llm_tldr_en": "WaferTrans replaces centralized CPU-IOMMU translation in wafer-scale GPUs with a distributed design using PTE Presence Consistency and per-GPU directories to remove the address-translation bottleneck.",
+      "llm_tldr_cn": "晶圆级GPU具备充足片上带宽，但现有设计仍依赖CPU-IOMMU集中式虚拟地址转换，难以扩展到数十个GPU裸片并成为性能瓶颈。本文提出WaferTrans无IOMMU分布式地址转换设计，引入PTE存在一致性模型，并在每个GPU上配置PTE存在目录以定位页表项。该方案避免了跨晶圆层次的昂贵转换请求，缓解了集中式地址转换的扩展性问题，为多裸片GPU互连架构提供支持。",
+      "llm_tldr": "晶圆级GPU具备充足片上带宽，但现有设计仍依赖CPU-IOMMU集中式虚拟地址转换，难以扩展到数十个GPU裸片并成为性能瓶颈。本文提出WaferTrans无IOMMU分布式地址转换设计，引入PTE存在一致性模型，并在每个GPU上配置PTE存在目录以定位页表项。该方案避免了跨晶圆层次的昂贵转换请求，缓解了集中式地址转换的扩展性问题，为多裸片GPU互连架构提供支持。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07059v2",
+      "source": "arxiv",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "abstract": "Analog compute-in-memory (CIM) enables energy-efficient model acceleration, but its reliance on ADC-based readout, which directly quantizes noisy column currents, makes inference accuracy highly sensitive to analog read noise, active-row scaling, and ADC precision. In this paper, we present NOVA-CIM, a noise- and correlation-tolerant stochastic interface for analog CIM by replacing multi-bit ADC readout with random-reference 1-bit sensing and reconstructing results through lightweight counting. By converting column currents into comparison probabilities, this probability-domain readout averages zero-mean dynamic read noise over stochastic samples while reducing dependence on high-resolution ADCs. We provide a unified robustness analysis showing that dynamic read noise is suppressed through temporal averaging and that spatial input-bitstream correlation increases instantaneous current variance rather than introducing first-order MAC bias. MAC-level experiments and end-to-end evaluation on ViT-Base validate the analysis: under read noise, Top-1 accuracy remains 84.48% near the 84.51% bfloat16 (BF16) baseline; under stochastic number generator (SNG) reuse, MAC bias stays near zero while root-mean-square error (RMSE) and stochastic cross-correlation (SCC) grow as predicted.",
+      "authors": [
+        "Jiachen Ren",
+        "Wenshuai Yao",
+        "Haobo Liu",
+        "Xincheng Feng",
+        "Chenxi Hu",
+        "Zhengwu Liu",
+        "Kechao Tang",
+        "Wenyong Zhou",
+        "Ngai Wong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-07T05:31:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.07059v2",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "analog compute-in-memory interface for energy-efficient AI model acceleration hardware",
+      "llm_evidence_cn": "面向能效AI模型加速硬件的模拟存内计算接口",
+      "llm_evidence": "面向能效AI模型加速硬件的模拟存内计算接口",
+      "canonical_evidence": "面向能效AI模型加速硬件的模拟存内计算接口",
+      "llm_tldr_en": "NOVA-CIM replaces multi-bit ADC readout in analog compute-in-memory with random-reference 1-bit stochastic sensing and counting, averaging read noise and reducing ADC precision dependence for energy-efficient AI inference.",
+      "llm_tldr_cn": "模拟存内计算能高效加速模型，但依赖ADC直接量化噪声列电流，使推理精度对读噪声、行缩放与ADC精度高度敏感。NOVA-CIM用随机参考的1比特感知替代多位ADC读出，并通过轻量计数在概率域重建结果。该概率域读出对零均值动态读噪声取平均，显著降低对高分辨率ADC的依赖。为能效型模拟存内AI加速器提供了抗噪声的读出接口方案。",
+      "llm_tldr": "模拟存内计算能高效加速模型，但依赖ADC直接量化噪声列电流，使推理精度对读噪声、行缩放与ADC精度高度敏感。NOVA-CIM用随机参考的1比特感知替代多位ADC读出，并通过轻量计数在概率域重建结果。该概率域读出对零均值动态读噪声取平均，显著降低对高分辨率ADC的依赖。为能效型模拟存内AI加速器提供了抗噪声的读出接口方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10126v1",
+      "source": "arxiv",
+      "title": "SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement",
+      "abstract": "AI interconnects typically protect and replay packets uniformly, yet numerical bit faults differ sharply in consequence: a low-order mantissa flip may resemble quantization noise, while a high-significance exponent flip can produce a catastrophic outlier or non-finite value. We present SAGE, a semantic-aware geographic error-recovery architecture that decouples whether a detected fault merits replay from where replay restarts. For BF16-like data, a workload-calibrated contract separates catastrophic Class-H faults from bounded Class-M and precision Class-L damage. It first applies a Class-H silent-delivery constraint, then ranks admissible policies by quality-normalized terminal latency, $Ψ_{\\rm del}$. Independently, a source-local region table adapts checkpoint intervals to fault geography, shortening recovery segments in noisy regions. Detected Class-H failures may trigger protected negative acknowledgments and full-flit replay; Class-M and Class-L outcomes do not trigger default network replay.   We implement SAGE's endpoint and replay protocol in gem5 Garnet and synthesize its fully pipelined checker in ASAP7. At a stable synthetic operating point, a ten-seed contention-faithful direct-Garnet campaign shows that SAGE reduces $Ψ_{\\rm del}$ by 30.1% relative to fixed 34-hop recovery, combining 28.0% lower mean latency with improved delivered semantic quality. Under higher-BER synthetic stress at the same offered load, SAGE maintains bounded queues while the fixed baseline accumulates backlog. Application-derived DeiT-S communication traces also show lower mean and p99.5 latency at the evaluated nonzero BERs. Within the qualified operating envelope, CRC32 decoder trials yield a simultaneous 95% per-original Class-H silent-delivery upper bound of $3.18\\times10^{-7}$.",
+      "authors": [
+        "Patrick S. Y. Hung",
+        "Zitong Wang",
+        "Zekai Zhang",
+        "Yu Hin Chan",
+        "Shengzhe Lyu",
+        "Ray C. C. Cheung"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-09T13:02:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.10126v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Semantic-aware error recovery architecture for AI interconnect data movement",
+      "llm_evidence_cn": "面向AI互连数据搬运的语义感知错误恢复架构",
+      "llm_evidence": "面向AI互连数据搬运的语义感知错误恢复架构",
+      "canonical_evidence": "面向AI互连数据搬运的语义感知错误恢复架构",
+      "llm_tldr_en": "Presents SAGE, a semantic-aware geographic error-recovery architecture for AI interconnects that decouples whether a fault merits replay from where replay restarts, using workload-calibrated contracts to separate catastrophic faults from bounded damage.",
+      "llm_tldr_cn": "AI互连通常对数据包统一保护与重传，但不同比特位错误的后果差异巨大：低位尾数翻转近似量化噪声，高位指数翻转则可能产生灾难性离群值或非有限值。本文提出语义感知的地理错误恢复架构SAGE，将是否重传与从何处重传解耦，用工作负载校准的契约区分灾难性Class-H错误与有界及精度类错误。作者按质量归一化终端延迟排序可行策略，并用源本地区域表自适应调整检查点。该工作为AI互连提供了区分错误严重性的高效恢复机制。",
+      "llm_tldr": "AI互连通常对数据包统一保护与重传，但不同比特位错误的后果差异巨大：低位尾数翻转近似量化噪声，高位指数翻转则可能产生灾难性离群值或非有限值。本文提出语义感知的地理错误恢复架构SAGE，将是否重传与从何处重传解耦，用工作负载校准的契约区分灾难性Class-H错误与有界及精度类错误。作者按质量归一化终端延迟排序可行策略，并用源本地区域表自适应调整检查点。该工作为AI互连提供了区分错误严重性的高效恢复机制。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10515v1",
+      "source": "arxiv",
+      "title": "PASCAL: A Phase-Aware Shared-Cache Model for Parallel Scans",
+      "abstract": "In modern AI Accelerators and GPGPUs, many concurrent cores repeatedly access the same shared data. This pattern occurs in attention, where different query tiles share the same K/V block, GEMM, where every tile in a row reads the same panel, and many other operators. We name this pattern parallel scan. Due to a significant amount of data reuse in this pattern, the cache is expected to capture as much data reuse as possible and largely reduce requests sent to the main memory for both performance and energy consumption concerns. However, in reality, because of the intrinsic asynchrony of multi-cores, the actual cache miss rate and DRAM traffic can be much higher compared to ideal cases. In this paper, we propose PASCAL, a shared-cache model for parallel scans. It is aware of the dynamic feature of progress divergence across multi-cores, correlate the divergence with the combination of different factors such as occupancy, and predicts the cache miss rate before execution. Because prediction needs no target trace, timing, or counters, PASCAL supports design-space exploration at scales where cycle-accurate simulation is impractical, and its policy-independent bound states how much traffic no replacement policy can avoid. A MAPE of 13.84% is achieved in a 60-configuration dataset with various software pipeline depths, occupancies, and memory access data paths on an NVIDIA GB10 GPU, against 44.79% for physical-wave TileSight and 54.16% for exact symbolic SDCM.",
+      "authors": [
+        "Zhongchun Zhou",
+        "Chengtao Lai",
+        "Songtao Mao"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.AR",
+        "cs.DC"
+      ],
+      "published": "2026-09-09T17:48:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.10515v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "shared-cache model for many-core AI accelerators and GPGPUs",
+      "llm_evidence_cn": "面向多核AI加速器与GPGPU的共享缓存模型",
+      "llm_evidence": "面向多核AI加速器与GPGPU的共享缓存模型",
+      "canonical_evidence": "面向多核AI加速器与GPGPU的共享缓存模型",
+      "llm_tldr_en": "In AI accelerators and GPGPUs many cores repeatedly read shared data, a pattern called parallel scan. Real cache miss rate and DRAM traffic exceed ideal cases due to multi-core asynchrony. PASCAL is a phase-aware shared-cache model for parallel scans.",
+      "llm_tldr_cn": "在现代AI加速器与GPGPU中，众多并发核心会反复访问同一共享数据，这一并行扫描模式广泛存在于注意力与GEMM等算子中。理论上缓存应尽量捕获数据复用以减少主存请求，但多核固有异步性使实际缺失率与DRAM流量远高于理想情况。本文提出PASCAL相位感知共享缓存模型，刻画并改善并行扫描下的缓存行为，从而降低访存与能耗。",
+      "llm_tldr": "在现代AI加速器与GPGPU中，众多并发核心会反复访问同一共享数据，这一并行扫描模式广泛存在于注意力与GEMM等算子中。理论上缓存应尽量捕获数据复用以减少主存请求，但多核固有异步性使实际缺失率与DRAM流量远高于理想情况。本文提出PASCAL相位感知共享缓存模型，刻画并改善并行扫描下的缓存行为，从而降低访存与能耗。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
