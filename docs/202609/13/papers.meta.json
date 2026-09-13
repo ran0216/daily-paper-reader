@@ -1,0 +1,69 @@
+{
+  "label": "2026-09-13",
+  "date": "2026-09-13",
+  "generated_at": "2026-09-13T21:32:30",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202609/13/2609.10970v1-fengshui-demystifying-chiplet-ecosystem-and-bespoke-neural-network-accelerator-codesign",
+      "section": "deep",
+      "title_en": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "authors": "Haoran Jin, Jirong Yang, Zhiheng Zhang, Justin Shin, Barry Lyu, Kangqi Zhang, Yunpeng Liu, Nathan Bleier",
+      "date": "2026-09-10",
+      "pdf": "https://arxiv.org/pdf/2609.10970v1",
+      "score": "8.0",
+      "evidence": "Chiplet生态与定制神经网络加速器协同设计",
+      "tldr": "现代ML负载在通用同构硬件上难兼顾延迟与能耗，而按算子定制加速器又面临过高NRE成本。Fengshui面向chiplet生态与专用加速器协同设计，联合优化chiplet池组成与BASIC架构，并协同探索异构、张量融合及多种并行策略。仅用8个精选chiplet，其生成加速器在能耗、EC、EDP、EDPC上分别降低48.5%、88.1%、93.0%、97.8%，且接近无约束异构设计。",
+      "tags": "query:chip-design",
+      "abstract_en": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/13/2609.07059v2-nova-cim-noise--and-correlation-tolerant-stochastic-interfaces-for-analog-compute-in-memory",
+      "section": "quick",
+      "title_en": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "authors": "Jiachen Ren, Wenshuai Yao, Haobo Liu, Xincheng Feng, Chenxi Hu, Zhengwu Liu, Kechao Tang, Wenyong Zhou, Ngai Wong",
+      "date": "2026-09-07",
+      "pdf": "https://arxiv.org/pdf/2609.07059v2",
+      "score": "6.0",
+      "evidence": "模拟存内计算AI加速器接口",
+      "tldr": "模拟存内计算依赖ADC读取噪声电流，推理精度受读噪声、行缩放和ADC精度影响。NOVA-CIM用随机参考1比特感知替代多比特ADC，通过轻量计数重建结果，将列电流转为比较概率，在概率域平均零均值动态读噪声并降低对高精度ADC的依赖。在ViT-Base上，读噪声下Top-1精度84.48%，接近BF16基线84.51%；SNG复用时MAC偏差近零，RMSE与SCC增长符合预测。该工作为模拟CIM提供了抗噪声与相关性的随机接口。",
+      "tags": "query:chip-design",
+      "abstract_en": "Analog compute-in-memory (CIM) enables energy-efficient model acceleration, but its reliance on ADC-based readout, which directly quantizes noisy column currents, makes inference accuracy highly sensitive to analog read noise, active-row scaling, and ADC precision. In this paper, we present NOVA-CIM, a noise- and correlation-tolerant stochastic interface for analog CIM by replacing multi-bit ADC readout with random-reference 1-bit sensing and reconstructing results through lightweight counting. By converting column currents into comparison probabilities, this probability-domain readout averages zero-mean dynamic read noise over stochastic samples while reducing dependence on high-resolution ADCs. We provide a unified robustness analysis showing that dynamic read noise is suppressed through temporal averaging and that spatial input-bitstream correlation increases instantaneous current variance rather than introducing first-order MAC bias. MAC-level experiments and end-to-end evaluation on ViT-Base validate the analysis: under read noise, Top-1 accuracy remains 84.48% near the 84.51% bfloat16 (BF16) baseline; under stochastic number generator (SNG) reuse, MAC bias stays near zero while root-mean-square error (RMSE) and stochastic cross-correlation (SCC) grow as predicted.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/13/2609.07907v2-a-28nm-27648-spin-multichip-digital-ising-accelerator-with-pegasus-connectivity",
+      "section": "quick",
+      "title_en": "A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity",
+      "authors": "Tong Wu, Atharva Raut, Ian Khor, Ziyad Alswaidan, Ting-Yu Lee, Hongchang Kuang, Navid Anjum Aadit, Anand Raju, Dhruv Chinmay, Siddharth Das, Ken Mai, Kerem Camsari, Tathagata Srimani",
+      "date": "2026-09-07",
+      "pdf": "https://arxiv.org/pdf/2609.07907v2",
+      "score": "6.0",
+      "evidence": "28nm多芯片数字伊辛加速器，含芯片间流式传输与连接拓扑",
+      "tldr": "面向组合优化与自旋玻璃求解，本文提出28nm四芯片数字Ising加速器，集成27,648个自旋，采用度数为15的Pegasus连接与10b系数。边界态流式方法将芯片间传输与自旋更新重叠，提升多芯片扩展效率。在140MHz下实现30.24G峰值更新/秒、1.2pJ/更新（含I/O），吞吐为先前28nm设计的11.5倍，每自旋逻辑加SRAM面积约降至四分之一。该工作可求解MaxCut、自旋玻璃、阻挫环、因数分解和3SAT。",
+      "tags": "query:chip-design",
+      "abstract_en": "We report a 28 nm four-chip Ising accelerator with 27,648 spins, degree-15 Pegasus connectivity, and 10b coefficients. Boundary-state streaming overlaps interchip transfers with spin updates, achieving 98.03% simulated weak-scaling efficiency. At 140 MHz, the four-chip system delivers 30.24G peak updates/s at 1.2 pJ/update including I/O power, with 11.5$\\times$ the throughput and approximately one-quarter the logic-plus-SRAM area per spin of a prior 28 nm multichip design. We demonstrate MaxCut, spin glass, frustrated loops, factorization, and 3SAT.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/13/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "section": "quick",
+      "title_en": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "authors": "Nicolas Chauvaux, Adrian Kneip, Charlotte Frenkel",
+      "date": "2026-09-08",
+      "pdf": "https://arxiv.org/pdf/2609.08446v1",
+      "score": "6.0",
+      "evidence": "数字存内计算AI加速器架构",
+      "tldr": "面向边缘视觉的脉冲神经网络CIM加速器虽可实现微秒级推理和超低功耗，但电路与系统级灵活性有限，难以适配多样工作负载。FlexSpIM提出数字CIM架构，在统一存储中支持任意操作数位宽与形状，并实现层间权重驻留和输出驻留混合数据流，以最大化操作数复用并减少片上与片外数据搬运。40nm CMOS原型验证了逐位分辨率重构，能效与吞吐优于固定精度数字CIM SNN加速器；在IBM DVS手势数据集上达到95.8%精度，大规模系统能耗和延迟最多降低45%和52%。",
+      "tags": "query:chip-design",
+      "abstract_en": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

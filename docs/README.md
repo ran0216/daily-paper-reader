@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-12</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-13</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-12 21:38:33 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-13 21:32:28 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-12 日报精选 7 篇，精读《Fengshui》探索 Chiplet 生态与定制化神经网络加速器的协同设计，另速读 FlexSpIM、KV Cache 量化、WaferTrans 等 6 篇。最值得关注 Chiplet 与定制加速器协同设计，以及基于事件的数字存内计算加速器方向。普通读者可先读精读文章把握芯片架构趋势，再按兴趣选读速读中存内计算或长上下文 LLM 优化相关篇目。</p>
+<p>今日精读1篇、速读3篇，聚焦Chiplet生态与定制神经网络加速器协同设计。最值得看的是获8.0分的Fengshui，讲Chiplet生态如何与定制NN加速器联合设计；另有存内计算噪声容错、数字Ising加速器与事件型CIM接口等方向。普通读者可先读Fengshui理清协同设计思路，再按兴趣速览CIM与Ising三篇。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li><li><span class="dpr-home-dashboard-paper-title" title="Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding">Interface-Aware KV Cache Quantization for Dense On-Chip NVM in Long-Context LLM Decoding</span></li><li><span class="dpr-home-dashboard-paper-title" title="WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs">WaferTrans: Enabling IOMMU-free Distributed Virtual Address Translation for Wafer-scale GPUs</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory">NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity">A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity</span></li><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>6</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
 </section>
 </div>
 

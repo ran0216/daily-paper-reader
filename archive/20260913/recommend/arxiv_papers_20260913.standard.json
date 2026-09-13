@@ -1,0 +1,187 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-13T21:30:11.685851+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2609.10970v1",
+      "source": "arxiv",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "abstract": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "authors": [
+        "Haoran Jin",
+        "Jirong Yang",
+        "Zhiheng Zhang",
+        "Justin Shin",
+        "Barry Lyu",
+        "Kangqi Zhang",
+        "Yunpeng Liu",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T01:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.10970v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "chiplet ecosystem and bespoke neural network accelerator codesign",
+      "llm_evidence_cn": "Chiplet生态与定制神经网络加速器协同设计",
+      "llm_evidence": "Chiplet生态与定制神经网络加速器协同设计",
+      "canonical_evidence": "Chiplet生态与定制神经网络加速器协同设计",
+      "llm_tldr_en": "Fengshui tackles the circular dependency of chiplet selection and accelerator composition for bespoke neural network accelerators, amortizing NRE costs through operator-level disaggregation and chiplet reuse.",
+      "llm_tldr_cn": "针对现代机器学习负载在同构商用硬件上难以满足时延与能效约束、而高度定制加速器又面临高昂一次性工程成本的问题，本文提出Fengshui框架，探索chiplet生态系统与定制神经网络加速器的协同设计，破解该造哪些chiplet、如何组合成加速器之间的循环依赖。方法通过算子级拆分与chiplet复用分摊NRE成本。该工作为基于chiplet的AI加速器设计自动化提供了新思路。",
+      "llm_tldr": "针对现代机器学习负载在同构商用硬件上难以满足时延与能效约束、而高度定制加速器又面临高昂一次性工程成本的问题，本文提出Fengshui框架，探索chiplet生态系统与定制神经网络加速器的协同设计，破解该造哪些chiplet、如何组合成加速器之间的循环依赖。方法通过算子级拆分与chiplet复用分摊NRE成本。该工作为基于chiplet的AI加速器设计自动化提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.07059v2",
+      "source": "arxiv",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "abstract": "Analog compute-in-memory (CIM) enables energy-efficient model acceleration, but its reliance on ADC-based readout, which directly quantizes noisy column currents, makes inference accuracy highly sensitive to analog read noise, active-row scaling, and ADC precision. In this paper, we present NOVA-CIM, a noise- and correlation-tolerant stochastic interface for analog CIM by replacing multi-bit ADC readout with random-reference 1-bit sensing and reconstructing results through lightweight counting. By converting column currents into comparison probabilities, this probability-domain readout averages zero-mean dynamic read noise over stochastic samples while reducing dependence on high-resolution ADCs. We provide a unified robustness analysis showing that dynamic read noise is suppressed through temporal averaging and that spatial input-bitstream correlation increases instantaneous current variance rather than introducing first-order MAC bias. MAC-level experiments and end-to-end evaluation on ViT-Base validate the analysis: under read noise, Top-1 accuracy remains 84.48% near the 84.51% bfloat16 (BF16) baseline; under stochastic number generator (SNG) reuse, MAC bias stays near zero while root-mean-square error (RMSE) and stochastic cross-correlation (SCC) grow as predicted.",
+      "authors": [
+        "Jiachen Ren",
+        "Wenshuai Yao",
+        "Haobo Liu",
+        "Xincheng Feng",
+        "Chenxi Hu",
+        "Zhengwu Liu",
+        "Kechao Tang",
+        "Wenyong Zhou",
+        "Ngai Wong"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-07T05:31:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.07059v2",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "analog compute-in-memory AI accelerator interface",
+      "llm_evidence_cn": "模拟存内计算AI加速器接口",
+      "llm_evidence": "模拟存内计算AI加速器接口",
+      "canonical_evidence": "模拟存内计算AI加速器接口",
+      "llm_tldr_en": "NOVA-CIM replaces multi-bit ADC readout in analog compute-in-memory with random-reference 1-bit sensing and counting-based reconstruction, improving tolerance to analog noise and ADC precision.",
+      "llm_tldr_cn": "模拟存内计算可高效加速模型，但依赖ADC读出直接量化含噪列电流，使推理精度对读噪声、有源行缩放与ADC精度高度敏感。本文提出NOVA-CIM随机接口，用随机参考1比特感测替代多比特ADC读出，将列电流转为比较概率并通过轻量计数在概率域重建结果。该方法在随机采样中平均零均值动态噪声，降低对高分辨率ADC的依赖，提升鲁棒性。",
+      "llm_tldr": "模拟存内计算可高效加速模型，但依赖ADC读出直接量化含噪列电流，使推理精度对读噪声、有源行缩放与ADC精度高度敏感。本文提出NOVA-CIM随机接口，用随机参考1比特感测替代多比特ADC读出，将列电流转为比较概率并通过轻量计数在概率域重建结果。该方法在随机采样中平均零均值动态噪声，降低对高分辨率ADC的依赖，提升鲁棒性。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.07907v2",
+      "source": "arxiv",
+      "title": "A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity",
+      "abstract": "We report a 28 nm four-chip Ising accelerator with 27,648 spins, degree-15 Pegasus connectivity, and 10b coefficients. Boundary-state streaming overlaps interchip transfers with spin updates, achieving 98.03% simulated weak-scaling efficiency. At 140 MHz, the four-chip system delivers 30.24G peak updates/s at 1.2 pJ/update including I/O power, with 11.5$\\times$ the throughput and approximately one-quarter the logic-plus-SRAM area per spin of a prior 28 nm multichip design. We demonstrate MaxCut, spin glass, frustrated loops, factorization, and 3SAT.",
+      "authors": [
+        "Tong Wu",
+        "Atharva Raut",
+        "Ian Khor",
+        "Ziyad Alswaidan",
+        "Ting-Yu Lee",
+        "Hongchang Kuang",
+        "Navid Anjum Aadit",
+        "Anand Raju",
+        "Dhruv Chinmay",
+        "Siddharth Das",
+        "Ken Mai",
+        "Kerem Camsari",
+        "Tathagata Srimani"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.ET"
+      ],
+      "published": "2026-09-07T19:19:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.07907v2",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "28nm multichip digital Ising accelerator with inter-chip streaming and connectivity topology",
+      "llm_evidence_cn": "28nm多芯片数字伊辛加速器，含芯片间流式传输与连接拓扑",
+      "llm_evidence": "28nm多芯片数字伊辛加速器，含芯片间流式传输与连接拓扑",
+      "canonical_evidence": "28nm多芯片数字伊辛加速器，含芯片间流式传输与连接拓扑",
+      "llm_tldr_en": "A 28nm four-chip digital Ising accelerator with degree-15 Pegasus connectivity uses boundary-state streaming to overlap inter-chip transfers with spin updates, reaching 30.24G updates/s at 1.2 pJ/update and 98.03% weak-scaling efficiency.",
+      "llm_tldr_cn": "针对单芯片伊辛机自旋规模受限、难以扩展的问题，本文提出一款28nm四芯片数字伊辛加速器，采用度15的Pegasus连接拓扑与10位系数，并通过边界态流式传输将芯片间通信与自旋更新重叠。在140MHz下系统达到30.24G次更新/秒、1.2pJ/次更新，模拟弱扩展效率达98.03%，吞吐量为前代设计的11.5倍。该工作展示了多芯片互连方案在组合优化专用加速器中的可扩展性与能效潜力。",
+      "llm_tldr": "针对单芯片伊辛机自旋规模受限、难以扩展的问题，本文提出一款28nm四芯片数字伊辛加速器，采用度15的Pegasus连接拓扑与10位系数，并通过边界态流式传输将芯片间通信与自旋更新重叠。在140MHz下系统达到30.24G次更新/秒、1.2pJ/次更新，模拟弱扩展效率达98.03%，吞吐量为前代设计的11.5倍。该工作展示了多芯片互连方案在组合优化专用加速器中的可扩展性与能效潜力。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.08446v1",
+      "source": "arxiv",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "abstract": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "authors": [
+        "Nicolas Chauvaux",
+        "Adrian Kneip",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:50:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.08446v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "digital compute-in-memory AI accelerator architecture",
+      "llm_evidence_cn": "数字存内计算AI加速器架构",
+      "llm_evidence": "数字存内计算AI加速器架构",
+      "canonical_evidence": "数字存内计算AI加速器架构",
+      "llm_tldr_en": "FlexSpIM is a digital compute-in-memory accelerator for spiking neural networks that supports arbitrary operand resolution and shape and uses a layer-wise hybrid weight- and output-stationary dataflow.",
+      "llm_tldr_cn": "面向边缘视觉的脉冲神经网络存内计算加速器虽能实现微秒级推理与超低能耗，但电路与系统层面灵活性不足，难以适配多样工作负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数位宽与形状，并据此实现逐层权重与输出混合驻留的数据流，提升操作数复用、减少片内片外数据搬运。该设计扩展了数字CIM加速器的适用性。",
+      "llm_tldr": "面向边缘视觉的脉冲神经网络存内计算加速器虽能实现微秒级推理与超低能耗，但电路与系统层面灵活性不足，难以适配多样工作负载。本文提出FlexSpIM数字存内计算架构，在统一存储中支持任意操作数位宽与形状，并据此实现逐层权重与输出混合驻留的数据流，提升操作数复用、减少片内片外数据搬运。该设计扩展了数字CIM加速器的适用性。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
