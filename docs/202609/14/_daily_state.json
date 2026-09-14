@@ -1,0 +1,137 @@
+{
+  "date": "20260914",
+  "date_label": "",
+  "generated_at": "2026-09-14 22:47:58 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.10970v1",
+      "route": "202609/14/2609.10970v1-fengshui-demystifying-chiplet-ecosystem-and-bespoke-neural-network-accelerator-codesign",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于Chiplet的神经网络加速器协同设计与微架构定制",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.08446v1",
+      "route": "202609/14/2609.08446v1-flexspim-an-event-based-digital-compute-in-memory-accelerator-with-flexible-operand-resolution-and-layer-wise-hybrid-stationarity",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向脉冲神经网络的数字存内计算AI加速器架构",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.06796v1",
+      "route": "202609/14/2609.06796v1-hardware-trojan-threats-to-multi-chiplet-photonic-neural-network-accelerators",
+      "title": "Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向多芯粒光子神经网络加速器与光子互连的硬件威胁",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.07059v2",
+      "route": "202609/14/2609.07059v2-nova-cim-noise--and-correlation-tolerant-stochastic-interfaces-for-analog-compute-in-memory",
+      "title": "NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向模型加速的模拟存内计算接口",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.07907v1",
+      "route": "202609/14/2609.07907v1-a-28nm-27648-spin-multichip-digital-ising-accelerator-with-pegasus-connectivity",
+      "title": "A 28nm 27,648-Spin Multichip Digital Ising Accelerator with Pegasus Connectivity",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "28nm多芯片数字加速器与芯片间传输",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.08898v1",
+      "route": "202609/14/2609.08898v1-otter---two-transistor---one-rram-architecture-for-reliable-in-memory-computing-in-28-nm-cmos-technology",
+      "title": "OTTER - Two Transistor - One RRAM Architecture for Reliable In-Memory-Computing in 28 nm CMOS Technology",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向AI加速的RRAM存内计算硬件",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.10126v1",
+      "route": "202609/14/2609.10126v1-sage-semantic-aware-geographic-error-recovery-for-ai-data-movement",
+      "title": "SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向AI互连数据移动的错误恢复架构",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    },
+    {
+      "paper_id": "2609.11713v1",
+      "route": "202609/14/2609.11713v1-a-time-based-readout-for-vector-matrix-multiplication-in-fully-analog-memristive-snns",
+      "title": "A Time-Based Readout for Vector-Matrix Multiplication in Fully Analog Memristive SNNs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "AI加速器模拟存内计算读出电路设计",
+      "first_seen_at": "2026-09-14 22:47:58 UTC",
+      "updated_at": "2026-09-14 22:47:58 UTC"
+    }
+  ]
+}

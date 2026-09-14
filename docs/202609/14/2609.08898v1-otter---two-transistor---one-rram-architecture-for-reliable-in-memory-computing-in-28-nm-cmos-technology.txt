@@ -1,0 +1,580 @@
+Title: OTTER - Two Transistor - One RRAM Architecture for Reliable In-Memory-Computing in 28 nm CMOS Technology
+
+URL Source: https://arxiv.org/pdf/2609.08898v1
+
+Published Time: Wed, 09 Sep 2026 04:12:18 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+# Journal Name 
+
+> PAPER
+
+Crossmark 
+
+> RECEIVED
+
+dd Month yyyy 
+
+> REVISED
+
+dd Month yyyy 
+
+# OTTER – Two Transistor – One RRAM Architecture for Reliable In-Memory-Computing in 28 nm CMOS Technology 
+
+Yang Chen 1,5 , Daniele Storelli 1 , Xinyi Zhao 1,5 , Ankit Bende 1,5 , Paul-Philipp Manea 3,5 ,Oliver Artner 1,5 , Arun Ashok 2 , Kay Winterberg 2 , Godwin Paul 1,5 , Siyuan Jia 5 , Christian Roth 2 , Sabitha Kusuma 2 , Michael Schiek 3 , Vikas Rana 4 , Dirk Wouters 5 , Stephan Menzel 1 , Andr´ e Zambanini 2 , Christian Grewing 2 , Stefan Wiefels 1,∗ , Susanne Hoffmann-Eifert 1 , John Paul Strachan 3,5 , Stefan van Waasen 2 , and Regina Dittmann 1,4,5  
+
+> 1Peter Gr¨ unberg Institute ”Electronic Materials” (PGI-7), Forschungszentrum J¨ ulich GmbH and JARA-FIT, J¨ ulich, Germany
+> 2Peter Gr¨ unberg Institute ”Integrated Computing Architectures” (PGI-4), Forschungszentrum J¨ ulich GmbH, J¨ ulich, Germany
+> 3Peter Gr¨ unberg Institute ”Neuromorphic Compute Nodes” (PGI-14), Forschungszentrum J¨ ulich GmbH, J¨ ulich, Germany
+> 4JARA Institute Energy-efficient information technology (PGI-10), Forschungszentrum J¨ ulich GmbH, J¨ ulich, Germany
+> 5RWTH Aachen University, Faculty of Electrical Engineering and Information Technology, 52062 Aachen, Germany
+> ∗Author to whom any correspondence should be addressed.
+> E-mail: s.wiefels@fz-juelich.de
+> Keywords: RRAM, Memristive Device, 2T1R, Neuromorphic Computing, CIM, CAM
+
+Abstract 
+
+This work presents OTTER , a 28 nm CMOS platform co-integrated with TaO x-based valence-change mechanism (VCM) RRAM, demonstrating a two-transistor-one-memristive -device (2T1R) architecture for reliable in-memory computing. The 2T1R cell combines a low-drive-current (LD) transistor and a high-drive-current (HD) transistor in parallel, providing dedicated bias paths for SET programming and RESET operation, respectively. Through systematic experimental and simulated comparison of various transistor-pairing configurations using the physical compact model JART VCM Rth, design guidelines for transistor sizing are derived, establishing the minimum RESET transistor W /L required for complete RESET as a function of the SET current compliance. The 2T1R cell is further characterized under pulse-based programming, demonstrating multilevel analog conductance tuning with narrow, well separated conductance states across six programmable levels. An analog content-addressable memory (aCAM) design based on the same 2T1R cell is additionally analyzed at the circuit level, evaluating trade-offs between top- and bottom-connected RRAM comparator configurations. A hardware implementation of compute-in-memory (CIM) multiply-and-accumulate (MAC) operations is further demonstrated on a 15 × 15 2T1R crossbar array. 
+
+1 Introduction 
+
+Neuromorphic and in-memory computing architectures have emerged as promising approaches to overcome the limitations of conventional von Neumann systems in data-intensive workloads such as machine learning and artificial intelligence [1], [2], [3], [4]. By performing computation directly within memory arrays, these architectures aim to reduce data transfer between processing and memory units, which significantly improves energy efficiency and computational throughput [5]. Among the various technologies investigated for realizing such systems, resistive random-access memory (RRAM) has attracted considerable attention due to its nano-scale footprint, high endurance and retention [6], [7], [8], as well as its analog programmability [9], [10], which enables the implementation of content-addressable memory (CAM) as well as compute-in-memory (CIM). While both CAM and CIM exploit the proximity of storage and computation, they target different functionalities. CAM enables fast, parallel search by directly matching input data against stored 1arXiv:2609.08898v1 [cs.ET] 8 Sep 2026 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+patterns [11], [12], whereas CIM focuses on efficient execution of arithmetic operations, such as vector-matrix multiplication (VMM) [9], [13]. One of the most promising candidates among RRAM technologies is filamentary-type valence-change mechanism (VCM) based RRAM [14], [15]. It typically relies on the formation of a conductive filament in a dielectric switching layer, commonly based on metal oxides such as TaO x [16], [17], HfO x [4], [18], [19] and TiO x [20], [21]. During the forming process, defects such as oxygen vacancies or cation interstitials are generated which act as mobile donors. By relocating these donors, the device conductance can be modulated in two directions: SET with increasing conductance towards a high-conductive state (HCS), also referred to as the low-resistance state (LRS), and RESET with decreasing conductance towards a low-conductive state (LCS), also referred to as the high-resistance state (HRS). The filament formation as well as the SET process are strongly current-dependent and therefore require precise current control. In addition, array structures require a selective element to suppress sneak currents during read and write operations [22]. A widely adopted approach to address both requirements is the integration of the RRAM device with a transistor, forming the so-called one-transistor-one-memristive-device (1T1R) cell [4], [23]. The 1T1R configuration has been extensively investigated in recent years and represents a standard building block for many RRAM-based memory and computing architectures [24]. Whereas the transistor is desired as a current limiter during forming and SET, it can hinder the RESET operation due to its series resistance. The resulting voltage divider has been shown to cause RESET failures if the voltage drop across the RRAM device becomes insufficient [25], [26]. In particular, if the RRAM device is to be tuned to multiple states over a broad range of conductance, this causes conflicting constraints on the transistor design [27]. Whereas a transistor with high drive current (HD) is beneficial to ensure sufficient voltage across the RRAM device during RESET, a transistor with low drive current (LD) enables finer conductance control during programming. To decouple these requirements, we explore a 2T1R structure in which an HD and an LD transistor are placed in parallel and connected in series with the RRAM device, each independently addressable via a dedicated word line. We introduce the chip and research platform OTTER 1, designed and fabricated in a 28 nm CMOS technology and co-integrated with TaO x-based RRAM devices. The chip provides 2T1R test structures and arrays designed for CAM and CIM applications. We present a systematic characterization of RRAM operation in the 2T1R configuration, covering DC sweep measurements, pulse-based multilevel programming, and array-level compute-in-memory operations. The DC characterization is supported by simulations using the physical compact model JART VCM Rth [28], from which design guidelines for transistor sizing in 2T1R cells are derived. 
+
+2 Design 
+
+This section details the structures implemented on OTTER , including 2T1R test structures as well as CAM and CIM arrays. OTTER is implemented on dies of 6 mm × 6 mm in 28 nm CMOS technology as shown in Figure 1. 
+
+2.1 2T1R structures 
+
+The 2T1R architecture employs two dedicated access transistors, enabling the electrical requirements of SET and RESET operations to be decoupled. As shown in Figure 3 a), the 2T1R cell places a high-drive-current (HD) transistor with a width-to-length ratio ( W/L ) of 10 and a low-drive-current (LD) transistor with a W/L ratio of 2 in parallel, connected in series with the RRAM device. Both transistors share the same bit line (BL) and source line (SL), while each transistor is independently addressed via its dedicated word line (WL). The HD transistor ensures a reliable RESET operation with minimized series resistance, whereas the LD transistor provides more precise current control during SET. Both are I/O transistors from TSMC 28 nm technology. This 2T1R scheme provides independent control over the SET and RESET current paths within a single cell, offering additional design flexibility for balancing programming precision and RESET reliability. For reference, OTTER also integrates 1T1R structures with either an HD or an LD transistor; their characterization is provided in the Supplementary Information.  
+
+> 1OTTER: Tw o T ransis tor – One M emristo rArchitecture for Reliable In-Memory-Computing at 28 nm
+
+2IOP Publishing Journal vv (yyyy) aaaaaa Author et al      
+
+> Figure 1. 6×6 mm 2OTTER chip. Test structures for CMOS components and post processing are marked in red, blocks of single 1T1R and 2T1R structures are highlighted in green. Blue areas contain CIM and CAM arrays as well as respective test structures.
+
+2.2 CAM arrays 
+
+Content-addressable memories (CAMs) are associative memories that perform parallel searches by comparing query data against all stored entries simultaneously. While conventional CAMs operate on binary patterns, analog content-addressable memories (aCAMs) store analog ranges using multilevel memristive device conductance states, enabling each cell to determine whether an input lies within a programmable interval [29]. As illustrated in Figure 2 a), the match line (ML) combines all cell outputs, and a single mismatch causes the entire row to be marked as a mismatch. This enables continuous-valued similarity search and multi-interval matching, making aCAMs attractive for applications including Decision Trees and Random Forests [30], [31], Finite State Machines [32], DNA Pattern Matching [33], Transformer Attention Mechanisms [34], and even replacing power-hungry Analog-to-Digital Converters (ADCs) in CIM systems [35]. (a) (b) (c) (d)           
+
+> Figure 2. (a) Operation principle of an aCAM. Each aCAM cell stores a lower and upper bound defining a valid input interval (highlighted in green). If the applied input voltage lies within this interval, the cell returns a match; otherwise, a mismatch. All cells of a word share a common Match Line (ML) in a NOR configuration, such that a single mismatching cell causes a word-level mismatch. (b) Schematic of the memristive device comparator with the ohmic electrode (OE) connected to the access transistor M1(top-connected variant). (c) Schematic of the corresponding bottom-connected variant, in which the active electrode (AE) is connected to the access transistor
+> M1. (d) SPICE-simulated transfer characteristics of the memristive device comparator (Top orientation), showing the output voltage VXas a function of the swept input voltage VDL for memristive device conductances GMEM
+> ranging from 30 μS to 400 μS.
+
+The memristive device comparator, shown in Figure 2 b) and c), is a fundamental building block of most memristive device-based aCAMs architectures [29], [36], as it enables analog inequality checks directly within the memory cell. Two comparator orientations are shown: the top-connected 
+
+configuration in Figure 2 b), where the RRAM ohmic electrode (OE) is connected to the access transistor, and the bottom-connected configuration in Figure 2 c), where the active electrode (AE) 3IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+is connected to the access transistor. The comparison threshold is encoded in the memristive device conductance, allowing each cell to implement a programmable analog decision boundary. Multiple boundaries, corresponding to distinct conductance states, can be realized, as illustrated by the input sweep in Figure 2 d). We also employ a 2T1R structure where the LD transistor is used for the aCAM operation as well as the SET; the HD transistor is exclusively used for RESET. The chip integrates two 8 × 8 aCAM arrays (CAM1/CAM2). Each array is not composed of a single uniform cell type; instead, different rows implement different aCAM cell architectures, including the compact 6T2M design [29], the improved 10T2M variant [37], and an enhanced architecture developed specifically for this tape-out [36]. This row-wise organization enables several cell variants to be evaluated within the limited available chip area, while keeping them electrically separable during measurements. In addition, two distinct ML configurations are implemented: a NOR-type and a NAND-type match line. Each row of aCAM cells is connected to both MLs in parallel, allowing the same stored cell states to be evaluated simultaneously by the two match-line schemes. This enables a direct comparison of speed, energy consumption, and functional behavior. The two 8 × 8 aCAM arrays implement the two RRAM comparator orientations shown in Figure 2 b) and c): CAM1 uses the top-connected configuration shown in Figure 2 b), where the RRAM OE is connected to the access transistor, whereas CAM2 uses the bottom-connected 
+
+configuration shown in Figure 2 c), where the AE is connected to the access transistor. These configurations exhibit different trade-offs due to polarity-dependent switching in filamentary VCM RRAMs and transistor body effects [14], [38], [39]. With AE-to-transistor connection, the body effect appears during RESET and can limit the achievable LCS, whereas OE-to-transistor connection shifts it to SET, potentially degrading programming precision and linearity. Since the RRAM is intentionally read in the RESET direction to reduce read disturb and improve retention [14], [40], the electrode orientation also affects aCAM read behavior. In particular, the bottom-connected configuration in CAM2 may introduce body effects during readout, potentially reducing the read margin. The resulting aCAM-specific trade-offs between CAM1 and CAM2 are investigated through simulation and evaluated in Section 6.4. 
+
+2.3 CIM arrays 
+
+CIM arrays enable arithmetic operations directly within memory arrays, thereby reducing data transfer between memory and processing units compared to conventional von Neumann architectures. This approach is particularly attractive for machine learning workloads, where VMM and multiply-accumulate (MAC) operations dominate the computational complexity. In memristive CIM systems, RRAM conductance states encode matrix weights, allowing analog MAC operations to be performed intrinsically within the array using Ohm’s and Kirchhoff’s laws. 
+
+OTTER integrates two CIM arrays, both based on the proposed 2T1R cell structure, but employing different array organizations to explore trade-offs between reliable programming and computational efficiency. The first array is depicted in Figure 3 b) and adopts a pseudo-crossbar design, in which the word lines are arranged in parallel with the source lines. While this layout complicates programming due to reduced selectivity and increased interaction between cells, it is better suited for compute-in-memory operations. In particular, the pseudo-crossbar structure enables analog vector-matrix multiplication (VMM) by naturally exploiting current summation along shared lines, a functionality that cannot be efficiently realized in conventional memory arrays.   
+
+> Figure 3. Schematic of the 2T1R cell structures and two CIM array designs implemented on OTTER . (a) Single 2T1R cell combining one HD and one LD transistor in parallel. (b) CIM1: Pseudo-crossbar array enabling analog VMM. (c) CIM2: Conventional array for memory application with ideal selectivity.
+
+4IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+The second array, sketched in Figure 3 c) follows a conventional architecture analogous to standard 1T1R memory arrays, where bit lines (BLs) and source lines (SLs) run in parallel, while word lines (WLs) are oriented perpendicularly. This configuration enables precise selection of individual memory cells and provides robust and well-controlled programming conditions, making it suitable for memory-oriented operation and reference measurements. Both arrays span 15 × 15 2T1R structures and are designed to allow a direct comparison between conventional memory-oriented operation and computation-optimized architectures within the same technology platform. 
+
+3 TaO x based VCM device integration on 28 nm CMOS chip 
+
+The RRAM devices investigated were integrated on top of a custom-designed silicon chip in 28 nm technology from TSMC Ltd. with a die size of 36 mm 2 (see Figure 1), using processes compatible with CMOS back-end-of-line (BEOL) manufacturing. The chip layout contains transistor structures that allow a fabrication of single 1T1R and 2T1R cells as well as arrays of 15 × 15 2T1R structures which enable CIM and CAM operations as discussed in Section 2. The NMOS transistors are rated for up to 3.3 V and have dimensions of W/L = 2 (LD) and W/L = 10 (HD). The 200 nm × 200 nm–sized Pt/7 nm TaO x/13 nm Ta/Pt memristive devices in crossbar structure were fabricated in approximately thirty BEOL–compatible processing steps at temperatures below 300 ◦C using CMOS–compatible materials and chemicals under state-of-the-art clean room conditions in the Helmholtz Nanofacility [41]. A detailed description of each fabrication step is provided in the Supplementary Information. The manufacturing process involves four major elements: the contact pads (CP), the RRAM bottom electrode (BE), the RRAM switching layer and top electrode (TE), and the connector bars (CB), which are shown in Figure 4 a,c) in different colors. The process starts with the thinning of the SiO 2 passivation layer and the selective opening of the Cu pads in the M10 layer, which are immediately covered with 5 nm Ta and 50 nm Pt as corrosion protection.          
+
+> Figure 4. (a) Drawing of the nano-crossbar RRAM device integrated on top of the CMOS chip with the active electrode, i.e. the bottom electrode (BE), connected to the source contact of the front end foundry transistor. (b) RRAM stack in the crossbar junction, consisting (from the bottom to the top) of a 25 nm thick Pt active electrode (AE; grey), a 7 nm thick TaO x(x <2.5) switching layer (blue), a 13 nm thick Ta ohmic electrode (OE; orange), and a 25 nm Pt capping layer (grey). The switching occurs in the area of the conductive filament that is defined by the conductive plug of reduced TaO y(y <x ;dark blue) and the disc area. The local reduction of the average Ta valence from +2x to +2y is caused by oxygen exchange with the reactive Ta electrode indicated by the yellow color. (c) and (d) Scanning electron microscope images of a 200 nm ×200 nm RRAM device integrated on the CMOS chip. The BE and TE electrodes are connected to the transistor and a measurement pad, respectively. The color code in (a) and (c) is opening of the Cu-pads: dark blue, CPs: grey, BE: blue, TE: violet, CBs: light brown.
+
+5IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+The 2 .0 μm × 1.3 μm CPs for the RRAM (see Figure 4 c)) and the 75 μm × 75 μm CPs for the probe pins to the underlying chip (see Figure 1) are subsequently defined by electron beam lithography (EBL) and Ar-based reactive ion beam etching (RIBE) of the Ta/Pt film. The BE is formed from a sputtered stack of 5 nm Ta and 25 nm Pt, patterned by the same procedure, which is intended to ensure a clean interface between the Pt AE and the switching layer. In the third step, 7 nm of TaO x, 13 nm of Ta and 25 nm of Pt are deposited by reactive and inert sputtering and structured in the shape of the TE. In the final step, the RRAM electrodes are connected to the respective CPs by means of CBs of 1 .0 μm × 1.7 μm size, fabricated by lift-off. A detailed description of each fabrication step, including all lithography, etching and resist-stripping parameters, is given in Section S1 of the Supplementary Information; the chemical compatibility studies that determined the choice of photoresists and resist strippers are documented in Section S2. 
+
+4 Experimental 
+
+4.1 2T1R Characterization 
+
+The 2T1R architecture incorporates two transistors sharing a common RRAM device and therefore requires five probe contacts: the bit line ( VBL ), the source line ( VSL ), the WL of the LD and HD transistors ( VWL ,LD and VWL ,HD ), and the transistor bulk terminal. In all 2T1R measurements, the bulk terminal was connected via a dedicated probe needle to the chassis ground of the Keithley 4200A-SCS, ensuring a well-defined body potential throughout the switching characterization. Note that during RESET the effective source of the transistor floats with the voltage divider formed by the RRAM device and the transistor channel, so that a body effect is present under these conditions; its influence on the RESET behavior is analyzed in Section 6.2. Three transistor-pairing configurations were systematically investigated within the 2T1R architecture shown in Figure 5. In all configurations, a read pulse ( VBL = 0 .2 V, VWL ,HD = 3 .3 V, t = 10 μs) was inserted after each SET operation and after each RESET operation to record the instantaneous resistance state (see Figure 5 a)). 2 2 4                                  
+
+> Figure 5. Applied voltage waveforms for the three 2T1R transistor-pairing configurations. (a) Read pulse (VBL = 0 .2 V, VWL ,HD = 3 .3 V, t= 10 μs, applied after each SET and RESET operation. (b) HD–HD: both SET and RESET are driven by the HD transistor ( W/L = 10), with VWL ,HD ∈ { 1.3,1.4,1.5}V during SET and
+> VWL ,HD = 3 .3 V during RESET. (c) LD–LD: both SET and RESET are driven by the LD transistor ( W/L = 2), with VWL ,LD ∈ { 1.8,2.2,2.4}V during SET and VWL ,LD = 3 .3 V during RESET. (d) LD–HD: SET is driven by the LD transistor ( VWL ,LD ∈ { 1.8,2.2,2.4}V), while RESET is driven by the HD transistor ( VWL ,HD = 3 .3 V). In all configurations, a triangular voltage sweep (0 V →2 V →0 V, 4 ms total) is applied to VBL during SET and to VSL
+> during RESET. Shaded regions indicate the timing of the read pulses. For clarity, the RESET phase is displayed with an independent time axis starting from zero, with the initial label omitted to avoid overlap. The read pulse between SET and RESET is not shown to scale.
+
+6IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+The HD transistor was used exclusively for readout across all configurations to ensure a consistent and comparable read condition. The read current was extracted as the mean of the central 60% of the data points acquired during each read pulse, excluding the leading and trailing edges to eliminate the influence of capacitive charging and discharging transients. In the following, the notation X–Y denotes the transistor geometry used for SET (X) and RESET (Y) operations, respectively. In the HD–HD configuration shown in Figure 5 b), both SET and RESET were driven by the HD transistor, with VWL ,HD ∈ { 1.3, 1.4, 1.5} V during SET and 
+
+VWL ,HD = 3 .3 V during RESET. In the LD–LD configuration (Figure 5 c)), both operations were driven by the LD transistor, with VWL ,LD ∈ { 1.8, 2.2, 2.4} V during SET and VWL ,LD = 3 .3 V during RESET. In the LD–HD configuration shown in Figure 5 d), SET was performed by the LD transistor ( VWL ,LD ∈ { 1.8, 2.2, 2.4} V) and RESET by the HD transistor ( VWL ,HD = 3 .3 V). In all cases, a triangular voltage sweep (0 V → 2 V → 0 V, 4 ms total) was applied to VBL during SET and to VSL during RESET. The applied waveforms are illustrated in Figure 5, and the resulting current–voltage characteristics are discussed in Section 6 with reference to Figure 7. The three transistor-pairing configurations characterized above establish the feasibility of the LD–HD architecture and reveal the complementary roles of the two transistor geometries in resistive switching. However, pulse-based programming more faithfully represents the operating conditions of neuromorphic computing circuits, where synaptic weights are updated through sequences of fixed-duration pulses. To evaluate the analog programmability of the 2T1R cell under such conditions, a pulse training characterization was conducted using either the HD and LD transistors for SET, following the incremental gate voltage verify algorithm (IGVVA) [42], [43], with RESET performed exclusively by the HD transistor in both cases shown in Figure 6. The resulting programmability and variability characteristics are presented in Section 6, with reference to Figures 10, 11, and 12. Figures 6 b) and c) illustrate the HD and LD SET protocols, corresponding to an HD–HD and LD–HD operation, respectively. In the HD SET protocol, 
+
+VWL ,HD is incremented from 1 .1 V to 1 .8 V in steps of 0 .025 V across 29 pulses; in the LD SET protocol, VWL ,LD is incremented from 1 .7 V to 3 .3 V across 65 pulses, with the upper limit defined by the nominal operating voltage of the 28 nm process node. In both protocols, each SET pulse is 1 μs in duration and is followed by a read pulse ( VWL ,HD = 3 .3 V, VBL = 0 .2 V, t = 10 μs) to record the instantaneous resistance state (shaded regions; see Figure 6 a)). 0.0 3.3 
+
+> VWL, HD  (V)
+
+(a) Read pulse    
+
+> 0.0
+> VWL, LD  (V)
+> 0212 14
+> Time ( μs)
+> 0.0 0.2
+> VBL  (V)
+> 0.0 1.1 1.8
+> VWL, HD increasing
+
+(b) HD SET  
+
+> 0.0 0620
+> Time ( μs)
+> 0.0 2.0 0.0
+
+(c) LD SET                 
+
+> 0.0 1.7 3.3
+> VWL, LD increasing
+> 01430
+> Time ( μs)
+> 0.0 2.0
+> Figure 6. Schematic illustration of the pulse training protocol applied to the 2T1R cell following the incremental gate voltage (IGVVA) algorithm. (a) Read pulse waveform: the HD transistor gate is biased at VWL ,HD = 3 .3 V with
+> VBL = 0 .2 V for 10 μs to record the instantaneous resistance state. (b) HD SET protocol: VWL ,HD is incremented from 1 .1 V to 1 .8 V in steps of 0 .025 V across 29 SET pulses (1 μs each), with VWL ,LD = 0 V throughout. (c) LD SET protocol: VWL ,LD is incremented from 1 .7 V to 3 .3 V in steps of 0 .025 V across 65 SET pulses, with VWL ,HD = 0 V throughout. In both protocols, a read pulse (shaded regions; see panel (a)) is inserted after each SET pulse to record the resistance state, and a final RESET sweep driven by the HD transistor restores the high-resistance initial state prior to the next programming cycle. Only the first and last three pulses are shown; intermediate pulses are omitted for clarity. The time axis is therefore not drawn to scale.
+
+7IOP Publishing Journal vv (yyyy) aaaaaa Author et al  
+
+> Table 1. Reference parameter set for the JART VCM Rth compact model.
+
+Symbol Description Value 
+
+lcell Cell thickness 7 nm 
+
+ldisc Disc region length 3 nm 
+
+lplug Plug region length lcell − ldisc 
+
+Rfil Filament radius 30 nm 
+
+zVO Vacancy charge number 2
+
+a Ion hopping distance 0.3 nm 
+
+ν0 Attempt frequency 2 × 10 12 Hz ∆WA Ionic hopping activation energy 0.9 eV 
+
+meff Effective electron mass 9.1 × 10 −31 kg 
+
+eϕ Bn0 Zero-bias Schottky barrier height 0.5 eV 
+
+eϕ n Conduction band offset 0.1 eV 
+
+μn Electron mobility 7.5 × 10 −6 m2/(Vs) 
+
+Nmax Maximum vacancy concentration 30 × 10 26 m−3
+
+Nmin Minimum vacancy concentration 0.1 × 10 26 m−3
+
+Nplug Plug vacancy concentration Nmax 
+
+εr Relative permittivity 27 
+
+εr,ϕ B Barrier region permittivity 4
+
+T0 Ambient temperature 273.15 K The read current is extracted as the mean of the central 60 % of the data points acquired during each read pulse, excluding the leading and trailing edges to eliminate capacitive charging and discharging transients. The sequence concludes with a RESET sweep driven by the HD transistor to restore the high-resistance initial state. 
+
+5 Compact Model 
+
+To simulate the switching dynamics of the co-integrated TaO x-based VCM devices, we employ the JART VCM Rth compact model [28]. The key extension over the predecessor JART VCM v1b model [44] is a state-dependent effective thermal resistance: 
+
+Rth,eff = βα + γN 2disc 
+
+, (1) where Ndisc is the oxygen vacancy concentration in the disc region and α, β, γ are polarity-dependent fitting coefficients. The evolution of Ndisc is governed by thermally activated ionic transport: dNdisc 
+
+dt = − Iion 
+
+zVO eAl disc 
+
+, (2) where zVO is the oxygen vacancy charge number, e the elementary charge, A = πR 2fil the filament cross-sectional area with Rfil the filament radius, ldisc the disc length, and Iion the ionic current describing the thermally activated motion of oxygen vacancies within the filament. The local filament temperature entering this expression is determined by Joule heating via 
+
+T = ( Vdisc + Vplug + VSchottky ) I · Rth,eff + T0, (3) where Vdisc , Vplug , and VSchottky are the voltage drops across the disc region, the plug region, and the Schottky barrier at the active electrode, respectively, I is the total device current, and T0 is the ambient temperature. This mutual coupling between Ndisc , Rth,eff , and T enables a self-consistent description of gradual multilevel switching. During SET, Rth,eff decreases with increasing Ndisc ,moderating the thermal runaway and supporting stable multilevel programming. During RESET, the opposite trend leads to an increasing Rth,eff , resulting in a gradual current reduction consistent with experimental observations. The corresponding reference parameter set is summarised in Table 1. The access transistor is incorporated into the circuit-level simulation via a calibrated process design kit (PDK) compact model, with key parameters adjusted to match the measured transfer characteristics of the HD and LD devices. To model device-to-device variability, ldisc , ∆ WA and 
+
+Nmin are treated as the adjustable parameters reflecting variations in the initial state across devices, while all remaining physical parameters are fixed at the reference values in Table 1. Since cycle-to-cycle variability and the varying gate bias conditions across the three switching 8IOP Publishing Journal vv (yyyy) aaaaaa Author et al   
+
+> Table 2. Rth coefficients and their ranges across all switching configurations and gate bias conditions.
+
+Symbol Median Range Symbol Median Range 
+
+αSET 0.10 [0 .055 , 0.27] αRESET 0.45 [0 .05 , 0.50] 
+
+βSET (10 6 K/W) 2.3 [1 .0, 3.0] βRESET (10 5 K/W) 7.0 [1 .15 , 12 .0] 
+
+γSET (10 −52 m6) 3.0 [0 .45 , 4.8] γRESET (10 −53 m6) 0.5 [0 .01 , 1.0] configurations (HD–HD, LD–LD, and LD–HD) prevent a single fixed parameter set from consistently reproducing the switching behavior, the Rth coefficients are individually calibrated for each configuration and gate voltage condition. The resulting reference values and the total parameter ranges encountered across all conditions are reported in Table 2. To extend the simulation beyond deterministic sweep fitting and to reproduce the statistical spread of resistance states observed across repeated switching cycles, a variability-aware simulation framework following Ahmad et al. [45] is employed. In this framework, the parameters Nmin , Rfil ,and lnew are updated between consecutive switching cycles via a multiplicative random walk. The random walk is constrained within bounds defined individually for each switching configuration and gate bias condition. The calibration of both the deterministic switching characteristics and the resulting resistance state distributions against experimental data is presented in Section 6. 
+
+6 Results 
+
+While showcasing OTTER as a research vehicle, this paper investigates the 2T1R architecture through systematic experimental characterization accompanied by physical compact simulations. The following sections present DC sweep and pulse-based programming results for the 2T1R cell, from which design guidelines for transistor sizing are derived. Simulation-based CAM design considerations are presented in Section 6.4. Finally, a multiply-and-accumulate operation using CIM 1 (see Figure 1) is demonstrated. 
+
+6.1 2T1R Switching Characterization 
+
+This section presents the experimental characterization of the 2T1R structures, progressing from static triangular current–voltage sweep measurements to pulse-based multilevel programming. The results demonstrate the complementary roles of the HD and LD access transistors and establish the advantage of the 2T1R architecture for reliable analog weight programming. The DC sweep characterization is compared with simulated characteristics obtained using the JART VCM Rth compact model, allowing the experimentally observed gradual SET evolution and multilevel switching behavior to be reproduced. 
+
+OTTER incorporates such a 2T1R structure, characterized following the sweep protocol described in Section 4 and illustrated in Figure 5. The resulting characteristics for the three transistor-pairing configurations (HD–HD, LD–LD, and LD–HD) are presented in Figure 7. The current–voltage characteristics are given in panels (a)–(c), the read current distributions in panels (d)–(f), and the on/off ratio statistics in panels (g)–(i). The HD–HD configuration, shown in Figures 7 a), d), and g), in which both SET and RESET are driven by the HD transistor, serves as the reference case. The blue curves from light to dark correspond to SET WL voltages of 1.3 V, 1.4 V, and 1.5 V, respectively, with the HD transistor fully opened during RESET ( VWL ,HD = 3 .3 V). Solid lines represent the median current over 100 measurement cycles, and dashed lines indicate the corresponding simulation results. The HD transistor provides effective current compliance during SET, with Icc increasing monotonically with WL bias and exhibiting good cycle-to-cycle consistency. The distributions in Figure 7 d) confirm well-separated LRS and HRS populations, and the on/off ratio statistics in Figure 7 g) show that all cycles consistently exceed the threshold of 5 across all gate bias conditions, demonstrating reliable binary switching behavior. The LD–LD configuration (Figures 7 b), e), and h)), in which both operations are driven by the LD transistor, reveals a strong WL-bias dependence of the RESET performance. At 1.8 V (Icc ≈ 100 μA), complete RESET is achieved and on/off ratios consistently exceed 5. As the SET WL voltage increases to 2.2 V ( Icc ≈ 175 μA), approximately 50 % of cycles fail to return to the HRS, with the distribution showing a collapse of the HRS population. At 2.4 V ( Icc ≈ 200 μA), RESET fails in the vast majority of cycles, and the current–voltage characteristics during RESET follow the transistor output characteristic rather than the RRAM switching characteristic, indicating that the device remains in the LRS due to the series resistance of the LD transistor. To address this limitation, the LD–HD configuration decouples the SET and RESET operations across the two transistors: SET is performed by the LD transistor and RESET by the HD 9IOP Publishing Journal vv (yyyy) aaaaaa Author et al −2 −1 0 1 2Voltage (V) −300 −200 −100 0100 200 300 Current (μA)                                           
+
+> (a) HD–HD
+> VRST WL, HD = 3.3 V
+> VSET WL, HD
+> 1.3 V 1.4 V 1.5 V
+> −2 −1 012Voltage (V)
+> (b) LD–LD
+> VRST WL, LD = 3.3 V
+> VSET WL, LD
+> 1.8 V 2.2 V 2.4 V
+> −2 −1 012Voltage (V)
+> (c) LD–HD
+> VRST WL, HD = 3.3 V
+> VSET WL, LD
+> 1.8 V 2.2 V 2.4 V
+> 025 50 75 Read Current (μA) −3 −2 −1 0123Normal Quantiles (σ)
+> (d)
+> 010 20 30 40 50 Read Current (μA)
+> (e)
+> 010 20 30 40 50 Read Current (μA)
+> (f)
+> 1.3 1.4 1.5
+> VSET WL, HD (V) 10 0
+> 10 1
+> 10 2
+> 10 3
+> On/Off Ratio
+> (g)
+> 1.8 2.2 2.4
+> VSET WL, LD (V)
+> (h)
+> 1.8 2.2 2.4
+> VSET WL, LD (V)
+> (i)
+
+Figure 7. Switching characteristics of the three 2T1R transistor-pairing configurations. (a)–(c) Current–voltage characteristics for HD–HD, LD–LD, and LD–HD, respectively, measured over 100 cycles. Solid lines represent the cycle-averaged experimental results and dashed lines indicate the corresponding simulation results. (d)–(f) Distributions of the read current in the LRS and HRS, recorded immediately after SET and RESET, respectively. Annotated values indicate the median read current in μA. (g)–(i) On/off ratio statistics as a function of SET gate voltage. The dashed red line marks an on/off ratio of 5. In all configurations, the SET operation applies a triangular sweep to VBL and RESET to VSL (0 V → 2 V → 0 V, 4 ms total). 
+
+transistor. The SET WL voltages and device under test are identical to those used in the LD–LD characterization, enabling a direct comparison. As shown in Figures 7 c), f), and i), replacing the LD transistor with the HD transistor for the RESET operation fully restores switching reliability across all SET WL bias conditions. Complete RESET is achieved even after using the highest SET WL bias of 2.4 V, the LRS and HRS distributions remain well separated, and on/off ratios consistently exceed 5 in all cycles. Figure 8 directly compares the current–voltage characteristics of the LD–LD and LD–HD configurations under identical SET conditions, isolating the effect of the RESET transistor geometry. In both configurations, SET is driven by the LD transistor at the same WL voltages; the only difference is that RESET is performed by the LD transistor in the LD–LD case and by the HD transistor in the LD–HD case. The dashed grey line in each panel marks the minimum RESET current of the LD–LD configuration ( IRST ,LDLD ), confirming that the peak RESET current reached during the RESET operation is comparable between the two configurations at each SET WL-bias condition. This indicates that any difference in RESET completeness between the two configurations can be attributed solely to the voltage drop across the access transistor, rather than to a difference in drive current. At V SET WL ,LD = 1 .8 V, both configurations achieve complete RESET; however, the LD–LD configuration requires a higher SL voltage to initiate RESET compared to the LD–HD configuration. This indicates that the series resistance of the LD transistor is visible across all gate bias conditions, and becomes the dominant limiting factor as the SET current increases. As 
+
+V SET WL ,LD is increased to 2 .2 V (Figure 8 b)), the RESET becomes incomplete in the LD–LD configuration. Although the RESET current magnitude is comparable to that of the LD–HD case, the excessive voltage drop across the LD transistor prevents a sufficient fraction of VSL from being 10 IOP Publishing Journal vv (yyyy) aaaaaa Author et al −2 −1 0 1 2Voltage (V) −200 0200 Current (μA)                                      
+
+> IRST, LD–LD
+> (a)
+> VSET WL, LD = 1.8 V
+> LD–LD: VRST WL, LD = 3.3 V LD–HD: VRST WL, HD = 3.3 V
+> −2 −1 012Voltage (V)
+> IRST, LD–LD
+> (b)
+> VSET WL, LD = 2.2 V
+> LD–LD: VRST WL, LD = 3.3 V LD–HD: VRST WL, HD = 3.3 V
+> −2 −1 012Voltage (V)
+> IRST, LD–LD
+> (c)
+> VSET WL, LD = 2.4 V
+> LD–LD: VRST WL, LD = 3.3 V LD–HD: VRST WL, HD = 3.3 V
+> Figure 8. Current–voltage characteristics of the LD–LD and LD–HD configurations at SET WL voltages of (a) 1 .8 V, (b) 2 .2 V, and (c) 2 .4 V. In both configurations, SET is driven by the LD transistor with an identical BL sweep; RESET is driven by the LD transistor ( VRST WL ,LD = 3 .3 V) in LD–LD and by the HD transistor (VRST WL ,HD = 3 .3 V) in LD–HD. Shaded regions indicate cycle-to-cycle variability. The dashed line marks the minimum RESET current observed in the LD–LD configuration ( IRST ,LDLD ) and is included as a reference.
+
+applied across the RRAM element, resulting in only partial RESET. The LD–HD configuration, by contrast, achieves reliable and complete RESET under the same SET conditions. At 
+
+V SET WL ,LD = 2 .4 V, RESET fails entirely in the LD–LD configuration: the peak RESET current reached by the LD transistor is still comparable to that of the HD transistor, yet the RRAM element cannot be restored to the high-resistance state. The limitation is therefore not the peak current the transistor is able to deliver, but the fraction of VSL that remains available across the RRAM element at that current level. The larger on-resistance of the LD transistor shifts the operating point towards a lower voltage across the RRAM device, so that the conditions required for complete RESET are not reached; the underlying transistor-level mechanism is analyzed in Section 6.2. The LD–HD configuration, by contrast, maintains a complete and reliable RESET under the same SET conditions, demonstrating that the 2T1R architecture effectively decouples the SET current compliance from the RESET drive requirement. 
+
+6.2 Design Guidelines for Transistor Sizing 
+
+The DC sweep characterization in Section 6.1 demonstrates that the JART VCM Rth compact model reproduces the experimentally observed switching behavior across all three transistor-pairing configurations, as shown by the agreement between the measured and simulated curves in Figures 7 a)–f). Building on this validation, the compact model is used to extend the analysis beyond the two transistor geometries available on chip, exploring the impact of RESET transistor sizing on switching reliability. In the following simulation, the LRS is programmed under different SET current-compliance levels ( Icc ), and the RESET transistor W/L ratio is varied across 0.5, 1, 2, 3, 5, 10, and 15. In addition, three maximum SL voltages are considered ( VSL ,max = 2 .0 V, 2.5 V, and 3.3 V) to evaluate the interplay between RESET voltage headroom and transistor sizing. For each combination of RESET transistor geometry and VSL ,max , the 2T1R cell is programmed to a broad range of LRS values and subsequently RESET. Figure 9 a) presents the resulting on/off ratio as a function of the programmed LRS for each RESET transistor W/L ratio. The dotted line marks the on/off ratio threshold of 5, consistent with the criterion used in Section 6.1. For small RESET transistor W/L 
+
+ratios, the on/off ratio drops below the threshold at moderate LRS values, indicating incomplete RESET. As the RESET transistor W/L ratio increases, the on/off ratio remains above the threshold over a progressively wider LRS range. From Figure 9 a), the minimum evaluated RESET transistor W/L ratio satisfying an on/off ratio above 5 can therefore be extracted for each programmed LRS. Figure 9 b) summarizes this minimum W/L ratio for the three VSL ,max 
+
+conditions, defining the boundary between reliable and incomplete RESET operation. Within the simulated range, this boundary appears to follow a negative double logarithmic trend, which means that a decrease in LRS resistance by one order of magnitude would require an increase in W/L 
+
+ratio by one order of magnitude to ensure reliable RESET. The RESET requirement strongly depends on the programmed LRS. For relatively shallow LRS states, corresponding to higher RLRS , RESET can be achieved with a relatively small transistor 
+
+W/L , and the influence of VSL ,max is limited because sufficient RESET capability is already available. As the LRS becomes deeper, increasing VSL ,max can extend the range over which 11 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 1k 5k 10k 50k LRS resistance RLRS (Ω) 1510 100 ON/OFF ratio  RHRS /RLRS 
+
+> ON/OFF = 5
+
+(a)       
+
+> RESET W/L
+> 15 10 53210.5
+> VSL, max
+> 2.0 V 2.5 V 3.3 V
+> VSL, max
+> 2.0 V 2.5 V 3.3 V
+> 1k 2k 3k 4k LRS resistance RLRS (Ω) 123510 15 RESET transistor  W/L Successful RESET in simulation Possible RESET failure
+
+(b)       
+
+> VSL, max
+> 2.0 V 2.5 V 3.3 V
+> Figure 9. Design guidelines for RESET transistor sizing in the 2T1R cell under different SET current-compliance conditions. (a) Simulated on/off ratio versus programmed LRS for different RESET transistor W/L ratios and
+> VSL ,max . The dotted line marks the on/off ratio threshold of 5. (b) Minimum RESET transistor W/L required for an on/off ratio above 5 at different VSL ,max .
+
+complete RESET is maintained and reduce the required RESET transistor size. For very deep LRS states, however, the benefit of increasing VSL ,max becomes limited, and a sufficiently large RESET transistor W/L is required. We attribute the diminishing benefit of VSL ,max at deep LRS states to the operating point of the RESET transistor itself. As RLRS decreases, the voltage VDS dropping across the channel of the RESET transistor increases, which drives the transistor from the linear region toward saturation. Once pinch-off is approached, additional applied RESET voltage is expected to produce only a limited increase in the voltage and current available to the RRAM device. For deeply programmed LRS states, increasing VSL ,max alone would then be insufficient to trigger RESET, and a larger RESET transistor W/L ratio would be required to provide sufficient RESET current. This interpretation is consistent with the pinch-off-limited RESET behavior reported by Zheng et al. [46]. Additionally, the body effect is expected to contribute. During RESET, the SL node is biased whereas the BL node is kept at ground (c.f. Figure 3 a)). In this case, the effective source of the transistor is at the drain contact between the RRAM cell and the channel. The potential of this node varies with the voltage divider formed by the RRAM device and the transistor. The more voltage drops across the RRAM cell, the higher the potential of the effective source and its deviation from the bulk potential. As a result, the effective gate–source voltage VGS ,effective 
+
+decreases. This effect is small as long as the RRAM device is low-resistive, but as soon as the RESET process is triggered and the RRAM resistance increases, VGS ,effective starts decreasing, which can move the system into saturation at rather low current levels. Depending on sweep rate, switching kinetics and transistor geometry, this mechanism could in principle lead to a freezing RESET transition. A larger W/L ratio provides more headroom in current supply, so that a decrease in VGS ,effective does not shift the system into saturation. It should be noted that these simulations provide indicative trends and qualitative explanations of the links between LRS state ( RLRS ), transistor W/L ratio and RESET kinetics. The absolute numbers should be interpreted with caution. A direct experimental verification of the proposed transistor-level mechanisms requires resolving the IDS –VDS trajectory of the RESET transistor during the switching event itself, which is the subject of ongoing work. Nevertheless, these results establish a general design guideline for transistor sizing in RRAM access structures. For shallow LRS states, RESET can be achieved with a relatively small transistor W/L ratio, while increasing 
+
+VSL ,max can improve RESET capability at intermediate LRS levels. For deep LRS states, however, the benefit of additional RESET voltage becomes limited due to transistor saturation, and a larger RESET transistor W/L is therefore required to maintain sufficient drive current. Additionally, the body effect becomes more severe for smaller W/L ratios. These considerations are relevant to both 1T1R and 2T1R configurations. In a 1T1R cell, a single transistor must simultaneously provide accurate current compliance during SET and sufficient drive capability during RESET, which restricts the available programming range. In contrast, the 2T1R architecture separates these functions, allowing the SET current-compliance requirement and the RESET transistor sizing to be 12 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+optimized independently. 
+
+6.3 Pulse-Based Multilevel Programming 
+
+The preceding characterization establishes that the HD transistor provides reliable RESET across all WL-bias conditions, while both transistors support consistent SET operation. However, a key question remains: whether the availability of the LD transistor during SET can improve programming precision under pulse-based operating conditions compared with the HD transistor alone. The 2T1R architecture offers a unique opportunity to address this question directly, as the SET transistor can be selected independently of the RESET transistor on the same device. To this end, the characterization is extended from quasi-static sweep measurements to pulse-based multilevel programming, in which SET is performed using either the HD or the LD transistor while RESET is driven exclusively by the HD transistor in both cases, following the IGVVA. The applied voltage waveforms for both protocols are illustrated in Figure 6, and the resulting resistance states after consecutive SET pulses with incrementally increasing V SET WL are shown in Figure 10. Figures 10 a) and b) show the distributions of the read current for the LD SET and HD SET          
+
+> Figure 10. Statistical analysis of the read current distributions programmed through pulse-based multilevel programming of the 2T1R cell under HD SET and LD SET protocols. (a) Distributions of the read current for the LD SET protocol, with the color gradient from light to dark corresponding to incrementally increasing VSET WL ,LD from 1.7 V to 3 .3 V in steps of 0 .025 V (65 pulses). (b) Corresponding distributions for the HD SET protocol, with
+> VSET WL ,HD incremented from 1 .1 V to 1 .8 V (29 pulses). In both protocols, RESET is performed exclusively by the HD transistor. (c) Read current as a function of SET compliance current Icc , extracted as the mean of the central 60% of SL current samples acquired during each SET pulse. (d) Coefficient of variation CVof the read current as a function of median read current, quantifying the cycle-to-cycle variability at each programming level. In all panels, blue squares and brown circles denote the HD SET and LD SET protocols, respectively.
+
+protocols, respectively, where the color gradient from light to dark corresponds to incrementally increasing SET WL voltage. A comparison of the two panels reveals that for equivalent WL voltage increments of 25 mV, the LD SET protocol produces a significantly denser spacing of the read current distributions than the HD SET protocol. This is a direct consequence of the weaker drive capability of the LD transistor: a given increment in WL voltage produces a smaller change in Icc ,translating into a finer step in the programmed resistance state. As a result, the LD SET protocol yields 65 distinguishable programming levels across a read current range of approximately 10 μA to 85 μA, compared to 29 levels for the HD SET protocol over a comparable range. Figure 10 c) shows the relationship between the read current and the SET compliance current Icc , defined as the mean of the central 60 % of the source line current samples acquired during each SET pulse. The results for the HD and LD SET protocols are represented by blue squares and brown circles, respectively. Both datasets exhibit a strong and monotonic relationship between Icc and the resulting read 13 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+current, and the two curves overlap closely across the full current range. This confirms that the programmed resistance state is largely determined by Icc , independent of which transistor drives the SET operation. Consequently, the finer programming granularity of the LD SET protocol is not a result of superior current control precision, but rather of the smaller Icc increment per gate voltage step afforded by the narrower transistor geometry. Figure 10 d) presents the coefficient of variation CV of the read current as a function of the median read current at each programming step, providing a direct measure of cycle-to-cycle variability. The HD and LD SET results again overlap closely, confirming that both transistor geometries produce comparable variability characteristics across the full programming range. This demonstrates that the improved programming granularity of the LD SET protocol is achieved without any penalty in variability. Furthermore, CV decreases monotonically with increasing median read current in both cases, indicating that states deeper in the LRS exhibit lower relative variability, consistent with previously reported behavior in filamentary RRAM devices [47], [48]. These results establish that the LD–HD configuration provides a favorable combination of fine programming granularity, reliable compliance current control, and low cycle-to-cycle variability. To further evaluate whether these intermediate states can be reliably targeted and distinguished under a practical multilevel programming scheme, six target read-current levels are defined, corresponding to read currents of 30 μA, 40 μA, 50 μA, 60 μA, 70 μA, and 80 μA. For each target level, all traces from Figure 10 are scanned to identify the first SET pulse at which the read current reaches or exceeds the target value, emulating a program-verify scheme. This leads to read current distributions for all six target levels, each containing only the read current recorded after the SET pulse at which the read current first reaches or exceeds the target value. Figure 11 a) shows the resulting distributions for both the HD SET (blue squares) and LD SET (brown circles) protocols, with the color gradient from light to dark corresponding to increasing WL voltage. As a consequence of the program-verify methodology, the lower bound of each target level is strictly defined by the target current, whereas the upper bound is determined by the overshoot after the first successful SET pulse. However, a clear difference emerges in the upper bounds: the LD SET protocol produces narrower distributions, reducing the probability of overlap with the adjacent higher level. In particular, for the three lowest target levels of 30 μA, 40 μA, and 50 μA, the HD SET distributions of neighboring levels exhibit visible overlap, which would introduce ambiguity in state readout. In contrast, the corresponding LD SET distributions remain well separated between adjacent levels, with no measurable overlap. Figure 11 b) presents the coefficient of variation CV at each target level, confirming that the LD SET protocol achieves lower variability than the HD SET protocol across all six defined levels. The difference in variability between the two protocols can be attributed to the difference in transconductance between the HD and LD transistors, which is analyzed in detail in Figure 12. The HD transistor exhibits a higher transconductance, such that an equivalent WL voltage increment produces a larger change in saturation current and consequently a larger step in read current. This increases the probability of overshooting the target level within a single SET pulse, broadening the upper tail of the distribution and increasing inter-level overlap. The LD transistor, by contrast, converts the same WL voltage increment into a smaller current step, enabling more precise targeting of each level and resulting in tighter distributions and lower CV observed across all target levels. Since the read current is determined by Icc (see Figure 10 c)), the wider programming window of the LD SET protocol (1.7 V to 3.3 V, 65 steps) further contributes to finer state resolution, making the LD–HD configuration of the 2T1R cell better suited for multilevel analog programming than configurations relying on a single transistor geometry for both programming and RESET. To provide a transistor-level explanation for the superior programming granularity of the LD SET protocol, the effective transconductance of both transistors is analyzed. The transconductance is estimated as the incremental SET compliance current per unit WL voltage increment: 
+
+gm = I(n+1) cc ,SET − I(n)cc ,SET 
+
+∆V SET WL 
+
+(4) where I(n)cc ,SET and I(n+1) cc ,SET denote the compliance currents at consecutive gate voltage steps, and ∆V SET WL = 25 mV is the WL voltage increment. Figure 12 presents the resulting gm as a function of 
+
+Icc ,SET for both transistors. Blue squares and brown circles denote the HD and LD transistors, respectively. The HD transistor exhibits a significantly higher transconductance than the LD transistor at every target level, directly confirming that an equivalent gate voltage increment of ∆VWL ,SET = 25 mV produces a larger change in Icc ,SET for the HD transistor. This translates into a larger read current step per pulse and broader inter-level distributions, consistent with the 14 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 20 40 60 80 Read current ( μA) −3 −2 −1 0123Normal quantiles (σ)             
+
+> (a)
+> 20 30 40 50 60 70 80 90 Mean read current ( μA) 0246810 12 Coeff. of variation  CV (%)
+> (b)
+> 30 40 50 60 70 80 HD level ( μA)
+> 30 40 50 60 70 LD level ( μA)
+> Figure 11. Read current distributions and variability of six target levels extracted using a program-verify approach from the pulse-training data of Figure 10. (a) Distributions for the HD SET (blue squares) and LD SET (brown circles) protocols at target levels of 30 μA–80 μA, with color indicating increasing target current. (b) Coefficient of variation CVas a function of mean read current.
+
+overlap observed in Figure 10 a). The transconductance of the LD transistor remains approximately constant at around 200 μA/V across all target levels, whereas the transconductance of the HD transistor increases with Icc ,SET . At elevated gate voltages, the larger and increasing transconductance of the HD transistor makes precise resistance state targeting increasingly difficult, as each pulse increment produces a progressively larger current step. This suggests a natural division of roles between the two transistors: the LD transistor is better suited for fine-grained multilevel programming, while the HD transistor is more appropriate for coarse programming at higher current levels. From this, we propose exploiting this complementary behavior through a combined coarse–fine programming strategy. 100 200 300 400      
+
+> Icc, SET (μA) 200 400 600 800 Transconductance  gm (μA/V)
+> 30 40 50 60 70 HD level ( μA)
+> 30 40 50 60 70 LD level ( μA)
+> Figure 12. Effective transconductance gmof the HD (blue) and LD (brown) transistors as a function of SET compliance current Icc ,SET , estimated as the incremental compliance current per unit gate voltage increment (equation 4).
+
+6.4 Content Addressable Memory (CAM) 
+
+The CAM results presented in this section are based exclusively on circuit simulations. We evaluate the resulting dynamic range and impact of supply-voltage variations on the top- and bottom-connected memristive device-transistor configurations introduced in Section 2.2. To this end, the nominal supply voltage of VDD ,nom = 0 .60 V was varied by ±10% while monitoring the resulting shift in VDL ,bound , which defines the programmable decision boundary of the aCAM. Since stable decision boundaries are essential for reliable associative search, the sensitivity of 
+
+VDL ,bound to supply-voltage variations serves as a key indicator of aCAM robustness. Figure 13 shows that the top-connected configuration achieves a larger obtainable dynamic range (1 .240 V versus 0 .965 V) while exhibiting significantly lower sensitivity to supply variations. The mean normalized VDD -induced error is reduced from 13 .9% for the bottom-connected configuration to 2.2% for the top-connected configuration. These results indicate that the top-connected architecture provides both a larger sensing margin 
+
+Vrange and improved robustness against supply-voltage fluctuations. Experimental chip 15 IOP Publishing Journal vv (yyyy) aaaaaa Author et al (μS) (μS)       
+
+> (V) (%)
+> Figure 13. Simulated aCAM dynamic range and impact of supply-voltage variation on the top- and bottom-connected RRAM comparator configurations. (a) VDL ,bound as a function of Gmem for the nominal supply voltage ( VDD ,nom = 0 .60 V) and a ±10% supply-voltage variation. (b) Corresponding supply-induced error normalized to the obtainable dynamic range.
+
+measurements, currently underway, will determine whether these advantages outweigh potential trade-offs in memristive device programmability. 
+
+6.5 Compute-in-Memory MAC Operation 
+
+The multiply and accumulate (MAC) operation constitutes the fundamental computational primitive in neural-network accelerators. RRAM enables MAC operations by exploiting Kirchhoff’s Current Law (KCL) and Kirchhoff’s Voltage Law (KVL), allowing computations to be performed directly within the memory array and thereby minimizing costly data movement between memory and processing units. In this section, we demonstrate the hardware implementation of MAC operations in the fabricated 15 × 15 2T1R CIM1 RRAM crossbar array and investigate the impact of different programming and read transistor configurations on MAC accuracy. MAC operations were implemented using an FPGA-based memory characterization platform (Arc TWO, Arc Instruments). The architecture of the fabricated 2T1R CIM1 array is illustrated in Figure 3 b). Devices within each column share a common bit line (BL), while devices within each row share a common source line (SL) and word line corresponding to the HD (WL1) and LD (WL2) access transistors. Programming and read operations are performed through appropriate biasing of the BLs, SLs, and WLs. During SET programming, a voltage VSET is applied to the selected BL while the corresponding SL is grounded. Unselected BLs and SLs are held at ground potential to suppress undesired programming. The WL voltage of either the HD or LD transistor is raised to V SET WL , depending on the selected programming configuration, thereby defining the current compliance during filament formation. RESET operations are performed by reversing the polarity across the selected device and activating only the HD transistor, which provides sufficient drive current to ensure reliable RESET switching. Read operations follow a similar biasing scheme as SET programming but employ a lower read voltage VREAD . Note that in this section, the X–Y notation refers to the transistor used for SET programming (X) and MAC readout (Y), respectively, distinct from the SET–RESET notation used in Section 6.1. To investigate the influence of access-transistor selection on MAC performance, four programming/MAC column READ configurations were evaluated: (i) HD–HD, where both SET programming and MAC readout employ the HD transistor; (ii) HD–LD, where SET programming uses HD and MAC readout uses LD; (iii) LD–HD, where SET programming uses LD and MAC readout uses HD; and (iv) LD–LD, where both operations use the LD transistor. RESET operations were always performed using the HD transistor to guarantee reliable RESET operation due to high drive-current capability of the HD transistor. For the MAC experiment, five distinct weight matrices were programmed: an all-ones matrix, an all-zeros matrix, two complementary checkerboard patterns, and one randomly generated pattern to cover all the corner cases. During the weight matrix programming, devices representing the LRS states were programmed to a target resistance of 3 kΩ using an incremental VSET and VWL program-verify algorithm with a tolerance window of ±1%. In cases of overshoot, corrective RESET pulses were applied to restore the target resistance. The 3 kΩ LRS target was selected to ensure that it could be reliably programmed using both the HD and LD transistors, given the limited drive current capability of the LD transistor. The HRS devices were programmed using an incremental RESET-and-verify procedure until a resistance exceeding 100 kΩ was achieved. All programming pulses had a fixed duration of 1 μs. During verification, device resistances were measured using the HD transistor with a gate voltage of 3.3 V and a read voltage of 0.2 V. MAC operations were subsequently performed using 1,000 randomly generated binary input 16 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+vectors for each programmed weight matrix. The input vector was applied by selectively activating WLs according to the binary input pattern, while the programmed conductance states represented the weight matrix. The MAC operation is then performed by applying VBL = VREAD , resulting in an accumulated current along the column which is then measured and taken as the measured MAC output. To evaluate MAC accuracy, the measured column current is compared with the corresponding ideal digital MAC output. For binary weight and input vectors, 
+
+w = [ w1, w 2, . . . , w N ] and x = [ x1, x 2, . . . , x N ], respectively, where wi, x i ∈ { 0, 1}, the ideal digital MAC output is given by MAC = 
+
+> N
+
+X
+
+> i=1
+
+wixi, (5) which corresponds to the binary dot product between the input and weight vectors. MAC via HD MAC via LD SET via HD SET via LD                        
+
+> 0200 400 600 800 1000 Meas. MAC current ( μA)
+> RMSE = 7.37 μA
+> R2= 0.9982 slope = 62.59
+> (a)
+> RMSE = 2.84 μA
+> R2= 0.9994 slope = 42.97
+> (b)
+> 0510 15 Digital MAC output 0200 400 600 800 1000 Meas. MAC current ( μA)
+> RMSE = 4.82 μA
+> R2= 0.9993 slope = 63.97
+> (c)
+> 0510 15 Digital MAC output
+> RMSE = 2.27 μA
+> R2= 0.9996 slope = 43.16
+> (d)
+> 0246810 RMSE ( μA) Linear fit RMSE (e)
+> HD-HD HD-LD LD-HD LD-LD
+> Case 0.995 0.996 0.997 0.998 0.999 1.000 1.001
+> R 2
+> Linear fit R2(f)
+
+Figure 14. Compute-in-memory MAC operation on the 2T1R RRAM crossbar array. (a–d) Measured MAC column current versus digital MAC output for 5,000 MAC operations for various binary input vectors and weight matrix combinations, shown for all four cases: HD–HD, HD–LD, LD–HD, and LD–LD respectively. The dashed line represents the linear fit. (e) Linear fit RMSE of the MAC output current for the four transistor combinations. (f) Linear fit R2 of the MAC output current for the four transistor combinations. The LD–LD case yields the most linear MAC response with the lowest RMSE error of 2.27 μA. 
+
+To quantify MAC accuracy, the measured MAC current was plotted as a function of the ideal digital MAC output and fitted using a linear model. The quality of the MAC operation was evaluated using the mean absolute error (MAE), root-mean-square error (RMSE), and coefficient of determination ( R2) extracted from the linear fit. The MAE and RMSE quantify the deviation of the measured MAC current from the fitted linear response, while the R2 value provides a measure of linearity between the measured MAC current and the corresponding digital MAC output. In addition, the fitted slope represents the average current contribution per active bit and serves as an indicator of the effective MAC gain. Figures 14 a)–d) compare the measured MAC current with the corresponding ideal digital MAC output for the four programming/read configurations for 5,000 MAC operations. The extracted fitting parameters and error metrics, summarized in Table 3, enable a quantitative comparison of MAC accuracy and linearity. Figures 14 e) and f) further summarize the RMSE and R2 values obtained for the four transistor combinations. Among the investigated configurations, LD–LD achieves the lowest RMSE of 2 .27 μA and the highest R2 value of 0.9996, indicating the best MAC accuracy and linearity. In contrast, the HD–HD configuration exhibits the highest RMSE of 7.37 μA and the lowest R2 value of 0.9982. The superior performance of the LD–LD configuration is attributed to its improved programming accuracy, as discussed in the previous section, together with reduced read-current variability resulting from the comparable on-resistance of the LD transistor and the programmed LRS of the RRAM device. Although this configuration yields a lower MAC gain, corresponding to a slope of 43.16 μA/bit, the gain reduction can be readily compensated through calibration in the readout circuitry. These results 17 IOP Publishing Journal vv (yyyy) aaaaaa Author et al  
+
+> Table 3. Comparison of MAC accuracy metrics for different SET/MAC READ transistor configurations.
+
+Case MAE ( μA) RMSE ( μA) R2 Slope ( μA/bit) HD–HD 5.12 7.37 0.9982 62.59 HD–LD 2.37 2.84 0.9994 42.97 LD–HD 4.04 4.82 0.9993 63.97 LD–LD 1.89 2.27 0.9996 43.16 demonstrate that the LD transistor is beneficial not only for achieving precise conductance programming but also for enabling highly accurate compute-in-memory MAC operations. 
+
+7 Conclusion 
+
+This work presented OTTER , a 28 nm CMOS-based research vehicle co-integrated with TaO x-based RRAM, designed to systematically investigate the 2T1R architecture at both the device and array level. The chip integrates dedicated 2T1R test structures as well as content-addressable memory (CAM) and compute-in-memory (CIM) arrays, enabling a comprehensive evaluation of switching behavior and application-level functionality within a unified platform. Through systematic experimental characterization of three transistor–pairing configurations, the 2T1R architecture is shown to provide independent control over SET and RESET current paths. The HD transistor provides reliable RESET across all bias condition, while the LD transistor enables finer programming granularity during SET. Design guidelines of transistor sizing are derived from the combination of DC sweep measurements and compact model simulations, establishing the minimum RESET transistor W/L ratio required for complete RESET as a function of the SET current compliance.Under pulse-based multilevel programming, the lower transconductance of the LD transistor translates each gate voltage increment into a smaller compliance current step, reducing the probability of overshooting the target conductance state. As a result, the LD SET protocol produces tighter distributions at each target level with reduced inter-level overlap compared with the HD SET protocol, despite comparable intrinsic cycle to cycle variability. Simulation-based analysis of an aCAM design further evaluates trade-offs between top-and bottom-connected RRAM comparator configurations on the same platform. Exemplary MAC operations via the CIM1 pseudo-crossbar array demonstrate the versatility of the 2T1R architecture for in-memory computing. Among the four evaluated programming/readout transistor combinations, using the LD transistor for both SET programming and MAC readout achieves the lowest RMSE and highest linearity. In addition, a compact model calibrated to measured device characteristics was developed and used to reproduce the observed behavior, providing a valuable tool for circuit- and system-level simulations. The OTTER chip therefore serves as both a validation platform for RRAM-CMOS co-integration in advanced technology nodes and a foundation for future neuromorphic systems, paving the way toward larger-scale implementations. 
+
+Funding 
+
+This work was funded by the Federal Ministry of Research, Technology and Space (BMFTR, Germany) in the project NEUROTEC-II (project numbers: 16ME0398K and 16ME0399) 
+
+Author contributions 
+
+Y.C.: Conceptualization, Investigation, Validation, Writing – original draft. D.S.: Methodology, Investigation, Writing – review & editing. X.Z.: Methodology, Investigation, Writing – review & editing. A.B.: Investigation, Validation, Writing – review & editing. P.-P.M.: Conceptualization, Methodology, Investigation, Writing – review & editing. O.A.: Conceptualization. A.A.: Methodology, Writing – review & editing. K.W.: Methodology. G.P.: Conceptualization. S.J.: Conceptualization. C.R.: Validation. S.K.: Methodology. V.R.: Conceptualization. D.W.: Conceptualization, Methodology. M.S., S.M., A.Z., C.G., S.W., S.H.-E., J.P.S., and S.v.W.: Conceptualization, Supervision, Funding acquisition, Writing – review & editing. R.D.: Supervision, Funding acquisition, Project administration. 
+
+Data availability 
+
+The data that support the findings of this study are available from the corresponding authors upon reasonable request. 18 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+Supplementary data 
+
+Supplementary data associated with this article include additional figures, tables, and methodological details and are available online with the published article. 
+
+References 
+
+[1] A. Mehonic et al., “Roadmap to neuromorphic computing with emerging technologies,” APL Materials , vol. 12, no. 10, p. 109 201, 2024. doi : 10.1063/5.0179424 
+
+[2] X. Zou et al., “Breaking the von Neumann bottleneck architecture-level processing-in-memory technology,” Science China Information Sciences , vol. 64, no. 6, p. 160 404, 2021. doi : 10.1007/s11432-020-3227-1 
+
+[3] G. W. Burr et al., “Neuromorphic computing using non-volatile memory,” Advances in Physics X , vol. 2, no. 1, pp. 89–124, 2017. doi : 10.1080/23746149.2016.1259585 
+
+[4] D. Ielmini and G. Pedretti, “Resistive switching random-access memory (RRAM) applications and requirements for memory and computing,” Chemical Reviews , vol. 125, no. 12, pp. 5584–5625, 2025. doi : 10.1021/acs.chemrev.4c00845 
+
+[5] D. Ielmini and H.-S. P. Wong, “In-memory computing with resistive switching devices,” 
+
+Nature Electronics , vol. 1, no. 6, pp. 333–343, 2018. doi : 10.1038/s41928-018-0092-2 
+
+[6] C. Nail et al., “Understanding RRAM endurance, retention and window margin trade-off using experimental results and simulations,” in 2016 IEEE International Electron Devices Meeting (IEDM) , San Francisco, CA, USA, 2016, pp. 4.5.1–4.5.4. doi :
+
+10.1109/IEDM.2016.7838346 
+
+[7] F. Zahoor, T. Z. Azni Zulkifli, and F. A. Khanday, “Resistive random access memory (RRAM) an overview of materials, switching mechanism, performance, multilevel cell (mlc) storage, modeling, and applications,” Nanoscale Research Letters , vol. 15, no. 1, p. 90, 2020. 
+
+doi : 10.1186/s11671-020-03299-9 
+
+[8] H.-S. P. Wong et al., “Metal–oxide RRAM,” Proceedings of the IEEE , vol. 100, no. 6, pp. 1951–1970, 2012. doi : 10.1109/JPROC.2012.2190369 
+
+[9] W. Wan et al., “A compute-in-memory chip based on resistive random-access memory,” 
+
+Nature , vol. 608, no. 7923, pp. 504–512, 2022. doi : 10.1038/s41586-022-04992-8 
+
+[10] S. Ambrogio et al., “Equivalent-accuracy accelerated neural-network training using analogue memory,” Nature , vol. 558, no. 7708, pp. 60–67, 2018. doi : 10.1038/s41586-018-0180-5 
+
+[11] Y. Halawani et al., “RRAM-based CAM combined with time-domain circuits for hyperdimensional computing,” Scientific Reports , vol. 11, no. 1, p. 19 848, 2021. doi :
+
+10.1038/s41598-021-99000-w 
+
+[12] G. Pedretti and D. Ielmini, “In-memory computing with resistive memory circuits status and outlook,” Electronics , vol. 10, no. 9, p. 1063, 2021. doi : 10.3390/electronics10091063 
+
+[13] M. Le Gallo et al., “A 64-core mixed-signal in-memory compute chip based on phase-change memory for deep neural network inference,” Nature Electronics , vol. 6, no. 9, pp. 680–693, 2023. doi : 10.1038/s41928-023-01010-1 
+
+[14] R. Dittmann, S. Menzel, and R. Waser, “Nanoionic memristive phenomena in metal oxides the valence change mechanism,” Advances in Physics , vol. 70, no. 2, pp. 155–349, 2022. doi :
+
+10.1080/00018732.2022.2084006 
+
+[15] R. Waser and M. Aono, “Nanoionics-based resistive switching memories,” Nature Materials ,vol. 6, no. 11, pp. 833–840, 2007. doi : 10.1038/nmat2023 
+
+[16] Y. Qin et al., “A TaOx-based RRAM with improved uniformity and excellent analog characteristics by local dopant engineering,” Electronics , vol. 10, no. 20, p. 2451, 2021. doi :
+
+10.3390/electronics10202451 
+
+[17] M.-J. Lee et al., “A fast, high-endurance and scalable non-volatile memory device made from asymmetric Ta2O5-x/TaO2-x bilayer structures,” Nature Materials , vol. 10, no. 8, pp. 625–630, 2011. doi : 10.1038/nmat3070 
+
+[18] G. Niu et al., “Geometric conductive filament confinement by nanotips for resistive switching of HfO2-RRAM devices with high performance,” Scientific Reports , vol. 6, no. 1, p. 25 757, 2016. doi : 10.1038/srep25757 
+
+19 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+[19] B. Govoreanu et al., “10 × 10 nm 2 Hf/HfOx crossbar resistive RAM with excellent performance, reliability and low-energy operation,” in 2011 International Electron Devices Meeting (IEDM) , Washington, DC, USA, 2011, pp. 31.6.1–31.6.4. doi :
+
+10.1109/IEDM.2011.6131652 
+
+[20] R. Hu et al., “Investigation of resistive switching mechanisms in Ti/TiO x/Pd-based RRAM devices,” Advanced Electronic Materials , vol. 8, no. 8, p. 2 100 827, 2022. doi :
+
+10.1002/aelm.202100827 
+
+[21] Z. Shen et al., “Advances of RRAM devices resistive switching mechanisms, materials and bionic synaptic application,” Nanomaterials , vol. 10, no. 8, p. 1437, 2020. doi :
+
+10.3390/nano10081437 
+
+[22] J. Y. Seok et al., “A review of three-dimensional resistive switching cross-bar array memories from the integration and materials property points of view,” Advanced Functional Materials ,vol. 24, no. 34, pp. 5316–5339, 2014. doi : 10.1002/adfm.201303520 
+
+[23] Y. Y. Chen et al., “Endurance/retention trade-off on HfO 2/Metal cap 1t1r bipolar RRAM,” 
+
+IEEE Transactions on Electron Devices , vol. 60, no. 3, pp. 1114–1121, 2013. doi :
+
+10.1109/TED.2013.2241064 
+
+[24] B. Yan et al., “Resistive memory-based in-memory computing from device and large-scale integration system perspectives,” Advanced Intelligent Systems , vol. 1, no. 7, p. 1 900 068, 2019. doi : 10.1002/aisy.201900068 
+
+[25] S. Wiefels et al., “RESET kinetics of 28 nm integrated ReRAM,” in 2023 IEEE International Integrated Reliability Workshop (IIRW) , South Lake Tahoe, CA, USA, 2023, pp. 1–4. doi :
+
+10.1109/IIRW59383.2023.10477700 
+
+[26] N. Kopperberg et al., “Endurance of 2 Mbit based BEOL integrated ReRAM,” IEEE Access ,vol. 10, pp. 122 696–122 705, 2022. doi : 10.1109/ACCESS.2022.3223657 
+
+[27] O. Artner et al., “The influence of residual ion drift during programming of chip-integrated nanoscale HfO 2-based memristive devices,” Advanced Electronic Materials , e00891, 2026. doi :
+
+10.1002/aelm.202500891 
+
+[28] S. Son et al., “A comprehensive compact model for multilevel switching in TaOx-based memristive 1t-1r cells,” IEEE Access , vol. 13, pp. 127 280–127 291, 2025. doi :
+
+10.1109/ACCESS.2025.3590140 
+
+[29] C. Li et al., “Analog content-addressable memories with memristors,” Nature Communications , vol. 11, p. 1638, 2020. doi : 10.1038/s41467-020-15254-4 
+
+[30] G. Pedretti et al., “Tree-based machine learning performed in-memory with memristive analog CAM,” Nature Communications , vol. 12, no. 1, p. 5806, 2021. doi :
+
+10.1038/s41467-021-25873-0 
+
+[31] G. Pedretti et al., “X-time accelerating large tree ensembles inference for tabular data with analog cams,” IEEE Journal on Exploratory Solid-State Computational Devices and Circuits ,vol. 10, pp. 116–124, 2024. doi : 10.1109/JXCDC.2024.3495634 
+
+[32] C. E. Graves et al., “In-memory computing with non-volatile memristor cam circuits,” in 
+
+Memristor Computing Systems , L. O. Chua, R. Tetzlaff, and A. Slavova, Eds. Cham: Springer International Publishing, 2022, pp. 105–139. doi : 10.1007/978-3-030-90582-8_6 
+
+[33] P. He et al., “Shiftcam a time-domain content addressable memory utilizing shifted hamming distance for robust genome analysis,” in Proceedings of the 43rd IEEE/ACM International Conference on Computer-Aided Design , 2025, p. 87. doi : 10.1145/3676536.3676800 
+
+[34] P.-P. Manea et al., “Gain cell-based analog content addressable memory for dynamic associative tasks in ai,” in 2025 IEEE International Symposium on Circuits and Systems (ISCAS) , 2025, pp. 1–5. doi : 10.1109/ISCAS56072.2025.11044190 
+
+[35] L. Zhao et al., RACE-IT a reconfigurable analog CAM-crossbar engine for in-memory transformer acceleration , 2023. arXiv: 2312.06532 [cs.AR] .[36] P.-P. Manea et al., “Non-idealities and design solutions for analog memristor-based content-addressable memories,” in Proceedings of the 18th ACM International Symposium on Nanoscale Architectures , 2024, p. 17. doi : 10.1145/3611315.3633254 
+
+[37] J. Bazzi et al., “Variability-aware design of rram-based analog cams,” IEEE Access , vol. 12, pp. 55 859–55 873, 2024. doi : 10.1109/ACCESS.2024.3388730 
+
+20 IOP Publishing Journal vv (yyyy) aaaaaa Author et al 
+
+[38] X. Liu et al., “Effect of transistor transfer characteristics on the programming process in 1t1r configuration,” IEEE Transactions on Electron Devices , vol. 71, no. 4, pp. 2423–2430, 2024. 
+
+doi : 10.1109/TED.2024.3370536 
+
+[39] C. Bengel et al., “Tailor-made synaptic dynamics based on memristive devices,” Frontiers in Electronic Materials , vol. 3, p. 1 061 269, 2023. doi : 10.3389/femat.2023.1061269 
+
+[40] G. Vinuesa et al., “On the asymmetry of resistive switching transitions,” Electronics , vol. 13, no. 13, p. 2639, 2024. doi : 10.3390/electronics13132639 
+
+[41] Forschungszentrum J¨ ulich, Helmholtz Nano Facility (HNF) ,
+
+https://www.fz-juelich.de/en/hnf , Accessed 3 Jun. 2026. [42] V. Milo et al., “Optimized programming algorithms for multilevel RRAM in hardware neural networks,” in 2021 IEEE International Reliability Physics Symposium (IRPS) , Monterey, CA, USA, 2021, pp. 1–6. doi : 10.1109/IRPS46558.2021.9405119 
+
+[43] E. Perez et al., “Variability and energy consumption tradeoffs in multilevel programming of RRAM arrays,” IEEE Transactions on Electron Devices , vol. 68, no. 6, pp. 2693–2698, 2021. 
+
+doi : 10.1109/TED.2021.3072868 
+
+[44] C. R. Bengel, “Variability-aware compact modeling of valence-change-mechanism based devices for computation-in-memory,” Ph.D. dissertation, RWTH Aachen University, 2023. 
+
+doi : 10.18154/RWTH-2023-08986 
+
+[45] R. W. Ahmad et al., “Variability-aware modeling of electrochemical metallization memory cells,” Neuromorphic Computing and Engineering , vol. 4, no. 3, p. 034 007, 2024. doi :
+
+10.1088/2634-4386/ad57e7 
+
+[46] H.-X. Zheng et al., “Overcoming limited resistance in 1t1r rram caused by pinch-off voltage during reset process,” IEEE Transactions on Electron Devices , vol. 66, no. 11, pp. 4706–4709, 2019. doi : 10.1109/TED.2019.2937278 
+
+[47] X. Liu et al., “Effect of pulse schemes on multi-level switching and short-term instability in 1T1R configuration,” in 2025 9th IEEE Electron Devices Technology & Manufacturing Conference (EDTM) , Hong Kong, 2025, pp. 1–3. doi : 10.1109/EDTM61175.2025.11040914 
+
+[48] S. Wiefels et al., “Reliability aspects of 28 nm beol-integrated resistive switching random access memory,” physica status solidi (a) , vol. 221, no. 22, p. 2 300 401, 2024. doi :
+
+https://doi.org/10.1002/pssa.202300401 
+
+21

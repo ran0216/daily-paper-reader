@@ -1,0 +1,204 @@
+Title: A Time-Based Readout for Vector-Matrix Multiplication in Fully Analog Memristive SNNs
+
+URL Source: https://arxiv.org/pdf/2609.11713v1
+
+Published Time: Fri, 11 Sep 2026 01:21:47 GMT
+
+Number of Pages: 4
+
+Markdown Content:
+# A Time-Based Readout for Vector-Matrix Multiplication in Fully Analog Memristive SNNs 
+
+Elia Mateu-Barriendos, ´ Alvaro G´ omez-Pau, Josep Rius, Daniel Arum´ ı, Rosa Rodr´ ıguez-Monta˜ n´ es, Salvador Manich 
+
+Universitat Polit` ecnica de Catalunya - BarcelonaTech (UPC) 
+
+Abstract —Artificial neural networks rely on vector–matrix multiplications (VMMs), whose implementation in von Neumann architectures is dominated by costly data movement between memory and processing units. Spiking neural networks (SNNs) mitigate this bottleneck by performing in-memory, analog VMMs using memristive crossbar arrays. However, conventional current-mode readout circuits incur significant area and power overhead. This work proposes a fully analog readout architecture based on voltage-to-time conversion of the VMM output. By sensing the column voltage, the proposed approach avoids current-mode summing and scaling circuitry, improving area and energy efficiency. Post-layout simulations of a 10 ×1 SNN implemented in a 130 nm CMOS technology validate the proposed architecture, while application to a trained 64 ×10 SNN for digit classification further demonstrates its feasibility for SNN inference. 
+
+Index Terms —Spiking neural networks (SNNs), Memristor, Synapse, Neuromorphic Hardware, In-memory computing 
+
+I. I NTRODUCTION 
+
+Inspired by the human brain, neuromorphic computing aims to emulate the event-driven and distributed processing of biological neural networks. In this paradigm, spiking neural networks (SNNs) encode information as discrete events in time (spikes), enabling asynchronous operation and improved energy efficiency when implemented in hardware [1], [2]. Crossbar arrays are a promising architecture for hardware SNNs [3], where synaptic weights are stored as conductances of non-volatile memory (NVM) devices. By exploiting Ohm’s and Kirchhoff’s laws, they inherently perform vector–matrix multiplications (VMMs), typically sensed as column currents (Fig. 1). Memristive devices are attractive NVM candidates due to non-volatility, multilevel programmability, and CMOS compatibility, and are commonly used in 1T1R configurations. IREAD,j 
+
+VREF 
+
+Gij  
+
+> Current Sensing =
+
+VREF ΣiXiGij IREAD,j 
+
+> to neuron (analog or digital)
+
+Xi
+
+Fig. 1: An SNN with 1T1R memristive synapses employing current-mode crossbar sensing. The VMM output is repre-sented by a column current I READ,j .While crossbar arrays enable compact in-memory VMMs, overall area and energy efficiency depends strongly on the neu-ron and readout design [4]. Digital neuron approaches require per-column transimpedance amplifiers and ADCs [5], leading to high area and energy consumption, or time-multiplexed ADCs [6], which reduce area at the cost of throughput. Analog neurons integrate column current on a capacitor, enabling low-power operation. However, scalability is limited by the large read currents. Metal-oxide memristive devices typically operate in the tens to hundreds of kΩ [7], resulting in column currents in the μ A−mA range for large arrays. Obtaining appropriate integration times then requires either large capacitances or additional readout circuitry, or restricting synaptic weights to binary values [8]. Conventional solutions rely on opamp-based readout [9] and current scaling circuits [10], which may also be required in digital schemes [5], [11]. However, these circuits often dominate area and power, and large scaling factors over wide dynamic ranges require complex multi-stage designs [12]. These limitations motivate alternatives to current-mode sensing. Voltage-sensing schemes have been used in compute-in-memory systems [13], while time-based encoding has been implemented in digital architectures [14], [15]. However, these approaches are not directly suited to analog SNNs. This work proposes a readout circuit based on a voltage-to-time conversion of the VMM output for fully analog SNN. By avoiding current-mode readout and explicit scaling circuitry, the approach enables compact neuron design, multi-level weights, and improved area and energy efficiency. This paper is organized as follows. Section II presents the proposed architecture. Section III describes the 10 ×1 SNN prototype in 130 nm CMOS and reports post-layout results. II. V OLTAGE -TO -TIME READOUT ARCHITECTURE 
+
+Fig. 2 shows the proposed fully analog memristive SNN architecture. Spiking inputs and output neurons are connected through 1T1R synapses, with weights encoded in the con-ductance G ij . The VMM output is the column conductance P 
+
+> i
+
+XiGij (with X i ∈ { 0, 1}), sensed as a voltage V READ,j .A reference current I REF is injected into each column, selected to keep V READ,j below the SET voltage. Memristors share a common top electrode, so the current is distributed among active devices, yielding: VREAD,j = IREF 
+
+P 
+
+> i
+
+XiGij 
+
+. (1) 
+
+©2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works. arXiv:2609.11713v1 [cs.ET] 10 Sep 2026 Voltage Sensing 
+
+> Voltage-to-Time V2T
+
+IREF Gij  
+
+> =
+
+ΣiXiGij VREAD,j IREF VREAD,j  
+
+> nSPK_EN
+> Analog Neuron
+
+)Δtj = VREAD,j f (
+
+Xi
+
+YjFig. 2: Analog SNN with 1T1R memristive synapses em-ploying voltage-mode crossbar sensing. The VMM output is represented by a column voltage V READ,j and converted into a pulse duration ∆tj controlling the neuron current injection. where the ON-resistance of the access transistor is neglected. The proposed voltage-to-time (V2T) readout circuit converts the column voltage into a variable-width pulse. The circuit receives V READ,j and a global enable SPK EN, which is low while any input spike is present. The output signal CTRL is an active-low pulse with duration ∆tj. Fig. 3 shows a high-level schematic and representative waveforms. The voltage-to-time conversion is implemented by modulat-ing the discharge time of capacitor C CAP . During SPK EN, ca-pacitor C CAP discharges through NMOS M1. After SPK EN, PMOS M0 restores V CAP . The discharge time required for VCAP to reach the inverter threshold V TH,I1 is: 
+
+∆tj = CCAP · ∆VCAP 
+
+ICAP,j 
+
+(2) with ∆VCAP = VDD −VTH,I1 . Assuming transistor M1 operates in saturation, the capacitor discharge current I CAP,j follows the alpha-power-law. To ensure saturation, M1 is driven by a scaled and offset version of V READ,j so that V GS,j = kOF ·
+
+VREAD,j + VOF . Therefore, I CAP,j can be expressed as: ICAP,j ∝ (( kOF · VREAD,j + VOF ) − VT)α (3) Combining (1), (2) and (3), the relation between the pulse duration ∆tj and the column conductance P 
+
+> i
+
+XiGij is obtained: 
+
+∆tj ∝ CCAP · ∆VCAP 
+
+(kOF · IREF 
+
+P 
+
+> i
+
+XiGij 
+
++ VOF ) − VT
+
+!α (4) Equation (4) describes the resulting conductance-to-time conversion, which is monotonic but inherently non-linear, fol-lowing a power-law dependence of ∆tj on P 
+
+> i
+
+XiGij . Through circuit tuning, a locally approximately linear region can be achieved, as shown in the next section. CTRL is generated by OR-ing SPK EN with the inverted capacitor voltage. As a result, the capacitor discharge time ∆tj
+
+sets the pulse width (neglecting gate delays). The IF neuron (Fig. 3a) incorporates a switched current source I POS controlled by CTRL. The charge injected into the neuron is therefore proportional to the pulse duration ∆tj:
+
+∆Qj = IPOS · ∆tj (5) Since the VMM output is encoded in time , I POS can be set by neuron design constraints. This contrasts with current-sensing schemes, where the VMM result is encoded in the current 
+
+amplitude and scales with the column output. III. R ESULTS AND DISCUSSION 
+
+A 10 ×1 SNN prototype based on the architecture in Fig. 2 was implemented in 130 nm CMOS and submitted for fabri-cation. The layout is shown in Fig. 4 and design parameters are summarized in Table I. TABLE I: Design parameters for the 10 ×1 SNN prototype                        
+
+> Parameter Value Description
+> Gij 0.1 mS –1 mS Memristor conductance
+> W/L 3.9μm/0.13 μm1T1R access transistor VREAD 2.5 mV –250 mV Column voltage IREF 25 μAColumn current reference CCAP 60 fF V2T capacitor CMEM 66 .5 fF Neuron membrane capacitor CFB 47 .5 fF Neuron feedback capacitor IPOS 25 nA Neuron charging current INEG 40 nA Neuron discharging current
+
+The V2T circuit is designed for input spikes with 2.5 μs
+
+pulse width at rates up to 200 kHz . The scaling and offset net-work is implemented using diode-connected MOS transistors, sized to draw negligible current compared to active memristors so that the read operation is not disturbed. The IF neuron operates on the input spikes timescale. All current sources are implemented using conventional CMOS current source structures. Robustness was verified through PVT corners and Monte Carlo simulations, with σ/μ =13 .7 % timing spread at the maximum-conductance operating point under combined process and mismatch variations. 
+
+A. Post-layout simulation results 
+
+This subsection presents post-layout simulation results of the 10 ×1 SNN prototype. The memristive devices are simu-lated using the Verilog-A model available in the PDK [16]. Fig. 5 shows the pulse duration ∆tj as a function of the column conductance P 
+
+> i
+
+XiGij , obtained from a representative subset of active inputs and conductance combinations. From Fig. 5, it is confirmed that the relation in (4) is monotonic, enabling time-based representation of the VMM output over the operating range. The inset shows the approximately linear region, while saturation at higher conductance reflects the un-derlying power-law dependence. At high column conductance, additional simultaneously active inputs reduce the sensitivity of the conversion rather than preventing circuit operation. Fig. 6 shows representative circuit waveforms for one and ten simultaneously active inputs at 200 kHz and 0.2 mS synap-tic weights. The resulting column voltage modulation produces DELAY  
+
+> VDD
+> CTRL
+> SPK_EN
+> VREAD CCAP M1 M0 I1 I0
+> Y
+> VDD
+> ΔQCMEM Δt
+> CFB
+> reset
+> IPOS INEG
+> IF Analog Neuron
+> ICAP
+> Scaling + Offset VCAP Voltage-to-Time
+
+(a) Conceptual schematic of the V2T circuit and the IF neuron. Capacitor discharge through an NMOS transistor implements the voltage-to-time conversion, while the OR gate produces the variable-width pulse that injects current into the neuron. For simplicity, the j subscript is omitted. time SPK_EN XiVREAD VCAP CTRL t0 VDD 0VDD 0VDD 0VSET VDD 0VDD 0VDD 0 time VTH,I1 t1 t0 t1 
+
+ΔtDELAY 
+
+(b) Representative waveforms showing the timing relation-ship between the input spike X i, SPK EN, V READ , V CAP ,DELAY, and CTRL for a fixed V READ .
+
+Fig. 3: V2T circuit: (a) high-level conceptual schematic including the IF neuron (b) illustrative waveforms. 
+
+Fig. 4: Layout of the implemented 10 ×1 SNN prototype. Total area is 2880 .52 μm2.[mS] Column conductance ( ΣiXiGij) 2250 [ns] Pulse duration ( Δtj) 2000 1750 1500 1250 1000 750 500 250 00 1 2 3 4 5 6 7 8 9 10 y = 1417x + 15.78 R2 = 0.98 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0200 400 600 800 1000 1200 
+
+Fig. 5: Post-layout simulation results of the conductance-to-time conversion characteristic of the 10 ×1 SNN prototype. distinct CTRL pulse durations, leading to neuron firing rates of 11 .8 kHz and 66 .8 kHz , respectively. 
+
+B. Area and Energy 
+
+Table II reports the layout area of the implemented proto-type (excluding access circuitry), also expressed in equivalent minimum-size inverters ( 7.56 μm2). TABLE II: Area of the Implemented Prototype 
+
+Sub-circuit Area [ μm2] Area [INV] 
+
+10 ×1 1T1R synapses 393 52 
+
+V2T circuit 480 63 .5
+
+IF Neuron 1160 153 .5
+
+Total 2033 269 
+
+Energy is evaluated at the level of the synaptic circuit (including the reference current generator) and the V2T circuit. The 10 ×1 synaptic circuit draws 42 .8 μA independently of input activity, resulting in 128 .5 pJ per read operation over 
+
+2.5 μs. The V2T circuit draws 10 .3 μA in idle and 0.19 μA
+
+during conversion, yielding 0.58 pJ per operation. The total energy per synaptic operation (synaptic readout plus voltage-to-time conversion) is 129 pJ .Area and idle power scale approximately linearly with the number of output neurons, as each requires one I REF current generator and one V2T circuit. However, ∼70% of the V2T circuit area is occupied by decoupling capacitors, which can be shared in larger systems. Idle power can be reduced by disabling the I REF current generator when no input is active. 
+
+C. Comparison with a current-sensing scheme 
+
+As a representative example of a current-sensing readout, [10] employs an opamp-based input stage and a current-scaling circuit providing 500 × attenuation. The per-column readout area in 130 nm CMOS, estimated from an optical micrograph, occupies 11 000 μm2 (≈ 1455 INV), over 20 × larger than the proposed V2T circuit. The power per read operation reported in [10] is 48 μW,corresponding to 120 pJ over our 2.5 μs time window. While this energy is of the same order of magnitude, [10] considers a current range of 10 μA–200 μA. These currents correspond to a column conductance of 0.04 mS –0.8 mS (at 250 mV ), which is < 10% of the 0.1 mS –10 mS range targeted here. Using a current-sensing scheme, our 10 ×1 SNN would produce column currents from 25 μA to 2.5 mA . Scaling these to the nA -range would require attenuation factors of 10 3–10 5
+
+and additional circuitry to enforce a fixed read voltage, which would increase the energy of 120 pJ by several orders. 
+
+D. Application to Digit Recognition 
+
+To further evaluate the proposed approach, a 64 ×10 SNN was trained in software on the Digit dataset [17] using back-propagation, with synaptic weights constrained to be non-negative. The trained weights were quantized to ten conduc-tance levels spanning the memristor range ( 1 kΩ to 10 kΩ )and mapped to a schematic-level implementation, where the IF analog neurons were extended with leakage (implemented as a constant current source) and lateral inhibition. Representative 8×8 digit samples, rate-encoded over 100 μs,produced the same classification outcome in both the software-trained network and the circuit implementation (Fig. 7), pro-1 input 5 k Ω
+
+10 inputs 5 k Ω
+
+01.2 01.2 00.1 0.2 0 5 10 15 0 5 10 15 10 20 30 40 50 01.2 01.2 01.2 01.2 01.2 Time [ μS] Time [ μS] Time [ μS] Xi [V] SPK_EN [V] VREAD [V] VCAP [V] DELAY [V] CTRL [V] VMEM [V] Y [V] 127mV 13mV 280ns 1.76 μs0.4 i=1 i=1...10 idle 011.8 kHz 66.8 kHz Fig. 6: Post-layout simulation waveforms of the 10 ×1 SNN prototype, illustrating two scenarios: one (orange) and ten (blue) simultaneously active inputs at 200 kHz , corresponding to column conductances of 0.2 mS and 2 mS , respectively. viding preliminary validation of the proposed architecture in a trained SNN inference task. 64 SPK_EN V2T                                             
+
+> N9
+> V2T
+> N0
+> 10 output LIF neurons 64x10 1T1R array 64 inputs
+> X0 X1 X62 X64
+> 10 level conductance quantization N0 N4 01.2 010 20 30 40 50 60 70 80 90 100 01.2 01.2 Y [V] VMEM [V]
+> Digit 0 Winner: N0
+> 01.2 Y [V] 01.2 Y [V] 01.2 Y [V] Digit 5 Winner: N5 Digit 6 Winner: N6 Digit 2 Winner: N2 010 20 30 40 50 60 70 80 90 100 010 20 30 40 50 60 70 80 90 100 010 20 30 40 50 60 70 80 90 100 Time [ μS] N5 N6 N1 N2 VMEM [V] lateral inhibition
+
+Fig. 7: Application of the proposed architecture to a trained 
+
+64 ×10 SNN with quantized synaptic weights. Membrane traces are included only when multiple neurons are active. IV. C ONCLUSION 
+
+This work proposes a time-based readout circuit for fully analog SNNs with memristive synapses. The proposed ap-proach converts the VMM output, sensed as a column volt-age, into a time-domain signal that controls neuron current injection. By avoiding current-mode readout, the approach eliminates complex, area-intensive circuitry that becomes chal-lenging at high column currents. A 10 ×1 SNN prototype with the proposed architecture was implemented in 130 nm CMOS. Post-layout results confirm correct conductance-to-time conversion, achieving ∼20 × area reduction over a representative current-sensing implementation with comparable energy efficiency. Application to a trained 
+
+64 ×10 SNN further demonstrates the feasibility of the archi-tecture for inference with quantized memristive weights. ACKNOWLEDGMENT 
+
+This work has been supported by PID2022-141391OB-C22 funded by MCIN/AEI/10.13039/501100011033/FEDER, UE. The corresponding author gratefully acknowledges the Universitat Polit` ecnica de Catalunya and Banco Santander for the financial support of her predoctoral FPI-UPC grant. REFERENCES [1] G. Indiveri et al., “Neuromorphic silicon neuron circuits,” Frontiers in Neuroscience , vol. 5, 2011. [2] A. Sebastian, M. Le Gallo, R. Khaddam-Aljameh, and E. Eleftheriou, “Memory devices and applications for in-memory computing,” Nature Nanotechnology , vol. 15, no. 7, pp. 529–544, Mar. 2020. [3] W. Zhang et al., “Neuro-inspired computing chips,” Nature Electronics ,vol. 3, no. 7, pp. 371–382, Jul. 2020. [4] A. Joubert et al., “Hardware spiking neurons design: Analog or digi-tal?” in The 2012 International Joint Conference on Neural Networks (IJCNN) . Brisbane, QLD, Australia: IEEE, Jun. 2012, pp. 1–5. [5] F. Cai et al., “A fully integrated reprogrammable memristor–CMOS sys-tem for efficient multiply–accumulate operations,” Nature Electronics ,vol. 2, no. 7, pp. 290–299, Jul. 2019. [6] R. Xiao, W. Jiang, and P. Y. Chee, “An energy efficient time-multiplexing computing-in-memory architecture for edge intelligence,” IEEE Journal on Exploratory Solid-State Computational Devices and Circuits , vol. 8, no. 2, pp. 111–118, Dec. 2022. [7] Y. Sun et al., “A Ti/AlOx/TaOx/Pt analog synapse for memristive neural network,” IEEE Electron Device Letters , vol. 39, no. 9, pp. 1298–1301, Sep. 2018. [8] A. Valentian et al., SPIRIT: A First Mixed-Signal SNN Using Co-integrated CMOS Neurons and Resistive Synapses . Springer Interna-tional Publishing, 2022, pp. 63–81. [9] X. Wu, V. Saxena, K. Zhu, and S. Balagopal, “A CMOS spiking neuron for brain-inspired neural networks with resistive synapses and in situ learning,” IEEE Transactions on Circuits and Systems II: Express Briefs ,vol. 62, no. 11, pp. 1088–1092, Nov. 2015. [10] N. Garg et al., “Versatile CMOS analog LIF neuron for memristor-integrated neuromorphic circuits,” in 2024 International Conference on Neuromorphic Systems (ICONS) . Los Alamitos, CA, USA: IEEE, Jul. 2024, pp. 185–192. [11] H. Jiang, S. Huang, W. Li, and S. Yu, “ENNA: an efficient neural network accelerator design based on ADC-free compute-in-memory subarrays,” IEEE Transactions on Circuits and Systems I: Regular Papers , vol. 70, no. 1, pp. 353–363, Jan. 2023. [12] G. Fierro and F. Silveira, “Pico-ampere current biasing platform for on-chip tuning of analog blocks,” in 2023 IEEE 14th Latin America Symposium on Circuits and Systems (LASCAS) . Quito, Ecuador: IEEE, Feb. 2023, pp. 1–4. [13] W. Wan et al., “A voltage-mode sensing scheme with differential-row weight mapping for energy-efficient RRAM-based in-memory comput-ing,” in 2020 IEEE Symposium on VLSI Technology . Honolulu, HI, USA: IEEE, Jun. 2020, pp. 1–2. [14] M. J. Marinella et al., “Multiscale co-design analysis of energy, latency, area, and accuracy of a ReRAM analog neural training accelerator,” 
+
+IEEE Journal on Emerging and Selected Topics in Circuits and Systems ,vol. 8, no. 1, pp. 86–101, Mar. 2018. [15] B. Boro, R. Parmar, and G. Trivedi, “Vector-matrix multiplier architec-ture for in-memory computing applications with RRAM arrays,” IEEE Transactions on Nanotechnology , vol. 24, pp. 249–259, 2025. [16] IHP. BiCMOS Technologies. Accessed: 2025-12-03. [Online]. Avail-able: https://www.ihp-microelectronics.com/services/research-and-proto typing-service/mpw-prototyping-service/sigec-bicmos-technologies [17] E. Alpaydin and F. Alimoglu, “Pen-based recognition of hand-written digits,” UCI Machine Learning Repository, 1996, DOI: https://doi.org/10.24432/C5MG6K.
