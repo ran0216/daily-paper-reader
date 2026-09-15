@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-14</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-15</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>7</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-14 22:47:58 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-15 22:06:21 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天筛读 8 篇芯片与加速器论文，精读 1 篇、速读 7 篇，重点落在 Chiplet 生态与定制神经网络加速器的协同设计。</p>
-<p>最值得看的是拿到 8.0 分的《Fengshui》——把 Chiplet 生态与定制 NN 加速器做联合设计；速读里则可关注事件驱动数字存内计算（FlexSpIM，7.0）、多芯粒光子神经网络加速器的硬件木马威胁，以及模拟存内计算的抗噪随机接口（NOVA-CIM）。</p>
-<p>普通读者若只想挑一篇入门，建议先读《Fengshui》了解&quot;Chiplet + 加速器&quot;如何一起设计，再按兴趣看存内计算或安全方向的速读条目。</p>
+<p>今日共生成 9 篇推荐（精读 2 篇，速读 7 篇）</p>
+<p>精读：《Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign》（8.0/10）, 《A Unified Interconnection Network for Chiplet-Based Scaling of the BrainScaleS Neuromorphic System》（8.0/10）</p>
+<p>速读：《Unveiling the Scaling Potential of Drain Merge through Active (DMtA) in CFETs: Breaking the Super-Via Bottlenecks and Unlocking New PPA Boosters》（6.0/10）, 《FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity》（6.0/10）, 《DiffLUT-Net: Differentiable Training of FPGA LUT Networks with Learnable Connectivity》（6.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Unified Interconnection Network for Chiplet-Based Scaling of the BrainScaleS Neuromorphic System">A Unified Interconnection Network for Chiplet-Based Scaling of the BrainScaleS Neuromorphic System</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -96,7 +97,7 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators">Hardware Trojan Threats to Multi-Chiplet Photonic Neural Network Accelerators</span></li><li><span class="dpr-home-dashboard-paper-title" title="NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory">NOVA-CIM: Noise- and Correlation-Tolerant Stochastic Interfaces for Analog Compute-in-Memory</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Unveiling the Scaling Potential of Drain Merge through Active (DMtA) in CFETs: Breaking the Super-Via Bottlenecks and Unlocking New PPA Boosters">Unveiling the Scaling Potential of Drain Merge through Active (DMtA) in CFETs: Breaking the Super-Via Bottlenecks and Unlocking New PPA Boosters</span></li><li><span class="dpr-home-dashboard-paper-title" title="FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity">FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity</span></li><li><span class="dpr-home-dashboard-paper-title" title="DiffLUT-Net: Differentiable Training of FPGA LUT Networks with Learnable Connectivity">DiffLUT-Net: Differentiable Training of FPGA LUT Networks with Learnable Connectivity</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>7</strong></span></div>
 </section>

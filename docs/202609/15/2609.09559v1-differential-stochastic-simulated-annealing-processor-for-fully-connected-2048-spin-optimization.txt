@@ -1,0 +1,1625 @@
+Differential Stochastic Simulated Annealing Processor for Fully
+Connected 2048-Spin Optimization
+Naoya Onizawa1, Md Mohaimenul Alam1,2,
+Sean Smithson1,2, Duckgyu Shin1,2, and Takahiro Hanyu1
+1Research Institute of Electrical Communication, Tohoku University, Sendai, Miyagi, Japan
+2Graduate School of Engineering, Tohoku University, Sendai, Miyagi, Japan
+Abstract
+A 2,048-spin fully connected annealing processor based on differential stochastic simulated
+annealing (DSSA) is presented as an architectural design in TSMC 28 nm CMOS with a
+3 mm×4 mm post-layout area.
+The processor closes timing at 500 MHz, integrates a 16 Mb
+SRAM weight memory, and amortizes stochastic noise across 16 spins with area-efficient random
+number generators. DSSA keeps a serialized datapath for density but recomputes interactions
+only for spins that flip, shrinking the effective workload to the active frontier during each
+annealing run. Spin-select scheduling, priority-based weight reads, and a temperature controller
+that skips idle steps accelerate sparse updates without sacrificing full connectivity. Post-layout
+simulation results show 2.7 ms time-to-solution (TTS) and 0.86 mJ energy-to-solution on
+2,000-spin problems at 316 mW (0.15 mW/spin), achieving 1.5× lower power and 3.5× lower
+TTS energy than projected prior fully connected annealers.
+These results demonstrate
+the potential of the proposed DSSA architecture for large-scale combinatorial optimization
+hardware under post-layout evaluation.
+Keywords: annealing processor, combinatorial optimization, Ising model, stochastic computing,
+fully connected architecture.
+1
+Introduction
+Combinatorial optimization problems (COPs) such as MAX-CUT, floorplanning, and routing map
+naturally to Ising models whose minima encode feasible solutions [1]. These problems are NP-hard
+in general [2], and simulated annealing (SA) has long been a standard heuristic [3].
+Fully connected CMOS annealers must either provision N 2 weight bandwidth each step or revisit
+all N spins serially; both routes inflate cycles, area, and power when N scales to the thousands.
+Wide convolution engines and multi-chip tiling handle dense graphs but increase interconnect com-
+plexity and energy consumption [4,5], while sparse topologies or embeddings lose fidelity for dense
+problems [6–11].
+Recent fully connected digital annealers illustrate the tension: 512–576 spins at sub-400 MHz
+consume hundreds of milliwatts even with multi-chip partitioning [9, 10]. In this paper, one shot
+denotes a complete annealing run over one temperature schedule. For fully connected designs, N 2
+serialization pushes per-shot latency to thousands of cycles. Parallel datapaths avoid the latency,
+but require N multiplexers and N 2 weight fetches per step, which becomes prohibitive beyond a
+few hundred spins. Serial datapaths shrink mux count to 1/N of parallel, but still require N cycles
+per step. Therefore, a dense 2,000-spin graph requires on the order of 2,000 cycles per temperature
+1
+arXiv:2609.09559v1  [cs.AR]  9 Sep 2026
+
+
+regardless of how many spins actually change. Approaches that rely on sparse graphs or embeddings
+reduce bandwidth, but distort dense problem structure.
+This work focuses on the architectural design and post-layout evaluation of a single-chip, fully
+connected 2,048-spin processor that avoids the quadratic cost of naive serialization. Differential
+stochastic simulated annealing (DSSA) keeps a serialized datapath for density but only recomputes
+interactions for spins that flip, so the workload scales with the active frontier rather than all spins
+during a shot. Spin-select scheduling, priority weight reads, and stepwise temperature control in-
+side each shot skip idle steps, while 16:1 RNG sharing and an on-chip 16 Mb SRAM sustain full
+connectivity at 500 MHz. Post-layout simulation shows 2.7 ms time-to-solution (TTS) on 2,000-
+spin MAX-CUT with 0.86 mJ energy-to-solution at 316 mW (0.15 mW/spin), 1.5× lower power and
+3.5× lower TTS energy than a projected 2,000-spin STATICA [9]. Contemporary GPU SA baselines
+consume 52.8 W at hundreds of milliseconds per anneal on RTX-class devices, underscoring a three-
+order power gap. Because prior ASIC-based annealers are typically reported with fabricated-silicon
+validation whereas the proposed DSSA processor is evaluated using post-layout simulation, the com-
+parative results in this paper should be interpreted with that difference in validation methodology
+in mind.
+Unlike conventional time-division implementations that simply serialize an otherwise full spin-
+update computation, the proposed DSSA processor is based on an algorithm–architecture co-design
+around a differential-update principle: between consecutive annealing steps, changes in the interac-
+tion field arise only from spins that flip, and therefore only the interaction terms affected by those
+flipped spins are recomputed. The performance gain therefore originates from reducing redundant
+interaction evaluations based on spin-transition sparsity, rather than from multiplexing alone.
+The main contributions are:
+• A 2,048-spin fully connected DSSA processor architecture in TSMC 28 nm CMOS that closes
+timing at 500 MHz in post-layout evaluation and achieves 2.7 ms TTS and 0.86 mJ energy-to-
+solution on 2,000-spin MAX-CUT at 316 mW (0.15 mW/spin).
+• A DSSA algorithm and serializer that touch only flipped spins, cutting serialized stochastic
+simulated annealing (SSA) cycles by up to 30.6× versus conventional full-spin sweeps while
+preserving full connectivity and solution quality.
+• Architectural co-design—spin-select queuing, priority WM banking, 16:1 RNG sharing, and
+shot-level temperature control—that aligns bandwidth and stochastic resources with sparse
+activity to reduce area and power.
+The remainder of the paper is organized as follows. Section 2 reviews Ising formulations, SA ba-
+sics, and related annealers. Section 3 details DSSA and contrasts it with SSA. Section 4 presents the
+processor architecture and circuit implementation. Section 5 reports software validation, hardware
+performance estimates, and benchmark comparisons. Section 6 concludes.
+2
+Preliminaries and Related Work
+2.1
+Ising Formulation and SA Basics
+Given a search space F and cost function c : F →R, COPs seek f ∈F satisfying c(f) ≤c(y) for all
+y ∈F. MAX-CUT is a canonical example: given a weighted graph, the goal is to partition vertices
+into two sets that maximize the sum of edge weights crossing the cut. Mapping MAX-CUT to an
+2
+
+
+Ising Hamiltonian yields (1), where spins σi ∈{±1} encode the partition:
+E(σ) = −
+X
+i
+hiσi −1
+2
+X
+i,j
+Jijσiσj,
+(1)
+Fig. 1 shows a four-node MAX-CUT toy used here to illustrate the partition objective: the
+optimum separates nodes into two groups that maximize the cut weight. As shown in Fig. 2, a
+weighted graph is mapped to spin variables σi, where edge weights translate to coupling terms Jij
+and node biases correspond to hi. The resulting Hamiltonian encodes the MAX-CUT objective,
+enabling evaluation by SA.
++1
+-1
+-1
++1
++1
+A
+B
+C
+D
+Cut value = 3
+Figure 1: Four-node MAX-CUT illustration highlighting the partition objective.
+Convert to
+Ising model
+Annealing
+COPs
+(Max-cut, TSP, etc.)
+Finding shortest
+(optimal) path
+Initial states
+Solution
+Global minimum
+Hamiltonian
+Spin state space
+Hamiltonian (Ising energy)
+: Spin state
+:Bias
+:Weight
+Figure 2: Conversion flow from a MAX-CUT instance to an Ising formulation and its Hamiltonian
+representation.
+SA perturbs the current spin state to σ′ and accepts with probability
+p(σ′) = exp
+
+−E(σ′) −E(σ)
+T
+
+,
+(2)
+3
+
+
+where T is the temperature. High temperatures accept uphill moves, enabling exploration; cooling
+schedules such as T(t+1) = T(t)α gradually reduce this probability and guide convergence toward
+the maximum cut.
+Figure 3: Conceptual comparison between (a) conventional stochastic simulated annealing (SSA)
+and (b) the proposed differential SSA (DSSA). SSA evaluates all spins at every step, whereas DSSA
+updates only the spins that flip between consecutive states, reducing redundant computations.
+2.2
+Hardware Realizations of SA and QA
+Hardware annealers pursue speedups through different physical substrates.
+Quantum annealers
+promise tunneling-based escapes from local minima but require cryogenic qubits and coherent con-
+trol [12,13]. Probabilistic bits realized with MTJs offer room-temperature stochastic behavior [14,15]
+yet face scaling and integration overhead.
+SSA [16] approximates the tanh(·) nonlinearity with stochastic computing [17] and has been
+prototyped on FPGAs [18], but sparse topologies (for example, King’s graphs) limit fidelity for
+dense problems.
+More recently, sparse parallel-update Ising machines have continued to be actively investigated.
+For example, an all-to-all reconfigurable sparse and higher-order Ising machine has been proposed
+to emulate dense interactions while preserving highly parallel spin updates [19]. We therefore regard
+such sparse-topology machines as an important related design direction, while distinguishing them
+from the fully connected multilevel-weight target of this work.
+ASIC designs extend spin counts [8–10] while trading between connectivity and cost: some rely
+on multi-chip tiling or wide convolution engines [4,5], whereas others serialize updates and revisit
+4
+
+
+all spins each step.
+These tradeoffs motivate a differential serialized approach that retains full
+connectivity without quadratic datapaths.
+3
+Differential Stochastic Simulated Annealing
+3.1
+Area–Latency Motivation
+Fig. 3 highlights the difference in search trajectories and activity patterns, emphasizing how DSSA
+shrinks the effective neighborhood while preserving full connectivity. SSA’s spin interaction can be
+parallelized or fully serialized. Parallel spin-gates require N multiplexers and update all spins in
+one cycle but incur substantial area overhead for large N; serial spin-gates reuse one multiplexer
+and cut area to 1/N of parallel but require N cycles per annealing step.
+DSSA retains the serialized datapath but reduces cycles by updating only spins that actually
+flip.
+The serializer and multiplexer structure should therefore be viewed as an implementation mech-
+anism for exploiting the differential-update principle. In contrast to ordinary time-division serial-
+ization, which only reuses hardware while preserving the same amount of per-step computation,
+DSSA reduces the number of interaction evaluations themselves by scheduling only the flipped-spin
+contributions.
+Table 1 compares multiplexer count and cycles per step when N spins are present and M of
+them flip. Because high inverse temperature suppresses spin flips late in a shot, M is typically far
+Table 1: Multiplexer count and cycles per step for parallel/serial SSA and DSSA with N spins and
+M flips.
+Parallel SSA
+Serial SSA
+DSSA
+Multiplexers per
+spin-gate
+N
+1
+1
+Cycles per step
+1
+N
+M (0≤M ≤N)
+smaller than N, allowing DSSA to retain the serial area profile while reducing per-step cycles.
+3.2
+Initialization at t=0
+With no prior state at the first annealing step, every spin executes a full SSA-style update. The
+input current Ii(1), clipped interaction Itanhi(1), and resulting spin σi(1) follow
+Ii(1) = hi +
+X
+j
+Jijσj(0) + nrnd ri(0),
+(3a)
+Itanhi(1) =
+
+
+
+
+
+I0(0) −1,
+Ii(1) ≥I0(0),
+−I0(0),
+Ii(1) < −I0(0),
+Ii(1),
+otherwise,
+(3b)
+σi(1) = sgn(Itanhi(1)) ,
+(3c)
+where σi(0) is the spin initializer (set to −1 in hardware to avoid costly searches) and I0 is
+the pseudo-inverse temperature. Here, ri(t) ∈{+1, −1} denotes an independent random variable
+generated at each annealing step, and nrnd controls the amplitude of the stochastic perturbation
+injected into the local field, analogous to thermal noise in conventional simulated annealing. This
+establishes the FSM state for the integral stochastic tanh(·) used thereafter.
+5
+
+
+3.3
+Differential Updates for t>0
+For later steps, only spins that flipped in the previous step raise a differential flag ∆j(t) ∈{0, 1}.
+From the FSM viewpoint, the increment is the difference of consecutive interaction states,
+∆Ii(t+1) = Itanhi(t+1) −Itanhi(t),
+(4)
+and since Itanhi tracks Ii in the stochastic FSM, we approximate
+∆Ii(t+1) = Ii(t+1) −Ii(t)
+=
+X
+j
+Jij
+
+σj(t) −σj(t−1)
+
++ nrnd ri(t).
+(5)
+The flip flag
+∆j(t) =
+(
+1,
+σj(t)̸ = σj(t−1),
+0,
+otherwise,
+(6)
+zeros out unchanged spins. For a flipped spin, σj(t) −σj(t−1) equals +2 if σj(t)=1 and −2 if
+σj(t)= −1, so
+σj(t) −σj(t−1) = 2 ∆j(t) σj(t).
+(7)
+Substituting (6) and (7) into (5) yields
+∆Ii(t+1) = 2
+X
+j
+Jij ∆j(t) σj(t) + nrnd ri(t).
+(8)
+Using (8) to update the stored interaction current gives
+Ii(t+1) = Ii(t) + 2
+X
+j
+Jij ∆j(t) σj(t) + nrnd ri(t),
+(9)
+so the SSA acceptance rule can be evaluated without recomputing contributions from spins that
+did not flip. Operationally, DSSA updates for t>0 follow
+∆Ii(t+1) = 2
+X
+j
+Jij ∆j(t) σj(t) + nrnd ri(t),
+(10a)
+Xi(t+1) ≜Itanhi(t) + ∆Ii(t+1),
+Itanhi(t+1) =
+
+
+
+
+
+I0(t) −1,
+Xi(t+1) ≥I0(t),
+−I0(t),
+Xi(t+1) < −I0(t),
+Xi(t+1),
+otherwise,
+(10b)
+σi(t+1) =
+(
+1,
+Itanhi(t+1) ≥0,
+−1,
+otherwise,
+(10c)
+which mirror SSA’s clipped tanh update while reducing work to the M flipped spins (M ≤N)
+instead of all N.
+6
+
+
+DSSA architecture
+Distributed Weight memory (WM)
+64 × 2048 × 128-bit SRAM macros
+J1j
+r  (t)
+k
+nrnd
+I (t)
+0
+σ (t)
+j
+J2j
+JNj
+...
+...
+Decoder
+4
+Jij
+4
+Jij
+4
+4
+11
+128
+8
+13
+4
+...
+Flipped
+spin index
+Δ1
+ΔN
+...
+RNG
+(XOR-shift)
+Δj
+rst
+addr
+addr
+External I/O interface
+I/O
+ctr
+Scheduler
+hi
+4
+11
+To WM
+Hyper parameters
+Hyper parameters
+Spin-gate array
+SGN
+SG2
+SG1
+...
+2048 spin-gate
+JN1
+J11
+J1N
+JNN
+N = 2048
+N
+...
+...
+Spin
+select
+circuit
+(SSC)
+16 Mb
+SRAM
+Shared rand. signal (          )
+k =128
+σ (t+1)
+1
+σ      (t+1)
+2048
+σ      (t+1)
+1921
+r  (t)
+1
+r     (t)
+128
+σ (t)
+j
+J1j
+J128j
+J2048j
+J1921j
+...
+...
+...
+...
+...
+...
+... ...
+...
+...
+...
+4
+4
+4
+4
+Δ1
+Δ2048
+11
+addr
+nrnd
+I (t)
+0
+t
+8
+13
+From scheduler
+Spin-gate array
+SSC
+Δj
+rst
+circuit
+Priority
+encoder
+SG2048
+SG1921
+SG1
+SG128
+MUX
+τ
+τ
+2τ
+3τ
+I (t)
+0
+I (t)
+0
+I0min
+I0max
+Annealing step
+1 shot
+0
+I (t+1)=
+0
+I (t)
+0
+2β
+.
+DSSA process schedule
+I (t)
+0
+Landscape of 
+trial counter
+mshotcounter
+t counter
+1 shot
+mshot
+1 trial
+Spin reset
+1 trial
+...
+trial: # of process
+σ (t+1)
+1
+σ  (t+1)
+N
+Reduce spin connection with serialization
+Figure 4: Top-level floorplan and data routing of the DSSA processor. The figure highlights how the
+RNG banks feed 128 shared bits into the spin-gate array (16:1 sharing across spins), how the weight
+memory (WM) banks interact with the spin-select circuit (SSC), and how the scheduler broadcasts
+I0 parameters to enforce the temperature profile in (12).
+7
+
+
+3.4
+Temperature Scheduling and Acceptance
+The flip decision still follows SSA. The stochastic acceptance uses
+P(σi(t+1) = 1) = 1
+2
+
+1 + tanh
+Ii(t+1)
+I0(t)
+
+,
+(11)
+where I0 is updated every step as
+I0(s) = I0 min + (I0 max −I0 min)
+
+1 −e−s/τβ
+,
+(12)
+with step index s within a shot; one shot spans the ramp from I0 min to I0 max. High I0 suppresses
+flips and keeps M small late in a shot, while early low I0 enables exploration. Hardware implemen-
+tations of the stochastic nonlinearity, RNG sharing, and workload-aware scheduling are described
+in Section 4.
+4
+Processor Architecture and Circuits
+4.1
+Top-Level Architecture
+The top-level architecture in Fig. 4 translates the DSSA algorithm into hardware. The spin-gate
+(SG) array integrates 2,048 SGs, each representing a binary Ising state. Random noise signals drive
+the SGs, with every 16 spins sharing a single 1-bit random signal to minimize random number
+generator (RNG) area. Consequently, only 128 random bits are generated per cycle, and the shared
+stream is produced by an on-chip xorshift engine that updates a 128-bit vector every clock. Weights
+are stored in a 4-bit precision SRAM WM whose 16 Mb capacity is partitioned into banks aligned
+with the serializer bandwidth. Fig. 4 also shows how the spin-select circuit gathers ∆i flags from the
+SG array, prioritizes active spins, and issues WM addresses so that only flipped spins trigger 4-bit
+weight reads, while the scheduler broadcasts the shot-level I0 parameters to every SUC in lockstep.
+Although Fig. 4 illustrates the weight memory as a single logical block for clarity, the 16 Mb weight
+memory is physically implemented using 64 distributed SRAM macros, each with a capacity of 2048
+words × 128 bits. These macros are placed around the spin-gate array and are accessed in parallel
+through the serializer and scheduler. From the viewpoint of the spin-gate array, the distributed
+SRAM macros collectively function as a single logical weight memory.
+4.2
+Spin-Gate and Update Circuits
+Fig. 5 magnifies the SG module and clarifies the per-shot timeline. Each SG comprises a spin inter-
+action circuit (SIC) that accumulates the net differential current ∆Ii from freshly flipped neighbors
+according to (10a) and a spin update circuit (SUC) that compares the accumulated value with a
+stochastic threshold to derive the next state σi(t + 1).
+The SUC raises a differential flag ∆i whenever σi flips, enabling the spin-select circuit (SSC)
+to operate on a sparse vector rather than a dense list of 2,048 entries. To preserve accuracy with
+modest hardware, the SUC implements the hyperbolic tangent in (11) via a stochastic finite-state
+machine, and the SIC stores the 4-bit interconnection weights broadcast by the WM banks. The
+timeline beneath Fig. 5 corresponds to the textual description: initialization fills the SIC registers,
+each flip triggers a DSSA update, and the SSC drains the queue before the scheduler launches the
+next shot. The SUC FSM follows the integral stochastic tanh(·) style: a small up/down counter
+perturbed by shared random bits realizes the probability in (11) without LUTs, and its output bit
+8
+
+
+Spin-gate (SG)
+Spin interaction circuit (SIC)
+Spin update circuit (SUC)
+1
+0
+1
+0
+0
+1
+Jij
+hi
+#1
+#2
+SI: Sign inverter
+t=1?
+SI
+SI
+4
+5
+8
+8
+5
+14
+14
+14
+15
+13
+13
+13
+<<1
+ΔI (t+1)
+i
+Itanh (t)
+i
+Binary adder
+Reset as
+nrnd
+r  (t)={0, 1}
+k
+Saturated
+updown
+counter
+Comp: Comparator
+Itanh (t)>0
+i
+Comp
+Δi
+Comp
+σ (t+1)=σ (t)
+i
+i
+I (t)
+0
+Δi
+rst
+σ (t)
+j
+σ (t+1)
+i
+Jij σ (t)
+j
+.
+Figure 5: Detailed spin-gate (SG) circuit indicating SIC accumulators for (10a), SUC finite-state
+machines that realize the probability in (11), and the annealing timeline showing initialization,
+selective updates, and SSC draining. The inset emphasizes that only SGs with ∆i = 1 request WM
+entries, which keeps current draw proportional to the number of flips.
+drives the σi latch and ∆i flag. The SIC taps the WM banks once per active spin, accumulates
+signed 4-bit weights plus hi, and feeds the FSM input. The inset and timeline in Fig. 5 highlight
+these signals—shared RNG input, SIC accumulation, SUC comparison, ∆i assertion, and SSC queue
+drain.
+4.3
+Stochastic Nonlinearity and RNG Sharing
+DSSA reuses the hyperparameter controls of SSA—I0 min, I0 max, nrnd, τ, and β—but interprets
+them over sparsified activity. In hardware, nrnd shared random bits per 16-spin group feed the
+SUC’s stochastic FSM that approximates tanh(·) with negligible area, matching the 16:1 sharing
+shown in Fig. 4. The scheduler cools I0 step-by-step using (12); one shot is defined as a full ramp
+from I0 min to I0 max, so temperature updates occur every step while the shot counter advances only
+after a complete ramp.
+4.4
+Complexity and Workload Reduction
+During each shot, only spins with ∆i=1 enqueue into the spin-select circuit; the queue drains until
+no flips remain, at which point the scheduler advances the temperature and launches the next shot.
+In the initialization shot, every spin’s interaction current is computed to establish a consistent
+starting point.
+Thereafter, the SIC accumulators store weights from a single WM fetch per active spin, and the
+SUC performs a one-cycle stochastic comparison. By decoupling WM reads from SUC updates and
+allowing WM to idle when no flips occur, DSSA minimizes wasted toggling. The serialized datapath
+trades a few cycles per flip for dramatically reduced total cycles versus naive serialization that
+9
+
+
+σ (t-1)
+1
+σ (t)
+i
+σ (t-1)
+2
+σ    (t-1)
+N-1
+σ  (t-1)
+N
+1
+0
+0
+0
+...
+1
+0
+0
+0
+...
+Spin update (SUC)
+Spin update (SUC)
+Flipped spin select (SSC)
+...
+...
+Δj
+1
+0
+1
+0
+σ (t)
+i
+Flipped spin select (SSC)
+...
+Δj
+0
+0
+0
+WM
+...
+...
+...
+...
+J11
+J21
+JN-1,1
+JN1
+J12
+J11 J12
+J22
+JN-1,2
+JN2
+JN1 JN2
+J1N
+J2N
+JN-1,N
+JNN
+(N=2048)
+Spin interaction (SIC)
+,
+,
+Read 1 and 2 row
+Serial read
+Annealing step t
+Annealing step t
+Step t-1
+σ (t-1)
+1
+σ (t-1)
+2
+σ    (t-1)
+N-1
+σ  (t-1)
+N
+1
+0
+0
+0
+...
+1
+0
+0
+0
+...
+Spin update (SUC)
+(N=2048)
+Step t-1
+nrnd
+Spin update (SUC)
+nrnd
+Δ (t+1)
+i
+Δ (t)
+i
+Δ (t)
+1
+Δ (t)
+2
+Select flipped spin
+SSC
+Itanh (t+1)
+i
+IDLE
+IDLE
+IDLE
+IDLE
+σ (t)
+i
+σ (t+1)
+i
+Itanh (t+1)
+i
+σ (t+1)
+i
+Δ (t+1)
+i
+IDLE
+IDLE
+IDLE
+IDLE
+σ (t)
+i
+Δ (t)
+i
+t-1
+t-1
+t
+t
+Ji1
+Ji2
+Ji1 σ (t)
+1
+.
+Ji2 σ (t)
+2
+.
+WM
+Annealing step
+Cal. spin interaction 
+Cal. differential 
+Cal. counter position 
+Spin update 
+SIC
+SUC
+Read weights
+Select flipped spin
+WM
+Annealing step
+Cal. spin interaction 
+Cal. differential 
+Cal. counter position 
+Spin update 
+SIC
+SUC
+SSC
+Read weights
+Ji1 σ (t)
+1
+.
+ΔI (t)+
+i
+Ex) # of flipped spin     = 2
+Ex) # of flipped spin = 0
+Parallel
+spin update
+0
+Reduce comput. time 
+depend on the
+ # of flipped spins
+Affected by nrnd
+M
+(M+2) clock cycles
+2 clock cycles
+Figure 6: Datapath timing of the DSSA serializer. The trace shows how WM fetches, SIC accu-
+mulation, and SUC comparisons overlap when spins flip densely at the start of a shot and then
+collapse to a few cycles once the SSC queue empties, highlighting the latency advantage of differen-
+tial scheduling over the fixed-length serialized SSA baseline. The highlighted boxes are shown with
+solid borders to improve visibility in grayscale printing.
+10
+
+
+would revisit all N spins every step, shrinking computation to the active frontier while maintaining
+correctness.
+4.5
+Serializer Timing and Latency
+Latency advantages stem directly from the datapath in Fig. 6. Only differential contributions from
+flipped spins are recomputed; interactions from unflipped spins are skipped entirely. DSSA therefore
+scales latency with the number of flips instead of the total spin count, reducing serialized SSA slow-
+downs by up to three orders of magnitude for 2,000-spin problems. Early shots, when the solution is
+highly dynamic, spend more time performing updates, but late shots benefit from sparse activity as
+the system converges. This data-dependent workload is explicit in the lower traces of Fig. 6, where
+the selective update window closes as soon as the SSC runs out of pending flips. Early traces in
+Fig. 6 show WM fetch, SIC accumulation, and SUC comparison overlapping for hundreds of cycles
+when flips are dense, while late shots collapse to a few dozen cycles once the SSC queue is nearly
+empty, visually tying the latency gain to flip sparsity. The upper traces also highlight that WM and
+SIC buses go idle between sparse flips, and the solid fixed-length serialized SSA baseline remains flat
+at the full N-cycle cost, underscoring how DSSA’s queue-based scheduler trims both active cycles
+and wasted toggling when activity is low.
+Thus, the M + 2-cycle behavior in Fig. 6 results from differential update scheduling based on
+the number of flipped spins M, not from a conventional fixed-length time-division schedule over all
+N spins.
+Table 2: DSSA MAX-CUT results across 100 trials (min/avg/max). All results are obtained under
+fixed annealing conditions: 5 shots per trial, annealing steps per shot as listed in Table 3, and
+hyperparameters selected via grid search as described in Section 5.1. |V | and |E| denote the number
+of vertices and edges of each G-set instance.
+Problem
+|V |
+|E|
+Min
+Min [%]
+Avg.
+Avg. [%]
+Max
+Max [%]
+G22
+2000
+19990
+13280
+99.4
+13318.0
+99.7
+13349
+99.9
+G23
+2000
+19990
+13280
+99.5
+13309.5
+99.7
+13337
+99.9
+G24
+2000
+19990
+13283
+99.6
+13300.3
+99.7
+13318
+99.9
+G27 (avg HP)
+2000
+19990
+3289
+98.4
+3317.1
+99.3
+3338
+99.9
+G27 (max HP) 2000
+19990
+3285
+98.3
+3316.8
+99.3
+3341
+100
+G35
+2000
+11778
+7606
+98.9
+7634.1
+99.3
+7651
+99.5
+G39
+2000
+11778
+2345
+97.4
+2380.8
+98.9
+2397
+99.5
+K2000
+2000 1999000 33073
+99.2
+33229.1
+99.7
+33337
+100
+11
+
+
+Figure 7: Cumulative cycles/step: proposed DSSA (prop.) vs. serialized SSA (conv.) on G22, G35,
+and K2000, assuming a fully serialized 2,000-connection baseline. One annealing step evaluates all
+N spins once; y-axis shows cumulative cycles. The stepwise increase observed for the proposed
+DSSA reflects its event-driven execution: cycle counts increase only when spin flips occur. When
+no spins flip, the scheduler advances the annealing step with minimal overhead, resulting in flat
+segments in the cumulative cycle count.
+5
+Experimental Evaluation
+5.1
+Benchmark Setup and Hyperparameter Search
+Software evaluation follows the pre-layout evaluation workflow. Simulations run on an Intel Xeon
+Gold 5318Y (2.1 GHz, Rocky Linux 8.6) with a Python 3.8 DSSA implementation.
+Seven 2,000-node MAX-CUT instances are exercised: G22, G23, G24, G27 (random graphs,
+19,990 edges), G35 and G39 (planar graphs, 11,778 edges), and K2000 (fully connected, 1,999,000
+edges). G22/23/24/35 use +1 edge weights, while G27, G39, and K2000 use {±1}. The best-known
+cut values are 13,359, 13,344, 13,337, 3,341, 7,687, 2,408, and 33,337, respectively.
+The G-set benchmark suite is widely used for evaluating MAX-CUT algorithms and optimization
+hardware. The selected instances cover different graph characteristics, including random graphs,
+planar graphs, and the dense fully connected K2000 instance, allowing the proposed DSSA archi-
+tecture to be evaluated under different connectivity and weight patterns.
+To further evaluate the general applicability of the proposed architecture beyond the G-set
+benchmark suite, we additionally evaluated seven MAX-CUT instances from the Biq Mac Li-
+brary [20]. These benchmarks were selected from the Biq Mac Library, an independent benchmark
+collection containing graph instances with diverse structural characteristics and edge-weight distri-
+butions that is widely used for evaluating MAX-CUT and quadratic binary optimization algorithms.
+Since prior ASIC annealing processors rarely report results on Biq Mac instances, these experiments
+are intended to validate the generality of the proposed DSSA solver rather than to provide direct
+hardware-to-hardware comparisons.
+Prior to full-length anneals, a grid search tunes DSSA hyperparameters: I0 min ∈[1, 4], I0 max ∈
+[25, 210], nrnd ∈[1, 32], and τ ∈[100, 600], with β=1 fixed to shorten exploration. For each hyperpa-
+rameter tuple, five trials of five shots are executed; the average and best scores select per-benchmark
+settings. Because DSSA skips spins that do not flip after initialization, computation stays propor-
+tional to the sparse flip activity typically seen in later shots despite the 2,000-spin scale.
+The benchmark mix spans dense (K2000), random (G22/23/24/27), and planar (G35/39) graphs
+to cover connectivity and weight patterns seen in prior SSA studies. Hyperparameters are fixed
+per benchmark after the grid search above; they are not retuned across runs, keeping comparisons
+consistent for the cycle-count and TTS analyses that follow. The full min/average/max cut statistics
+12
+
+
+for these instances are summarized in Table 2, and the cumulative cycle behavior used to quantify
+runtime reduction is shown in Fig. 7.
+Although DSSA can target other COPs up to 2,048 nodes (for example, TSP or graph coloring),
+this paper focuses on MAX-CUT to align with benchmarks used in prior annealing hardware studies
+and to enable direct comparison with recent fully connected chips.
+5.2
+Design and Implementation Flow
+The DSSA processor RTL is written in SystemVerilog and synthesized with Synopsys Design Com-
+piler U-2022.12. Because the design is fully digital, TSMC 28 nm standard-cell and I/O libraries are
+used throughout logic synthesis. The synthesized gate-level netlist is placed and routed in Cadence
+Innovus v21.12, which handles SRAM macro placement, I/O cell placement, and automatic P&R
+of the gate-level design. All hardware results reported in this section are derived from post-layout
+timing and power evaluation unless stated otherwise.
+In addition to the ASIC post-layout evaluation, we verified the RTL implementation through
+FPGA place-and-route on an AMD/Xilinx Virtex UltraScale+ VCU118 evaluation platform using
+Vivado 2022.2 with a 150 MHz timing constraint. The design successfully completed implemen-
+tation, confirming the synthesizability and hardware feasibility of the proposed DSSA architec-
+ture. The FPGA resource utilization was 198,586 LUTs (16.8%), 78,559 FFs (3.32%), 480 BRAMs
+(22.2%), 102 I/Os (12.3%), and 3 BUFGs (0.17%).
+The FPGA place-and-route result is used only to confirm RTL synthesizability and implementa-
+tion feasibility. It is not used as a substitute for ASIC silicon measurement, and all reported ASIC
+timing, area, and power results are based on the post-layout design flow described above.
+Table 3: Hyperparameters used for DSSA evaluation.
+For G27, two parameter sets are used:
+“avg HP” corresponds to the hyperparameters selected by average-score criterion, while “max HP”
+corresponds to those selected by best-score criterion. Steps/shot is computed as NIτ, where NI =
+⌊log(I0,max/I0,min)/ log(2β)⌋+ 1.
+Problem
+nrnd I0,min I0,max β
+τ
+Steps/shot
+G22
+7
+1
+512
+1 500
+5,000
+G23
+4
+4
+64
+1 600
+3,000
+G24
+7
+1
+256
+1 600
+5,400
+G27 (avg HP)
+3
+1
+32
+1 300
+1,800
+G27 (max HP)
+3
+1
+2048
+1 300
+3,600
+G35
+3
+4
+32
+1 500
+2,000
+G39
+3
+2
+256
+1 600
+4,800
+K2000
+24
+1
+1024
+1 600
+6,600
+Table 4: Additional DSSA MAX-CUT results on seven Biq Mac Library instances across 100 trials.
+The gap is computed relative to the best-known cut value. All results were obtained using the
+common hyperparameter set C defined in Section 5.2.
+Problem
+Best-known
+Avg.
+Max
+Avg. gap
+Avg. gap [%]
+Best-known reached
+g05_100.0
+1430
+1421.03
+1430
+8.97
+0.627
+Yes
+pm1d_100.0
+340
+340.00
+340
+0.00
+0.000
+Yes
+pm1s_100.0
+127
+126.62
+127
+0.38
+0.299
+Yes
+pw05_100.0
+8190
+8119.26
+8190
+70.74
+0.864
+Yes
+w01_100.0
+651
+644.40
+651
+6.60
+1.014
+Yes
+w05_100.0
+1646
+1609.83
+1635
+36.17
+2.197
+No
+w09_100.0
+2121
+2037.94
+2121
+83.06
+3.916
+Yes
+To examine the sensitivity to benchmark-specific tuning, we further evaluated four common
+13
+
+
+hyperparameter sets across all benchmarks and compared them with the benchmark-specific pa-
+rameters in Table 3. The common candidates are A: nrnd = 3, I0 min = 1, I0 max = 256, β = 1,
+τ = 500; B: nrnd = 4, I0 min = 1, I0 max = 256, β = 1, τ = 600; C: nrnd = 7, I0 min = 1, I0 max = 512,
+β = 1, τ = 600; and D: nrnd = 3, I0 min = 2, I0 max = 256, β = 1, τ = 500.
+G22
+G23
+G24
+G27 (avg HP)
+G27 (max HP)
+G35
+G39
+K2000
+0.95
+0.96
+0.97
+0.98
+0.99
+1.00
+Normalized mean cut value
+Specific
+A
+B
+C
+D
+Figure 8: Hyperparameter dependence of DSSA across benchmark-specific and common parameter
+settings. The vertical axis shows the normalized mean cut value relative to the best-known cut
+value for each benchmark. “Specific” denotes the benchmark-specific parameters in Table 3, while
+A–D correspond to the four common parameter sets defined in Section 5.2.
+The comparison in Fig. 8 indicates that common parameter settings can provide useful solu-
+tion quality for multiple graph structures, while benchmark-specific tuning or selecting a suitable
+common candidate can further improve robustness. This observation also suggests that lightweight
+online adaptation based on runtime indicators, such as flip activity, could be considered in future
+work.
+Table 5: Serialized SSA vs. DSSA cycle counts (2,000-spin fully connected assumption).
+Problem
+Cycles/step SSA
+Cycles/step DSSA
+Total speedup
+Avg. flips/step (DSSA, /2,000)
+G22
+2,000
+638.0
+3.1×
+31.9%
+G23
+2,000
+186.2
+10.7×
+9.3%
+G24
+2,000
+707.3
+2.8×
+35.4%
+G27 (avg HP)
+2,000
+94.6
+21.1×
+4.7%
+G27 (max HP)
+2,000
+47.5
+42.1×
+2.4%
+G35
+2,000
+126.0
+15.9×
+6.3%
+G39
+2,000
+65.4
+30.6×
+3.3%
+K2000
+2,000
+129.6
+15.4×
+6.5%
+5.3
+Solution Quality and Runtime Reduction
+Table 2 summarizes DSSA MAX-CUT results across 100 trials (min/avg/max). Each trial consists
+of five shots under fixed annealing conditions. Average cuts exceed 99% of the best-known values
+14
+
+
+for every benchmark; G22/G23/G24/K2000 also clear 99% on the worst trial, and K2000 plus G27
+reach the optimum. The hyperparameters used for each benchmark are listed in Table 3.
+Table 4 reports the additional evaluation results on seven Biq Mac Library instances.
+All
+Biq Mac experiments were performed using the common hyperparameter set C, which showed
+consistently strong performance across the G22, G23, G24, and K2000 benchmarks. DSSA reached
+the best-known cut value in six out of seven instances within 100 trials. For the remaining instance,
+w05_100.0, the best DSSA result was 1635, which is only 0.668% below the best-known value of
+1646. These results indicate that DSSA maintains high solution quality beyond the G-set benchmark
+suite. The Biq Mac experiments did not directly measure cycle reduction; instead, their high solution
+quality supports the applicability of the DSSA solver beyond the G-set benchmark family. The cycle
+reduction is governed by flip sparsity, or equivalently the active-frontier size M, rather than by the
+graph family itself. Therefore, the maximum 30.6× total-cycle reduction observed in Table 5 is
+benchmark- and activity-dependent and is not guaranteed for every problem instance.
+DSSA’s cycle count shrinks because only flipped spins recompute interactions. Fig. 7 aggregates
+representative cumulative cycles/step assuming a fully serialized 2,000-connection baseline for G22,
+G35, and K2000; the DSSA curves track flip activity and flatten quickly, while the conventional
+serialized SSA remains linear in N. Table 5 reports per-step cycle averages and total-cycle speedups:
+DSSA cuts cycles by 2.8×–42× per step and 3.1×–30.6× overall. For K2000, only 6.5% of spins
+flip per step on average, yielding a 15.4× total-cycle reduction. The fully serialized SSA baseline
+is intentionally simple to highlight DSSA’s benefit; more aggressive serializers (for example, dual-
+ported WM or limited parallelism) would change absolute cycle counts but would still require O(N)
+work each step, whereas DSSA scales with the much smaller M flipped spins. Unlike conventional
+serialized SSA, DSSA does not incur a fixed number of cycles at every annealing step. Instead,
+cycle consumption is proportional to the number of flipped spins. As a result, periods with sparse
+flip activity appear as flat regions in Fig. 7, while steps with clustered spin flips produce abrupt
+increases, yielding the observed stepwise behavior.
+The post-layout floorplan in Fig. 9 provides the physical view corresponding to the distributed
+SRAM-macro organization discussed in Section 4.
+Table 6: Overview comparison of hardware characteristics of recent annealing systems and the
+proposed DSSA processor. This table focuses on hardware-level metrics such as process, scalability,
+and power, while detailed performance comparisons on benchmark instances are provided in Table 7.
+For the ISSCC’21 King’s-graph entry, power and power/spin are marked as N/A because they are
+not reported in the cited work.
+Work
+Process
+Spins
+Topology
+Clock
+Power
+Power/spin
+Validation
+ISSCC’21 [8]
+40 nm
+16k (×9 chips) King’s graph (sparse)
+100 MHz
+N/A
+N/A
+Silicon
+JSSC’21 [9]
+65 nm
+512
+Fully connected
+320 MHz
+649 mW
+1.27 mW
+Silicon
+STATICA [9] (proj.)
+65 nm
+2000
+Fully connected
+320 MHz
+2.0 × 103 mW
+1.00 mW
+Projected silicon
+ISSCC’23 [10]
+40 nm
+512 (×4 chips)
+Fully connected
+134–336 MHz 151.6–474.9 mW 0.29–0.93 mW
+Silicon
+This work
+28 nm
+2048
+Fully connected
+500 MHz
+316.1 mW
+0.15 mW
+Post-layout simulation
+5.4
+Ablation: RNG Sharing and Differential Serialization
+Fig. 10 summarizes additional simulations for the seven G-set benchmarks used in this paper under
+different RNG sharing factors and across multiple random seeds, reporting the normalized mean
+cut value relative to the best-known cut value. For each benchmark and RNG-sharing factor, 100
+trials with random seeds 0–99 were performed, with five shots per trial. Error bars indicate 95%
+confidence intervals. The narrow confidence intervals indicate that the effect of RNG sharing is
+15
+
+
+Figure 9: Layout of the 2,048-spin fully connected DSSA processor in TSMC 28 nm.
+16
+
+
+Table 7: Detailed performance and energy comparison on the K2000 MAX-CUT instance. For the
+GPU baseline, reported runtime and power include all computation and memory access overheads.
+For the proposed DSSA processor, the reported values cover only the annealing phase; setup steps
+such as spin initialization and temperature scheduling are excluded. The SSA baseline follows the
+stochastic simulated annealing algorithm described in [16]. The energy per spin per step is computed
+using N = 2000 and Nstep = 9000; this metric is not reported for projected STATICA because the
+same step-level definition is not directly available.
+GPU SSA
+STATICA [9](proj.)
+This work
+Power [mW]
+52.8 × 103
+2.0 × 103
+316.1
+Runtime T [ms]
+499.88
+0.48
+2.30
+Pa(T)
+0.45
+0.77
+0.98
+TTS(0.99) [ms]
+3,850.6
+1.5
+2.7
+Energy at
+203.3 × 103
+3.0
+0.86
+TTS(0.99) [mJ]
+Energy/spin/step
+1.47 µJ
+–
+40.4 pJ
+stable across seeds under the evaluated conditions; this work adopts 16 spins per shared RNG,
+resulting in an eightfold improvement in RNG area efficiency compared to a non-shared design.
+Excessive sharing reduces entropy diversity across spins, degrading exploration.
+Disabling the differential scheduler (naive serialization) restores the N 2 interaction cost and
+erases the 3.1×–30.6× cycle reductions in Table 5. Both choices are essential to reach the reported
+density and speed targets.
+5.5
+Hardware Validation and Comparison
+The proposed processor targets TSMC 28 nm and integrates 2,048 fully connected spins, a 16 Mb
+4-bit WM built from sixty-four 2,048×128 SRAM macros, and clock gating for sparse updates. The
+die measures 3 mm × 4 mm; post-layout utilization is 35.7% with a gate count of 8,498,667.
+The design closes timing at 500 MHz (synthesis limited at 600 MHz) with 0.9 V core supply and
+1.8 V I/O. The estimation assumes TT at 25 ◦C with Vcore = 0.9 V and VIO = 1.8 V. Estimated
+power is 316.1 mW at 500 MHz, or 0.15 mW per spin. The power breakdown is 223.85 mW (clock),
+20.30 mW (memory), and 71.95 mW (others). The package uses 118 pins, including dedicated rails
+for WM and logic domains; the resulting floorplan is shown in Fig. 9.
+In the post-layout floorplan, the 64 SRAM macros are distributed around the spin-gate array
+to shorten the weight-delivery paths and to balance routing congestion. The spin-select circuit,
+priority encoder, serializer, and multiplexer network are placed near the interface between the spin-
+gate array and the weight-memory banks so that selected flipped-spin indices can drive sequential
+WM accesses with reduced long-distance routing. This physical organization realizes the differential-
+update datapath shown in Fig. 6: only the weight rows associated with selected flipped spins are
+read and accumulated, while unchanged-spin contributions are retained locally.
+The FPGA result is used only to verify RTL synthesizability and implementation feasibility,
+whereas the reported performance and energy results are based on ASIC post-layout evaluation.
+Table 6 provides an overall view of recent annealing hardware [8–10]. The comparison highlights
+that prior fully connected chips either cap spins at 512 or require multi-chip tiling, whereas DSSA
+keeps 2,048 fully connected spins and all weights on a single die. Despite the on-chip memory, the
+12 mm2 area is comparable to smaller-spin designs. The 500 MHz clock is the highest among the
+17
+
+
+21
+23
+25
+27
+29
+211
+Number of spins sharing the same random number
+0.980
+0.985
+0.990
+0.995
+1.000
+Normalized mean cut value
+G22
+G23
+G24
+G27 (avg HP)
+G27 (max HP)
+G35
+G39
+K2000
+Figure 10: Impact of RNG sharing on normalized mean cut value across multiple random seeds.
+Error bars indicate 95% confidence intervals over 100 trials with random seeds 0–99. The results
+show that 16:1 RNG sharing maintains solution quality within a narrow statistical range while
+reducing RNG hardware cost.
+18
+
+
+fully connected entries, and the per-spin power of 0.15 mW is 8.5× lower than the JSSC’21 fully
+connected chip at similar VDD and below the 2023 metamorphic design even when normalized to
+frequency.
+Table 6 focuses on hardware-level characteristics, whereas detailed performance comparisons
+on benchmark instances are provided separately in Table 7. Validation distinguishes fabricated
+silicon, projected silicon, and post-layout simulation, which should be considered when interpreting
+cross-work comparisons.
+Note that the interaction coefficient precision differs across designs. The ISSCC’21 annealer
+employs fixed binary (1-bit) interactions on a sparse King’s graph topology, whereas STATICA and
+the proposed DSSA both use 4-bit multilevel interaction coefficients for fully connected graphs.
+Amorphica supports programmable interaction coefficients, although the exact bit width is not
+explicitly specified in the published description. Therefore, the power comparison in Table 6 should
+be interpreted in light of these differences. Importantly, the proposed DSSA achieves lower power
+per spin despite using comparable interaction precision to prior fully connected designs, indicating
+that the reported power reduction primarily originates from architectural efficiency rather than
+reduced coefficient precision.
+Time-to-solution (TTS) quantifies annealing efficiency for the 2,000-node K2000 instance. For
+target success probability P,
+TTS(P) = T ·
+ln(1 −P)
+ln(1 −Pa(T)),
+(13)
+where T is the runtime of one anneal and Pa(T) is its success probability. While Table 6 gives the
+cross-work overview, Table 7 retains a focused comparison on the K2000 instance against a GPU
+SSA implementation (NVIDIA RTX 2080 Ti) and a projected 2,000-spin STATICA extrapolated
+from the 512-spin chip in [9] under a four-chip tiling assumption. The GPU delivers long runtime
+and modest Pa but consumes 52.8 W; STATICA runs fastest but at lower success probability. DSSA
+balances both, reaching P=0.99 with 0.86 mJ—3.5× lower energy than projected STATICA despite
+a longer runtime, and five orders of magnitude below the GPU baseline. The combination of high
+Pa(T) and moderate T yields the lowest energy at TTS(0.99) among the three, illustrating the
+benefit of sparse differential updates even at a higher clock.
+The sparse, parallel-update King’s-graph machine and the fully connected DSSA processor there-
+fore occupy different design spaces and target different problem classes. Sparse parallel machines
+can achieve very short absolute TTS by exploiting restricted connectivity and massive parallel up-
+dates, whereas the proposed DSSA targets dense fully connected Ising formulations with multilevel
+interaction weights stored on chip. Consequently, absolute TTS alone should not be interpreted
+as a topology-independent ranking across these architectures; the topology, connectivity, coefficient
+precision, validation methodology, and target problem formulation must be considered together.
+The GPU-based SSA baseline executes a conventional SSA algorithm [16], where runtime and
+power consumption include all associated costs such as global memory access and control overhead.
+For the proposed DSSA processor, the reported runtime and power cover only the annealing phase;
+setup steps such as spin initialization and temperature scheduling are excluded. Here, setup refers
+to the initialization of spin states and loading of hyperparameters prior to the annealing process.
+The GPU baseline was implemented using a CuPy RawKernel-based CUDA kernel. Each CUDA
+thread updates one spin, and the kernel is launched with 32 threads per block along the spin dimen-
+sion. For each annealing step, each thread computes the local field by sequentially accumulating all
+N interaction terms from the dense weight matrix. The implementation does not employ shared-
+memory tiling; the dense interaction matrix is read directly from global memory. The weight-matrix
+accesses are not fully memory-coalesced because neighboring threads access different matrix rows,
+19
+
+
+whereas the spin vector is commonly read across threads and can benefit from cache reuse. Runtime
+was measured using CUDA events around the annealing kernel invocation.
+To compare computational energy efficiency under a unified metric, we also compute the energy
+per spin per step as
+Espin,step =
+PT
+NNstep
+,
+(14)
+where P is the power consumption, T is the runtime per anneal, N is the number of spins, and
+Nstep is the number of annealing steps. In this evaluation, N = 2000 and Nstep = 9000 for both
+GPU SSA and DSSA.
+The added energy-per-spin-per-step metric indicates the energy efficiency of the actual per-step
+spin-update computation under the same N and step-count assumptions. Because the GPU baseline
+is a straightforward conventional SSA implementation rather than a highly optimized GPU annealer,
+this comparison is intended to provide a transparent reference point rather than an upper bound
+on GPU performance.
+5.6
+Scalability and Applicability to Other Problem Classes
+The scalability of the proposed DSSA processor is primarily constrained by the weight memory
+required for fully connected Ising models, which scales as O(N 2). This requirement is fundamental
+to dense formulations and is shared by prior fully connected annealers. In contrast, the spin-gate
+array, scheduler, and control logic scale linearly with the number of spins N.
+For example, the present 2,048-spin design uses a 16 Mb 4-bit weight memory. Under the same
+fully connected storage model, the required weight-memory capacity increases quadratically with
+N, reaching approximately 64 Mb for 4,096 spins and 256 Mb for 8,192 spins.
+These values are first-order projections based on the present 2,048-spin implementation and
+assume the same 4-bit fully connected weight-storage organization. Under this assumption, the
+projected chip area and leakage power are expected to be dominated by the quadratic growth of
+the weight memory, whereas the spin-gate array, scheduler, and control logic scale approximately
+linearly. Therefore, the presented values indicate expected scaling trends rather than implemented
+results for larger processor sizes.
+In terms of runtime behavior, DSSA differs from conventional serialized SSA by scaling the
+number of interaction updates with the number of flipped spins M, rather than with N. As shown
+in Fig. 7 and Table 5, M remains a small fraction of N for large MAX-CUT instances, particularly
+in later annealing stages. As a result, the effective cycle count per annealing step exhibits sublinear
+scaling in practice, even though the underlying problem is fully connected.
+Power consumption similarly benefits from sparse activity. Weight memory access and interac-
+tion accumulation are triggered only when spins flip, allowing both dynamic power and switching
+activity to track the data-dependent workload. When flip activity becomes sparse, DSSA avoids
+unnecessary memory reads and computation, sustaining large problem sizes without incurring the
+full O(N2) cost at every step.
+The proposed architecture is applicable to a broad class of combinatorial optimization problems
+that can be mapped to Ising or QUBO formulations, including MAX-CUT, the Traveling Salesman
+Problem, and graph coloring.
+From an architectural standpoint, no modification is required as
+long as the problem can be expressed using pairwise interactions. However, the effectiveness of
+DSSA depends on the temporal sparsity of spin flips during annealing. For problems dominated by
+strong global constraints, such as tightly constrained graph coloring, flip activity may remain high
+for longer durations. As the flip rate increases, the active-frontier size M grows, requiring more
+weight-memory accesses and interaction updates and progressively reducing the cycle advantage of
+20
+
+
+DSSA. In the worst case where M ≈N, DSSA approaches the cycle count of conventional serialized
+SSA without loss of correctness.
+In addition to the G-set benchmarks, the additional Biq Mac Library results in Table 4 further
+demonstrate that the proposed DSSA datapath is not specific to a particular MAX-CUT benchmark
+suite. Although these results are not used for direct comparison with prior ASIC annealers because
+comparable hardware results are unavailable, they support the applicability of DSSA to different
+MAX-CUT benchmark collections.
+Although the proposed processor targets fully connected Ising models, the quadratic memory
+growth can be alleviated for sparse or structured optimization problems by exploiting sparse encod-
+ing, structured sparse matrices, block-sparse weight storage, weight compression, and hierarchical or
+external memory organizations. These techniques can reduce the effective memory footprint when
+many interaction coefficients are zero or when the coefficient matrix exhibits exploitable structure.
+However, for arbitrary dense fully connected Ising problems, all pairwise interaction coefficients must
+still be represented explicitly or implicitly, and the O(N 2) memory complexity therefore remains an
+inherent worst-case limitation.
+Exploring adaptive scheduling policies or hybrid update strategies that better exploit problem-
+specific structure remains an important direction for future work.
+5.7
+Limitations
+Although post-layout simulation provides a detailed estimate of timing, area, and power after place-
+ment and routing, it does not replace fabricated-silicon measurement. In particular, process varia-
+tion, supply noise, clock jitter, on-chip noise, IR-drop effects, clock-distribution non-idealities, and
+realistic memory-access behavior may cause measured silicon performance and power to deviate
+from the reported estimates. Therefore, the reported results should be interpreted as post-layout
+estimates rather than measured chip results.
+Fabricating and measuring silicon across process,
+voltage, and temperature conditions remains an important direction for future work.
+5.8
+Discussion
+DSSA preserves the stochastic acceptance rule of conventional SSA while reducing redundant inter-
+action recomputation through differential updates and event-driven scheduling. Importantly, DSSA
+does not modify the probabilistic state-transition rule itself; rather, it reorganizes when and how
+interaction terms are evaluated.
+Equivalence Conditions. The equivalence between DSSA and serialized SSA holds under the
+following assumptions: 1) each spin is evaluated exactly once per annealing step; 2) the local field
+Ii(t + 1) used in the stochastic update is mathematically identical to that obtained by full recom-
+putation of P
+j Jijσj(t); and 3) the stochastic acceptance probability in (11) remains unchanged.
+Under these conditions, DSSA implements the same Markov chain as conventional serialized SSA.
+The differential update in (9) is algebraically equivalent to full recomputation because it accu-
+mulates the exact contribution of flipped spins while preserving previously stored interaction terms.
+Therefore, for any spin i, the local field Ii(t+1) in DSSA matches that of serialized SSA at the time
+of probabilistic evaluation. Since the acceptance probability depends only on Ii(t + 1) and I0(t),
+the transition probability P(σi(t + 1)|σ(t)) is preserved.
+Effect of Spin-Select Scheduling. The SSC and priority-based weight reads only determine the
+order in which interaction updates are processed. They do not alter which spins are probabilistically
+evaluated, nor do they change the acceptance rule. Each spin is still updated once per annealing
+21
+
+
+step according to (11). Thus, scheduling reorders computations but does not modify state-transition
+probabilities.
+Skip Idle Steps. When no spins flip during an annealing step, all local fields remain unchanged.
+In this case, the resulting transition corresponds to a deterministic self-loop in the Markov chain
+with probability one. DSSA avoids redundant recomputation of interaction terms in this scenario,
+but no valid state transition is removed or altered.
+Therefore, the underlying Markov chain is
+preserved.
+DSSA does not introduce new theoretical convergence guarantees beyond those of classical simu-
+lated annealing. Rather, it constitutes an exact computational reformulation under the assumptions
+stated above. If, in a pathological worst case, a large fraction of spins flip at every step (M ≈N),
+DSSA naturally degenerates to conventional serialized SSA behavior without loss of correctness.
+From a hardware perspective, DSSA introduces additional control structures, including the spin-
+select circuit and priority encoder. Post-layout analysis shows that these components occupy only
+a small fraction of the total die area, which is dominated by the on-chip weight memory. Although
+DSSA incurs some control overhead, this cost is outweighed by the substantial reduction in weight
+memory accesses and interaction computations when flip activity is sparse.
+6
+Conclusion
+A 2,048-spin fully connected annealing processor based on DSSA has been designed in a TSMC
+28 nm process and evaluated using post-layout simulation. Differential serialization and 16:1 RNG
+sharing shrink the active workload to spin flips, enabling 0.15 mW/spin estimated power at 500 MHz,
+2.7 ms TTS, and 0.86 mJ energy-to-solution for 2,000-spin MAX-CUT. Comparisons against recent
+ASIC annealers and a GPU SSA indicate lower per-spin power and the best projected TTS energy
+at P=0.99, despite full connectivity and on-chip weights. Future work includes expanding WM
+capacity and serializer bandwidth for larger spin counts, exploring adaptive temperature schedules
+tunable on chip, and fabricating silicon to validate the post-layout estimates across benchmarks.
+The additional Biq Mac Library evaluation further indicates that the proposed DSSA solver
+maintains high solution quality beyond the G-set benchmark suite.
+Acknowledgment
+This research was supported in part by KIOXIA Corporation and by a research grant from the Mu-
+rata Science and Education Foundation. This work was supported through the activities of VDEC,
+d.lab, The University of Tokyo, in collaboration with NIHON SYNOPSYS G.K. and Cadence Design
+Systems.
+References
+[1] A. Lucas, “Ising formulations of many NP problems,” Frontiers in Physics, vol. 2, p. 5, 2014.
+[2] R. M. Karp, “Reducibility among combinatorial problems,” Complexity of Computer Compu-
+tations, pp. 85–103, 1972.
+[3] S. Kirkpatrick, C. D. Gelatt, and M. P. Vecchi, “Optimization by simulated annealing,” Science,
+vol. 220, no. 4598, pp. 671–680, 1983.
+22
+
+
+[4] M. Yamaoka, C. Yoshimura, M. Hayashi, T. Okuyama, H. Aoki, and H. Mizuno, “A 20k-spin
+Ising chip to solve combinatorial optimization problems with CMOS annealing,” IEEE Journal
+of Solid-State Circuits, vol. 51, no. 1, pp. 303–309, 2016.
+[5] M. Aramon et al., “Physics-inspired optimization for quadratic unconstrained problems using
+a digital annealer,” Nature Communications, vol. 10, p. 5218, 2019.
+[6] M. W. Johnson et al., “Quantum annealing with manufactured spins,” Nature, vol. 473, no.
+7346, pp. 194–198, 2011.
+[7] T. Albash and D. A. Lidar, “Adiabatic quantum computation and quantum annealing: Theory
+and practice,” Reports on Progress in Physics, vol. 80, no. 7, p. 076001, 2018.
+[8] T. Takemoto, K. Yamamoto, C. Yoshimura, M. Hayashi, M. Tada, H. Saito, M. Mashimo, and
+M. Yamaoka, “A 144kb annealing system composed of 9x16kb annealing processor chips with
+scalable chip-to-chip connections for large-scale combinatorial optimization problems,” in 2021
+IEEE International Solid-State Circuits Conference (ISSCC), vol. 64, 2021, pp. 64–66.
+[9] K. Yamamoto et al., “Statica: A 512-spin 0.25m-weight annealing processor with an all-spin-
+updates-at-once architecture for combinatorial optimization with complete spin-spin interac-
+tions,” IEEE Journal of Solid-State Circuits, vol. 56, no. 1, pp. 165–178, 2021.
+[10] K. Kawamura et al., “Amorphica: 4-replica 512 fully connected spin 336MHz metamorphic
+annealer with programmable optimization strategy and compressed-spin-transfer multi-chip
+extension,” in IEEE International Solid-State Circuits Conference (ISSCC), 2023, pp. 42–44.
+[11] Y.-C. Chu et al., “A fully integrated annealing processor for large-scale autonomous navigation
+optimization,” in IEEE International Solid-State Circuits Conference (ISSCC), 2024, pp. 488–
+490.
+[12] T. Kadowaki and H. Nishimori, “Quantum annealing in the transverse ising model,” Physical
+Review E, vol. 58, no. 5, pp. 5355–5363, 1998.
+[13] C. McGeoch and P. Farré, “Advantage processor overview,” D-Wave Quantum Systems Inc.,
+Tech. Rep. 14-1058A-A, 2022.
+[14] R. Faria, K. Y. Camsari, and S. Datta, “Low-barrier nanomagnets as p-bits for spin logic,”
+IEEE Magnetics Letters, vol. 8, pp. 1–5, 2017.
+[15] K. Y. Camsari, B. M. Sutton, and S. Datta, “p-bits for probabilistic spin logic,” Applied Physics
+Reviews, vol. 6, no. 1, p. 011305, 2019.
+[16] N. Onizawa, K. Katsuki, D. Shin, W. J. Gross, and T. Hanyu, “Fast-converging simulated
+annealing for ising models based on integral stochastic computing,” IEEE Transactions on
+Neural Networks and Learning Systems, vol. 34, no. 12, pp. 10 999–11 005, 2023.
+[17] A. Alaghi and J. P. Hayes, Stochastic Computing: Techniques and Applications.
+Springer,
+2018.
+[18] D. Shin, N. Onizawa, W. J. Gross, and T. Hanyu, “Memory-efficient FPGA implementation
+of stochastic simulated annealing,” IEEE Journal on Emerging and Selected Topics in Circuits
+and Systems, vol. 13, no. 1, pp. 108–118, 2023.
+23
+
+
+[19] S. Nikhar,
+S. Kannan,
+N. A. Aadit,
+S. Chowdhury,
+and K. Y. Camsari,
+“All-to-all
+reconfigurability with sparse and higher-order Ising machines,” Nature Communications,
+vol. 15, no. 1, p. 8977, 2024. [Online]. Available: https://doi.org/10.1038/s41467-024-53270-w
+[20] A. Wiegele, “BIQ MAC library – a collection of max-cut and quadratic 0–1 programming
+instances,” https://biqmac.aau.at/biqmaclib.html, 2007, accessed: 2026.
+24

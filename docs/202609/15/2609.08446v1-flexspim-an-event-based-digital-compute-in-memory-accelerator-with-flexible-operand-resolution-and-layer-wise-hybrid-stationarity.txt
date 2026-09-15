@@ -1,0 +1,3222 @@
+1
+FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator
+with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity
+Nicolas Chauvaux, Graduate Student Member, IEEE, Adrian Kneip, Member, IEEE, and Charlotte Frenkel, Senior
+Member, IEEE
+Abstract—Compute-in-memory (CIM) accelerators for spiking
+neural networks (SNNs) offer a promising solution for achieving
+µs-level inference latency and ultra-low energy in edge vision
+applications. However, their limited flexibility at both circuit and
+system levels restricts their deployment across diverse workloads.
+This work introduces FlexSpIM, a digital CIM architecture
+supporting arbitrary operand resolution and shape within a
+unified storage for weights and neuron states (i.e., membrane
+potentials). These circuit-level capabilities enable a layer-level hy-
+brid weight- and output-stationary dataflow, maximizing operand
+reuse and reducing costly on- and off-chip data movement
+during SNN execution. Measurement results from a fabricated
+FlexSpIM prototype in 40-nm CMOS demonstrate competi-
+tive 1-bit-normalized energy efficiency and higher throughput
+compared with prior fixed-precision digital CIM-based SNN
+accelerators, while providing bitwise resolution reconfiguration.
+Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves
+95.8% accuracy while enabling up to 45% energy and 52%
+latency reductions in large-scale systems compared with fixed
+stationarity approaches.
+Index Terms—Digital compute-in-memory, spiking neural net-
+works, flexible operand resolution, hybrid-stationary dataflow.
+I. INTRODUCTION
+A
+RTIFICIAL neural networks (ANNs) have become ubiq-
+uitous across a wide range of applications. Taking the
+example of image classification, their application can be
+categorized based on the criticality of their energy and latency
+requirements, as illustrated in Fig. 1(a). Compact models
+optimized for mobile CPUs, such as MobileNetV3, already
+require hundreds of millions of multiply-accumulate (MAC)
+operations and millions of parameters [1]. As transferring these
+parameters can account for up to 60% of the total power of
+modern workloads [2], recent works started exploiting sparsity
+to reduce energy consumption and latency [3], [4].
+Exploiting sparsity is achieved by bypassing zero opera-
+tions and/or using compression techniques to minimize mem-
+ory requirements [5]. Several works exploit input [6], [7]
+or weight [8] unstructured sparsity, while others combine
+both [9]–[11], at the expense of increasing datapath and mem-
+ory controller complexity. State-of-the-art sparsity exploitation
+techniques have demonstrated that sparsity levels of up to
+Manuscript received Month xx, 2026; revised Month xx, 2026; accepted
+Month xx, 2026. This work was co-funded by Prophesee and by the Dutch
+government as an HTSM-TKI project, and supported by DelftBlue and
+Cloud4Research to get access to the computational resources required to
+obtain the system-level results. This article was recommended by Associate
+Editor [Surname Lastname]. (Corresponding author: Nicolas Chauvaux.)
+Nicolas Chauvaux and Charlotte Frenkel are with the Department of Micro-
+electronics, Delft University of Technology, 2628 CD Delft, The Netherlands
+(e-mail: n.chauvaux@tudelft.nl).
+Adrian Kneip is with the Department of Microelectronics, Delft University
+of Technology, 2628CD Delft, The Netherlands, and with the Department of
+Electrical Engineering, KU Leuven, 3001 Leuven, Belgium.
+Critical
+Non-critical
+Energy
+Latency
+Non-critical
+Critical
+(a)
+DVS camera-based system
+(b)
+Challenge 1: Fixed resolution
+(c)
+Challenge 2: Fixed aspect ratio
+(d)
+Chall. 3: Single dataflow
+(e)
+AI edge node
+Power management unit
+Digital 
+backend 
+(SCNN)
+CAR
+Classification result
+Different properties
+Event 
+sensing/ 
+acquisition
+Innovation
+Prior SNN digital CIM [23,31]
+Resolution
+Accuracy
+Application 
+specification
+Optimal 
+resolution
+Memory waste
+>< Memory 
+usage of SNNs
+Dense 
+memory 
+usage
+Fixed-resolution operand allocation
+Truly used memory bits
+Unused wasted memory bits
+CIM macro
+CIM macro section
+assigned to other layers
+Limited to 
+weights only
+Potentials 
+only
+Membrane 
+potentials 
+and 
+synaptic 
+weights 
+have 
+different 
+resolutions
+No pre-
+allocation 
+of 
+memory
+1
+N/2
+1
+N
+Singe weight/mem. pot. resolution, 
+N/2 and N resp., with N fixed
+Odd
+column
+Even
+column
+Memory hardwired:
+Configurable weight/mem. 
+potential shape and resol.,  
+with L, HO, HW all flexible
+HW
+L
+HO
+Weight
+Mem. Pot.
+L HO = Resolution of 
+membrane potential
+L HW
+ = Resolution of weight
+Context
+Arbitrary resolution
+Flexible operand shaping
+Support for hybrid WS/OS dataflows
+Stationary 
+membrane 
+potentials
+Non-stationary 
+weights
+Stationary 
+weights
+Non-stationary 
+potentials
+Peripheral circuit
+Potential buffer
+Peripheral circuit
+Weight buffer
+Stationary 
+weights
+Non-stationary 
+potentials
+Peripheral circuit
+Potential buffer
+Fail to efficiently map large kernels
+Map potentials or kernels 
+depending on size
+Bad operand reuse
+Improved operand reuse
+Some 
+layers are 
+dominated 
+by weights, 
+others are 
+dominated 
+by 
+membrane 
+potentials
+Fig. 1.
+(a) Application space of artificial neural networks, categorized
+according to latency and energy requirements. (b) Simplified edge vision
+system using an event-based camera as input and a spiking convolutional
+neural network (SCNN) backend for object tracking, highlighting the diversity
+of layer shapes encountered during execution. (c) Three key challenges
+addressed in this work for efficient execution of SCNNs on digital compute-
+in-memory (CIM) architectures.
+70% for inputs and 80% for weights can be exploited without
+degrading accuracy on the ImageNet dataset [12], which is
+shown by Parashar et al. to translate to 2.3× energy and
+2.7× latency improvements [9]. However, while sparsity levels
+above 90% outline additional order-of-magnitude energy and
+latency savings, exploiting them at iso-accuracy remains an
+open challenge [12].
+In order to exploit such extreme sparsity regimes, recent
+approaches shift from frame- to event-based vision with
+dynamic-vision-sensor (DVS) cameras (Fig. 1(b)), in which
+arXiv:2609.08446v1  [cs.AR]  8 Sep 2026
+
+
+2
+individual pixels generate events only when their temporal
+contrast delta crosses a given threshold [13]. The active-pixel
+ratio, i.e., the fraction of pixels generating at least one event
+within a given time window, typically ranges from below 1%
+to around 10%, depending on scene dynamics, for a static
+and a moving camera respectively, in an autonomous driving
+scenario [14]. Combined with sub-100-µs end-to-end event
+generation latency [15], this makes DVS cameras well suited
+for sparse and latency-critical vision applications, motivating
+for novel event-driven vision processing solutions.
+Spiking convolutional neural networks (SCNNs) are gaining
+increasing interest for event-driven vision processing, and the
+efficient processing of spatiotemporal information, thanks to
+the use of a stateful neuron with a membrane potential [16].
+However, this comes at the expense of additional memory
+footprint as, in an SCNN, the neurons’ membrane potentials
+need to be preserved over time, as opposed to conventional
+frame-based CNNs whose partial sums can be discarded after
+they have been used to update the downstream neurons. In-
+deed, assuming 8-bit weights and 16-bit membrane potentials,
+the memory overhead of SCNNs can amount to 25 −67%
+of the total memory footprint of the equivalent non-spiking
+CNN [17]–[19]. Since memory accesses are typically the main
+bottleneck in terms of energy and latency, the membrane
+potential memory overhead of SCNNs is currently hindering
+claims related to their energy/latency advantage [20]–[22]. As
+keeping all weights and membrane potentials on-chip is not a
+practical solution for large SCNNs, it is key to find hardware
+architectures that minimize data movement at the system level,
+taking into account external memory accesses (EMAs).
+To that end, compute-in-memory (CIM) hardware for SC-
+NNs has recently been proposed [23]–[32], but their limited
+reconfigurability makes them fundamentally unsuited to the
+large diversity of SCNN layer specifications (Fig. 1(b)). This
+either implies sub-optimal workload mapping to CIM hard-
+ware, leading to latency and energy penalties, or increased
+time-to-market due to the need for application-specific CIM
+hardware. In this work, we propose FlexSpIM, a digital CIM-
+based accelerator for SNN inference with high flexibility at
+the circuit and system levels. It solves three core challenges
+compared to prior CIM-based SNNs:
+1) while previous works only support a fixed resolution or a
+few pre-defined options, FlexSpIM supports a fully recon-
+figurable resolution for weights and membrane potentials,
+thereby expanding the exploration of the trade-off land-
+scape between accuracy, energy efficiency, and memory
+footprint for SNN workloads (Fig. 1(c));
+2) while operand mapping is usually restricted to either
+fully bit-serial row-wise or fully bit-parallel column-wise,
+FlexSpIM allows for reconfigurable operand shapes to
+support different, non-proportional resolution values for
+weights and membrane potentials, which were otherwise
+constrained to fixed ratios [23] (Fig. 1(d));
+3) while maximizing operand stationarity is key to reduce
+EMAs, prior CIM-based SNNs only support weight sta-
+tionarity, and thus are ill-suited to layers that are bot-
+tlenecked by membrane-potential data movement (e.g.,
+first layers of ResNet [33]). FlexSpIM introduces a uni-
+fied weight/membrane potential memory that allows for
+a hybrid dataflow, making the best out of both weight
+stationarity (WS) and output (i.e., membrane potential)
+stationarity (OS) on a per-layer basis. This minimizes
+operand replacement in the CIM macro for the selected
+workload, thereby directly alleviating the data movement
+efficiency bottleneck of previous work (Fig. 1(d)).
+The remainder of this paper is organized as follows. Section II
+reviews the background of spiking neurons for SCNNs and
+CIM architectures. Section III presents the proposed FlexSpIM
+architecture and discusses how it addresses the key challenges
+identified above. Section IV evaluates the proposed approach
+at the system level and compares it with a conventional weight-
+stationary dataflow. Finally, Section VI concludes the paper.
+II. BACKGROUND
+Understanding the challenges of applying CIM to SNNs
+first requires an overview of the underlying concepts. Sec-
+tion II-A introduces the fundamentals of SNNs, and discusses
+the main execution methodologies and their tradeoffs. Then,
+Section Section II-B presents the two principal classes of CIM
+architectures and their suitability for SNN acceleration.
+A. Spiking Neural Networks (SNNs)
+1) Spiking neurons: SNNs aim to mimic biological process-
+ing through spike-based events, introducing two key features.
+On the one hand, spiking neurons are stateful: a membrane
+potential variable is maintained across time for each neuron.
+On the other hand, activation functions are spiking: an input
+spike increments the neuron’s membrane potential by the
+associated synaptic weight w thereby relying on accumulate
+instead of multiply-and-accumulate operations. Neurons only
+fire an output spike when their potential reaches a predeter-
+mined threshold, after which it is reset (Fig. 2(a)). In this work,
+we consider a standard integrate-and-fire (I&F) neuron model
+[34]. The evolution of the membrane potential V j
+mem of neuron
+j is described as
+dVj
+mem(t)
+dt
+=
+N
+X
+i=1
+wi,j
+X
+o∈Oi(t)
+δ(t −ti
+o),
+(1)
+where N is the number of pre-synaptic neurons, wi,j are
+synaptic weights, and Oi(t) denotes the spike train from pre-
+synaptic neuron i, with spike times ti
+o for each spike o ∈Oi.
+The firing condition of neuron j is described as
+Oj(t) = θ(V j
+mem(t)) =
+(
+1
+if V j
+mem(t) ≥Vth,
+0
+otherwise,
+(2)
+where Vth is the neuron firing threshold, and θ(·) is the Heav-
+iside function that handles the output spike generation and the
+reset of the membrane potential. Typical reset mechanisms are
+either a reset to zero, or a reset by subtraction of the firing
+threshold Vth. The latter was shown to increase accuracy [35]
+and will be adopted in this work. As the I&F model relies only
+on additions and comparisons, it is a low-footprint model often
+used in custom hardware implementations [23], [36]–[38].
+
+
+3
+0
+1
+N-1
+Potential
+Synaptic 
+weight
+Input 
+spike
+Output
+spike
+Pre-synaptic neurons
+Accumulate activated 
+synaptic weights to 
+membrane potentials
+Compare 
+membrane 
+potentials to 
+threshold
+T
+T+1
+Layer execution type
+(c)
+CNN with batching
+SNN: Timestep-first
+SNN: Layer-first
+Collect B
+images
+for each layer
+for each image
+Process layer
+    for image
+Collect events for 
+all T timesteps
+for each layer
+for each timestep
+ Process layer
+  for timestep
+Collect events for 
+all T timesteps
+for each layer
+ Process layer
+  for timestep
+for each timestep
+Off-chip memory
+On-chip mem.
+High on-chip layer
+parameters reuse
+High latency
+High on-chip layer
+parameters reuse
+High latency
+Lower on-chip layer
+parameters reuse
+Low latency
+Spiking neuron model
+(a)
+Event aggregation
+(b)
+Bin size
+Fig. 2. (a) Illustration of an integrate-and-fire (I&F) neuron j connected to
+N pre-synaptic neurons indexed by i. (b) Illustration of the event aggregation
+process. (c) Overview of the main layer execution strategies: CNN-style
+batching for comparison (left), timestep-first execution (middle), and layer-
+first execution (right).
+2) SNN execution: SNN execution begins by aggregating
+events into bins (Fig. 2(b)) [39], which segment the time
+dimension into timesteps. After each timestep, every neuron’s
+membrane potential is compared against its threshold. A small
+bin size, down to a single event per bin for fully event-driven
+processing, increases this comparison overhead but reduces
+latency. Besides this bin size, SNN layer execution can follow
+two strategies (Fig. 2(c)). In timestep-first execution, analogous
+to CNN batching, multiple timesteps are executed per layer
+to maximize weight and membrane-potential reuse when not
+all layers fit on-chip, often the case due to limited on-chip
+memory [24]. In layer-first execution, all layers are instead
+executed for a single timestep before advancing to the next,
+offering lower latency at the cost of higher memory traffic.
+The former is inadequate for SNNs, since it loses the low-
+latency advantage we aim to exploit from DVS cameras. We
+therefore adopt layer-first execution, balancing latency and
+energy efficiency, which calls for an efficient dataflow such
+as the one proposed in this paper.
+B. CIM for SNNs
+1) In-array vs. in-column CIM: To reduce the latency and
+energy cost of data movement, compute-in-memory (CIM)
+approaches perform computation within memory arrays and/or
+their periphery by activating multiple wordlines (WLs) at once.
+Two orthogonal paradigms exist: CIM can either be in-array or
+in-column, whose distinction is particularly relevant for SNNs.
+In-array CIM (Fig. 3(a)) performs matrix-vector multipli-
+cations (MVMs) massively in parallel directly in the memory
+array [40]. Typically, analog CIMs activate multiple WLs in
+parallel, and the MVM result accumulates as charges or current
+Linear
+ADC
+ADC
+ADC
+ADC
+In-array CIM
+(a)
+1
+0
+1
+1
+In-column CIM
+(b)
+Dual address decoder
+Only two WLs
+activated at a time
+PC
+PC
+PC
+SUM:
+CARRY:
+1-bit full-adder
+⊕
+COUT = A&B + CIN&A  B
+S = A   B   CIN
+⊕ ⊕
+A   B = ~(A&B + (A+B))
+⊕ 
+XOR:
+PC
+A&B
+BL
+WLA
+6T
+B=0
+1
+A+B
+WLB
+6T
+A=1
+0
+BLB
+Analog CIM 
+example
+(c)
+Fig. 3.
+(a) In-array CIM principle, illustrated for analog CIM, with multi-
+WL activation and MVM representation as BL voltage. (b) In-column CIM
+principle with dual WL activation. (c) Impact of the activated bitcells on the
+bitlines and equations of a 1-bit full adder.
+TABLE I
+COMPARISON BETWEEN IN-ARRAY AND IN-COLUMN CIM FOR CNN AND
+SCNN OPERATIONS.
+(S)CNN
+High parallelization support
+CNN
+Characteristics
+In-array CIM In-column CIM
+MAC efficient
+Robust to mismatch, noise, etc.
+NN type
+No ADC required
+Efficient at high sparsity (>90%)
+SCNN
+on bitlines (BLs) before a final ADC conversion. Digital
+CIMs operate similarly, replacing the analog accumulation and
+ADCs by (approximate) multipliers and adder trees [41]–[43]
+or directly performing a full operation near each bitcell [44].
+In-column CIM (Fig. 3(b)) typically activates two WLs
+simultaneously, enabling digital logic operations between
+operands stored on the same BLs. In 6T SRAM, this produces
+operations such as A&B and A|B, while peripheral circuits
+(PCs) extend this functionality to additions and multiplica-
+tions, composing a full adder from A&B and A|B without
+requiring A and B to be read out separately [23], [45]–[48].
+Table I compares both approaches for CNN and SCNN
+workloads. For CNNs, in-array CIM vastly outperforms in-
+column CIM thanks to its efficient acceleration of dense
+MVMs. Nonetheless, its computing accuracy can be limited
+by either analog impairments [49] or digital approximation
+techniques used to limit area overhead [50]–[52]. For SCNNs,
+the high sparsity of typical workloads (e.g., > 90% in event-
+based vision sensors [14]) leads to underutilized in-array
+CIMs whose efficiency is capped by the ADC contribution
+[53]. In contrast, in-column CIMs inherently harness input
+sparsity, making them good candidates for sparse event-based
+processing. To abbreviate, we will thus refer to digital in-
+column CIM as digital CIM henceforth.
+2) State-of-the-art CIM for SNNs: To the best of our
+knowledge, IMPULSE [23], shown in Fig. 4(a), is the only
+digital and in-column CIM accelerator specifically proposed
+for SNNs. Following the in-column CIM principle in Fig. 3(b),
+synaptic weights and membrane potentials are stored in sepa-
+rate hardwired regions of the same memory array and added
+in-memory through carry propagation between PCs. To sup-
+port 6-bit weights and 11-bit membrane potentials, IMPULSE
+interleaves odd/even potentials across two rows and maintains
+odd/even weights in a single row, processed in odd/even
+
+
+4
+WL activated in even/odd cycle
+Peripheral circuits
+(a)
+SotA approach
+Carry propagation between 
+PC for even/odd cycles
+(b)
+Proposed: FlexSpIM
+Control and emulation bit-cells
+Legend:
+0
+Hardwired weight/potential mem.
+(Weight stationarity only)
+Fixed/limited resolution set
+Unified memory
+(Weight & Output stationarity)
+Fully reconfigurable resolution
+Weights
+Pot.
+Potentials
+Wei.
+or
+WS
+OS
+Weights ONLY
+Potentials ONLY
+Membrane potential interleaving
+Bitcell lost for weight-sign extension
+Bidirectional carry propagation 
+= No interleaving needed
+Weight
+sign-bit 
+propagation
++
++ +
+Unified memory can be 
+used to store either the 
+membrane potentials or 
+the synaptic weights 
+(6T bitcells)
+Even 6-bit 
+weights 
+memory 
+section
+(10T)
+Odd 6-bit 
+weights 
+memory 
+section
+(10T)
+Fig. 4. Operating principles of (a) state-of-the-art in-column CIM architec-
+tures for SNNs [23], [31] and (b) the proposed FlexSpIM architecture.
+cycles, respectively. This requires separate WLs for odd and
+even weights and sacrifices one potential bit for weight-sign
+extraction. As a result, only a single set of weight/potential
+resolutions is supported and the memory organization is tied to
+a weight-stationary dataflow. SpiDR [31] extends IMPULSE to
+multiple macros and addresses its fixed-resolution limitation.
+However, it remains constrained to supporting only 4/7-bit,
+6/11-bit, and 8/15-bit precision modes, as well as to maintain-
+ing separate hardwired regions of the CIM memory.
+III. PROPOSED DIGITAL CIM MACRO
+In this work, we propose the SRAM-based flexible spik-
+ing in-memory (FlexSpIM) compute macro, which overcomes
+the limitations of fixed resolutions, mappings, and dataflows
+through a unified memory organization (Fig. 4(b)). We no-
+tably reshape membrane potentials into a 6 × 2 bitcell struc-
+ture to enable bidirectional carry propagation, and thereby
+eliminate the membrane potential interleaving observed in
+IMPULSE/SpiDR. As a result, FlexSpIM is agnostic to the
+storage of weights or potentials, allowing it to support multiple
+dataflows, arbitrary operand resolutions through configurable
+PCs, and full membrane-potential precision.
+The top-level architecture of FlexSpIM is shown in
+Fig. 5(a). It consists of a single 16 kB digital CIM-SRAM
+macro, a 4.25 kB input buffer for spikes, and a weight/potential
+buffer of 16 banks of 2 kB, which can be reshaped to match
+the CIM mapping pattern. A horizontal interconnect controller
+distributes shared neuron parameters to the CIM-SRAM, while
+a timing generator produces the phases of the CIM operation.
+The chip controller is based on a finite-state machine (FSM)
+that fetches instructions from instruction memory.
+A. CIM-SRAM Overview
+The digital CIM-SRAM architecture (Fig. 5(b)) combines a
+regular 512 × 256 6T-SRAM bitcell array with per-column
+peripheral circuits (PCs), which are the core enabler of
+FlexSpIM. Each PC extends the bitwise AND/NOR logic
+performed by the in-column CIM-SRAM array into complex,
+precision-flexible operations, later detailed in Section III-B3c.
+Three additional bitcells per column respectively store the 2-bit
+PC configuration (control bitcells) and the externally emulated
+1-bit PC control (emulation bitcell, EB). A dual address
+decoder with full and half span generates WL controls for both
+regular read/write and dual-wordline in-memory operations.
+Finally, a dedicated in-SRAM controller handles the correct
+timing duration for WL activation.
+B. CIM Operation
+Since input spikes directly activate the WLs to perform CIM
+operations, only weights and membrane potentials are stored
+in the CIM macro. To reduce data movement, one operand
+stays stationary while the other updates as needed. Unlike IM-
+PULSE, which supports only weight-stationary (WS) execu-
+tion (Section II-B2), FlexSpIM also supports output-stationary
+(OS) execution by keeping membrane potentials stationary.
+The operation flow follows the layer-first schedule de-
+scribed in Section II-A2, and depends on the selected dataflow
+(Fig. 6(a)-(b)). Both OS and WS start by configuring the
+PC control bitcells for operand reshaping (Section III-B1)
+and initialize the stationary operand (Section III-B2). Non-
+stationary operands are stored at the bottom of the memory
+and updated during execution (Fig. 4(b), top right), with
+bits from only one non-stationary operand stored per mem-
+ory column, maximizing the capacity available for stationary
+operands (Fig. 4(b), only two bits of the same membrane
+potential per column). CIM accumulation then proceeds by
+reusing the loaded non-stationary operand until replacement
+is required (Section III-B3), with weight sign-bit exten-
+sion and overflow/underflow correction applied when needed
+(Section III-B4 and Section III-B5, respectively). At each
+timestep, the membrane potential is thresholded and reset (Sec-
+tion III-B6). OS performs this after all events are processed,
+whereas WS performs it after the last accumulation event of
+each neuron to avoid reloading their membrane potential.
+All operations share the same CIM macro and PC resources
+and are controlled through six fixed phases: BL precharge,
+sense amplifier (SA) sampling, WL(s) activation (read/CIM),
+operation, write precharge, and write (Fig. 6(c)-(e)). The
+duration of each phase is controlled by a finite-state machine
+(FSM) clocked by a programmable high-speed clock up to
+1.2 GHz. One cycle or more can be allocated to each phase,
+with a minimum of four cycles across all phases (Fig. 6(c)).
+The enabled phases depend on the operation type: Fig. 6(d)
+shows a conventional read operation, which does not require
+the write-related phases. Fig. 6(e) illustrates two of many pos-
+sible timing variants. First, depending on the supply voltage,
+the precharge and sampling phases (and similarly the write-
+precharge and write phases) can share a single high-speed
+clock period or use distinct ones. Next, since WL activation
+is timing-critical for the read phase (see Section III-B3a), a
+configurable delay-chain-based read-time generator provides
+fine-grained control, validated through extensive post-layout
+Monte-Carlo simulations (Fig. 6(f)), with Fig. 6(e) showing
+two read-timing durations, the second spanning multiple clock
+cycles. Finally, to support various operand resolutions (see
+Section III-B3c), the read/CIM phase time can also be adjusted
+to give the PCs appropriate time to complete the operation.
+
+
+5
+32 to 256
+Instruction 
+memory 
+11.5kB 
+Input mem. 
+4.25kB
+FSM
+Timing 
+generator
+Horizontal 
+interconnect.
+controller
+Internal clock 
+generator
+External 
+commu. (SPI)
+Memory 
+bank merge
+& shift 
+(32-256b)
+32 to 256
+32 to 256
+Potential/
+weight
+buffer (4x4 
+2kB banks)
+DEBUG/
+ACK
+VREF_BL/
+VREF_BLB
+CLK_SEL/
+EXT_CLK
+MISO/MOSI/
+SCK
+Core voltage (0.9-1.1 V)
+CIM macro voltage (0.9-1.1 V)
+ADDR #1
+ADDR #2
+PHASE
+TIMING
+9
+8
+Dual address
+decoder
+Read time
+generator
+Control
+registers
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+6T
+EB
+EB
+EB
+EB
+6T
+6T
+6T
+6T
+Peripheral circuits (PCs)
+1  256
+Dual WL driver
+CTRL bitcells
+& EB driver
+Control
+drivers
+#2
+#1
+6T SRAM
+512  256
+EB 1  256
+CTRL bitcells
+#2 1  256
+#1 1  256
+Vertical interconnection
+to digital controller
+Emulation bitcell (EB) logic
+Localize PC
+Reading circuit
+Write datapath
+Spike, over-/under-flow,
+sign propagation
+Over-/under-flow detection
+External communication
+Carry-in selection
+Precharge control
+Sign-bit extension
+Carry save
+Threshold comparison
+A&B
+A|B
+BL
+BLB
+VREF,BLVREF,BLB
+ENSA
+A&B
+A|B
+CIN
+COUT
+S
+A   B
+CIM-SRAM macro
+(b)
+(c)
+1-b full-adder
+(a)
+ADDR #1
+Digital CIM-
+SRAM
+macro (16kB)
+ADDR #2
+CTRLS
+Phase
+CTRLS
+2
+VREF_BL/
+VREF_BLB
+BL
+BLB
+CTRL
+[1]
+CTRL
+[0]
+EB
+Fig. 5. (a) FlexSpIM architecture. (b) Overview of the digital CIM macro architecture. (c) Module-level breakdown of the peripheral circuit, including detailed
+logic schematics of the read and 1-bit full-adder modules.
+SNN CIM operation flow
+Initialize potentials/weights inside the memory (i.e., stationary operand)
+Configure the control bitcells to configure the PCs
+Accumulate the non stat./stat. weights to the stat./non-stationary potential
+Output stationary digital CIM macro configuration
+Write/replace weights/potentials at the bottom of memory (non-stat. op.)
+At least one over-/underfl. detected
+Correct overfl.
+Correct underfl.
+Compare potentials with threshold
+Reset potentials
+Process layer i for timestep t
+Layer i+1, t
+Weight stationary digital CIM macro configuration
+Process layer i for timestep t
+Layer i+1, t
+(b)
+(a)
+Core clock
+CIM phases
+Core clock
+CIM phases
+Core clock
+CIM phases
+Read prech.
+SA sampling
+Read
+Operation
+Write prech.
+Write
+4
+0
+1
+2
+3
+15
+CSSA
+CSWL,H
+CSWL,F
+READ
+WRITE
+RD|WR
+REST
+RD|WR
+RESTSLT
+ENSA
+ENWL,H
+ENWL,F
+1
+2
+3
+4
+5
+1e8
+1.5
+2
+2.5
+3
+3.5
+Time [ns]
+Density
+RESTSLT=0 to 15
+(@25°C, TT,
+VDD=0.8V,
+50k MC)
+Distribution of ENSA
+Read time generator
+1
+2
+3
+4
+5
+8
+1
+3
+4
+5 6 7
+6
+9
+7
+4
+3
+4
+5 6 7
+4 8 9 8 9
+8 9 1 2
+3 4
+1 2
+3
+4
+5 6 7 4 8 9
+4
+5 6 7
+4 8 9
+1
+2
+3
+4
+Operation phases
+Clock configuration for a conventional read operation
+(d)
+Unused phases
+(c)
+Core clock
+CIM phases
+Two example configurations of an accumulation operation
+(e)
+4 high-speed clock cycles
+Minimal core clock cycle configuration (4 high-speed clock cycles)
+High-speed clk
+5 high-speed clk cycl.
+7 high-speed clock cycles
+(f)
+2
+System clock 
+period if one 
+clock per acc.
+Fig. 6. (a)-(b) SNN operation execution flow for the two supported dataflows.
+(c)-(e) Four phase timing configurations: (c) fastest accumulation, (d) con-
+ventional read, (e) two longer accumulation phase-timings. (f) Read-time
+generator schematic for fine-grained timing control of the read phase with
+post-layout Monte-Carlo simulation of all 15 timing selections.
+The system’s digital clock period is then defined by summing
+the durations of the six phases. The following sections detail
+each operation and its associated peripheral-circuit behavior,
+following Fig. 6(a)-(b).
+1) Configuration setup: Prior to operations of each layer,
+we configure the 2-bit control bitcells for the layer, operands
+and dataflow at hand, thereby defining the behavior of every
+PC during the following sequence of operations (Fig. 6(a)-
+(b)). Configuration data are supplied through the macro’s I/O
+vertical interconnect (Fig. 5(b)) and processed by the external-
+communication and write-datapath modules (Fig. 5(c)). This
+operation uses only the write phases. Unlike regular memory
+accesses, the control bitcells are accessed through dedicated
+WLs rather than the dual address decoder.
+2) Operands initialization: Next, operands are written into
+the memory array using the same I/O interface. Stationary
+operands are mapped to the full range of addresses of the
+main decoder (i.e., via ADDR#1 in Fig. 5), while non-
+stationary operands are stored at the bottom of the memory
+(i.e., via ADDR#2 in Fig. 5). to facilitate multi-layer mapping
+(see Section IV), and overwrite non-stationary operands inside
+the CIM array. Stationary operands are written once and
+reused across all layers and timesteps, whereas non-stationary
+operands must be updated between layers and timesteps, and
+may require multiple updates within a single layer execution.
+Strategies for updating non-stationary operands to reduce
+latency and energy overheads are discussed in Section IV.
+3) Synaptic weight accumulation: Following these initial-
+ization steps, the accumulation operation takes place and is
+repeated, interleaved with non-stationary operand update if
+required (Fig. 6(a)), until all the events of the current timestep
+and layer are processed. The hardware operations required
+to process these events are described hereafter, from the
+basic Boolean CIM operations (Section III-B3a) and bit-serial
+accumulation (Section III-B3b) to the proposed bit-parallel
+accumulation with operand reshaping (Section III-B3c).
+a) Boolean CIM operation: Unlike conventional reads,
+in-column CIM operations can create half-select write distur-
+bances in 6T SRAM bitcells. If two activated bitcells on the
+same BL store different values, the cell storing 0 discharges
+
+
+6
+Distribution of SABL
+and SABLB offset
+Density
+-0.1 -0.05
+0 0.05
+0
+5
+10
+15
+1.6
+3   (Vleak)
+Param.
+[mV]
+-47
+(SAoffset)
+63
+3   (SAoffset)
+(Vread)
+375
+3
+4
+5
+6
+VDD = 800mV
+GND
+1
+2
+A
+4
+C
+D
+-1.9
+(Vleak)
+2
+161
+7 3   (Vread)
+7
+D
+6
+A
+4
+B
+5
+5
+A 797mV B 781mV C646mV D536mV
+(@25°C, TT,
+ VREF=0.77V,
+  VDD=0.8V,
+     10k MC)
+BL
+BLB
+0.2
+0.3
+0.4
+0.5
+0
+2
+6
+4
+BL/BLB value [V]
+VREF, BLB
+[646 mV, 781 mV]
+(@25°C,,
+VDD=0.8V,
+    TT,
+  25k MC)
+BL
+BLB
+Dist. of BL/BLB for 
+read time of 4.1ns
+Offset [V]
+3
+1
+8
+(a)
+(b)
+Fig. 7.
+(a) Distribution of the BL and BLB sense amplifier offset from
+10k Monte Carlo (MC) simulations, and distribution of the BL/BLB voltages
+after 4.1 ns of WL activation from 25k MC simulations. (b) Methodology to
+evaluate the margins of the reference levels employed by the read module.
+O1[n-1]
+W1[0]
+W1[1]
+W1[n-1]
+O1[1]
+O2[1]
+O2[n-1]
+W2[0]
+W2[1]
+W2[n-1]
+Target operations: O1=O1+W1 and O2=O2+W2 via CIM in parallel
+Digital CIM macro
+PC array
+n
+n-bit operands
+stored vertically
+in memory
+O1[0]
+O2[0]
+PC[0]
+PC[1]
+LSB
+MSB
++
+CIN=0
+Cycle 1
+PC[0]
+Cycle 2
+PC[0]
+Cycle n
+PC[0]
+O1[0]
+W1[0]
+Bit-serial accumulation
+O1[1]
+W1[1]
+O1[n-1]
+W1[n-1]
+O1[11]=
++
++
+CIN=
+CIN=
+O1[1]=
+O1[0]=
+(LSB)
+(MSB)
+Macro level
+(a)
+PC level (e.g., O1=O1+W1)
+(b)
+ADDR #1
+ADDR #2
+Fig. 8. (a) Macro-level representation of operand locations in memory for a
+n-b weight-stationary bit-serial accumulation. (b) Temporal execution flow of
+the bit-serial accumulation O1 = O1 + W1 and the involved PC modules.
+the BL and may flip the cell storing 1 if the WL activation
+is too long. Limiting the activation time avoids bit flips but
+reduces the BL voltage swing. Therefore, latch-based sense
+amplifiers (SAs) with separate BL and BLB reference voltages
+are employed to ensure reliable Boolean result readout.
+To guarantee correct operation in the presence of local
+process variations, we extract the worst-case range of accepted
+reference voltages Vref,BL/BLB with post-layout Monte-Carlo
+read-stability simulations (Fig. 7(a)). For the BLB SA, the
+lower bound is derived from the maximum WL activation time
+without bit flips under a 3-σ margin, resulting in 4.1 ns at
+VDD = 0.8 V (Fig. 7(b)). The corresponding 3-σ maximum
+BL voltage gives 536 mV, increased to 646 mV when account-
+ing for the statistical SA offset. The upper bound is obtained
+from the worst-case BL leakage when both activated bitcells
+store 1 while all others store 0. Starting from VDD gives
+797 mV, reduced to 781 mV after SA offset uncertainty. The
+resulting 135-mV margin at VDD = 0.8 V confirms reliable
+operation, with larger margins at higher supply voltages. A
+similar analysis on the BL side yields comparable results.
+b) Basic bit-serial accumulation: Before introducing the
+full operand-reshaping capabilities of FlexSpIM, we first de-
+scribe a simple bit-serial accumulation situation in a WS
+configuration. Fig. 8(a) shows two n-bit parallel accumula-
+tions, O1 + W1 and O2 + W2, executed by the first two
+PCs, respectively denoted PC[0] and PC[1]. The operands
+are stored vertically along a bitline, going from the most-
+significant bit (MSB) at the top to the least-significant bit
+(LSB) at the bottom. During a bit-serial operation, one bit from
+each operand is processed per cycle, starting from the LSB and
+accessed from the full/half range of addresses ADDR#1/#2
+for the stationary/non-stationary operand (Fig. 8(b)). The re-
+0
+1
+0
+1
+0
+1
+0
+1
+00 0110 11 2
+00
+[0] [1]
+CTRL[1:0]=00
+CIN,L
+R
+CIN,R
+CIN CMDC,SLT[1:0]
+SEQ
+PC logic
+PC logic
+Carry-in
+selection
+logic
+PC logic
+PC logic
+CIN,L CIN,R
++
+1-b FA
+COUT
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
+CIN=0
++
++
++
++
++
++
++
++
+Cycle=1: Left-to-right carry propagation with CMDC,SLT=11
+Cycle=2: Right-to-left carry propagation with CMDC,SLT=01
+Cycle=3 (final): Left-to-right carry propagation with CMDC,SLT=00
+Digital CIM memory
+CTRL[255:0][0:1]
+R=COUT
+CIN=CIN,L
+CIN=R
+R=COUT
+CIN=CIN,R
+PC array
+Target operations: O1=O1+W1 and O2=O2+W2 via in-memory computing in parallel
+MIDDLE
+MIDDLE
+LEFT
+RIGHT
+1
+0
+0
+0
+0
+0
+0
+1
+CIN=0
+Cycle 1
+Cycle 1
+Cycle 2
+Cycle 2
+Cycle 3
+Cycle 3
+RIGHT
+0
+1
+MIDDLE
+0
+0
+WL activation
+cycle
+Macro level
+(a)
+PC level
+(b)
+Gate level (e.g., middle PC, left to right)
+(c)
+12-bit operand with aspect ratio 4x3
+W2[3]
+W2[7]
+W2[4]
+W2[8]
+W2[11]
+W2[1]
+W2[2]
+W2[6]
+W2[5]
+W2[9]
+W2[10]
+W2[0]
+O1[3]
+O1[4]
+O1[11]
+W1[3]
+W1[4]
+W1[11]
+O1[2]
+O1[5]
+O1[10]
+W1[2]
+W1[5]
+W1[10]
+O1[7]
+O1[8]
+O2[3]
+O2[4]
+O2[11]
+O1[0]
+O2[1]
+O2[2]
+O2[6]
+O2[5]
+O2[9]
+O2[10]
+Carry propagation path
+Fig. 9.
+(a) Macro-level representation of operand locations in memory for
+a 12-bit weight-stationary bit-parallel accumulation. (b) Carry propagation
+during the accumulation process and the involved PC modules. (c) Detailed
+circuit implementation of the carry-in selection PC module.
+sulting sum bit overwrites the currently processed bit of O1
+and O2. The generated carry is stored in a dedicated PC
+register and reused as the carry-in during the next cycle. OS
+behaves in a similar way, except that the operand positions in
+memory are swapped to have the weights at the bottom.
+c) Operand reshaping for bit-parallel accumulation: To
+support flexible-precision bit-parallel accumulation without the
+storage penalty of interleaved-operand techniques [23], [31],
+we propose to directly reshape operands inside the memory
+(Fig. 9). To illustrate the operating principle, we show a 12-
+bit addition of O1 + W1 and O2 + W2. The extension to
+different operand resolutions is discussed in Section III-B5.
+Each operand is stored as a 4×3 block spanning four columns
+and three rows. Bits are ordered left-to-right in even rows and
+right-to-left in odd rows.
+Unlike bit-serial accumulation, all bits stored in a row of
+the SRAM array are processed in a single cycle, reducing
+the addition’s latency from 12 to 3 cycles. To that end, we
+propagate full-adder (FA) carries between neighboring PCs,
+flowing left-to-right for even rows and right-to-left for odd
+ones (Fig. 9(a)-(b)). The first PC in a block receives the result-
+ing carry from the last cycle, initialized at 0, intermediate PCs
+forward carries, and the last PC stores the new (intermediate)
+carry for the next cycle.
+To identify their first, middle, or last position in a block, or
+to disable them, PCs are configured by CTRL[1 : 0] signals,
+driven by the 2-bit control bitcells (Fig. 9(c)). A global signal,
+
+
+7
+SOUSL SOUSR
+O[7]
+O[8]
+W[0]
+O[0]
+O[1]
+O[2]
+O[6]
+O[5]
+O[9]
+O[10]
+W[1]
+W[2]
+Cycle 1
+Cycle 2
+Cycle 3
+CTRL[255:0][0:1]
++
++
++
+4
+3
+12-bit potential 
+O[11:0] stored as 4x3
+Target operations: W + O via in-memory computing
+4
+1
+4-bit weight W[3:0]
+stored as 4x1
++
+4
+3
+4
+3
+Cycle 1: Sign-bit extraction
+O[3]
+O[4]
+O[11]
+W[3]
++
+O[0]
+O[1]
+O[2]
+O[3]
+W[0]
+W[1]
+W[2]
+W[3]
++
+O[3]
+W[3]
+Cycle 2 (&3): O[11:4]=O[11:4]+{8{W[3]}} sign-bit propagated
+O[7]
+O[6]
+O[5]
++
++
+REGV
+CIN
+S
+CLK PCEND CMDEXT,SIGN
+SIGN
+D
+E
+Q
+Pre-config. - Store O[3] in PC to recover W[3] later
+Multiple weights
+vertically
+Only one potential
+stored vertically
+W1,1
+W1,2
+O1
+O2
+W2,1
+W2,2
+O[0]
+O[1]
+O[2]
+O[3]
+Vertical interconnection
+from digital controller
+CMDEN,REG,V=0 for O[11:4]
+0
+1
+0
+1
+CMDV,SLT[1:0]
+CMDEN,REG,V
+DATAV
+REGV
+D Q
+O[3]
+SIGN=W[3] is
+saved in a latch
+for next cycles
+[1]
+0
+1
+CMDLR
+SOUSL
+SOUSR
+SOUS
+0
+1
+0
+1
+0
+1
+0
+1
+[0]
+CMDSS
+REGV CMDSOUS
+SIGN
+CTRL[1:0]
+SOUS
+W[3]
+2
+00 0110 11
+DATAEB CMDEB
+SOUS
+REGV
+O[4]
+EB=W[3]
+EB=W[3]
+W[3]
+W[3]
+O[0]
+O[1]
+O[2]
+O[3]
+extend
+sign bit
+Not stored 
+in memory
+to save
+space
+Context: One pot. O with 
+many weights W vertically
+Chall.: Obtain W1,X[3] 
+to sign-bit extend W1,X
+Problem: W1,X[3] is 
+never read alone.
+Sol.: S, CIN and O1[3] 
+used to obtain W1,X[3]
+W1,X
+O1
++
+#1
+#2
++
+#3
++
+Cycle
+PC
+W1,X
+O1,1
+W1,X[3]&O1[3]
+~(W1,X[3]|O1[3])
+W1,X[3]?
+O1+= W1,1 + W1,2 + ...
+(accumulation depending on
+ input spike)
+O1[3] can be stored 
+in the PC a priori
+Combine with CIN and S 
+to obtain W1,X[3] back
+When loading O[3:0] 
+inside the CIM macro, 
+save O[3] inside the 
+related PC
+Cycle 1: O[3:0]=O[3:0]+W[3:0] and update the saved value for O[3]
+0
+1
+S
+[0]
+CMDEN,REG,V=1
+CMDV,SLT=01
+REGV = S = updated O[3]
+Required for the next weight
+sign-bit extraction
+SOUS=W[3]
+CMDEXT,SIGN=1
+PCEND=1
+PCEND=0
+Macro level
+(a)
+Sign-bit extension operation (WS case)
+(c)
+Gate level: Example O=O+W (WS case)
+(d)
+BL
+BLB
+~W[3]
+W[3]
+WLEB
+Sign-bit extension operation (OS case)
+(b)
+Multiple
+potentials
+vertically
+O1,1
+O1,2
+W1
+W2
+O2,1
+O2,2
+Context: One weight W with 
+many potentials O vertically
+Challenge: Obtain W1[3] 
+to sign-bit extend W1
+Opportunity: Only one 
+W stored vertically
+Solution: Store W1[3] in 
+PC when loading in mem.
+W1
+O1,1
++
+#1
+#2
++
+#3
++
+Cycle
+O1,1+= W1
+(accumulation 
+depending on
+input spike)
+Single potential
+vertically
+Single weight
+vertically
+O1,X+= W1
+, ...
+Vertical interconnect
+W1
+W2
+Keep 
+W2[3] 
+in a 
+reg.
+Fig. 10.
+(a) Macro-level illustration of the sign-bit extension mechanism,
+with a 4-bit weight and 12-bit potential accumulation example. (b-c) Context,
+challenges, and proposed solution for sign-bit extension in the output-/weight-
+stationary (OS/WS) cases. (d) Cycle-level execution flow of sign-bit extension
+for WS, with detailed schematics of the relevant PC modules. SOUS
+propagates the weight Sign-bit, the Overflow and Underflow indicators, and
+the Spike value to the current and neighboring PCs. CMDLR sets SOUS
+from either SOUSL (left) or SOUSR (right), while CMDSS selects between
+SIGN and REGV (spike storage). PCEND indicates if the current PC is the
+rightmost of a block and is computed from CTRL[1 : 0] locally.
+CMDC,SLT[1 : 0], selects the carry direction and initial carry-
+in, while SEQ enables a bit-serial accumulation. Contrary to
+prior works with fixed-width operands and static mapping
+patterns [23], [31], this configuration allows arbitrary block
+width and height, and therefore arbitrary operand resolution.
+4) Sign-bit extension: Until now, both operands were as-
+sumed to have the same resolution. However, in quantized
+neural networks, weights typically have a lower precision
+than accumulation, e.g., on membrane potentials for SNNs
+in Fig. 10(a). Assuming a 12-bit membrane potential and a
+4-bit weight, the accumulation requires three CIM operations:
+the first performs a conventional multi-bit addition, while the
+remaining two perform weight sign extension.
+Reading the sign bit before every accumulation would add
+an extra memory access and increase both energy consumption
+and latency by up to 50% in the block-height-two membrane-
+potential configuration, a configuration primarily targeting
+speed. IMPULSE [23] and SpiDR [31] instead avoid this over-
+head by fixing the corresponding membrane potential bit to 0
+(Section II-B2), reducing the membrane potential resolution by
+one bit and degrading the overall network accuracy. To avoid
+these limitations, the proposed sign-extension mechanism dif-
+fers depending on whether OS or WS is used, as illustrated
+in Fig. 10(b) and Fig. 10(c-d), respectively. In both cases, the
+CIM operation is destructive because the weight sign bit (e.g.,
+W1[3]) cannot be distinguished from the membrane potential
+bit (i.e., O1[3]), so we introduce ways to recover W1[3]. For
+OS, only one weight is stored vertically and reused before
+being overwritten. Its sign bit is therefore stored directly in the
+corresponding PC register REGV when the weight is loaded
+into memory (see Section III-B2). For WS, multiple weights
+are stored simultaneously, making this approach impractical.
+Instead, FlexSpIM stores the membrane potential bit O1,X[3]
+in REGV (Fig. 10(d), pre-configuration) and recovers the
+weight sign bit from the S, CIN, and stored O[3] signals
+when the last weight row is processed (Fig. 10(d), sign-bit
+extraction). The extracted sign bit is latched in SIGN, while
+REGV is updated with S for subsequent accumulations. For
+both OS and WS, during the sign-extension cycles (Fig. 10(d),
+cycles 2–3), only potential rows are activated. The sign bit
+stored in SIGN or REGV is propagated across the block PCs
+and emulated directly into the memory via the EBs (4T cells),
+thereby allowing to reuse the CIM operations.
+5) Overflow/Underflow protection mechanism: Reducing
+operand resolution decreases network size and external mem-
+ory traffic. For the IBM Gesture SCNN in Fig. 11(a),
+the resolution flexibility of FlexSpIM (Fig. 11(c)) reduces
+convolutional-layer memory by up to 30% without accuracy
+loss compared to analog CIM SNN accelerators [24]. It also
+achieves higher accuracy than IMPULSE for a given network
+size, or the same accuracy with 24% less memory.
+However, aggressive quantization increases the risk of over-
+flow/underflow (O/U), which can corrupt membrane potentials
+and degrade accuracy, reducing it from 95.8% to less than
+90% at iso model size (Fig. 11(c)). While conventional digital
+accelerators often use saturation logic [54], prior in-column
+digital CIM architectures [23], [31], [45] do not integrate
+O/U correction and instead avoid it by allocating sufficient
+
+
+8
+Classification acc. [%]
+96
+94
+92
+90
+SCNN model size [kB]
+-36%
+-30%
+-24%
+(6b/11b)*
+(8b/16b)*
+200
+250
+300
+350
+400
+256 FC neurons
+128 FC neurons
+11 FC neurons
+IY=128; IX=128; C=2
+Conv. layer
+FC layer
+Pooling
+K=16; FX=FY=2; SX=SY=2; PX=PY=0
+K=16; FX=FY=3; SX=SY=1; PX=PY=1
+K=32; FX=FY=3; SX=SY=1; PX=PY=1
+K=32; FX=FY=3; SX=SY=1; PX=PY=1
+K=64; FX=FY=3; SX=SY=1; PX=PY=1
+K=64; FX=FY=3; SX=SY=1; PX=PY=1
+L6
+L2
+L4
+L5
+L1
+L3
+SCNN for IBM gest. dataset
+(a)
+Network size vs. accuracy
+(b)
+Selected resolution in bit
+(c)
+Adaptive per layer:
+Fix. for all layer:
+FlexSpIM
+[24]
+[24]
+[23] *(W/mem. pot.)
+O W
+L1
+8
+11
+16
+O W
+L3
+O W
+L4
+O W
+L5
+O W
+L2
+O W
+L6
+4
+6
+8
+15
+11
+16
+5
+6
+8
+11
+11
+16
+7
+6
+8
+11
+11
+16
+6
+6
+8
+8
+11
+16
+5
+6
+8
+12
+11
+16
+5
+6
+8
+16 4 16 8 16 8 16 8 16 8 16 8
+w/ O/U prot.
+w/o O/U prot.
+Fig. 11.
+(a) SCNN architecture for the IBM Gesture dataset, comprising
+six convolutional layers and three fully connected (FC) layers, the latter
+not being considered in this work. (b) Model size vs. accuracy achieved by
+FlexSpIM through configurable operand resolutions, compared with state-of-
+the-art architectures. The accuracy with and without overflow/underflow (O/U)
+are provided. (c) Per-layer operand resolutions of the points shown in (b).
+numerical range. The challenge lies in performing fine-grained
+O/U detection and correction in CIM architectures due to
+strict pitch constraints. To address this challenge, FlexSpIM
+introduces a near-memory shared O/U detection unit and a
+fine-grained correction mechanism.
+The high-level principle is shown in Fig. 12(a). A normal
+accumulation is first completed. During its final cycle, an O/U
+detection unit determines whether any membrane potential
+overflowed or underflowed. If no event is detected, execution
+proceeds normally. Otherwise, the FSM stalls incoming com-
+mands while preserving the PC state and inserts two correction
+steps: one for overflow and one for underflow.
+Fig. 12(b) details the O/U hardware execution for a 12-
+bit weight and membrane potential example. During the
+last accumulation cycle (e.g., cycle 3), the MSB PC of
+each operand block detects O/U from its carry-in/-out, and
+sum bit. If detected, it discharges one of eight precharged
+LINEO/U wires shared across the array, requiring up to 4 ns
+at VDD = 0.8V in the worst case (as opposed to 9.1 ns,
+a 3× longer average detection time 3× longer if only one
+shared LINEO/U were used). These wires are monitored by
+the O/U detection unit through high-threshold inverters. Once
+an O/U is detected, the correction phase is triggered. First, for
+overflow correction (CMDO,EN = 1), the MSB PC propagates
+the O/U state (O/UTRAN) across the PCs of the block, using
+the same mux network as for sign-bit extension (Fig. 10(c),
+bottom). This produces SOUS, a wire previously used in
+Section III-B4 to carry the weight sign-bit, now extended to
+also propagate the overflow and underflow signals, and later
+the spike signal (Section III-B6), to neighboring PCs. PCs
+with SOUS = 1 then overwrite the membrane potential for
+each of their block rows with a maximum/user-defined value
+provided through the vertical interconnect, while unaffected
+PCs remain in precharge mode through PRESLT thanks to the
+precharge-write phase avoiding half-select disturbance. Under-
+flow (CMDO,EN = 0) is handled identically. These corrections
+require the same number of cycles as the accumulation itself
+(i.e. three in the example), corresponding to a maximum CIM-
+cycle overhead of 200%. In practice, this overhead is hidden
+PRE
+SAM
+RD
+OP
+W-P
+WR
+Target operations: If overflow/underflow, then protect, otherwise do nothing
+Cycles 1-3: Perform a normal addition between O and W
+Cycle 3: During the last addition cycle, enable O/U detection
+Cycles 4(-6): Apply overflow correction (CMDO,EN=1)
++
++
++
+O[8]
+O[9]
+O[10]
+O[11]
+W[8]
+W[9]
+W[10]
+W[11]
++
+O[0]
+O[1]
+O[2]
+O[3]
+CMDO/U,EN
+D Q
+0
+1
+CMD1
+Group of 8
+O/U
+CMDO/U,EN
+To PC
+Prevent PC next
+execution by blocking
+control updates
+256
+O/U line 2
+O/U line 3
+O/U line 4
+O/U line 5
+O/U line 6
+O/U line 7
+O/U line 8
+6 HVT NMOS
+L=80nm
+W=120nm
+LVT PMOS
+L=40nm
+W=960nm
+O/U line
+OUT
+Density
+1
+2
+3
+4
+5
+7
+0
+0.2
+0.4
+0.6
+ns
+Overflow/Underflow detection latency
+(@25°C, TT, 50k MC)
+1.21V
+1.1V
+0.8V
+VDD:
+O/U detection
+unit
+CINCOUT
+O/UPCEND
+CMDO,EN
+S
+O/UTRAN
+CMDO/U,EN
+LINEO/U
+O/U
+O/U
+SOUS CMDO/U,SRC
+CMDSPK,SRC PCACTIVE
+CMDPRE
+CMDCONFIG
+PRESLT
+LINEO/U[7:0]
+Maintain BL/
+BLB high 
+during write 
+phase for 
+neurons 
+without O/U
+CMDSOUS=CMDLR=1
+SOUS=O/UTRAN
+OR tree to detect O/U event(s)
+O/U
+S
+1
+0
+1
+1
+CMDO,EN
+1
+0
+1
+1
+0
+0
+1
+1
+O/UTRAN
+0
+1
+1
+0
+Under-
+Over-
+Wrong type for selection
+Cycles 7-9: Apply underflow correction (CMDO,EN=0))
+similar to overflow
+If SOUS=1 (i.e. overflow), reset O to MAX value; otherwise do nothing
+If SOUS=1 (i.e. underflow), reset O to MIN value; otherwise do nothing
+CMDO,EN
+O/U
+CMDO/U,EN
+LINEO/U
+DETECT
+Waveforms assuming an over-/under-flow occured
+Cycle 3
+FSM
+Control registers
+O/U detection unit
+Macro level
+(a)
+Overflow/Underflow (O/U) detection & correction
+(b)
+DETECT
+Generate 
+CIM 
+controls
+Perform 
+weight acc.
+O/U 
+detected
+?
+Stop new 
+control from 
+FSM and keep 
+last acc. cycle 
+command 
+(CMD) in 
+control 
+registers
+Correct 
+for 
+underflow
+Correct 
+for 
+overflow
+Yes
+No
+CIM macro
+Control registers
+Shared O/U detection lines
+6
+8
+0.8
+When only one 
+O/U wire 
+instead of 8
+Fig. 12. (a) Flow diagram of the proposed overflow/underflow detection and
+correction mechanism. (b) Cycle-accurate example of a 12-bit weight and
+membrane potential accumulation with an overflow or underflow, including
+the detailed circuitry of the O/U detection PC module and detection unit.
+SOUS stands for Sign-bit, the Overflow and Underflow, and the Spike.
+CMDO/U,SRC and CMDSPK,SRC define whether the precharge select
+PRESLT is controlled by SOUS carrying the overflow/underflow signal or
+the spike value, respectively
+since system performance is typically limited by EMAs rather
+than by the CIM macro itself.
+6) Membrane-potential comparison and spike generation:
+When all spikes of a timestep have been processed, membrane
+
+
+9
+0
+1
+CMDV,SLT
+CMDEN,REG,V
+REGV
+D Q
+O[7]
+O[8]
+O[0]
+O[1]
+O[2]
+O[6]
+O[5]
+O[9]
+O[10]
+Cycle 1
+Cycle 2
+Cycle 3
+CTRL[255:0][0:1]
+Target operations: If O+(-T)>0, then spike and reset, otherwise do nothing
+O[3]
+O[4]
+O[11]
+-T[7]
+-T[8]
+-T[0]
+-T[1]
+-T[2]
+-T[6]
+-T[5]
+-T[9]
+-T[10]
+-T[3]
+-T[4]
+-T[11]
+Large weight memory area
+Store -T
+ in memory
+Final membrane 
+potential O value for 
+the current timestep
+Cycles 1-3: Perform a normal addition between O and -T
+Cycle 3: During the last addition cycle, generate and save the spike
+Cycles 4-6: Send the spike to controller (cycle 4 only) and reset potential O
++
++
++
+O[8]
+O[9]
+O[10]
+O[11]
+-T[8]
+-T[9]
+-T[10]
+-T[11]
++
+SPIKE
+Stored in a register
+2 0110 11
+SPIKE
+0
+0
+0
+S
+O/UPCEND
+SPIKE
+Save
+spike
+Spike propagation toward neighboring PCs follows the same mechanism as the O/U 
+correction but via REGV, the register where the spike is stored. The membrane potential can 
+be reset to 0, reduced by the threshold, or overwritten with another configured value.
+Macro level
+(a)
+Spike generation & Reset
+(b)
+O[7]
+O[8]
+O[0]
+O[1]
+O[2]
+O[6]
+O[5]
+O[9] O[10]
+Cycle 1 Cycle 2 Cycle 3
+CTRL[255:0][0:1]
+O[3]
+O[4]
+O[11]
+Large weight memory area
+OR
+16
+Horizontal 
+inter. contr.
+1-way
+Store threshold in memory
+Bring threshold via horiz. interconns.
+2-way
+4-way
+8-way
+16-way
+Reconfigurable 
+horizontal interconnect 
+to support various 
+operand aspect ratio
+OR
+OR
+OR
+OR
+Fig. 13. (a) Macro-level representation of two threshold provisioning meth-
+ods: conventional in-memory storage (left) and the proposed shared horizontal
+interconnections (right). (b) Cycle-level representation of a threshold compar-
+ison with the corresponding PC module schematics.
+potentials are compared against their threshold. While IM-
+PULSE/SpiDR require thresholds to be stored inside the CIM
+macro, thereby causing memory overhead, FlexSpIM also sup-
+ports threshold broadcasting through horizontal interconnects
+(Fig. 13(a)). The comparison then uses the EBs, originally
+introduced for sign extension, to emulate the threshold bits.
+This is beneficial when all neurons in a layer share the same
+threshold value [55], saving 3kb bit (3%) of CIM storage for
+a fully bit-serial 16-bit potential/threshold configuration. The
+horizontal interconnect consists of 16 wires, each connected
+to the PCs in an interleaved way with a stride of 16. The
+interconnect controller supports 1-, 2-, 4-, 8-, and 16-way
+broadcast modes to match the operand shape. For example,
+fully bit-serial execution uses a 1-way broadcast, while a
+potential spanning two PCs uses a 2-way broadcast. Other
+operand shapes require either going back to threshold storage
+in memory or additional horizontal interconnect resources.
+As shown in Fig. 13(b), spike generation follows the IM-
+PULSE/SpiDR approach by adding the negative threshold to
+the membrane potential without overwriting it. An underflow
+indicates spike generation with the resulting SPIKE signal
+stored in REGV. When a neuron spikes, SPIKE is forwarded
+to the digital controller via the vertical interconnections and
+propagated across block PCs using the mux-network employed
+for sign-bit and O/U propagation. During reset, only PCs
+associated with SPIKE = 1 update their membrane potential.
+C. Comparison to the State of the Art
+Considering the CIM macro fabricated in TSMC 40 nm,
+with its microphotograph and test setup shown in Fig. 14,
+Table II compares FlexSpIM against existing architectures.
+FlexSpIM provides the highest flexibility through bitwise
+Instruction
+memory
+Digital
+CIM-SRAM
+Macro
+Controller FSM, SPI and
+clocks, merge&shift, etc.
+Potential/Weight
+buffer (4   4 banks)
+Input
+mem.
+Zynq
+ZCU104
+FPGA
+board
+FlexSpIM
+test chip
+Supplies
+PC Ethernet
+connection
+Analog BL/BLB reference
+voltage and sensing signals
+Chip microphotograh & test setup
+310µm
+411.5µm
+1200µm
+1141µm
+Fig. 14. Chip microphotograph and test setup.
+resolution reconfiguration and support for two dataflows, while
+achieving 5× higher throughput with a 1-bit-normalized en-
+ergy efficiency no more than ∼2× lower than the best digital
+CIM architectures. [25] achieves three orders of magnitude
+higher efficiency thanks to the use of analog CIM but only
+supports an 8-bit membrane potential with low flexibility.
+Although the higher flexibility of FlexSpIM comes at the
+cost of lower energy efficiency, we show in Section V that
+this penalty becomes negligible at the system level, where
+flexibility is a much more important driver to system-level
+efficiency than macro-level energy metrics.
+IV. SYSTEM-LEVEL DESIGN SPACE EXPLORATION AND
+SOFTWARE STACK
+The strength of FlexSpIM does not lie in maximizing
+standalone CIM macro-level efficiency, as increased flexibility
+inevitably incurs energy and latency overheads compared to
+rigid architectures. Instead, its key advantage lies in exploit-
+ing this flexibility to reduce data movement at the system
+level. This tradeoff is particularly important, as Houshmand
+et al. [53] showed that a CIM macro achieving 5.9 fJ/op
+suffered a 10× system-level energy efficiency loss due to data
+transfers between the CIM macro, on-chip buffers, and off-
+chip memory. When the complete weight set could not be
+stored on chip, an additional 2× energy penalty was reported.
+In this scenario and for SCNNs executed with a layer-first
+schedule (Section II-A2), sparse activations further increase
+the overhead of data movement as weight reuse is reduced.
+A. Hybrid-Stationary Dataflow
+Unlike IMPULSE, which supports only WS execution,
+FlexSpIM enables hybrid stationarity (HS) on a per-layer
+basis, where each layer independently adopts either WS or OS
+depending on the available CIM memory. For the SCNN in
+Fig. 11(a), storing all weights requires 69.8 kB, corresponding
+to a minimum of five 256 × 512 CIM macros assuming ideal
+utilization (Fig. 15(b)). With fewer macros, a WS-only ar-
+chitecture repeatedly reloads weights, substantially increasing
+memory traffic. In contrast, the proposed HS requires only
+two macros to keep one operand of each layer permanently
+inside the CIM array, referred to as the min-memory HS
+configuration. With enough macros, the max-memory HS keeps
+stationary the operand with the largest memory footprint
+for each layer, further reducing data movement. Intermediate
+configurations are also supported, illustrating a broad search
+space [2], shaped by application requirements.
+
+
+10
+TABLE II
+COMPARISON TO THE STATE OF THE ART OF SNN ACCELERATORS.
+This work
+SSC-L’21 [23]
+arXiv’24 [31]
+ISSCC’24 [24]
+JSSC’23 [25]
+A-SSCC’22 [26]
+ISSCC’22 [56]
+Technology
+40nm
+65nm
+65nm
+22nm
+28nm
+65nm
+28nm
+Implementation
+Digital (CIM)
+Digital (CIM)
+Digital (CIM)
+Analog CIM
+Analog CIM
+Analog CIM
+Digital
+Core area (mm2)
+1.37
+0.089 a
+3.12
+2.28
+2.9
+0.25 a
+0.45
+Macro memory capacity (kB)
+16
+1.37
+9.7
+4
+20
+4
+N/A
+Bitcell type
+6T
+10T
+10T
+6T
+8T
+2×6T+6T
+N/A
+Spiking network type
+CNN
+Fixed CNN
+Fixed CNN
+Residual CNN
+Residual CNN
+CNN
+RNN
+Representative dataset
+DVS gesture b
+MNIST/IMDB
+DVS gesture/DSEC
+DVS gesture b
+CIFAR-10
+MNIST/CIFAR10
+DVS gesture b
+Accuracy on DVS gesture
+95.8%
+N/A
+88.44%
+94%
+N/A
+N/A
+87.3%
+Multi-aspect ratio support
+✓
+×
+×
+×
+×
+×
+×
+OS/WS support
+✓
+×
+×
+×
+×
+×
+×
+Mem. pot. resolution
+Any
+11b
+7b/11b/15b
+16b
+8b
+Analog
+16b
+Weight resolution
+Any
+6b
+4b/6b/8b
+4/8b
+1/4/8b
+1.5b
+8b
+Weight/Mem. pot. location
+Not fixed
+Fixed
+Fixed
+Fixed
+Fixed
+Fixed
+Fixed
+Supply range (V)
+0.9 – 1.1
+0.7 – 1.2
+0.9 – 1 (1.2)
+0.55 – 0.9
+1.1
+N/A
+0.5 – 0.8
+Frequency (MHz)
+75.5 – 157
+66.7 – 500
+50 – 150
+51 – 280
+200
+N/A
+13 – 115
+Peak throughput (GSOPS)*
+1.2 – 2.5 c
+0.07 – 0.5 d
+0.9 – 2.7 d
+N/A
+N/A
+163.8 f
+0.013 – 0.115 c
+1b-norm. throughput (GSOPS)‡
+154 – 320
+4.62 – 33
+59.4 – 178.2
+N/A
+N/A
+N/A
+1.67 – 14.7
+Power (mW)
+6.8 – 17.9 a
+0.1 – 0.9 a
+4.9 – 18
+0.524 – 6.4
+15.84 a
+0.56 a
+0.077 – N/A
+Efficiency (pJ/SOP)*
+5.7 – 7.2 c
+1.09 – 1.74 d
+1.11 – 1.36 d
+3.78 – 10.01 c
+0.0016 e
+3.45×10−3 f
+5.3 – 12.8 c
+1b-norm. eff. (fJ/SOP)†
+44.5 – 56.3
+16.5 – 26.4
+16.8 – 20.6
+29.5 – 78.2
+0.025
+N/A
+41.4 – 100
+a CIM macro only
+b 10 classes
+c 8-bit weight and 16-bit mem. pot.
+d 6-bit weight and 11-bit mem. pot.
+e 8-bit weight and 8-bit mem. pot.
+f1.5-bit weight and N/A for mem. pot.
+‡GSOPS × weight-bit × pot.-bit
+†fJ/SOP/(weight-bit × pot.-bit)
+∗1 SOP = 1 addition + mem. pot. update
+Sparsity
+L1 L2 L3 L4 L5 L6
+All WS/IR
+All OS/IR
+MIN-mem. HS
+MAX-mem. HS
+Intermediate HS
+69.8
+346
+25.8
+126.3
+390
+CIM [kB]*
+5
+22
+2
+8
+25
+#CIMT
+*CIM macro mem. required for stationary operand only 
+assuming 8-bit weights and 16-bit membrane potentials
+TTheoritical minimum number of CIM macros (512   256) 
+required for stationary operand only
+Layers using the OS/WS dataflow
+Hybrid dataflow
+Ifmap
+Kernel
+Ofmap
+93.75%
+0%
+93.75%
+88.9%
+Sparsity
+Same input
+sparsity
+Very different
+output sparsities
+Layer mapping example in two digital CIM macros
+(d)
+CIM #1
+CIM #2
+OS
+OS
+OS
+OS
+WS
+WS
+WS
+WS
+#WL=512
+#BL=256
+Neuron sparsity variability
+(c)
+Dataflow possibilities
+(b)
+Proposed HS mapping
+OS-only mapping
+WS-only mapping
+L2
+L1
+L3
+L4
+L5
+L6
+L1/2/3/4
+L2/5/6
+Allocated
+memory section
+Unallocated
+memory sect.
+Fully stationary
+operand
+Overwritten
+stationary op.
+Single layer 
+physical mapping 
+generator (OS/WS/ 
+aspect ratio, 
+parallelism, etc.)
+Sparse 
+analytical 
+ZigZag
+Extraction of the best 
+temporal ordering per 
+configuration
+Unrolled 
+ZigZag
+Multi-layer 
+mapping 
+combination 
+generator
+Simulation speed
+Simulation accuracy
+CIM
+mapper
+Output 
+workload 
+configuration
+Hardware 
+configuration 
+file
++
+SCNN model
+Until success
+Software stack
+(a)
+2
+3
+1
+4
+5
+6
+7
+8
+A
+B
+C
+Fig. 15. (a) Software stack selecting the OS/WS mapping, parallelization, and operand block dimensions for each workload layer to optimize energy and
+latency under a fixed (multi-)macro FlexSpIM configuration. (b) Supported basic and hybrid stationarity configurations in FlexSpIM, with the required CIM
+memory size and macro count assuming ideal utilization. (c) Impact of sparse input locations on the number of affected output neurons. (d) Mapping generated
+by the software stack in (a) of the six SCNN layers onto two CIM macros for hybrid stationarity, OS-only, and WS-only execution.
+To efficiently explore this large design search space, we
+introduce the software stack shown in Fig. 15(a). The software
+takes as input 1 the target hardware configuration, including
+memory hierarchy, capacity, bandwidth, access energy, and
+number of CIM macros. For each layer (loop B ), it evaluates
+multiple execution configurations (loop
+A , Section IV-B)
+and generates candidate hardware mappings. These mappings
+are then jointly optimized across CIM macros (loop
+C ),
+Section IV-C, producing the final workload mapping with its
+estimated energy and latency.
+B. Single-Layer Performance Exploration
+To explore the layer-level design space efficiently, we
+split it into two components: physical mappings and intra-
+layer scheduling. Physical mappings define how a layer is
+spatially mapped onto CIM macros, including dataflow choice
+(OS/WS), parallelization level, and operand shaping (bit-serial,
+bit-parallel, or mixed). These choices directly shape the map-
+ping geometry: higher parallelization and bit-parallel execution
+enable wider horizontal mappings but increase on-chip and off-
+chip memory bandwidth pressure, whereas lower paralleliza-
+tion with bit-serial execution enables more vertical mappings
+at the potential cost of higher latency. Candidate mappings that
+exceed available CIM macro dimensions are also considered as
+fallback configurations when full stationarity cannot be main-
+tained. All these configurations are generated by the physical
+mapping generator 2 , which outputs configuration files to be
+used by the system performance simulator 3 . The objective
+of this physical mapping space exploration is not to maximize
+the performance of individual layers, but to enable efficient
+co-location of all layers within the same CIM macro set and
+optimize workload-level performance. Therefore, generating
+diverse mapping shapes is essential, as a mapping optimal for
+one layer may hinder efficient integration of the remaining
+workload’s layers, as discussed in Section IV-C.
+The second component is intra-layer scheduling, which
+
+
+11
+defines the temporal execution order within a fixed physical
+mapping. It does not modify the spatial placement of a layer
+inside the CIM macro, but determines execution order, e.g.,
+processing all input spikes of a neuron before moving to the
+next neuron, or processing all neurons affected by a spike
+before proceeding to the next spike, among other strategies [2].
+To evaluate these two design space components, we rely on
+two simulators: an analytical one and a cycle accurate one.
+1) Analytical ZigZag: The first simulator 3 builds on the
+design-space exploration tool ZigZag [2] and targets the intra-
+layer scheduling space. For each physical mapping (loop A ),
+it evaluates candidate schedules using a fast analytical energy
+model for data transfers and CACTI [57] for memory accesses.
+Fast models are essential to explore the large design space,
+which can reach billions of possibilities for our SCNN across
+scheduling, depending on the representation granularity [2].
+To support SCNN execution, we extend the analytical
+model proposed in [2] to include the timestep dimension,
+membrane potential persistence across timesteps in a layer-
+first configuration, and input sparsity, under a homogeneous
+spike distribution assumption. While this assumption preserves
+computational efficiency for fast evaluation, it reduces estimate
+accuracy on energy/latency compared to the deterministic
+dense workloads targeted by the original ZigZag framework.
+In practice, spike distributions can be highly non-uniform: as
+shown in Fig. 15(c), for the same input sparsity (e.g., 93.75%),
+spatially localized spikes activate only 11% of output neurons
+(i.e., 89% output sparsity), whereas uniformly distributed
+spikes activate all output neurons (0% output sparsity). The
+homogeneous assumption represents a worst-case scenario:
+although the total number of synaptic operations remains un-
+changed, it upper-bounds the number of membrane potentials
+that must be fetched from memory into the CIM macro.
+2) Unrolled (cycle-accurate) ZigZag: To improve modeling
+accuracy, we introduce a second simulator 5 , referred to as
+unrolled ZigZag. Unlike analytical ZigZag, it performs cycle-
+accurate execution by explicitly unrolling the full workload on
+the real input data, yielding more accurate latency and energy
+estimates at the cost of significantly longer execution time.
+This makes exhaustive evaluation of all scheduling and map-
+ping combinations impractical. Since intra-layer scheduling
+does not affect the physical placement of a layer inside CIM
+macros, only the best schedule per physical mapping, obtained
+from 4 , is required in multi-layer mapping (Section IV-C).
+Analytical ZigZag thus identifies the optimal intra-layer sched-
+ule per physical mapping, while unrolled ZigZag explores only
+the physical mapping space. This reduces the design space
+from billions of configurations to a few hundred evaluations.
+C. Multi-Layer Mapping Optimizer
+After selecting the best schedule for each physical mapping,
+the final step is to determine the combination of layer map-
+pings that optimizes workload-level energy and latency. The
+mapping configuration generator
+6
+explores combinations
+by selecting one physical mapping per layer, ordered by
+their individual performance, and provides them to the CIM
+mapper 7 , which verifies their feasibility on the target macro
+array. It stops as soon as one combination is found
+8 .
+Energy distribution between memories
+Relative energy/latency of OS-only/HS wrt. WS-only
+Relative energy in %
+200
+100
+0
+0
+10
+20
+30
+40
+Number available CIM macros
+-45%
+Relative latency in %
+Number available CIM macros
+50
+0
+-50
+0
+10
+20
+30
+40
+-52%
+0
+10
+20
+30
+Energy in µJ
+200
+0
+400
+Latency in µs
+(b)
+(c)
+Energy/latency per timestep vs. number of CIM macro avail.
+(a)
+5-6 macros
+Memory energy 
+distribution
+0
+10
+20
+Num. avail. CIM macros
+100
+60
+0
+20
+80
+40
+30
+40 0
+10
+20
+Num. avail. CIM macros
+30
+40 0
+10
+20
+Num. avail. CIM macros
+30
+40
+WS
+-only
+OS-only
+HS
+OS-only
+HS
+WS-only
+CIM
+NS buffer
+DRAM
+x10
+OS-only
+HS
+x4.3
+Fig. 16. (a) Energy and latency obtained on average per executed timestep,
+for the SCNN in Fig. 11(a) on the IBM DVS gesture dataset, across systems
+composed of 1 to 39 CIM macros, for hybrid stationarity, OS-only, and WS-
+only executions. (b) Relative energy and latency of hybrid stationarity and
+OS-only execution with respect to WS-only execution (e.g., IMPULSE [23]
+and SpiDR [31]) for the same configuration as (a). (c) Energy breakdown
+across the memories of the system, for the three dataflows. The input buffer
+and input scratches represent less than 0.1% and are not shown.
+This process is formulated as a rectangle packing problem,
+where layer mappings are rectangles to be placed inside the
+available CIM macro array without overlap. Since this problem
+is NP-complete [58], we employ the MaxRects Bottom-Left
+heuristic, which greedily places rectangles while maintaining
+maximal free regions [59]. Fig. 15(d) compares the resulting
+mappings for the six-layer SCNN from Fig. 11(a) using two
+CIM macros. While WS-only and OS-only approaches require
+some layers to break operand stationarity, hybrid stationarity
+maintains fully stationary execution for all layers.
+V. EXPERIMENTAL RESULTS AND SYSTEM-LEVEL
+ANALYSIS
+A. Experimental Setup
+Using the software stack described in Section IV, we
+evaluate the hardware platform shown in Fig. 17(a) with 16-bit
+membrane potentials and 8-bit weights. The system consists of
+an external DRAM large enough to store the complete network
+parameters, on-chip input and non-stationary (NS) operand
+buffers, and a configurable CIM macro array based on the
+macro prototyped in 40nm CMOS presented in Section III.
+The input buffer stores 1-bit uncompressed DVS-generated
+spikes and provides dedicated ports for spike writing, CIM
+access, and generated spike storage. Depending on the selected
+dataflow, the NS buffer stores either membrane potentials
+(WS) or weights (OS). For WS execution, the input buffer
+includes a dedicated read port to process input spikes and
+identify the sparse membrane potentials that must be fetched
+from DRAM and stored in the NS buffer. The NS buffer
+supports adaptive bandwidths (32/64/128/256-bit) depending
+on the layer physical mapping width and connects to the CIM
+array through a 256-bit single-cycle transfer bus with 32-bit
+granularity shifting to support arbitrary mapping positions.
+
+
+12
+System analysis framework
+(a)
+CIM macro array
+Name
+Sym.
+Input
+buffer
+Size
+4  128 
+ 128b
+Compr. Ports
+1wr/
+1rd/1rw
+NS
+buffer*
+*NS = Non-stationary operand
+DRAM
+Input
+scratch
+10   9b
+1wr/
+1rd
+8   (1024 
+  32b)
+2rw
+1rwT
+Trw = Read and write
+512
+256
+CIM
+9
+Read/write/read-write port
+DVS sensor
+Op
+I
+I
+O|W
+O&W
+DRAM
+BW: 32/64/128/256b
+64
+64
+256
+Bit-shifter: 0/32/64/96/.../224b
+Analytical vs. unrolled performance comparison for L1
+(b)
+Sparse 
+access 
+ctrl.
+WS-L1 error/ranking
+(c)
+Address enc./dec.
+9
+Mapping variants
+Latency [µs 
+@157MHz]
+3
+5
+7
+11
+Energy [µJ]
+0.15
+0.1
+0.05
+0
+Energy Analytical/Unrolled ZigZag
+OS-L1
+Energy [µJ]
+Physical mapping variants
+WS-L1
+100
+200
+Latency [µs 
+@157MHz]
+Physical mapping variants
+0.8
+0.6
+0.4
+0.2
+0
+Kendall's 𝜏b
+0.8
+1.0
+Latency
+Energy
+Kendall's 𝜏b
+Physical map. ranking
+(d)
+0.9
+Latency
+Energy
+L1
+L2
+L3
+L4
+L5
+L6
+0.1
+0
+0.2
+0.3
+0.4
+Latency
+Energy
+32-36% error
+~ 0% error
+Error [%]
+/
+Latency Analytical/Unrolled ZigZag
+/
+Legend:
+9
+300
+0
+1
+2
+3
+Fig. 17. (a) System analysis framework, based on the measured CIM macro.
+(b) Energy and latency comparison between unrolled and analytical ZigZag
+for Layer 1 of the SCNN in Fig. 11(a), using the analytical-ZigZag-selected
+schedule for each physical mapping under OS (left) and WS (right) execution.
+(c) Performance gap between the analytical-ZigZag-selected schedule and
+the best schedule obtained from unrolled ZigZag both using unrolled results
+(bottom), and Kendall’s τb correlation between analytical and unrolled ZigZag
+rankings for 100 representative schedules of each WS physical mapping of
+Layer 1 (top). (d) Kendall’s τb correlation between analytical and unrolled
+ZigZag physical-mapping rankings across all layers of the vanilla SCNN.
+Data stored in the NS buffer are pre-arranged according to
+their final CIM macro allocation. Each CIM macro is preceded
+by an input FIFO storing operand addresses generated by the
+spike-to-address encoder/decoder.
+B. Results
+Fig. 16(a) presents the system-level energy and latency of
+OS-only, WS-only, and HS approaches for a single 10 ms
+timestep across all layers of the SCNN in Fig. 11(a), on the
+DVS128 IBM gesture dataset [60], as a function of the number
+of CIM macros. Fig. 16(b) shows the relative improvements
+of OS-only and HS over WS-only (e.g., IMPULSE [23]). HS
+achieves up to 52% latency and 45% energy reduction with 32
+macros, reaching 105µs and 6.4µJ per timestep at 157 MHz,
+versus 291µs and 15.8µJ with a single macro. The lower HS
+gain around 5 macros matches the number of macros WS
+requires to store all weights on-macro (Fig. 15(b)), making HS
+and WS-only performance close. The sharp OS improvement
+around 31 macros corresponds to L1 and L2 membrane poten-
+tials becoming fully stationary, i.e., stored entirely on-macro;
+beyond this point, no further gain occurs, since each layer’s
+largest memory-consuming operand remains on-macro. While
+improvements depend on workload and model architecture,
+HS consistently offers the best trade-off across macro budgets
+via layer-level stationarity adaptation. Fig. 16(c) shows the
+energy distribution across the system’s memories. For a single
+macro in WS-only, off-macro transfers account for 4.3× more
+energy than the CIM macro itself, still 4× more at 39 macros,
+confirming Houshmand et al. [53] observations. This shows
+that system-level optimizations, such as the proposed hybrid
+dataflow, matter more than further CIM macro optimization.
+C. Discussion
+Since exhaustive cycle-accurate simulation of all candidate
+schedules is computationally prohibitive, Fig. 17(b) compares
+the energy and latency estimated by analytical and unrolled
+ZigZag for the schedules identified by analytical ZigZag across
+all physical mappings of L1 under OS and WS execution.
+As expected, larger absolute differences appear for WS, since
+OS keeps membrane potentials inside the CIM macros and
+is therefore less sensitive to spike distribution, highlighting
+the need for unrolled ZigZag for accurate cost estimation.
+This approach is valid only if analytical ZigZag preserves the
+optimal schedule under cycle-accurate evaluation.
+Since a single physical mapping can contain billions of
+candidate schedules [2], we validate this assumption on L1 by
+sampling 100 representative schedules per physical mapping
+and evaluating them with both simulators. Fig. 17(c) compares,
+for each physical mapping, the performance obtained from
+unrolled ZigZag using the analytical-ZigZag-selected sched-
+ule, with the best performance obtained among the 100 sam-
+pled schedules evaluated by unrolled ZigZag. Most physical
+mappings achieve near-optimal performance, with only six
+showing larger latency deviations, up to 36%. This agreement
+is facilitated by the NS buffer, which stores compressed
+membrane potentials during WS execution and reduces the
+impact of the homogeneous spike distribution assumption by
+limiting incorrect costly DRAM accesses.
+A stronger validation criterion is whether analytical ZigZag
+preserves the relative ranking of candidate schedules, beyond
+only identifying the best one. This demonstrates that the
+analytical model captures the dominant hardware bottlenecks
+and provides confidence that the selected schedules remain
+relevant outside the sampled cases. This ranking consistency
+is quantified using Kendall’s τb [61], given by
+τb =
+C −D
+p
+(C + D + Tx)(C + D + Ty)
+,
+(3)
+where C and D denote the number of concordant and dis-
+cordant pairs, respectively, Tx and Ty denote the numbers of
+tied pairs in the first and second rankings, respectively, and
+τb = 1 indicates identical rankings between both simulators.
+Fig. 17(c) shows consistently high τb values across physical
+mappings, except for the six previously identified latency-
+sensitive cases. Removing pairs with negligible performance
+differences (below 1%) improves the correlation, confirming
+that analytical ZigZag preserves candidate schedule ordering
+despite the homogeneous spike distribution assumption.
+Repeating the 100-schedule comparison for every layer is
+computationally prohibitive. Instead, we compute Kendall’s τb
+on the physical-mapping ranking using the already obtained
+unrolled ZigZag evaluations of the analytical-ZigZag-selected
+schedules, Fig. 17(d). The consistently high correlation (i.e.,
+higher than 88%) across the workload confirms that analytical
+ZigZag captures the dominant hardware trends beyond a single
+layer, validating our two-stage exploration methodology.
+
+
+13
+VI. CONCLUSION
+This work introduces FlexSpIM, a flexible digital CIM
+architecture for mapping sparse spiking neural networks with
+diverse layer shapes onto memory-constrained accelerators.
+Unlike weight-stationary-only approaches, FlexSpIM enables
+layer-level hybrid weight or output stationarity to reduce
+operand movement. Operand reshaping inside the CIM macro
+supports arbitrary resolutions, reducing model size by 30%
+compared to state-of-the-art CIM approaches while maintain-
+ing 95.8% accuracy on the IBM DVS gesture dataset, while
+built-in overflow/underflow detection and correction enables
+further compression with limited accuracy loss. Fabricated in
+TSMC 40 nm CMOS technology, FlexSpIM achieves compet-
+itive performance with recent digital SNN accelerators despite
+its increased flexibility. Combined with a dedicated software
+stack for dataflow, scheduling, and physical mapping optimiza-
+tion, it improves system-level energy efficiency and latency
+by up to 45% and 52%, respectively, over rigid stationarity
+approaches. These results show future CIM accelerators should
+optimize not only the CIM macro, but also provide sufficient
+flexibility to adapt to various workload requirements.
+ACKNOWLEDGMENTS
+The authors thank Dr. Martin Lefebvre, Dr. Christoph
+Posch, Dr. Damien Joubert, and Prof. Kofi Makinwa for their
+valuable feedback and Lukasz Pakula for his help with die
+photographs and PCB design.
+REFERENCES
+[1] A. Howard et al., “Searching for MobileNetV3,” in IEEE/CVF Int. Conf.
+Comput. Vis., 2019, pp. 1314–1324.
+[2] L. Mei, P. Houshmand, V. Jain, S. Giraldo, and M. Verhelst, “ZigZag:
+Enlarging Joint Architecture-Mapping Design Space Exploration for
+DNN Accelerators,” IEEE Trans. Comput., vol. 70, no. 8, pp. 1160–
+1174, 2021.
+[3] D. Kim et al., “DPIM: A 2T1C eDRAM Transformer-in-Memory Chip
+With Sparsity-Aware Quantization and Heterogeneous Dense–Sparse
+Core,” IEEE J. Solid-State Circuits, vol. 61, no. 5, pp. 2349–2364, 2026.
+[4] K. Koul et al., “Onyx: A 12-nm Programmable Accelerator for Dense
+and Sparse Applications,” IEEE J. Solid-State Circuits, vol. 61, no. 5,
+pp. 2336–2348, 2026.
+[5] M. Shi, A. Kneip, N. Chauvaux, J. Sun, C. Frenkel, and M. Verhelst,
+“Sparsity-Aware Hardware: From Overheads to Performance Benefits,”
+IEEE Solid-State Circuits Mag., vol. 17, no. 2, pp. 61–71, 2025.
+[6] Y.-H. Chen, J. Emer, and V. Sze, “Eyeriss: A Spatial Architecture
+for Energy-Efficient Dataflow for Convolutional Neural Networks,” in
+ACM/IEEE Annu. Int. Symp. Comput. Archit., 2016, pp. 367–379.
+[7] J. Albericio, P. Judd, T. Hetherington, T. Aamodt, N. E. Jerger, and
+A. Moshovos, “Cnvlutin: Ineffectual-Neuron-Free Deep Neural Network
+Computing,” SIGARCH Comput. Archit. News, vol. 44, no. 3, pp. 1–13,
+2016.
+[8] S. Zhang et al., “Cambricon-X: An Accelerator for Sparse Neural
+Networks,” in Annu. IEEE/ACM Int. Symp. Microarchitecture, 2016, pp.
+1–12.
+[9] A. Parashar et al., “SCNN: An Accelerator for Compressed-Sparse
+Convolutional Neural Networks,” in Annu. Int. Symp. Comput. Archit.,
+2017, pp. 27–40.
+[10] Y.-H. Chen, T.-J. Yang, J. Emer, and V. Sze, “Eyeriss v2: A Flexible
+Accelerator for Emerging Deep Neural Networks on Mobile Devices,”
+IEEE J. Emerg. Sel. Topics Circuits Syst., vol. 9, no. 2, pp. 292–308,
+2019.
+[11] P. Judd, A. Delmas, S. Sharify, and A. Moshovos, “Cnvlutin2:
+Ineffectual-Activation-and-Weight-Free Deep Neural Network Comput-
+ing,” arXiv:1705.00125, 2017.
+[12] G. Jeong, P.-A. Tsai, A. R. Bambhaniya, S. W. Keckler, and T. Krishna,
+“Abstracting Sparse DNN Acceleration via Structured Sparse Tensor
+Decomposition,” arXiv:2403.07953, 2024.
+[13] P. Lichtsteiner, C. Posch, and T. Delbruck, “A 128×128 120 dB 15
+µs Latency Asynchronous Temporal Contrast Vision Sensor,” IEEE J.
+Solid-State Circuits, vol. 43, no. 2, pp. 566–576, 2008.
+[14] M. Muglikar, D. P. Moeys, and D. Scaramuzza, “Event Guided Depth
+Sensing,” in Int. Conf. 3D Vis., 2021, pp. 385–393.
+[15] Prophesee, “Event Camera Evaluation Kit 4 HD IMX636 Prophesee-
+Sony,” https://www.prophesee.ai/event-camera-evk4/, accessed: Oct. 1,
+2025.
+[16] C. Frenkel, D. Bol, and G. Indiveri, “Bottom-Up and Top-Down Ap-
+proaches for the Design of Neuromorphic Processing Systems: Tradeoffs
+and Synergies Between Natural and Artificial Intelligence,” Proc. IEEE,
+vol. 111, no. 6, pp. 623–652, 2023.
+[17] K. Simonyan and A. Zisserman, “Very Deep Convolutional Networks
+for Large-Scale Image Recognition,” in Int. Conf. Learn. Represent.,
+2015.
+[18] A. Krizhevsky, I. Sutskever, and G. E. Hinton, “ImageNet Classification
+With Deep Convolutional Neural Networks,” Commun. ACM, vol. 60,
+no. 6, pp. 84–90, 2017.
+[19] A. Howard et al., “MobileNets: Efficient Convolutional Neural Networks
+for Mobile Vision Applications,” arXiv:1704.04861, 2017.
+[20] A. Hassan, J. Meng, Anupreetham, and J. s. Seo, “SpQuant-SNN: Ultra-
+Low Precision Membrane Potential With Sparse Activations Unlock the
+Potential of On-Device Spiking Neural Networks Applications,” Front.
+Neurosci., vol. 18, 2024.
+[21] Y. Kim, Y. Li, A. Moitra, R. Yin, and P. Panda, “Sharing Leaky-
+Integrate-and-Fire Neurons for Memory-Efficient Spiking Neural Net-
+works,” Front. Neurosci., vol. 17, 2023.
+[22] M. Dampfhoffer, T. Mesquida, A. Valentian, and L. Anghel, “Are SNNs
+Really More Energy-Efficient Than ANNs? An In-Depth Hardware-
+Aware Study,” IEEE Trans. Emerg. Topics Comput. Intell., vol. 7, no. 3,
+pp. 731–741, 2023.
+[23] A. Agrawal, M. Ali, M. Koo, N. Rathi, A. Jaiswal, and K. Roy,
+“IMPULSE: A 65-nm Digital Compute-in-Memory Macro With Fused
+Weights and Membrane Potential for Spike-Based Sequential Learning
+Tasks,” IEEE Solid-State Circuits Lett., vol. 4, pp. 137–140, 2021.
+[24] Y. Liu et al., “A 22nm 0.26nW/Synapse Spike-Driven Spiking Neural
+Network Processing Unit Using Time-Step-First Dataflow and Sparsity-
+Adaptive In-Memory Computing,” in IEEE Int. Solid-State Circuits
+Conf., 2024, pp. 484–486.
+[25] S. Kim, S. Kim, S. Um, S. Kim, K. Kim, and H.-J. Yoo, “Neuro-
+CIM: ADC-Less Neuromorphic Computing-in-Memory Processor With
+Operation Gating/Stopping and Digital–Analog Networks,” IEEE J.
+Solid-State Circuits, vol. 58, no. 10, pp. 2931–2945, 2023.
+[26] A. Moitra, A. Bhattacharjee, R. Kuang, G. Krishnan, Y. Cao, and
+P. Panda, “SpikeSim: An End-to-End Compute-in-Memory Hardware
+Evaluation Tool for Benchmarking Spiking Neural Networks,” IEEE
+Trans. Comput.-Aided Design Integr. Circuits Syst., vol. 42, no. 11, pp.
+3815–3828, 2023.
+[27] M. Apolinario, A. Kosta, U. Saxena, and K. Roy, “Hardware/Software
+Co-Design With ADC-Less In-Memory Computing Hardware for Spik-
+ing Neural Networks,” IEEE Trans. Emerg. Topics Comput., pp. 1–13,
+2023.
+[28] H. Fu et al., “DS-CIM: A 40nm Asynchronous Dual-Spike Driven,
+MRAM Compute-In-Memory Macro for Spiking Neural Network,”
+IEEE Trans. Circuits Syst. I, Reg. Papers, vol. 71, no. 4, pp. 1638–1650,
+2024.
+[29] B. Wang et al., “SNNIM: A 10T-SRAM Based Spiking-Neural-Network-
+In-Memory Architecture With Capacitance Computation,” in IEEE Int.
+Symp. Circuits Syst., 2022, pp. 3383–3387.
+[30] A. Singh, M. A. Lebdeh, A. Gebregiorgis, R. Bishnoi, R. V. Joshi, and
+S. Hamdioui, “SRIF: Scalable and Reliable Integrate and Fire Circuit
+ADC for Memristor-Based CIM Architectures,” IEEE Trans. Circuits
+Syst. I, Reg. Papers, vol. 68, no. 5, pp. 1917–1930, 2021.
+[31] D. Sharma, S. Negi, T. Dutta, A. Agrawal, and K. Roy, “SpiDR: A
+Reconfigurable Digital Compute-in-Memory Spiking Neural Network
+Accelerator for Event-Based Perception,” arXiv:2405.14345, 2024.
+[32] S. Kim et al., “A Reconfigurable 1T1C eDRAM-Based Spiking Neu-
+ral Network Computing-In-Memory Processor for High System-Level
+Efficiency,” in IEEE Int. Symp. Circuits Syst., 2023, pp. 1–5.
+[33] K. He, X. Zhang, S. Ren, and J. Sun, “Deep Residual Learning for Image
+Recognition,” in IEEE Conf. Comput. Vis. Pattern Recognit., 2016, pp.
+770–778.
+[34] W. Gerstner and W. M. Kistler, Spiking Neuron Models: Single Neurons,
+Populations, Plasticity.
+Cambridge Univ. Press, 2002.
+[35] B. Han, G. Srinivasan, and K. Roy, “RMP-SNN: Residual Membrane
+Potential Neuron for Enabling Deeper High-Accuracy and Low-Latency
+
+
+14
+Spiking Neural Network,” in IEEE/CVF Conf. Comput. Vis. Pattern
+Recognit., 2020, pp. 13 555–13 564.
+[36] J. Zhang et al., “ANP-I: A 28nm 1.5pJ/SOP Asynchronous Spiking
+Neural Network Processor Enabling Sub-0.1µJ/Sample On-Chip Learn-
+ing for Edge-AI Applications,” in IEEE Int. Solid-State Circuits Conf.,
+2023, pp. 21–23.
+[37] S. Kim, S. Kim, S. Um, S. Kim, J. Lee, and H.-J. Yoo, “SNPU: An
+Energy-Efficient Spike Domain Deep-Neural-Network Processor With
+Two-Step Spike Encoding and Shift-and-Accumulation Unit,” IEEE J.
+Solid-State Circuits, vol. 58, no. 10, pp. 2812–2825, 2023.
+[38] S. Kim et al., “C-DNN: An Energy-Efficient Complementary Deep-
+Neural-Network Processor With Heterogeneous CNN/SNN Core Archi-
+tecture,” IEEE J. Solid-State Circuits, vol. 59, no. 1, pp. 157–172, 2024.
+[39] S. U. Innocenti, F. Becattini, F. Pernici, and A. D. Bimbo, “Temporal
+binary representation for event-based action recognition,” in Int. Conf.
+Pattern Recognit., 2021, pp. 10 426–10 432.
+[40] A. Kneip, M. Lefebvre, J. Verecken, and D. Bol, “IMPACT: A 1-to-
+4b 813-TOPS/W 22-nm FD-SOI Compute-in-Memory CNN Accelerator
+Featuring a 4.2-POPS/W 146-TOPS/mm2 CIM-SRAM With Multi-Bit
+Analog Batch-Normalization,” IEEE J. Solid-State Circuits, vol. 58,
+no. 7, pp. 1871–1884, 2023.
+[41] V. Vishwakarma, G. Raut, A. Mittal, N. Goyal, B. Mohammad, and S. K.
+Vishvakarma, “HierCIM: A 16-Kb SRAM-Based Digital CIM Macro
+With Hierarchical Adder-Tree Accumulation for Edge CNN Inference,”
+IEEE Trans. Very Large Scale Integr. Syst., pp. 1–11, 2026.
+[42] J. Oh, C.-T. Lin, and M. Seok, “D6CIM: 60.4-TOPS/W All-Digital 6T-
+SRAM-Based Compute-in-Memory Macro Supporting 1-to-8b Fixed-
+Point Arithmetic in a 28-nm CMOS,” IEEE Trans. Circuits Syst. I, Reg.
+Papers, pp. 1–12, 2026.
+[43] P. Tyagi and S. Mittal, “A 101 TOPS/W and 1.73 TOPS/mm2 6T
+SRAM-Based Digital Compute-in-Memory Macro Featuring a Novel
+2T Multiplier,” in Design, Autom. Test Eur. Conf., 2025, pp. 1–7.
+[44] H. Kim, T. Yoo, T. T.-H. Kim, and B. Kim, “Colonnade: A Recon-
+figurable SRAM-Based Digital Bit-Serial Compute-In-Memory Macro
+for Processing Neural Networks,” IEEE J. Solid-State Circuits, vol. 56,
+no. 7, pp. 2221–2233, 2021.
+[45] C. Eckert et al., “Neural Cache: Bit-Serial In-Cache Acceleration of
+Deep Neural Networks,” in ACM/IEEE Annu. Int. Symp. Comput. Archit.,
+2018, pp. 383–396.
+[46] W. Lu et al., “A 28-nm 16-Kb SRAM Computing-in-Memory Macro
+With Dual Bitline Computing for Boolean Logic Operation and BWN
+MAC Operation,” IEEE Trans. Very Large Scale Integr. Syst., vol. 34,
+no. 5, pp. 1591–1603, 2026.
+[47] K. Lee, J. Jeong, S. Cheon, W. Choi, and J. Park, “Bit Parallel 6T
+SRAM In-Memory Computing With Reconfigurable Bit-Precision,” in
+ACM/IEEE Design Autom. Conf., 2020, pp. 1–6.
+[48] J. Lee et al., “A 13.7 TFLOPS/W Floating-Point DNN Processor Using
+Heterogeneous Computing Architecture With Exponent-Computing-in-
+Memory,” in Symp. VLSI Circuits, 2021, pp. 1–2.
+[49] A. Kneip and D. Bol, “Impact of Analog Non-Idealities on the Design
+Space of 6T-SRAM Current-Domain Dot-Product Operators for In-
+Memory Computing,” IEEE Trans. Circuits Syst. I, Reg. Papers, vol. 68,
+no. 5, pp. 1931–1944, 2021.
+[50] Z. Fang, Y. Wang, and Y. Xu, “Low-Power and Area-Efficient CIM: An
+SRAM-Based Fully-Digital Computing-in-Memory Hardware Accelera-
+tion Processor With Approximate Adder Tree for Multi-Precision Sparse
+Neural Networks,” Microelectron. J., vol. 166, p. 106903, 2025.
+[51] D. Wang, C. Lin, G. K. Chen, P. Knag, R. K. Krishnamurthy, and
+M. Seok, “DIMC: 2219TOPS/W 2569F2/b Digital In-Memory Com-
+puting Macro in 28nm Based on Approximate Arithmetic Hardware,”
+in IEEE Int. Solid-State Circuits Conf., vol. 65, 2022, pp. 266–268.
+[52] Y. He et al., “A 28nm 38-to-102-TOPS/W 8b Multiply-Less Approx-
+imate Digital SRAM Compute-In-Memory Macro for Neural-Network
+Inference,” in IEEE Int. Solid-State Circuits Conf., 2023, pp. 130–132.
+[53] P. Houshmand et al., “Opportunities and Limitations of Emerging
+Analog in-Memory Compute DNN Architectures,” in IEEE Int. Electron
+Devices Meeting, 2020, pp. 29.1.1–29.1.4.
+[54] G. Armeniakos, G. Zervakis, D. Soudris, and J. Henkel, “Hardware
+Approximate Techniques for Deep Neural Network Accelerators: A
+Survey,” ACM Comput. Surv., vol. 55, no. 4, 2022.
+[55] A. Sengupta, Y. Ye, R. Wang, C. Liu, and K. Roy, “Going Deeper
+in Spiking Neural Networks: VGG and Residual Architectures,” Front.
+Neurosci., vol. 13, p. 95, 2019.
+[56] C. Frenkel and G. Indiveri, “ReckOn: A 28nm Sub-mm2 Task-Agnostic
+Spiking Recurrent Neural Network Processor Enabling On-Chip Learn-
+ing Over Second-Long Timescales,” in IEEE Int. Solid-State Circuits
+Conf., vol. 65, 2022, pp. 1–3.
+[57] R. Balasubramonian, A. B. Kahng, N. Muralimanohar, A. Shafiee,
+and V. Srinivas, “CACTI 7: New Tools for Interconnect Exploration
+in Innovative Off-Chip Memories,” ACM Trans. Archit. Code Optim.,
+vol. 14, no. 2, 2017.
+[58] A. Lodi, S. Martello, and M. Monaci, “Two-Dimensional Packing
+Problems: A Survey,” Eur. J. Oper. Res., vol. 141, no. 2, pp. 241–252,
+2002.
+[59] J. Jyl¨anki, “A Thousand Ways to Pack the Bin: A Practical Approach to
+Two-Dimensional Rectangle Bin Packing,” Self-published, Tech. Rep.,
+2010.
+[60] A. Amir et al., “A Low Power, Fully Event-Based Gesture Recognition
+System,” in IEEE Conf. Comput. Vis. Pattern Recognit., 2017, pp. 7388–
+7397.
+[61] M. G. Kendall, “The Treatment of Ties in Ranking Problems,”
+Biometrika, vol. 33, no. 3, pp. 239–251, 1945.
+Nicolas
+Chauvaux
+(Graduate Student Member,
+IEEE) received the B.Sc. degree (Magna cum laude)
+and M.Sc. degree (summa cum laude) in electri-
+cal engineering from the Catholic University of
+Louvain-la-Neuve (UCL), Louvain-la-Neuve, Bel-
+gium, in 2019 and 2021, respectively. He is cur-
+rently pursuing a Ph.D. degree at the Delft Univer-
+sity of Technology (TU Delft), Delft, The Nether-
+lands. His research interests include flexible digital
+computing-in-memory (CIM), low-power and low-
+latency system-level design optimization for spiking
+neural network (SNN) accelerators, and design space exploration (DSE) tools.
+Adrian Kneip (Member, IEEE) received the M.Sc.
+degree (summa cum laude) and Ph.D. degree in
+electrical engineering from the Universit´e catholique
+de Louvain (UCLouvain), in 2019 and 2024 respec-
+tively. He is now a postdoctoral research fellow
+at the Delft University of Technology and at the
+KU Leuven. His research interest includes the de-
+sign of mixed-signal processor chips for edge AI,
+from ultra-low-power to high-performance applica-
+tions. He has a particular interest for SRAM-based
+in-memory computing and hardware/software co-
+design aspects. He is also interested in event-based processing, with a focus on
+event-driven graph neural networks and their hardware acceleration. Dr. Kneip
+is the author or co-author of several research papers in IEEE conferences and
+journals, receiving the Best Student Paper Award for the 2022’s ESSCERC
+conference. He also serves as reviewer for various IEEE SSCS and CAS
+journals, and was Student Representative to the IEEE Benelux Section from
+2020 to 2023.
+Charlotte Frenkel (Senior Member, IEEE) received
+the M.Sc. degree (summa cum laude) in Elec-
+tromechanical Engineering and the Ph.D. degree in
+Engineering Science from Universit´e catholique de
+Louvain (UCLouvain), Louvain-la-Neuve, Belgium
+in 2015 and 2020, respectively. In February 2020,
+she joined the Institute of Neuroinformatics, UZH
+and ETH Zurich, Switzerland, as a postdoctoral
+researcher. She is an Assistant Professor at Delft
+University of Technology, Delft, The Netherlands,
+since July 2022, and a Research Scientist at Google
+since February 2026.
+Her research aims at bridging the bottom-up (bio-inspired) and top-down
+(engineering-driven) design approaches toward neuromorphic intelligence,
+with a focus on hardware-algorithm co-design for (Neuro)AI, digital hardware
+accelerators, and brain-inspired on-device learning.
+Dr. Frenkel received a best paper award at the IEEE International Sym-
+posium on Circuits and Systems (ISCAS) 2020 conference in the Neural
+Networks track, and her Ph.D. thesis was awarded the FNRS-FWO / Nokia
+Bell Scientific Award 2021 and the FNRS-FWO / IBM Innovation Award
+2021. In 2023, she was awarded prestigious Veni and AiNed Fellowship
+grants from the Dutch Research Council (NWO). She presented several invited
+talks, including keynotes at the tinyML EMEA technical forum 2021 and at
+the Neuro-Inspired Computational Elements (NICE) neuromorphic conference
+2021. She serves or has served as a program co-chair of NICE 2023-2024 and
+of the tinyML Research Symposium 2024, as a TPC member of IEEE ISSCC
+for 2027 and IEEE ESSERC for 2022-2024, and as an associate editor for
+the IEEE Transactions on Biomedical Circuits and Systems for 2022-2025.

@@ -1,0 +1,1235 @@
+Unveiling the Scaling Potential of Drain Merge through Active (DMtA) in CFETs: 
+ Breaking the Super-Via Bottlenecks and Unlocking New PPA Boosters  
+Jingru Jiang†, Haoran Lu†, Kairong Guo, Yibo Zhang, Yifei Chen, Wanyue Peng, Yu Liu, Jiacheng Sun, Xiaoyan Xu, Ming Li,  
+Yibo Lin, Runsheng Wang, Ru Huang and Heng Wu*. 
+†These authors contributed equally, School of Integrated Circuits, Peking University, Beijing 100871, China, *Email: hengwu@pku.edu.cn 
+Abstract—Drain merge (DM), a super via vertically connecting the 
+common S/D terminals of stacked n/pFETs in Complementary FETs 
+(CFETs), blocks further parasitic optimization and cell scaling. For the 
+first time, this work systematically investigates the state-of-the-art Drain 
+Merge through Active (DMtA), a revolutionary technology reported 
+recently with the DM embedded in the active region, through a 
+comprehensive DTCO framework spanning process integration, 
+contact-configuration-dependent (CTCD) compact modeling, standard-
+cell design, RO evaluation and block-level PPA benchmark on a 32-bit 
+RISC-V Ibex core. By reducing DM parasitics and enabling DM-width 
+optimization, DMtA improves RO frequency by 11.7% over its 
+conventional Drain Merge through field (DMtF) counterpart. Active 
+widening and Area Borrowing, the latter first reported in [8] and 
+exploiting spatial slack in adjacent cells to further enlarge the nanosheet 
+width (WNS), increase the maximum Ibex-core frequency by up to 
+34.8%. More importantly, DMtA also enables the once GAA-exclusive 
+Hyper-cells on CFETs by merging the active regions across adjacent 
+cell rows, providing a further 8.7% frequency gain. A post-routing 
+floating-output-pin-aware optimization further removes redundant S/D 
+contacts (CTs) and reduces power by 5.3%. Finally, DMtA facilitates 
+more area-efficient 2.5T cell scaling by preserving single-row cell 
+compatibility, reducing post-PR core area by 25.7%. 
+INTRODUCTION 
+Continued logic scaling increasingly relies on vertically stacked 
+transistors, with CFETs [1-3] offering reduced cell footprints and 
+enhanced performance. However, their benefits are inevitably limited 
+by super vias connecting the stacked device tiers [4,5]. In conventional 
+CFETs, DMtF [5-7], a super via located outside the active region that 
+connects the common S/D terminals of stacked n/pFETs, introduces 
+parasitic and geometric limits [4,5] that hinder performance 
+improvement and standard-cell scaling. DMtA [1-3] has been proposed 
+to mitigate these limitations by embedding the DM in the active region, 
+where it passes through the top S/D epi and lands directly on the bottom 
+S/D epi (Figs. 1(a-b)). Reported as epi-to-epi via (EEV) by Intel [1] (Fig. 
+1(c)), Thru-contact by Samsung [2] and vMDLI [3] by TSMC (Fig. 1(d)), 
+DMtA has shown potential to alleviate DM’s RC penalty [1,2]. However, 
+its potential for PPA improvement in CFETs remains largely unexplored. 
+In this work, DMtA, as a paradigm-shifting DTCO knob for CFETs, 
+is comprehensively investigated from device to chip levels, with a 
+broader set of PPA boosters proposed, as in Fig. 2. By releasing the 
+field-region space, DMtA enlarges WNS and DM width (WDM), which 
+can be further extended through Area Borrowing [8] using spatial slack 
+from adjacent cells. It also enables active merging across adjacent cells 
+to form Hyper-cells [9], jointly improving performance. Meanwhile, 
+redundant CT removal reduces capacitance and power, while the relaxed 
+DM-spacing constraint enables further cell-height scaling from 3T to 
+2.5T [5-7]. In this work, these boosters are systematically examined 
+from process integration and compact modeling to standard-cell, RO, 
+and block-level evaluations. Scalability is further demonstrated through 
+2.5T cell scaling and extension to CFET-based FFET (CFFET) [10] with 
+4-tier transistors enabled by back-to-back-stacked CFETs.  
+COMPACT MODEL AND EVALUATION FRAMEWORK 
+A. DMtA Process and Compact Modeling 
+The CFET in this work adopts an FS-BS symmetric architecture and 
+follows the double-flip FFET [4,10] integration flow reported in [10], as 
+shown in Fig. 3. After self-aligned active and dummy-gate patterning, 
+the frontside (FS) n-S/D epi is formed, followed by the first wafer 
+flipping and backside (BS) pFET fabrication. After the second wafer 
+flipping, a dedicated DMtA trench is etched through the FS n-S/D epi 
+and lands on the BS p-S/D epi. Subsequent metal fill forms the DMtA 
+together with the FS CTs, followed by other FS BEOL processes. 
+Besides the unique process requirement, DMtA also introduces a 
+compact-modeling challenge by modifying the local S/D epi and CT 
+morphology, resulting in CTCD device characteristics. Taking the 
+DFQD1 cell as an example, Fig. 4(a) identifies 4 CT types: a 
+conventional CT on top of the S/D epi (Type-1), a vertical CT through 
+the DMtA-penetrated S/D epi (Type-2), a bottom CT formed at the S/D 
+epi on which the DMtA lands (Type-3), and a combined top-and-bottom 
+CT when Types-1 and Type-3 coexist (Type-4). Their corresponding 
+S&D terminals are color-coded in the DFQD1 schematic. Assigning the 
+4 CT types to S&D terminals yields 10 symmetry-distinct S&D terminal 
+configurations, whose TCAD IdVg characteristics are shown in Fig. 4 
+(b), with the corresponding device assumptions summarized in Table 1. 
+The pFET variants exhibit a normalized Idsat range of 10.5% at Vdd = 0.7 
+V, indicating an obvious CTCD variation. 
+To evaluate the circuit-level impact, Fig. 4(c) considers a 
+transmission gate (TG) with Type-2 CTs for both pFET S&D terminals 
+and Type-3 CTs for both nFET S&D terminals and defines the 
+propagation delay (tpLH) from the bottom output waveform. Compared 
+with the conventional approach using models with Type-1 CTs for S&D 
+terminals, the proposed CTCD modeling results in a 6.9% difference in 
+tpLH (Fig. 4(d)), highlighting the importance of capturing DMtA-specific 
+CT configurations for accurate circuit evaluation. 
+B. Evaluation Framework 
+A 15-stage ring oscillator (RO) with fan-out of 3 (no BEOL loading) 
+was used for circuit-level comparisons. Unless otherwise specified, all 
+RO evaluations in this work adopted this topology. Block-level 
+evaluations were performed using a 32-bit RISC-V Ibex core [11] (only 
+computing core, no cache), implemented with DMtF and DMtA CFET 
+libraries under A7 technology assumptions. The corresponding design 
+rules are listed in Tables 1 and 2. Note that the CFET std. cells adopt 
+layouts with dual-sided (DS) pins [4,7,12,13], enabling DS signal 
+routing [12,14] during physical implementation. The evaluated CFET 
+standard cell libraries comprise over 2000 cells across all considered 
+technology and design options, and were characterized at Vdd = 0.7 V. 
+DMTA-ENABLED PPA BOOSTERS 
+A. Initial Evaluation and DM-Width Optimization 
+Unlike the field-region DMtF, whose width is constrained by the 
+required spacing to the active and the adjacent DMtF, DMtA provides 
+greater flexibility for WDM optimization (Fig. 5(a)) and DM parasitic 
+reduction. With both structures using baseline WDM = 10 nm and the W1 
+active-width option of WNS = 14 nm, 3T DMtA CFET achieves an 8.2% 
+INVD1-based RO frequency gain at Vdd = 0.7 V over the 3T DMtF 
+CFET (Fig. 5(b)), owing to 33.8% lower n-drain-to-p-drain resistance 
+(Rnd-pd) and 16.9% lower input-to-output capacitance (Cin-out) (Fig. 5(c)); 
+the resistance reduction stems from the reduced DM height (HDM), while 
+the capacitance reduction results from eliminating the gate-overlapping 
+portions of the field-region CT and DM (Fig. 5(a)). Leveraging the 
+greater WDM tunability of DMtA, WDM was further swept from 10 to 22 
+nm. At fixed WDM = 16 nm, the Rnd-pd reduction over DMtF CFET 
+increases to 60.5%, yielding the peak RO frequency with an 11.7% gain 
+over DMtF CFET (Figs. 5(b-c)). 
+Based on the optimized WDM of DMtA, 3T DMtF and DMtA CFET 
+libraries were evaluated on the Ibex core. The physical design results, 
+including DS signal routing, is shown in the post-PR layouts in Fig. 6(a). 
+The power–frequency curves in Fig. 6(b) show that the DMtA CFET 
+achieves up to 7.1% higher frequency at iso-power and up to 16.4% lower 
+power at iso-frequency than the DMtF CFET. Thus, the intrinsic DM 
+parasitic advantage of DMtA already translates into measurable block-
+level performance and power benefits before further DTCO. 
+B. Active Widening and Area Borrowing 
+DMtA further enables active widening by releasing the field-region 
+space originally occupied by the field-region DMtF. As shown in Fig. 
+7(a), this structural advantage directly expands the WNS from W1 = 14 
+nm in the 3T DMtF CFET to W2 = 26 nm in the 3T DMtA CFET. 
+Building on W2 cells, Area Borrowing [8] further enlarges the WNS to 
+W3 = 36 nm by utilizing the spatial slack of an adjacent W1 cell, while 
+
+
+maintaining valid W3-W1 cell abutment, as shown in Fig. 7(b). The 
+progressive increase in effective current (Ieff) with WNS translates into 
+35.7% and 21.5% higher INVD1-based RO frequencies for DMtA W2 
+over W1 and W3 over W2, respectively, at Vdd = 0.7 V (Fig. 7(c)). 
+At the block level, W2 cells provide a higher effective channel width 
+(Weff) at the same footprint, enabling the area-saving switching of high-
+drive (D2/D4/D8) W1 cells to smaller-area D1 W2 cells. This reduces 
+the high-drive cell count by 73.2% and the total cell count by 15.6%, 
+resulting in a 16.9% reduction in total cell area (Figs. 8(a-b)). 
+During the placement and clock-tree synthesis, a limited number of 
+W3 cells were used to effectively improve timing. Fig. 9(a) shows W3 
+cell usage increases with achieved frequency, indicating their growing 
+role in timing optimization, yet remains below 2% of the total cell count, 
+leaving sufficient space for cell abutment constraint and ensuring Area 
+Borrowing during legalization. Static timing analysis further shows that 
+the top-100 to top-1000 critical paths (CPs) contain more than four W3 
+cells per path on average and every analyzed critical path includes at 
+least one W3 cell (W3 path coverage = 100%) (Fig. 9(b)). This proves 
+Area Borrowing a highly efficient performance booster. 
+Core utilization was swept to map frequency vs core area and 
+determine the max. frequency (fmax). Introducing W2 cells increases fmax 
+by 27.8% over the W1-only library, while further enabling W3 cells 
+extends the gain to 34.8%, confirming the progressive benefits of active 
+widening and Area Borrowing. 
+C. Active Merging with Hyper-cells 
+Hyper-cells have recently been proposed in GAA technologies to 
+enhance cell performance by merging the active regions of parallel 
+transistors across rows [9]. However, this technology cannot be directly 
+applied to DMtF CFETs because the DMtF obstructs active merging 
+(Fig. 11(a)). With the DM embedded in the active, Hyper-cells become 
+feasible in DMtA CFETs because the obstruction to active merging is 
+eliminated (Fig. 11(b)). The corresponding layouts illustrate how 
+merging the active regions of two adjacent 3T W2 cells forms a 6T 
+double-row Hyper-cell, increasing Weff by 66.1% (Fig. 11(c)). For an 
+iso-area RO comparison, the Hyper INVD1 (2CPP × 2Row) and W2 
+INVD3 (4CPP × 1Row) were evaluated, with the former achieving a 
+43.5% higher frequency at iso-power and 58.9% lower power at iso-
+frequency relative to the latter at Vdd = 0.7 V, resulting in a 53.1% 
+reduction in energy-delay product (EDP) at iso-leakage. For the block-
+level assessment, a baseline library containing W1 and W2 cells was 
+compared to an extended library with additional Hyper-cells. The design 
+with Hyper-cells achieves an 8.7% higher fmax, 4.1% lower power, and 
+9.6% lower total cell area at their respective fmax points (Figs. 12(a-b)). 
+Fig. 13 further highlights that Hyper-cells can be more efficiently 
+implemented in the DMtA CFET than in GAA. As shown in Fig. 13(a), 
+GAA-based Hyper-cells support only N-active merging or P-active 
+merging, whereas the vertically stacked active in the DMtA CFET 
+enables simultaneous N/P active merging, yielding Weff gains of 54% 
+and 108% (Fig. 13(b)), respectively, and frequency gains of 17%, 28% 
+and 56% (Fig. 13(c)) relative to their unmerged counterparts. 
+D. Redundant S/D Contact Removal and Design Optimization 
+By landing directly on the opposite-side S/D epi rather than the 
+opposite-side CT, DMtA—unlike DMtF—enables removal of the 
+redundant CT when output access from the opposite side is not required. 
+Figs. 14(a-b) show that FS-/BS-formed DMtA (FS/BS DMtA) enables 
+removal of the redundant BS/FS CT, respectively, reducing the drain 
+capacitance (Cdrain) by 13%. To evaluate this benefit, a dedicated 101-
+stage RO was formed by alternately cascading BS-in/FS-out (BIFO) and 
+FS-in/BS-out (FIBO) INVD1 cells (Fig. 15(a)). Fig. 15(b) compares FS 
+DMtA without CT removal, FS DMtA with CT removal only enabled in 
+FIBO, and DS (FS+BS) DMtA with CT removal in both BIFO and FIBO; 
+the latter two increase RO frequency by 4.8% and a further 2.7%, 
+respectively, as DS DMtA removes redundant CTs from both sides and 
+thus achieves the lowest effective capacitance (Ceff) (Fig. 15(c)).  
+More generally, although DS DMtA enables redundant CT removal 
+for either FS or BS output access, backend optimization is required to 
+fully realize its chip-level benefits. Fig. 16(a) illustrates the basic DS 
+signal routing [12,14] enabled by DM-connected DS output (DO) pins 
+in CFET cells [6,7,13], allowing the FS or BS output pin to be selected 
+for cascading according to the input-pin side of the next stage [6,12,14], 
+therefore forming FS-only, BS-only, or DS nets. When a DO pin drives 
+a FS-/BS-only net, the unused-side pin floats and can be removed 
+together with its redundant CT by converting the original DO cell into 
+an FS-only-output (FO) or BS-only-output (BO) cell (Fig. 16(b)). A 
+floating-output-pin-aware post-PR cell optimization workflow was 
+developed to automatically realize this DO-to-FO/BO conversion as 
+shown in Fig. 17. Applying this workflow to a 3T-DMtA-CFET-based 
+Ibex core converts 55.4% of DO cells to FO/BO cells and reduces total 
+power by 2.5% (Fig. 18(a)), primarily through lower internal power 
+enabled by redundant CT removal (Fig. 18(b)). 
+The remaining DO cells in Fig. 18(a) show that further DO-to-
+FO/BO conversion requires reducing DS-net usage, which otherwise 
+limits redundant-CT removal. This can be addressed by updating cell 
+input configurations [13-15] by relocating input pins between the FS and 
+BS, consequently converting DS nets into FS- or BS-only nets [14,15] 
+and enabling additional DO-to-FO/BO conversions (Fig. 19(a)). 
+Broader input-configuration coverage [13]—the ratio of total available 
+to theoretically possible input configurations—reduces DS nets by up to 
+65.8%, enabling more DO-to-FO/BO conversions and increasing the 
+power saving from redundant CT removal by up to 29.1% at 2.5 GHz 
+(Fig. 19(b)). This ultimately yields a 5.3% total power reduction relative 
+to the design before redundant CT removal. 
+Fig. 20 summarizes the cumulative Ibex-core frequency gains 
+enabled by 3T DMtA CFET optimizations over the 3T DMtF baseline. 
+Building on NS widening and Hyper-cells, redundant CT removal raises 
+the frequency gain to 26.2% at iso-power = 5.4 mW, while broader 
+input-configuration coverage further increases it to 29.3%. 
+E. Area-Efficient Scaling to 2.5T with DMtA 
+At the 2.5T cell height, DMtFs in adjacent rows violate the min. DM-
+spacing rule, forcing less area-efficient double-row cells [16], whereas 
+DMtA avoids this conflict and preserves single-row cells (Fig. 21(a)). 
+Even within a double-row cell, DMtA eliminates the lateral staggering 
+required by DMtF and thus reduces cell width—for example, by 2 CPP 
+for DFQD1 (Fig. 21(b)). These advantages translate into an average 
+library area reduction of 12.0% (Fig. 21(c)) and, together with a 9.5% 
+lower cell number, a 25.7% post-PR Ibex-core area reduction (Fig. 21(d)) 
+for the 2.5T DMtA CFET relative to the 2.5T DMtF double-row CFET.  
+F. Extension to 4-Tier CFFETs 
+DMtA can also serve as a performance booster for 4-tier-transistor 
+CFFETs [10]. In the CFFET, the aligned-active arrangement requires 
+VHV routing [10,17] to bring internal signals to the M0 tracks above the 
+active region, increasing the MOL vertical-interconnect height (ΔHMOL) 
+and resistance (Fig. 22(a)). Staggering the active regions [18] enables 
+direct vertical connection without VHV. For staggered-active CFFETs, 
+DMtA avoids the cell-boundary extension required by DMtF and the 
+associated area penalty (Fig. 22(b)). Relative to the aligned-active DMtF 
+CFFET, the aligned-active and staggered-active DMtA CFFETs 
+improve RO frequency by 9.7% and 22.8%, respectively, with the latter 
+benefiting from reduced MOL resistance, as shown in Fig. 22(c). 
+CONCLUSIONS 
+In this work, for the first time, we fully investigated the novel DMtA 
+architecture on CFET from process integration and compact modeling 
+to circuit- and block-level implementations. By intrinsically reducing 
+DM resistance and parasitic capacitance while further enabling active 
+widening, Area Borrowing, Hyper-cells, redundant CT removal, and 
+area-efficient 2.5T cell scaling newly proposed on CFETs, DMtA is 
+validated through comprehensive PPA evaluation as a scalable DTCO 
+solution for future CFET technologies.  
+ACKNOWLEDGMENT 
+This work was supported in part by the National Key R&D Program 
+of China under Grant 2023YFB4402201; in part by the NSFC under 
+Grant 92464206; and in part by GJ Program under Grant 202504841098. 
+REFERENCES 
+[1] J. A. Wiedemer et al., VLSI 2026. [2] D. Hwang et al., VLSI 2026. 
+[3] S. Liao et al., IEDM 2025. [4] S. Yang et al., VLSI 2026. [5] J. Jiang 
+et al., TED 2026. [6] H. Lu et al., VLSI 2024. [7] R. Guo et al., TED 
+2025. [8] H. You et al., VLSI 2026. [9] H. Jung et al., VLSI 2026. [10] 
+W. Peng et al., VLSI 2025. [11] lowRISC, “Ibex RISC-V Core,” 
+https://github.com/lowRISC/ibex. [12] H. Lu et al., DATE 2025. [13] K. 
+Guo et al., ASP-DAC 2026. [14] X. Jiang et al., ISEDA 2026. [15] J. Ahn 
+et al., DAC 2025. [16] H. Kükner et al., IEDM 2024. [17] B. Chehab et 
+al., IITC 2021. [18] C. Zhang et al., VLSI 2026.
+
+
+(a)
+Intel EEV [1]
+DMtA
+(b)
+(c)
+DMtA
+TSMC vMDLI [3]
+@ Vdd = 0.7 V 
+3T W1 DMtA
+3T W1 DMtF
++8.2%
++11.7%
+WDM (nm)
+RO frequency (GHz)
+24
+6.6
+6.8
+7.0
+7.2
+7.4
+8 10 12 14 16 18 20 22
+15-stage RO, fan-out of 3
+3T W1 DMtF
+3T W1 DMtA
+-33.8%
+-16.9%
+-60.5%
+-15.2%
+WDM = 10 nmWDM = 10 nmWDM = 16 nm
+Rnd-pd (Ω)
+Cin-out (aF)
+(c) 
+0
+200
+400
+600
+800
+42
+48
+54
+60
+66
+(b) 
+FS
+nFET
+pFET
+BS
+(a) 
+DMtA W1
+DMtF W1
+VDD
+VSS
+WNS = 14 nm 
+HDM
+DM
+VDD
+VSS
+larger WDM
+DM
+VDD
+VSS
+HDM↓
+Scalability
+3T →2.5T
+Area -
+DMtF
+DMtA-enabled PPA Boosters
+Active widening
+Area Borrowing
+Hyper Cell
+Active merging
+WNS↓WDM↓
+Parasitic RC↑
+WNS↑ WDM↑
+Performance + Performance ++
+Performance +++
+CT removal
+CT Cap ↓
+Power -
+PPA -
+Fig. 9 (a) W3 cell usage increases with frequency but remains sparse (< 2%),
+ensuring legalization under the W3 cell abutment constraints. (b) The
+average W3-cell count exceeds four per path across the top-100 to top-1000
+CPs, with 100% path coverage, indicating intensive W3-cell usage in CPs. 
+Table 1 Device assumptions 
+and std. cell design rules for 
+the A7 CFETs in this work. 
+Fig. 1 (a) 3D schematic of DMtA in a CFET [1-3], connecting the common 
+S/D terminals of stacked n/pFETs through the top S/D epi to the bottom S/D
+epi. (b) Cross-gate cartoon of the DMtA. (c) TEM image of Intel’s DMtA
+process, termed EEV [1]. (d) TSMC’s DMtA structure, termed vMDLI [3].  
+Fig. 2 DMtF reference and the unique DMtA-enabled PPA boosters. DMtA expands active and 
+DM width, while Area Borrowing exploits spatial slack from adjacent cells; active merging 
+adjacent cells to form Hyper-cells, jointly enhancing performance. Redundant CT removal lowers
+capacitance and power, while DMtA enables further cell-height scaling from 3T down to 2.5T. 
+Fig. 3 The overall integration of the FS-BS symmetric CFET 
+follows the double-flip FFET [4,10] flow reported in [10]. During 
+CT formation, a dedicated DMtA trench is etched within the active
+region through the FS n-S/D epi and lands on the BS p-S/D epi,
+followed by contact formation and metal deposition. 
+Fig. 5 (a) Schematics of 3T DMtF CFET (left), 3T DMtA CFET with the same WDM (middle), and 3T DMtA CFET 
+with an enlarged DM (right).  (b) INVD1-based RO frequency vs WDM. (c) Rnd-pd and Cin-out of 3T DMtF CFET and 3T
+DMtA CFET with 10- and 16-nm-wide DMs, revealing the RC trade-off as the DMtA extends beyond the active region. 
+Fig. 6 (a) Post-PR layouts of a 3T CFET Ibex core with
+DS signal routing. (b) Power-frequency curves of the
+3T DMtF CFET and 3T DMtA CFET (Ibex core). 
+Table 2 Design
+rules of the BEOL 
+metal layers. 
+Fig. 7 (a) The field-region DMtF limits WNS to W1 = 14 nm, while the DMtA releases the field-region space and expands 
+WNS to W2 = 26 nm. (b) Area Borrowing [8], enabled by DMtA, expands WNS to W3 = 36 nm by utilizing the spatial slack
+from an adjacent W1 cell. The right layout shows valid W3-W1 cell abutment. (c) INVD1-based RO (Fan-out = 3, stage =
+15) frequency and Ieff at Vdd = 0.7 V for 3T DMtF CFET and 3T DMtA W1/W2/W3 CFET cells. 
+Fig. 8 (a) Post-PR (Ibex core) cell distribution for W1-
+only and W1∪W2 3T DMtA libraries. Introducing
+W2 cells reduces the use of high-drive (D2/D4/D8) 
+cells, thereby lowering total cell area in (b). 
+Fig. 10 Block-level frequency vs core 
+area for W1-only, W1∪W2 and 
+W1∪W2∪W3 3T DMtA libraries, 
+showing a progressive increase in fmax. 
+Fig. 4 CTCD compact modeling for DMtA. (a) 4 CT types and their assignments in a CFET DFQD1 cell. 
+(b) TCAD Id–Vg characteristics of nFET and pFET variants for the 10 symmetry-distinct S&D terminal 
+configurations. (c) TG benchmark comparing the conventional model with Type-1 CTs for S&D with
+CTCD models (p-S&D: Type-2; n-S&D: Type-3), with tpLH defined. (d) Resulting 6.9% tpLH difference. 
+FS BEOL
+formation
+Active 
+patterningFS n-SD epi
+formation
+1st wafer
+flipping
+2nd wafer
+flipping
+BS pFET
+formation
+DMtA
+metal dep.
+DMtA
+etching
++11.7%
++35.7%
++21.5%
+W1
+W1
+W2
+W3
+3T DMtA
+3T DMtF
+RO Frequency (GHz)
+Ieff (uA)
+= 
+4
+5
+6
+7
+8
+9
+10
+6
+7
+8
+9
+10
+11
+12
+(a)
+(c)
+15-stage RO, fan-out of 3
+@ Vdd = 0.7 V
+(b)
+DMtA W3
+PO
+M0
+Active
+GC
+WNS ++
+DMtA W3
+DMtA W1
+Area Borrowing
+VDD
+VSS
+×
+×
+WNS = 14 nm
+DMtF W1
+VDD
+VSS
+WNS = 26 nm
+DMtA W2
+WNS +
+VDD
+VSS
+WNS = 36 nm
+W1
+VDD
+VSS
+Area
+Borrowing
+WNS ++
+Total cell area (um2)
+W1
+W1 ∪W2
+0
+100
+200
+300
+400
+-16.9%
+3T DMtA
+500
+Ibex core
+3T DMtA
+Post-PR cell number (×103)
+W1
+W1 ∪W2
+25
+20
+15
+10
+5
+0
+D2
+D1
+D4D8
+(a)
+(b)
+Total : -15.6%
+-73.2%
+Ibex core
+(a)
+Avg.  W3 cell number/path
+W3 path coverage = 100%
+Top-N critical paths
+(b)
+1
+2
+3
+4
+5
+Top-100 Top-300 Top-500 Top-1000
+Frequency (GHz)
+W3 cell usage (%)
+0.0
+0.4
+0.8
+1.2
+1.6
+2.0
+2.4
+2.6 2.8 3.0 3.2 3.4
+3T DMtA
+Ibex core
+6 3T DMtA
+Ibex core
+Ibex core area (um2)
+Frequency (GHz)
++27.8%
++34.8%
+400
+600
+800
+1000
+1200
+2.0
+2.5
+3.0
+3.5
+4.0
+W1
+W1 ∪W2
+W1 ∪W2 ∪W3
+3T DMtA
+Ibex core
+C’
+C
+C’
+C
+C
+C’
+D
+C
+C’
+Q
+C
+CLK
+C’
+Q’
+(a)
+(b)
+①
+②
+④
+③
+Vg (V)
+Id (uA) -lin-
+Id (uA) -log-
+0.0 0.3 0.6
+-0.6 -0.3
+50
+100
+150
+10
+100
+1
+0.1
+0.01
+WNS = 14 nm 
+10.5%
+IN 
+EN
+ENB
+OUT
+(d)
+(c)
+OUT
+IN 
+③
+②
+Cload = 5 fF
+0
+20 40
+60 80 100 120
+0
+0.2
+0.4
+0.6
+0.8
+Voltage (V)
+Time (ps)
+50% Vdd
+11.0
+11.2
+11.4
+11.6
+11.8
+12.0
+12.2
+12.4
+.
+tpLH (ps)
+Conv.
+6.9%
+CTCD
+tpLH
+EN
+OUT
+Vdd = 0.7 V 
+EN
+(a) 
+Frontside
+Backside
++7.1%
+5.5
+Frequency (GHz)
+5.0
+4.5
+4.0
+3.5
+3.0
+2.0
+2.2
+2.4
+2.6
+-16.4%
+3T W1 DMtA
+3T W1 DMtF
+Power (mW)
+(b) 
+Ibex core
+
+
+ 
+Fig. 11 (a) DMtF obstructs active merging between adjacent cells. (b) Without the obstruction, DMtA enables the Hyper-cell [9] in CFETs. (c) Taking the 3T W2-cell layout as an
+example, parallel-transistor active is merged to form the 6T Hyper-cell layout (left), substantially increases Weff over the W2 cell (right). (d) RO (fan-out = 3, stage = 15) power-
+frequency relation of the W2 INVD3 and Hyper INVD1 with the same cell area, validating improved power and frequency in Hyper-cells. (e) The resulting EDP reduction. 
+Fig. 21 Area-efficient scaling to 2.5T with DMtA. (a) DMtFs in adjacent 
+rows violate min. DM spacing and requires less area-efficient double-row 
+cells, whereas DMtA retains single-row cells. (b) DMtF requires lateral 
+staggering, incurring a 2-CPP width penalty for DFQD1. (c,d) Library and 
+core area comparisons between 2.5T double-row DMtF and DMtA CFETs. 
+Fig. 12 Hyper-cells enable 3T DMtA CFET
+Ibex core (a) 8.7% higher max. frequency and 
+4.1% lower power, and (b) 9.6% less total cell 
+area, all studied at the respective max frequency.
+Fig. 13 (a) Layouts of 10T GAA-based and 5T CFET-based Hyper-cells.
+CFET’s stacked active enables N/P active merging together, whereas 
+GAA permits only N- or P-active merging. (b) Active merging in CFET
+yields a larger Weff gain (left) and thus a higher frequency gain (right).  
+Fig. 14 (a) Landing on the BS S/D epi instead
+of CTs, DMtA formed on FS can remove 
+redundant BS contacts, reducing Cdrain by 13%.
+(b) DMtA formed on BS can remove redundant
+FS contacts. 
+Fig. 15 Dedicated RO evaluation of FS and DS DMtA for redundant CT
+removal. (a) RO formed by alternately cascading BS-in/FS-out (BIFO) and FS-
+in/BS-out (FIBO) INVD1. (b) INVD1 structures for the 3 designs: FS DMtA
+without CT removal; FS DMtA with FIBO-only removal, and DS (FS+BS)
+DMtA with CT removal in both BIFO and FIBO. (c) RO frequency and Ceff. 
+Fig. 16 (a) Illustration of DS routing on DS output
+pins by DM. (b) Not all DS output pin drives both FS 
+& BS nets, leading to FS- or BS-floating output pins,
+can be removed to eliminates the redundant CTs. 
+Fig. 18 DO-to-FO/BO cell optimization using a 3T DMtA 
+CFET library. (a) Converting 55.4% of DO cells to FO/BO 
+cells delivers a 2.5% power saving, mainly owing to (b) lower
+internal power enabled by the redundant CT removal. 
+Fig. 20 Summary of Ibex-core frequency
+gains enabled by 3T DMtA CFET 
+optimizations over the 3T DMtF CFET. 
+Fig. 22 DMtA-enabled performance 
+boosting in 4-tier-transistor CFFET
+[10]. (a) The VHV routing required 
+by 
+the 
+aligned-active 
+CFFET 
+increases 
+the 
+MOL 
+vertical-
+interconnect height (ΔHMOL) and 
+resistance. (b) A staggered-active
+arrangement enables direct vertical 
+connection without VHV, but only 
+DMtA implements this scheme 
+without extending the DM beyond 
+the cell boundary and incurring an 
+area penalty. (c) RO frequency
+comparison 
+of 
+aligned- 
+and
+staggered-active 
+DMtA 
+CFFET 
+against aligned-active DMtF CFFET.
+Fig. 17 Workflow of floating-output-
+pin-aware post-PR cell optimization. 
+Fig. 19 Input-configuration optimization for redundant CT removal.
+(a) FS/BS input-pin relocation converts DS nets into single-sided nets,
+enabling additional DO-to-FO/BO conversions. (b) Broader input-
+configuration coverage reduces DS nets and increases power savings.
+(d) 600
+500
+400
+300
+200
+100
+W2 INVD3
+(4CPP×1Row)
+Hyper INVD1
+(2CPPx2Row)
++43.5%
+-58.9%
+Vdd:0.5~0.9 V in 50 mV
+Power (uW)
+Frequency (GHz)
+6
+8 10 12 14 16 18
+15-stage RO, fan-out of 3
+0
+Active 
+PO
+GC
+M0
+Merged Active
+DMtA Hyper
+Before
+merging
+After
+merging
+DMtA W2
+3T
+3T
+6T
+(c)
+DMtA W2
+(b)
+DMtA Hyper
+VDD
+VDD
+VSS
+VSS
+WNS = 98 nm
+Active Merging
+× ×
+VDD
+VDD
+VSS
+VSS
+× ×
+(a)
+DMtF
+Before
+merging
++66.1%
+Weff (nm)
+After
+merging
+600
+500
+400
+300
+200
+100
+0
+-53.1%
+W2 
+INVD3
+Hyper
+INVD1
+RO EDP (×10-24 J·s)
+(e)
+0.0
+0.5
+1.0
+1.5
+2.0
+2.5
+15-stage RO, fan-out of 3
+@ Vdd = 0.7 V
+3.0
+Weff(nm)
+GAA
+CFET
+Hyper-N
+Hyper-P Hyper-PN
++54% +54%
++108%
+400
+300
+200
+100
+0
+500
+Before merging
+After merging - Before merging
+Hyper-N
+Hyper-P
++17% +28% +56%
+GAA
+CFET
+2
+4
+6
+8
+10
+12
+14 15-stage RO, fan-out of 3 
+@ Vdd = 0.7 V
+RO frequency (GHz)
+0
+Hyper-PN
+(b) 
+DMtA CFET
+Hyper-PN
+GAA
+*Hyper-N/P
+Active
+Merged Active
+GC 
+PO 
+FM0
+BS power
+5T
+10T
+*Hyper-PN is also feasible in GAA, but 
+with area penalty [9].
+(a) 
+BS DMtA
+(b) 
+(a) 
+CT
+remove
+FS DMtA
+FS DMtA
+-13% Cdrain
+(b)
+FS DMtA
+FS DMtA
+FS net
+BS net
+DO cell
+DO cell
+FO cell
+BO cell
+FS net
+BS net
+BS-floating
+output pin
+FS-floating
+output pin
+CT 
+removal
+CT 
+removal
+(a)
+DS net
+Floating BS
+output pin
+Floating FS
+output pin
+FO cell 
+available?
+LEF & Post-routing DEF
+For each net, 
+check FS and BS for floating output pin
+Keep 
+original cell
+Convert original 
+cell to BO cell
+Convert original 
+cell to FO cell
+Update DEF / netlist
+FS-floating
+output pin
+BS-floating
+output pin
+No
+Yes
+No
+Yes
+Yes
+Keep 
+original cell
+No
+Floating 
+output pin 
+exists?
+Floating 
+output pin 
+Type?
+BO cell 
+available?
+Yes
+More nets?
+11.9%
+Switching power
+reduction
+Internal power reduction
+14 uW
+Power reduction 
+after opt.
+103 uW
+Leakage power
+reduction
+3 uW
+(b) 
+87.8%
+(a) 
+99.0%
+33.0%
+44.6%
+22.4%
+Cell number (×103)
+DO
+BO
+FO
+Before 
+opt. 
+After 
+opt. 
+0
+4
+8
+12
+16
+20
+24
+Ibex core
+@2.5 GHz
+Power (mW)
+4.30
+4.35
+4.40
+4.45
+1.0
+(b)
+0
+Ibex core @ 2.5 GHz
+110
+Input-config. coverage (%)
+DS net number (×103)
+*Input-config. coverage =
+. : cell ID;
+ number
+of available input configurations;
+  number of input pins;
+  
+number of theoretically possible input configurations.
+1.5
+2.0
+2.5
+3.0
+3.5
+4.0
+20
+40
+60
+120
+130
+140
+150
+160
+-65.8%
++29.1%
+Power reduction(uW)
+DO cell
+DS net
+FS net
+FO cell
+Change input 
+configuration
+FS DMtA
+Input pin 
+relocating
+DS net
+(a)
+baseline
+baseline
+2.2
+2.4
+2.6
+2.8
+3.0
+3.2
+Frequency (GHz)
++26.2%
++29.3%
+Ibex core @ Power = 5.4 mW
+15-stage RO,fan-out of 3
+@ Vdd = 0.7 V
+(c)
+5.0
+5.5
+RO frquency (GHz) 
++22.8%
++9.7%
+4.5
+6.0
+6.5
+Aligned active
+Staggered
+active
+DMtF
+CFFET
+DMtA
+CFFET
+DMtA
+CFFET
+(b)
+VDD
+VSS
+VSS
+VDD
+VSS
+VDD
+DMtF extends cell boundary
+VSS
+VDD
+Staggered Active
+DMtF
+CFFET
+DMtA
+CFFET
+×
+(a)
+VSS
+VDD
+VDD
+VSS
+VSS
+VDD
+VDD
+VSS
+VHV
+ΔHMOL
+ΔHMOL
+DMtF
+DMtA
+VHV
+Aligned Active
+DMtF
+CFFET
+DMtA
+CFFET
+Frequency (GHz)
+W/ Hyper-cell
+Frequency (GHz)
+Freq. +8.7%
+Power -4.1%
+Power (mW)
+(a)
+W/ Hyper-cell
+W/O Hyper-cell
+2.4 2.8 3.2 3.6
+4.0
+4.5
+5.0
+5.5
+6.0
+6.5
+7.0
+7.5
+8.0
+Ibex core
+-9.6%
+Total cell area (um2)
+(b)
+W/O Hyper-cell
+2.4 2.8 3.2 3.6
+360
+380
+400
+420
+440
+460
+Ibex core
+FS DMtA
+VDD
+VSS
+FS DMtA
+VSS
+VDD
+FS DMtA
+VSS
+VDD
+FS DMtA
+VSS
+VDD
+FS
+output
+BS 
+output
+FS DMtA
+BS DMtA
+VSS
+VDD
+FS DMtA
+VSS
+VDD
+Remove 
+CT
+…
+stage = 101 
+FS 
+BS 
+FS DMtA DS DMtA
+DMtA
+scheme
+Keep 
+*Fan-out 3, 
+not shown.
+(a)
+(b)
+FIBO 
+BIFO 
+RO frequency (GHz) 
+Ceff (fF) 
+FS DMtA
+FS DMtA
+DS DMtA
+Remove
+Keep
++4.8%
++2.7%
+CT
+DMtA
+scheme
+1.55
+1.60
+1.65
+1.70
+6.2
+6.4
+6.6
+6.8
+7.0
+(c)
+101-stage RO, fan-out of 3
+@ Vdd = 0.7 V
+(a) 
+(b) 
+7 CPP
+PO
+Active
+M0
+GC
+DM
+VG
+M1
+SDB
+V0
+S/D
+contact 
+VD
+(c) 
+(d) 
+VDD
+VSS
+2.5T DMtA
+VDD
+VSS
+VSS
+×
+VDD
+2.5T DMtF
+Double-row
+2.5T DMtF DFQD1 layout (FS)
+9 CPP
+target frequency = 2.5 GHz   
+utilization = 75%
+2 Row
+2 Row
+Staggered
+Area (CPP x Row)
+2.5T double-row DMtF CFET 
+2.5T DMtA CFET
+Cell ID
+0
+5
+10
+15
+20
+25
+30
+35
+40
+45
+50
+0
+5
+10
+15
+20
+25
+Avg. area reduction: 12%
+Frontside
+2.5T DMtA
+CFET
+20.1 um
+20.1 um
+Backside
+Cell count = 17527
+Single-row
+Cell count= 19368
+2.5T DMtF
+double-row
+CFET
+Frontside
+23.3 um
+23.3 um
+Backside
+Area: -25.7%
+Cell count: -9.5%
+2.5T DMtA DFQD1 layout (FS)

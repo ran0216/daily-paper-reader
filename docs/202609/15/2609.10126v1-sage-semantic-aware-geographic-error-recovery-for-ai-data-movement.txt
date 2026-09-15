@@ -1,0 +1,2906 @@
+SAGE: Semantic-Aware Geographic Error Recovery for
+AI Data Movement
+Patrick S. Y. Hung
+City University of Hong Kong
+Hong Kong
+psyhung@cityu.edu.hk
+Zitong Wang
+City University of Hong Kong
+Hong Kong
+zitowang7-c@my.cityu.edu.hk
+Zekai Zhang
+City University of Hong Kong
+Hong Kong
+zekazhang2-c@my.cityu.edu.hk
+Yu Hin Chan
+City University of Hong Kong
+Hong Kong
+yhchan96@cityu.edu.hk
+Shengzhe Lyu
+City University of Hong Kong
+Hong Kong
+shengzhe.lyu@my.cityu.edu.hk
+Ray C.C. Cheung
+City University of Hong Kong
+Hong Kong
+r.cheung@cityu.edu.hk
+Abstract
+AI interconnects typically protect and replay packets uni-
+formly, yet numerical bit faults differ sharply in consequence:
+a low-order mantissa flip may resemble quantization noise,
+while a high-significance exponent flip can produce a cat-
+astrophic outlier or non-finite value. We present SAGE, a
+semantic-aware geographic error-recovery architecture that
+decouples whether a detected fault merits replay from where
+replay restarts. For BF16-like data, a workload-calibrated
+contract separates catastrophic Class-H faults from bounded
+Class-M and precision Class-L damage. It first applies a Class-
+H silent-delivery constraint, then ranks admissible policies
+by quality-normalized terminal latency, Ψdel. Independently,
+a source-local region table adapts checkpoint intervals to
+fault geography, shortening recovery segments in noisy re-
+gions. Detected Class-H failures may trigger protected nega-
+tive acknowledgments and full-flit replay; Class-M and Class-
+L outcomes do not trigger default network replay.
+We implement SAGE’s endpoint and replay protocol in
+gem5 Garnet and synthesize its fully pipelined checker in
+ASAP7. At a stable synthetic operating point, a ten-seed
+contention-faithful direct-Garnet campaign shows that SAGE
+reduces Ψdel by 30.1% relative to fixed 34-hop recovery, com-
+bining 28.0% lower mean latency with improved delivered
+semantic quality. Under higher-BER synthetic stress at the
+same offered load, SAGE maintains bounded queues while
+the fixed baseline accumulates backlog. Application-derived
+DeiT-S communication traces also show lower mean and
+p99.5 latency at the evaluated nonzero BERs. Within the
+qualified operating envelope, CRC32 decoder trials yield a
+simultaneous 95% per-original Class-H silent-delivery upper
+bound of 3.18 × 10−7.
+1
+Introduction
+AI tensors traverse networks-on-chip (NoCs), chip-to-chip
+links, wafer-scale fabrics [27], and high-bandwidth memory
+interfaces exposed to physical faults [5, 13]. Yet bit faults
+differ sharply in numerical consequence: a low-order man-
+tissa fault may resemble precision noise, whereas a high-
+significance exponent fault can create an outlier or non-
+finite value that dominates a reduction or corrupts model
+state [19, 25, 28].
+In our DenseNet-121/ESC-50 fault-injection experiment,
+exponent-MSB faults cause catastrophic training collapse:
+accuracy falls to 2.0% (chance) and remains there at every
+subsequent measured checkpoint, compared with 83.3% for
+the clean control (Section 6.1). Recovery should therefore
+account for numerical consequence, not just whether a bit
+was corrupted.
+We present SAGE, a semantic-aware geographic error-
+recovery architecture that separates two questions: whether
+a detected fault merits replay, and where that replay restarts.
+Prior approximate NoCs such as DEC-NoC suppress retrans-
+mission for low-order errors [11], while fault-tolerant NoCs
+adapt routing and recovery to physical faults [24]. SAGE com-
+bines a workload-calibrated semantic contract with source-
+local geographic checkpointing: numerical risk governs re-
+play eligibility, while fault geography governs recovery dis-
+tance. This separation lets noisy regions use shorter recovery
+segments without imposing the same checkpoint spacing on
+clean regions.
+The contract first enforces safety. For the evaluated BF16-
+like data, Class-H contains high-significance exponent bits
+whose escaped errors may exceed a calibrated numerical en-
+velope; Class-M contains sign and lower-exponent bits with
+important but bounded effects; and Class-L contains preci-
+sion bits. Policies must satisfy the Class-H silent-delivery risk
+budget before performance is considered. Detected Class-H
+failures may trigger replay, whereas Class-M and Class-L
+outcomes do not trigger default network replay.
+Because latency metrics alone can artificially reward poli-
+cies that abandon recoverable packets early, SAGE ranks
+admissible policies by quality-normalized terminal latency:
+mean latency divided by delivered semantic quality (Sec-
+tion 2.2). We also report latency and quality separately in
+our evaluation.
+1
+arXiv:2609.10126v1  [cs.AR]  9 Sep 2026
+
+
+Hung et al.
+SOURCE /
+INITIAL
+CHECKPOINT
+GEOGRAPHIC CHECKPOINTING
+DESTINATION /
+FINAL
+VALIDATION
+SAGE
+injection queue
+fixed
+34-hop
+576-bit physical flit
+H record, 184 bits:
+high-risk exponent
+M record, 168 bits:
+sign/lower exponent
+L record, 224 bits:
+precision
+CLEAN REGION
+NOISY REGION
+CLEAN REGION
+fixed 34-hop spacing
+final tail
+long segment
+short segments
+long segment
+replay
+NACK
+SOURCE-LOCAL
+INTERVAL CONTROLLER
+· Maintains per-region intervals
+· Adapts from Class-H outcomes
+SYMBOLS
+source/destination
+routers
+recovery checkpoint
+SAGE
+final pass →accept
+fixed
+34-hop
+Validation Outcomes
+H: validate; if fail:
+· NACK & replay
+· exhaustion →drop
+M: ECC correct / fallback
+· no default replay
+L: accept precision residual
+· no default replay
+Figure 1. SAGE separates semantic replay eligibility from geographic replay distance. Detected Class-H failures may trigger
+a protected NACK and full-flit replay. Class-M and Class-L outcomes do not trigger default network replay. A source-local
+region table shortens future intervals after Class-H failures and gradually lengthens them after sustained clean windows.
+Our main comparison is against fixed 34-hop recovery in
+ten-seed direct-Garnet experiments. At the stable synthetic
+operating point, with base bit-error rate (BER) 3 × 10−5,
+SAGE lowers mean latency by 28.0% and all-outcome p99.5
+latency by 36.0%, while improving delivered semantic quality.
+Together, these gains reduce quality-normalized terminal
+latency by 30.1% (Table 3). All ten traffic- and seed-paired
+p99.5 comparisons favor SAGE.
+Under higher-BER synthetic stress at the same offered load,
+SAGE maintains bounded queues while the fixed baseline
+accumulates backlog. Application-derived DeiT-S traces and
+Garnet-calibrated wrapper traces also show lower mean and
+p99.5 latency at the evaluated BERs.
+SAGE implements geographic recovery with a small table
+of checkpoint intervals at each source (Figure 1). Class-H
+failures shorten intervals in noisy regions; sustained clean
+windows allow longer intervals. The source inserts a check-
+point when a segment reaches the shortest interval encoun-
+tered since the preceding checkpoint. Validation occurs only
+at segment endpoints. A detected Class-H failure returns a
+protected negative acknowledgement to the preceding check-
+point and replays the complete physical flit, refreshing its H,
+M, and L contents.
+We implement the endpoint and replay path in gem5 Gar-
+net [2, 7] and synthesize a fully pipelined Class-H/Class-M
+receiver checker with initiation interval one. Ordered per-
+VC staging and packet-specific credit ownership prevent
+younger bypass packets from overtaking packets undergoing
+validation. Garnet executes a causally generated checkpoint-
+plan trace; the checker RTL is synthesized separately.
+A complementary Garnet-calibrated wrapper isolates se-
+mantic replay eligibility: SAGE+M retains SAGE’s geographic
+checkpoint plan but also allows Class-M failures to trigger
+replay. At base BER 3×10−5, ten-seed results under the same
+finite retry budget show that this change multiplies retry
+DATA flit-hops per original by 2.30 and raises drop rate from
+7.42% to 21.64%, reducing delivered semantic quality by 8.3%.
+Thus, replaying bounded faults can sacrifice useful deliveries
+rather than improve delivered quality. Separate decoder and
+HBM studies qualify Class-H silent-delivery risk and test
+portability (Section 6).
+This paper makes three contributions:
+• A semantic reliability contract. We separate cata-
+strophic Class-H faults from bounded Class-M/Class-
+L damage and rank admissible policies by quality-
+normalized terminal latency.
+• A geographic checkpoint and replay architecture.
+A source-local region table localizes short recovery
+segments to noisy geography; endpoint validation and
+full-flit replay preserve the semantic contract.
+• Implementation and quality-aware evaluation.
+A Garnet protocol implementation and fully pipelined
+checker support experiments that quantify latency–
+quality tradeoffs, evaluate queue stability under fault
+stresses, and test application-derived traffic.
+To support reproducibility, the complete gem5 Garnet
+protocol implementation, synthesizable checker RTL, and
+application-derived traces will be open-sourced upon accep-
+tance.
+2
+
+
+SAGE
+2
+Semantic Reliability Contract
+SAGE separates the numerical consequence of a fault from
+the physical mechanism used to recover it. The contract has
+two parts: a hard safety rule for catastrophic residuals and a
+quality–latency objective for bounded residuals. The learn-
+ing model calibrates class boundaries and quality weights
+offline; it is not evaluated per packet in the NoC control loop.
+2.1
+Semantic Protection Classes
+For the BF16-like packets used in our NoC experiments, each
+16-bit value is divided as
+H = {𝑒4,𝑒5,𝑒6,𝑒7},
+M = {𝑠,𝑒0,𝑒1,𝑒2,𝑒3},
+L = {𝑓0, . . . , 𝑓6}.
+(1)
+Rather than relying on a rigid, universal bit index, SAGE
+calibrates exact class boundaries offline to adapt to specific
+workload, layer, and numerical-format requirements. A prac-
+tical deployment first freezes a tensor envelope from clean
+statistics—for example, a six-standard-deviation envelope
+when that summary is meaningful, or an equivalent empiri-
+cal tail quantile for non-Gaussian tensors. A position belongs
+to Class-H when a plausible escaped residual, especially an
+exponent 0 →1 transition, can create a non-finite value,
+leave that envelope, dominate a downstream reduction, or
+corrupt persistent state.
+For the evaluated AlexNet distributions [18], this criterion
+places 𝑒4–𝑒7 in Class-H for the dangerous upward direction,
+while 𝑒0–𝑒3 remain finite and range bounded and are treated
+as Class-M; other models and tensors must be recalibrated.
+Class-M contains faults that can materially change sign or
+scale but remain finite and range bounded under calibration.
+Class-L contains precision faults whose expected effect is
+closer to quantization noise. Appendix A.6.1 illustrates op-
+tional transport-only exponent recentering, but no benefit
+from exponent recentering is credited in our results.
+The H/M/L classification determines the default terminal
+action:
+• Class-H: Receives strong correction and detection,
+range/non-finite validation, and a safe terminal action
+such as replay, replacement, or drop.
+• Class-M: Receives correction or detection but skips
+default network replay; bounded ambiguity invokes
+clipping, erasure, or approximate acceptance.
+• Class-L: Uses opportunistic high-rate protection, trun-
+cation, erasure, or approximate acceptance and nor-
+mally never triggers replay.
+2.2
+Safety Before Performance
+Let 𝜋denote a protection, checkpoint, and terminal-action
+policy under component error condition 𝑃. The policy is
+admissible only if its per-original-item Class-H catastrophic-
+risk probability satisfies
+𝑃cat,𝐻(𝜋, 𝑃) ≤𝜖cat.
+(2)
+The probability in (2) includes correction, detection, range
+checking, all permitted replays, and the final safe action. A
+policy that violates this constraint is rejected even when its
+average latency or raw goodput is attractive.
+For an original item 𝑖, let 𝑞𝑖∈[0, 1] denote the calibrated
+semantic quality of its final accepted value. Dropped items
+contribute zero, giving delivered quality
+𝑞del(𝜋, 𝑃) = E
+
+𝑞𝑖1{𝑖delivered}
+
+= (1 −𝑃drop)𝑞acc.
+(3)
+Among policies satisfying Eq. (2), we rank them by quality-
+normalized terminal latency:
+Ψdel(𝜋, 𝑃) = 𝐿mean(𝜋, 𝑃)
+𝑞del(𝜋, 𝑃) ,
+𝜋★=
+arg min
+𝜋: 𝑃cat,H(𝜋,𝑃)≤𝜖cat
+Ψdel(𝜋, 𝑃).
+(4)
+Here, 𝜋★denotes an admissible policy minimizing Ψdel at
+error condition 𝑃, and 𝐿mean is the mean latency over all
+original items, measured from generation to final acceptance
+or retry-exhaustion detection. It therefore captures source
+queueing, network traversal, checkpoint validation, replay,
+and terminal failure resolution. Equation (4) weighs recovery
+delay against delivered quality, including losses from drops
+and residual damage; we also report latency, drop rate, and
+𝑞del separately.
+2.3
+Learning-Aware Calibration
+The paper’s learning law provides a compact calibration map
+from delivered semantic quality to task-level utility,
+𝐴(𝑝eff) = 𝐴∞
+
+1 −𝐾1(1 + 𝑝eff)−𝐾2
+,
+𝑝eff = 𝑝· 𝑞del, (5)
+where 𝑝is a normalized clean-data coordinate. We fit (5)
+offline using clean learning curves and use targeted fault
+injection to calibrate the bounded Class-M/Class-L quality
+weights and the Class-H envelope. The NoC controller does
+not evaluate this learning curve per packet. Its online state
+is limited to geographic checkpoint statistics; the semantic
+class map and safety threshold are deployment parameters.
+2.4
+Architectural Invariants
+The contract imposes four invariants on the architecture:
+1. an accepted Class-H residual must satisfy the deploy-
+ment safety budget;
+2. a detected Class-H failure may trigger segment replay
+or safe drop, whereas Class-M and Class-L outcomes
+do not trigger default network replay;
+3. a Class-H replay retransmits the complete physical
+flit, thereby refreshing all semantic classes; and
+4. checkpoint placement may change recovery distance,
+but it must not weaken endpoint validation or packet
+ordering.
+3
+
+
+Hung et al.
+3
+SAGE Architecture
+Figure 1 summarizes SAGE, combining two decisions that
+conventional systems conflate: numerical semantics govern
+replay eligibility, while spatial history governs recovery dis-
+tance. The design comprises four mechanisms: a semantic
+flit contract, a geographic checkpoint controller, endpoint
+validation and replay, and an ordered flow-control path for
+mixed traffic.
+3.1
+Semantic Physical-Flit Contract
+The evaluated NoC carries one widened physical flit per
+source item,
+184𝐻+ 168𝑀+ 224𝐿= 576 bits.
+(6)
+The Class-H record contains 128 semantic bits, CRC32, and 24
+BCH parity bits [9], forming shortened BCH(184, 160,𝑡= 3).
+Class-M contains 160 semantic bits and eight BCH parity bits,
+forming shortened BCH(168, 160,𝑡= 1). Class-L contains
+224 uncoded precision bits. For the fixed BF16-like mapping
+in Eq. (1), no per-packet class mask is required; optional
+descriptors are protected as Class-H metadata.
+Ordinary routers forward the flit without semantic de-
+coding. A selected recovery endpoint runs the Class-H and
+Class-M checkers in parallel. The evaluated Class-H path
+performs BCH correction, CRC32 verification, and a regis-
+tered range/non-finite check. The Class-M path performs
+lightweight single-error correction and bounded fallback.
+The Class-L field is delivered with its residual precision dam-
+age. Thus, protection strength and terminal action differ
+within one physical transfer, but replay always refreshes the
+complete flit.
+3.2
+Source-Local Geographic Checkpointing
+Each source 𝑠stores an interval 𝑛𝑠(𝑟) per error region. Along
+receiving-router regions 𝑟1, . . . ,𝑟ℎ, with preceding check-
+point 𝑐, the next checkpoint is the first 𝑗> 𝑐satisfying
+𝑗−𝑐≥min𝑐<𝑢≤𝑗𝑛𝑠(𝑟𝑢), or the destination. Region bound-
+aries are not forced checkpoints; after placement, 𝑐advances
+to 𝑗, so the minimum is recomputed over the next segment.
+We call this region-local policy simply SAGE; the conser-
+vative path-wide variant SAGE-P instead uses the smallest
+regional interval on the route for every segment.
+The controller learns from Class-H outcomes over fixed
+windows. A segment’s feedback is apportioned to its tra-
+versed regions in proportion to the segment hops spent in
+each region. For source-region pair (𝑠,𝑟), an exponentially
+weighted score combines Class-H retries and terminal drops,
+𝑧𝑠,𝑟←(1 −𝛼)𝑧𝑠,𝑟+ 𝛼𝑤𝑅𝑅𝑠,𝑟+ 𝑤𝐷𝐷𝑠,𝑟
+𝐸𝑠,𝑟
+,
+(7)
+where 𝐸𝑠,𝑟is the observed hop exposure and drops receive
+the larger weight. Let 𝑐𝑠,𝑟count low-score windows since
+the last high-score response or interval relaxation. If 𝑧𝑠,𝑟≥
+𝜃high, the interval is halved and 𝑐𝑠,𝑟is reset. If 𝑧𝑠,𝑟< 𝜃low,
+𝑐𝑠,𝑟is incremented; after four such windows, the interval
+is increased by five hops and the counter is reset. Scores
+between the two thresholds leave both states unchanged.
+The interval update is
+𝑛𝑠(𝑟) ←
+
+
+max(𝑛min, ⌈𝑛𝑠(𝑟)/2⌉) ,
+𝑧𝑠,𝑟≥𝜃high,
+min(𝑛max,𝑛𝑠(𝑟) + 5) ,
+𝑐𝑠,𝑟≥4,
+𝑛𝑠(𝑟),
+otherwise.
+(8)
+The evaluated 100×100 configuration uses𝑛0 = 67,𝑛min = 10,
+𝑛max = 199, a 40K-packet update window, 𝜃high = 10−3, and
+𝜃low = 10−4. Halving responds quickly to a noisy region,
+whereas additive relaxation avoids immediately lengthen-
+ing a recently hot segment. At packet injection, the source
+snapshots the resulting checkpoint plan; later table updates
+affect only subsequent packets.
+3.3
+Endpoint Validation and Segment Replay
+A checkpoint segment 𝑘accumulates link errors and decodes
+only once at its selected endpoint. If eℓis the error mask
+contributed by link ℓ, the checker observes
+e𝑘=
+Ê
+ℓ∈𝑘
+eℓ.
+(9)
+Repeated flips to the same bit may cancel, and the replay
+distance is exactly the segment length.
+A successful Class-H check commits the packet after the
+parallel Class-M result is available. A Class-M beyond-radius
+result invokes its calibrated bounded action but does not gen-
+erate a network replay in SAGE. A detected Class-H failure
+sends a protected NACK to the preceding checkpoint. The
+preceding checkpoint retains the flit and sequence metadata
+while the segment remains unresolved and replays the seg-
+ment upon receipt of a NACK. The evaluated policy permits
+one original attempt plus at most two replays; retry exhaus-
+tion invokes a safe terminal drop. Because the full 576-bit flit
+is resent, a Class-H-triggered replay also refreshes Class-M
+and Class-L without allowing those classes to independently
+drive congestion.
+The evaluated timing has a 3-cycle ordinary router-plus-
+link hop. The parallel Class-H path sets a 12-cycle validation
+surcharge, so a reached checkpoint hop costs 15 cycles all-in;
+the 5-cycle Class-M path adds no second surcharge. These
+parameters are grounded by the standalone checker RTL and
+are separated from network queueing in the evaluation.
+3.4
+Ordered VC Ownership and Credit Accounting
+Endpoint checking must coexist with ordinary bypass traffic
+on the same input VC. Holding the upstream VC for the
+full checker latency would serialize traffic, so the implemen-
+tation may return an early free credit when a checked flit
+moves into bounded checker staging. Doing so safely re-
+quires packet-specific ownership rather than an anonymous
+per-VC credit count.
+4
+
+
+SAGE
+For each input VC, SAGE maintains an ordered owner
+queue. Every checked or bypass arrival receives a monoton-
+ically increasing sequence record. A younger bypass flit is
+placed in deferred ingress whenever an older checked owner
+remains unresolved, and it may enter the ordinary Garnet
+VC only after all older owners have committed or failed and
+the VC is idle. Checker completion is likewise committed
+only from the head of the owner queue.
+Each checked owner also carries an explicit early-credit
+token. On successful reinsertion and later departure, the
+ledger suppresses the corresponding second credit exactly
+once. On checker failure, NACK generation, or terminal drop,
+the same token is retired with that packet and cannot be
+charged to a younger flit. All checker and deferred-ingress
+structures are bounded and apply backpressure when full.
+These rules preserve per-VC packet order, prevent bypass
+traffic from overtaking a checked packet, and maintain exact
+credit ownership without sacrificing checker pipelining.
+4
+Implementation
+This section describes the reference checkpoint controller,
+the direct-Garnet endpoint and replay implementation, and
+the synthesizable receiver-checker RTL. Direct-Garnet ex-
+periments evaluate SAGE and fixed 34-hop recovery, with
+SAGE-P as a checkpoint-placement ablation. These policies
+share the network and protocol configuration; fixed 34-hop
+and SAGE also share the executable and traffic trace. The
+separate Garnet-calibrated wrapper evaluates all seven poli-
+cies summarized in Table 1, with headline results in Table 2
+and the complete sweep in Appendix B.
+4.1
+Reference Controller and Trace Interface
+The source-local controller is implemented in Python using
+the update rule in Eq. (8). For every original packet it com-
+putes the deterministic route, snapshots the current check-
+point endpoints, and emits a trace containing generation
+time, packet ID, source, destination, and policy-independent
+workload metadata. A companion checkpoint file records
+the internal endpoint positions for SAGE and SAGE-P; fixed-
+interval policies derive their endpoints directly.
+The direct-Garnet geographic policies use a trace-locked,
+causally generated checkpoint sequence. Offline, the con-
+troller processes the complete trace in packet-ID order and
+applies every 40K-packet update from expected Class-H
+retry/drop feedback only to later packets. Garnet executes
+the immutable sequence without running the controller or
+feeding back realized queue or fault outcomes. For DeiT-
+S, generation uses matching traffic, rate, and BER, not a
+uniform-random or higher-BER surrogate. Thus, trace lock-
+ing preserves reproducibility while isolating network execu-
+tion from online controller overhead.
+4.2
+Direct Garnet Protocol
+We extend a pinned gem5 Garnet tree with one recovery
+controller adjacent to every router. The evaluated configura-
+tion is a 100 × 100 mesh with 576-bit links, 2-cycle routers,
+and 1-cycle links. Original and replay flits share an ordered
+DATA virtual network; protected NACK and lifecycle mes-
+sages use a separate ordered CTRL virtual network. DATA
+and CTRL use deterministic XY and YX routing, respectively.
+The main configuration uses four VCs per vnet, eight-entry
+DATA and CTRL buffers, and a configured checker capac-
+ity of 16 entries per physical DATA input, including four
+checked-output entries.
+CTRL receives bounded priority at the network interface
+and switch allocator: at most four consecutive CTRL grants
+are allowed while DATA is waiting. Replay DATA has the
+same priority as original DATA. Both vnets share the physi-
+cal routers, crossbars, and links, so NACK and replay traffic
+contribute real contention and backpressure. All messages
+are one physical flit in the evaluated model. Transaction iden-
+tifiers, endpoint positions, attempt numbers, and recovery
+bookkeeping are modeled as metadata outside the 576-bit
+physical-flit budget; their packet-format overhead is not in-
+cluded.
+At an ordinary router, a DATA flit bypasses semantic
+checking. At an internal checkpoint or final destination, the
+input unit diverts the flit into the 12-cycle checker pipeline;
+each physical DATA input can accept one checked transac-
+tion per cycle when unstalled. A successful internal check ad-
+vances the transaction to the next segment; destination suc-
+cess accepts the original. A detected Class-H failure deletes
+the failed speculative copy and injects one protected CTRL
+NACK only to the immediately preceding checkpoint. That
+checkpoint restores its complete 576-bit snapshot, incre-
+ments the attempt number, and replays the failed segment
+along its deterministic XY route. Each segment permits at
+most two replays; a third failed attempt triggers a safe drop.
+Our primary direct profile uses ideal local checkpoint hand-
+off while injecting NACK and replay traffic explicitly; the
+implementation also exposes explicit checkpoint-commit
+and final-ack messages as a separate sensitivity.
+4.3
+Segment Fault and Checker Model
+The simulator composes link BERs into segment-effective
+XOR BERs (Appendix A.6) and samples endpoint error counts
+for the H/M/L fields. The direct-Garnet checker preserves
+replay timing but classifies beyond-radius outcomes behav-
+iorally rather than executing the algebraic BCH decoder.
+We implement both blocking and fully pipelined Class-
+H and Class-M receiver checkers. Full pipelining reduces
+the initiation interval to 1 cycle for both classes, while pre-
+serving their respective baseline latencies. Compared to the
+blocking baseline, pipelining increases DC cell area by 40.3%
+for Class-H and 11.6% for Class-M (34.7% combined), with
+5
+
+
+Hung et al.
+(a) Ordered input datapath
+(b) Checker pipeline detail
+Assign
+sequence &
+select path
+Bypass:
+deferred if stalled
+Path (b): 16 entries
+total including
+4 checked outputs
+Head-flit
+routing
+resolution
+DATA VC:
+switch allocator
+& crossbar
+Per-VC Owner Queue:
+packet-specific credits
+incoming
+DATA
+bypass path
+checkpoint path
+strict idle-VC
+allocation
+DATA
+destination match: accept
+allocate owner
+departure
+notification
+early free credit on admission
+H failure:
+NACK / drop
+Throughput: 1 flit/cycle (unstalled)
+H: ECC + CRC32
+11 cycles
+range/finite
+1 cycle
+M: ECC / fallback
+5 cycles
+L: retain precision bits
+Aligned H/M/L + validation status
+12-cycle checkpoint surcharge
+flit
+align
+retain
+Figure 2. Ordered input integration and checker pipelines in SAGE. (a) One physical DATA input is shown; ownership and
+deferred ingress are per VC. Checked and bypass transactions resolve in owner order. An early-credit token prevents a second
+credit on departure and retires on failure. H failure invokes a NACK to the preceding checkpoint or safe drop at exhaustion. (b)
+H and M run in parallel; H sets the 12-cycle surcharge. Solid/dashed arrows denote data/control. Checker RTL is synthesized
+separately from the modeled ownership/credit integration.
+post-route placed-cell areas reported in Appendix Table 9.
+The modeled 12-cycle Class-H endpoint surcharge remains
+unchanged because the range and non-finite checks are sepa-
+rately registered. Rare bounded-distance miscorrections that
+pass the CRC are evaluated in our RTL-matching decoder
+campaign.
+4.4
+Ordered Input-VC Integration
+Figure 2 shows the ordered per-VC integration from Sec-
+tion 3.4. Packet-specific ownership permits early upstream
+credit release while preserving checked/bypass order and
+preventing duplicate credits. The modified InputUnit as-
+signs every DATA arrival a per-VC sequence record, pro-
+vides one bounded no-credit ingress slot per VC when the
+checker is full, and admits a bypass flit to the ordinary VC
+only when it is the oldest unresolved owner. The modi-
+fied SwitchAllocator returns the identity of the departing
+flit, allowing the input unit to consume or cancel the exact
+packet’s early-credit token. Success, failure, NACK genera-
+tion, checkpoint transfer, and token retirement all commit
+from the head of the ownership queue. The ordered input
+path and protocol settings are shared by fixed 34-hop, SAGE-
+P, and SAGE.
+4.5
+Checker Realization and Recovery State
+The receiver uses fully pipelined Class-H and Class-M check-
+ers with initiation interval one; Section 6.6 reports their syn-
+thesized cost. The interval table requires 100 B per source,
+and each active checkpoint stores one 72 B payload snapshot
+plus metadata. Checker staging contains 16 entries per DATA
+input, including four checked outputs. The interval-update
+state remains in software, and finite checkpoint-store area
+and timing are not synthesized. RTL and Garnet self-checks
+cover checker timing and backpressure, NACK/replay/drop
+behavior, checked/bypass ordering, and exact early-credit
+cancellation (Appendix A.8).
+5
+Experimental Methodology
+We deploy a multi-tiered evaluation framework, leveraging
+complementary simulators to isolate different architectural
+mechanisms. The Garnet-calibrated wrapper explores poli-
+cies and stress points efficiently; direct Garnet, built on gem5
+Garnet [2], exposes persistent queues and explicit recovery
+traffic under both uniform-random and application-derived
+traffic; the endpoint decoder campaign qualifies rare Class-H
+escapes; and Ramulator 2.0 [20] tests whether the semantic
+recovery rule transfers to HBM. Appendix A consolidates
+the campaign contracts, common configuration, stationarity
+tests, and acceptance gates.
+5.1
+Common NoC Configuration and Baselines
+Table 1 summarizes the NoC setup and wrapper policies [2, 5].
+All policies share the BF16-like representation and codeword
+budget: semantic protection [3, 8, 16, 22] is evaluated at fixed
+precision [14, 23, 29, 30]. Faults are conditionally indepen-
+dent given the fixed BER map; temporal and cross-link burst
+correlations are outside scope. Appendix A.3 gives the full
+configuration and hot-region coordinates.
+DEC-NoC [11] is not a matched numerical baseline: it
+assumes per-value error thresholds, variable-length MSB
+protection, and optional integer-to-floating-point conver-
+sion. The fixed intervals isolate recovery distance; SAGE+M
+isolates Class-M replay eligibility.
+6
+
+
+SAGE
+Table 1. NoC setup, traffic, and wrapper policies. Rates are
+in packets/router/cycle; direct-only settings are marked.
+Item
+Evaluated setting
+Network
+100 × 100 mesh; 576-bit links; XY DATA;
+2-cycle routers, 1-cycle links
+Direct Garnet
+YX CTRL; 4 VCs/vnet; 8 entries/VC for
+DATA and CTRL
+Recovery
+12-cycle checkpoint surcharge; one
+original plus at most two replays/segment
+Fault map
+10 × 10 regions of 10 × 10 routers;
+receiving-region BER; four hot regions at
+100× base BER
+Uniform-random
+Wrapper/direct Garnet: offered 0.0108;
+clean saturation 0.027
+DeiT-S (primary)
+Immutable, rate-shaped communication
+trace; direct Garnet at rate 0.009
+Fixed baselines
+End-to-end, mean-path, fixed 34-hop, and
+fixed 10-hop intervals
+SAGE
+Region-local geographic checkpointing
+SAGE-P
+Route-wide minimum regional interval
+SAGE+M
+SAGE’s plan, with Class-M beyond-radius
+replay (negative control)
+Wrapper
+sampling
+10 common seeds; 6M warm-up, then 250K
+measured originals/policy/BER/seed
+5.2
+Garnet-Calibrated Wrapper Sweep
+The wrapper XOR-accumulates BER along each planned
+segment, samples endpoint H/M/L outcomes, and maps re-
+play flit-hops to effective load on the measured clean Garnet
+latency–throughput curve [2]. It models neither persistent
+queues nor explicit NACK/replay packets, so it estimates
+load margin rather than final contention and needs no post-
+guard. After warm-up, measurement counters reset; learned
+tables and 40K-packet updates continue. The seven-policy
+sweep uses 𝑃base ∈{2, 3, 4, 5} × 10−5; fixed 34-hop and SAGE
+are paired at {2, 3, 5, 10, 20, 50} × 10−5 (Appendix B.1–B.2).
+Points above 5×10−5 are detected-failure stress tests outside
+the CRC-qualified envelope.
+5.3
+Synthetic Traffic, Sampling, and Pairing
+Direct Garnet [2] consumes a trace-locked checkpoint se-
+quence generated causally over the full traffic trace. It neither
+runs the controller nor updates 𝑛𝑠(𝑟) from realized outcomes.
+For a given seed, fixed 34-hop and SAGE share the uniform-
+random traffic trace, four-hot-region BER map, executable,
+and network configuration.
+Figure 3 shows the shared 17.25M-original timeline. The
+synthetic headline, paired 3 × 10−4, and appendix-only 3 ×
+10−3 campaigns report all 15.25M post-warm-up originals;
+10−3 reports the 250K cohort, while DeiT-S reports the com-
+plete trace. The 2M–6M prefix contributes controller and
+queue history to the synthetic headline; causal updates con-
+tinue afterward.
+At 𝑃base = 3×10−5, we evaluate ten traffic- and seed-paired
+fixed 34-hop/SAGE runs and ten independently validated
+SAGE-P ablation runs under the same topology, protocol
+settings, offered load, and measurement contract. SAGE-P
+uses the route’s smallest regional interval for every segment;
+paired confidence intervals remain limited to fixed 34-hop
+versus SAGE. Two main-text five-seed, traffic- and seed-
+paired stress campaigns compare fixed 34-hop and SAGE
+at 𝑃base = 3 × 10−4 and 10−3 under the same offered load.
+An appendix-only 3 × 10−3 campaign follows the same
+run contract and a final-five 5K-window diagnosis; both poli-
+cies drop more than 93% of originals. All stress points lie
+outside the CRC-qualified operating envelope and test queue
+behavior at one load, not exact saturation thresholds. For
+stationarity, 𝐵(𝑡) = 𝑁gen(≤𝑡) −𝑁term(≤𝑡); we diagnose
+3 × 10−4 with the final five full-rate 10K-cycle windows plus
+a 5K-bin check and 10−3 over cycles 40K–150K plus the final
+50K cycles. Persistent completion below arrival with grow-
+ing backlog denotes saturation; matched rates and bounded
+backlog denote queue stability, while drop rate separately
+determines useful service.
+The endpoint oracle computes the segment-effective XOR
+BER and deterministically keys each reached-endpoint sam-
+ple by seed, packet ID, policy-dependent segment, attempt,
+checkpoint endpoint/incoming-link identity, and semantic
+class. Because segmentation is policy-dependent, exact phys-
+ical fault masks differ. We therefore call fixed 34-hop versus
+SAGE traffic- and seed-paired, not exact common-random-
+number paired. Statistics use policy-dependent endpoint out-
+comes within each shared traffic seed.
+For operating-margin diagnostics, we additionally report
+source-queue time, the final drain after traffic generation
+ends, and maximum directed-link demand. Directed-link
+demand is the total post-warm-up flit traversals on a link
+divided by the number of post-warm-up cycles during which
+original traffic is still being generated. Values below one are
+feasible on a one-flit-per-cycle link; values above one imply
+that the generated workload requires backlog accumulation
+on that link.
+Causal plan generation (40K updates throughout)
+0
+2M
+6M
+6.25M
+17.25M
+Simulator
+warm-up
+Pre-guard
+Primary
+cohort
+Post-guard
+Synthetic headline: 15.25M
+DeiT-S operating/stress: 17.25M
+Figure 3. Direct-Garnet timeline (packet IDs; not to scale).
+The controller precomputes a causal per-packet plan se-
+quence; the 10−3 synthetic stress reports only the primary
+cohort.
+7
+
+
+Hung et al.
+5.4
+Application-Derived DeiT-S Traffic
+To test whether the policy ordering persists beyond uniform-
+random traffic, we evaluate an immutable, rate-shaped com-
+munication trace derived from non-distilled DeiT-S/16 in-
+ference on selected ImageNet-1K validation images [31, 32].
+The campaign uses 12 physical replicas with six in-flight
+contexts per replica and caps aggregate packet eligibility
+at 90 originals/cycle, equivalent to 𝑟DeiT = 0.009 over the
+10,000-router mesh.
+A seed-1 rate scout swept the 0.0085—0.010 range to locate
+the structured-traffic queueing knee, selecting 0.009 as the
+highest tested common rate before either conservative cross-
+cell showed abrupt injection overhang. Appendix B.4 gives
+the diagnostic values. The earlier 108-original/cycle setting
+(𝑟= 0.0108) is retained only at 𝑃base = 0 as a high-load clean-
+channel diagnostic, not as a normal clean baseline or a point
+directly comparable with the lower-rate faulted runs.
+At 𝑟DeiT = 0.009, 𝑃base = 3×10−6 is the application-derived
+operating point; 10−5 and 2×10−5 test increasing fault stress.
+These BERs are lower than in the uniform-random study be-
+cause the stage-dependent DeiT-S bursts leave less recovery-
+traffic headroom; the unchanged 100× multiplier gives hot-
+region BERs of 3 × 10−4, 10−3, and 2 × 10−3. The application-
+derived and synthetic campaigns therefore test the same
+mechanism in different regimes, and their absolute latencies
+are not compared across workloads.
+For each nonzero point, the controller causally generates
+the complete per-packet sequence from the matching DeiT-S
+trace, rate, and BER. It emits packet𝑖’s plan before accumulat-
+ing its model-derived Class-H feedback, so each 40K-packet
+update affects only later IDs. Direct Garnet executes the
+immutable sequence; the first 6M IDs (2M warm-up plus
+4M pre-guard) provide controller and queue history, and
+adaptation continues through the cohort and following 11M
+originals.
+The completed grid contains ten traffic- and seed-paired
+runs of fixed 34-hop and SAGE at each of the three BERs.
+Within each pair, packet IDs, routes, generation cycles, exe-
+cutable, BER map, and network configuration match; check-
+point plans and policy-dependent endpoint outcomes dif-
+fer. We report per-seed statistics over the complete 17.25M-
+original finite trace; Appendix A.2 specifies the coverage of
+the 5K-cycle window and final-quiescence diagnostics.
+Because the trace has no verified repetition period, they
+are paired finite-workload outcomes rather than steady-state
+or saturation estimates. The experiment evaluates network-
+level contention, queueing, and recovery under application-
+derived communication; it does not execute end-to-end DeiT-
+S inference with corrupted tensor payloads.
+5.5
+Metrics and Statistical Treatment
+Primary latency spans generation to either final acceptance
+or retry-exhaustion detection over the campaign populations
+defined in Sections 5.2–5.4. Terminal quantiles are computed
+separately for each seed with one fixed estimator applied
+identically to every policy. Accepted-only latency is a sen-
+sitivity rather than the headline metric. Latency quantiles
+from a nonstationary stress run are descriptive consequences
+of the growing queue rather than steady-state estimates. We
+additionally report mean latency, source-queue and network
+components, retry DATA and CTRL flit-hops, planned and
+reached checkpoints, drop rate, 𝑞del, and quality-normalized
+terminal latency Ψdel = 𝐿mean/𝑞del.
+Statistics are computed per seed before aggregation; pack-
+ets are never pooled across seeds to form a paper quantile.
+For paired comparisons, we report the mean paired differ-
+ence, a two-sided 95% Student-𝑡confidence interval, and the
+number of pairs favoring SAGE. All traffic, checkpoint-plan,
+executable, BER-map, and configuration hashes are checked
+before a run enters analysis. For the application-derived cam-
+paign, the rate-cap audit and input-provenance hashes are
+checked as well.
+5.6
+Calibration, Decoder Qualification, and HBM
+We calibrate the semantic contract offline by fitting Eq. (5) to
+clean learning curves and comparing fit and held-out error
+against exponential and power-law baselines [15, 17, 33].
+Targeted injections into exponent MSBs, lower-exponent bits
+in both directions, the sign bit, and magnitude-conditioned
+mantissa positions determine class boundaries and bounded-
+quality weights rather than NoC timing [19, 21, 25, 28].
+The Class-H decoder qualification uses the ten-seed, 6M-
+warm-up SAGE wrapper exposure at the four principal BERs.
+For every reached checkpoint attempt, including retries, the
+exporter records the segment-effective BER. Monte Carlo
+samples this exposure, injects IID flips into the shortened
+BCH/CRC record, and runs the RTL-matching decoder with
+locator roots outside transmitted positions rejected. Five
+predeclared 10M-trial seeds per CRC32/CRC16 group give
+simultaneous one-sided 95% Clopper–Pearson bounds over
+eight groups. Per-original risk is conservatively bounded
+by 𝑈95
+pkt ≤¯𝐴𝑈95
+att, where ¯𝐴is the mean number of reached
+Class-H attempts per original and 𝑈95
+att is the per-attempt
+upper bound. This composition assumes no independence
+between attempts and credits no range checks. CRC16 reuses
+the same exposure and is not separately relearned.
+A five-seed Ramulator 2.0 HBM3 pilot [20] compares Class-
+H-only and all-class recovery at 40% of clean saturation.
+Appendix B.5 gives its configuration, accounting, and results.
+6
+Evaluation
+We evaluate SAGE’s semantic contract, latency–quality trade-
+offs, and queue stability, then assess safety, implementation
+cost, and portability.
+8
+
+
+SAGE
+6.1
+Semantic Calibration Supports the Contract
+The calibration experiments support the two distinctions
+that SAGE relies on: Class-H residuals require a hard safety
+rule, whereas Class-M and Class-L residuals can be ranked
+by bounded quality loss. Across the five evaluated learning
+curves, Eq. (5) has lower MSE than the exponential-residual
+and power-law alternatives. For example, on the DenseNet-
+121/ESC-50 mean curve its MSE is 0.144 squared percentage
+points, versus 1.468 and 0.602, and its held-out RMSE is
+0.388 versus 2.633 and 1.541. The learning law is therefore
+sufficiently accurate for the policy-ranking role in Section 2;
+it is not used to predict online network state.
+Does 𝑞del track task accuracy? A curve fit alone does
+not show that a communication-derived quality factor tracks
+downstream task behavior. We therefore test the mapping
+independently with the AlexNet/CIFAR-100 sign-bit exper-
+iment at normalized data ratio 𝑝= 2. Let 𝐴0(·) denote the
+clean fitted learning curve in Eq. (5). The representation-
+level sign-flip energy anchor fixes 𝜆𝑠= 4, without refitting
+each noisy point, so that
+𝑞del = 𝑞acc =
+1
+1 + 4𝜌𝑠
+,
+𝐴pred = 𝐴0(2𝑞del).
+(10)
+No item is dropped in this controlled experiment, hence
+𝑞del = 𝑞acc. Across five sign-bit BERs, the maximum absolute
+prediction error is 0.11 percentage points and the RMSE is
+0.058 percentage points. This validates the bounded-residual
+component of 𝑞del in one measured task setting; the factor
+(1 −𝑃drop) in Eq. (3) then assigns exactly zero quality to
+terminally dropped originals.
+The five measured and predicted points are listed in Ap-
+pendix Table 11. Representative fault-injection evidence is
+summarized below and tabulated in Appendix Table 12.
+Activating exponent-MSB faults in DenseNet-121 train-
+ing drives all later checkpoints to the 2.0% chance level;
+safe restoration recovers 83.0% accuracy, close to the 83.3%
+clean control. By contrast, an upward lower-exponent fault
+is harmful but bounded: at BER 10−4, exponent bit 𝑒3 reduces
+AlexNet top-1 accuracy to 63.38%, whereas the matched
+downward direction retains 69.89% and produces no NaN
+or infinity. The evaluated 𝑒4–𝑒7 boundary is a calibrated
+AlexNet case, not a universal partition: Class-H is assigned
+when a plausible upward residual crosses the tensor enve-
+lope described in Section 2.1. Mantissa-MSB damage remains
+smaller and magnitude dependent. A fixed-budget sensitiv-
+ity in Appendix A.6 promotes 𝑒3, the sign bit, or both into
+Class-H; all tested variants remain safety-qualified, but none
+improves the optimistic fixed-latency estimate of Ψdel.
+A matched 48-bit BCH-only allocation gives the same
+conclusion at the coding layer. At a 198-hop envelope, H5–
+M1–L0 achieves a 95% Class-H silent-delivery upper bound
+of 4.30 × 10−8. By contrast, the equal H2–M2–L2 allocation
+yields an upper bound of 4.56×10−3 and does not certify the
+Table 2. Garnet-calibrated wrapper results at 𝑃base = 3 ×
+10−5 (ten common seeds; 6M warm-up and 250K measured
+originals per seed). 𝑅ℎis retry DATA flit-hops/original; P/C
+is planned segments/reached checks. The complete sweep
+appears in Appendix B.
+Policy
+𝑅ℎ
+P/C 𝐿mean
+𝐿99.5
+𝑞del
+Drop
+End-to-end
+29.780
+1.00/1.38
+479.9 2587.8
+0.8018
+0.1508
+Mean-path
+20.708
+1.49/1.79
+399.9 1507.6
+0.8106
+0.1393
+Fixed 34-hop 11.210
+2.45/2.66
+328.1 1137.3
+0.8263
+0.1162
+Fixed 10-hop
+2.786
+7.12/7.14
+318.6
+785.8
+0.8626
+0.0610
+SAGE-P
+2.799
+4.77/4.79
+290.5
+773.8
+0.8593
+0.0609
+SAGE
+2.980 3.06/3.13 270.9
+726.6 0.8504 0.0742
+SAGE+M
+6.867
+3.06/2.86
+280.2
+944.2
+0.7798
+0.2164
+10−6 safety budget. Neither result relies on CRC or range-
+check credit. Thus, semantic allocation changes the feasible
+policy set before latency is considered.
+6.2
+Ten-Seed Wrapper Design Space
+The completed 6M-warm-up wrapper sweep isolates the
+architectural mechanism over more policies and BER points
+than are practical in packet-level simulation. It distinguishes
+three possible sources of benefit: replaying only catastrophic
+failures, localizing short segments to noisy geography, and
+globally imposing a short interval.
+The critical semantic negative control is SAGE+M: it pre-
+serves SAGE’s geographic checkpoint plan and changes only
+whether bounded Class-M failures may invoke replay. The
+results use ten common seeds, 6M warm-up originals, and
+250K measured originals per seed, matching Section 5.2.
+Table 2 exposes the mechanism at the headline point. Rel-
+ative to the fixed 34-hop interval, SAGE reduces retry traffic
+by 73.4% and p99.5 latency by 36.1%, improves 𝑞del from
+0.8263 to 0.8504, and lowers drop rate from 11.62% to 7.42%.
+Relative to the fixed 10-hop interval, its retry traffic is within
+7.0% while it uses 57.0% fewer planned segments and 56.2%
+fewer reached checks, lowering p99.5 by 7.5%. The SAGE+M
+negative control keeps the same geographic plan but lets
+Class-M failures trigger replay; at 4 × 10−5 this increases
+retry flit-hops by 86.0% and worsens Ψdel by 9.7%.
+Figure 4 separates delivered quality from mean terminal la-
+tency. SAGE improves both over end-to-end, mean-path, and
+fixed 34-hop recovery. Fixed 10-hop and SAGE-P trade higher
+latency for slightly higher quality; together with SAGE, they
+form the non-dominated set at the plotted means. SAGE has
+the smallest latency-to-quality ratio at these means: the extra
+quality from more frequent checkpointing does not offset its
+delay under the stated objective.
+Conversely, SAGE+M is slower and delivers less quality
+despite retaining the same geographic plan, exposing the
+cost of allowing bounded Class-M failures to trigger replay.
+Across the six-point paired extension, all ten pairs favor
+9
+
+
+Hung et al.
+0.78
+0.80
+0.82
+0.84
+0.86
+0.88
+250
+300
+350
+400
+450
+500
+Ψdel = 320
+Ψdel = 400
+Ψdel = 500
+Better
+End-to-end
+Mean-path
+Fixed
+34-hop
+Fixed
+10-hop
+SAGE-P
+SAGE
+SAGE+M
+Delivered quality 𝑞del
+Mean terminal latency (cycles)
+Figure 4. Quality–latency trade-off in the Garnet-calibrated
+wrapper at 𝑃base = 3 × 10−5 (ten-seed means; Table 2).
+Lower-right is better. Dashed lines show constant 𝐿mean/𝑞del;
+filled markers identify non-dominated policies at the plotted
+means.
+SAGE at every BER. At 3 × 10−5 the paired p99.5 advantage
+is 410.6 cycles (95% CI [408.4, 412.9]).
+The complete paired extension and its BER trends ap-
+pear in Appendix B.2. Finite retry exhaustion can lower all-
+outcome tail latency even as recovery load rises. Because the
+wrapper does not maintain persistent queues, direct Garnet
+supplies the headline latency and queue-stability evidence
+(Sections 6.3 and 6.4).
+6.3
+Direct Garnet at the Headline Operating Point
+Table 3 compares fixed 34-hop, the path-wide SAGE-P abla-
+tion, and trace-locked SAGE under uniform-random traffic
+and the four-hot-region BER map, using the ordered-VC
+implementation and campaign contract in Section 5.3.
+At 𝑃base = 3 × 10−5, SAGE lowers mean latency from
+418.3 to 301.2 cycles and all-outcome p99.5 from 1269.5 to
+813.0 cycles, reductions of 28.0% and 36.0% relative to fixed
+Table 3. Direct-Garnet headline and SAGE-P ablation at
+𝑃base = 3×10−5. Entries average per-seed statistics (10 seeds;
+15.25M post-warm-up originals per seed). Latencies are in
+cycles. Retry and CTRL denote replay DATA and total CTRL
+flit-hops per original, respectively.
+Policy
+𝐿mean
+𝐿99.5
+Retry
+CTRL
+Drop
+𝑞del
+Fixed 34-hop
+418.3
+1269.5
+17.276
+14.934
+11.63%
+0.8261
+SAGE
+301.2
+813.0
+6.418
+3.725
+7.42%
+0.8504
+SAGE-P
+332.4
+871.8
+6.661
+3.417
+6.11%
+0.8592
+Table 4. Five-seed, traffic- and seed-paired direct-Garnet
+high-BER stress. C/A is terminal-completion/arrival rate and
+Δ𝐵is backlog slope; fixed-policy latencies are descriptive
+nonstationary outcomes.
+Policy
+𝑃base
+C/A
+Δ𝐵/cyc.
+𝐿mean/𝐿99.5
+Fixed 34-hop
+3×10−4
+0.558
++47.71
+37.8K/179.3K
+SAGE
+3×10−4
+1.000
++0.007
+336.4/759.0
+Fixed 34-hop
+10−3
+0.486
++55.51
+87.7K/214.8K
+SAGE
+10−3
+1.000
++0.0002
+454.1/1037.0
+34-hop. The mean paired p99.5 advantage is 456.5 cycles
+(95% CI [455.4, 457.6]), and all ten traffic- and seed-paired
+comparisons favor SAGE. Drop rate falls by 4.21 percentage
+points, from 11.63% to 7.42%, while 𝑞del rises from 0.8261
+to 0.8504. Together, the mean-latency and delivered-quality
+improvements reduce Ψdel by 30.1%.
+SAGE plans 26.8% more segments and executes 19.4% more
+endpoint checks than fixed 34-hop, yet retry and control flit-
+hops fall by 62.9% and 75.1%. Both remain below saturation:
+fixed 34-hop and SAGE have mean maximum directed-link
+demands of 0.820 and 0.671 and final drains of 1.16% and
+0.71% of the active-injection interval, respectively.
+In the path-wide checkpointing ablation, SAGE-P achieves
+slightly higher delivered quality, but region-local SAGE low-
+ers Ψdel from 386.9 to 354.2 cycles, an 8.4% reduction.
+6.4
+Direct-Garnet Synthetic High-BER Stress
+We next test queue stability by increasing BER under the
+same uniform-random offered load as the headline exper-
+iment. We report five paired direct-Garnet runs at 𝑃base =
+3 × 10−4, exactly ten times the headline BER, and five paired
+runs at 10−3. At 3×10−4, latency metrics aggregate all 15.25M
+post-warm-up originals; at 10−3, they use the predeclared
+250K cohort after a 4M-original pre-guard.
+At 𝑃base = 3 × 10−4, fixed 34-hop completes only 55.8% of
+arrivals and grows backlog by 47.71 originals/cycle, whereas
+SAGE matches arrivals with bounded backlog. Drop rates
+are nearly matched (26.20%/25.94%), yet SAGE cuts retry and
+control traffic by 60.0% and 74.1%.
+At 𝑃base = 10−3, fixed 34-hop completes 48.6% of arrivals
+and grows backlog by 55.51 originals/cycle, while SAGE
+again matches arrivals with bounded backlog. At this 26.8%
+drop rate, the result establishes extreme overload contain-
+ment and a 3.3× BER separation between demonstrated BER
+points at a constant offered load. Appendix A.7 defines the
+stationarity diagnostics, and Appendix Table 17 gives the
+extreme-overload point.
+6.5
+Application-Derived Finite-Trace Evaluation
+To test whether the latency benefit extends beyond uniform-
+random traffic, we evaluate the finite, application-derived
+DeiT-S communication trace at 𝑟= 0.009. Results average
+10
+
+
+SAGE
+per-seed statistics over the complete 17.25M-original trace,
+including the causal controller trajectory and queue history.
+At the operating point, 𝑃base = 3 × 10−6, ten traffic- and seed-
+paired comparisons show that SAGE lowers mean terminal
+latency from 284.8 to 237.6 cycles and all-outcome p99.5 from
+2657.1 to 714.0 cycles relative to fixed 34-hop. Mean source-
+queue time also falls from 25.03 to 4.00 cycles. With delivered
+quality nearly matched, Ψdel falls from 287.2 to 239.6 cycles.
+At the higher fault-stress point, 𝑃base = 10−5, SAGE lowers
+mean latency from 318.2 to 304.2 cycles and p99.5 from 4006.2
+to 3169.2 cycles. It also cuts the drop rate from 0.05655% to
+0.01713% and raises 𝑞del from 0.956179 to 0.960680. All ten
+pairs favor SAGE in mean and p99.5 at both lower BERs, and
+these 40 runs reach zero backlog and protocol quiescence.
+Appendix Table 19 reports the complete ten-seed metrics
+and drain diagnostics; the earlier 𝑟= 0.0108 BER-zero pair
+remains a separate clean-channel load stress in Appendix B.4.
+A further ten-seed stress experiment at 𝑃base = 2 × 10−5
+shows a larger separation under heavier queueing. Relative
+to fixed 34-hop, SAGE reduces mean terminal latency, p99.5,
+and Ψdel by 74.2%, 79.7%, and 74.6%, respectively, while rais-
+ing 𝑞del from 0.8966 to 0.9111 and lowering the drop rate
+from 3.1542% to 1.3354%. All ten pairs favor SAGE on these
+metrics, and all 20 runs reach protocol quiescence (Appendix
+Table 20).
+6.6
+Safety Margin and Implementation Cost
+The endpoint qualification uses SAGE’s ten-seed exposure
+profile after 6M wrapper warm-up. Across 200M CRC32
+endpoint-attempt trials, no wrong 128-bit Class-H payload
+passes CRC. The worst simultaneous one-sided 95% per-
+original-packet bound is 𝑈95
+pkt = 3.18 × 10−7 < 𝜖cat = 10−6,
+without assuming independence between attempts or credit-
+ing range/non-finite checks. A same-exposure CRC16 sensi-
+tivity records 12 events and remains below the budget with
+a worst bound of 8.67 × 10−7, but CRC32 retains the larger
+margin and is the primary design.
+The protection expansion is 64 bits per 512-bit semantic
+flit, or 12.5%. Appendix Table 9 reports the detailed checker
+and state costs. Full pipelining increases combined DC cell
+area by 34.7% over the blocking RTL while reducing the
+Class-H/Class-M initiation intervals from 11/5 to 1/1 cycles
+without changing modeled latency. Finite checkpoint-store
+area remains unsynthesized.
+6.7
+HBM Portability Pilot
+In a five-seed random-read pilot at 𝑃𝑚= 10−3, Class-H-only
+recovery preserves normalized semantic goodput 𝐺sem/𝐺0 =
+0.9959 with retry factor 𝜈= 1.0000, whereas all-class recov-
+ery falls to 0.7901 with 𝜈= 1.2540. This agrees with the
+NoC negative control: allowing bounded Class-M/Class-L
+outcomes to invoke the expensive path creates substantial
+recovery traffic. This wrapper-based pilot supports the porta-
+bility of semantic recovery to HBM; it does not evaluate a
+complete two-level controller (Appendix B.5).
+7
+Related Work
+Semantic reliability. Classical unequal error protection
+assigns different reliability to message components [3, 8, 22];
+DEC-NoC protects an application-selected MSB prefix and
+may accept lower-order faults approximately [11]. SAGE
+instead enforces a hard silent-delivery budget for Class-H
+and assigns class-specific terminal actions to H/M/L. Fault-
+injection studies establish strong bit-position dependence,
+with sign and exponent faults generally more damaging
+than mantissa faults [12, 19, 21, 25, 28]. Low-precision for-
+mats trade representation accuracy for efficiency [14, 23, 30];
+SAGE operates after quantization and calibrates workload-
+specific classes rather than changing the format or assuming
+all mantissa faults are harmless.
+Reliable accelerator interconnects. Prior NoC work cov-
+ers fault-tolerant routing, link protection, credit-based fab-
+rics, and router redundancy or bypass [2, 4–6, 24, 26]. SAGE
+leaves deterministic routing intact but adds ordered VC own-
+ership and exact early-credit accounting; protected NACK
+and replay traffic consume ordinary network resources and
+are modeled under contention.
+Learning-aware calibration. Learning curves and scal-
+ing laws commonly use exponential-saturation or power-law
+forms to relate data scale to task performance [15, 17, 33].
+The residual-to-asymptote term in Eq. (5) is a shifted power
+law: it is locally exponential-like for small 𝑝eff and has a
+power-law tail, providing a compact offline calibration across
+these regimes. The online SAGE controller observes only ge-
+ographic recovery outcomes.
+8
+Limitations and Conclusion
+Limits. The H/M/L boundary and quality weights are
+workload- and format-specific, and the Class-H bound as-
+sumes IID flips under the measured exposure. The extreme-
+BER direct-Garnet experiments demonstrate overload con-
+tainment rather than useful service. Correlated burst faults,
+physical checkpoint-store synthesis, and end-to-end task
+accuracy under NoC-induced payload corruption remain
+outside this paper’s scope.
+Conclusion. SAGE decouples whether a fault merits re-
+play from where replay restarts. At the headline operating
+point, this separation lowers mean latency by 28.0% and im-
+proves delivered semantic quality relative to fixed 34-hop,
+reducing Ψdel—the quality-normalized terminal latency—by
+30.1%. SAGE also sharply reduces retry and control traf-
+fic, and all ten paired p99.5 comparisons favor it in a sta-
+ble regime; under higher-BER stress, it maintains bounded
+11
+
+
+Hung et al.
+queues whereas the fixed 34-hop baseline becomes nonsta-
+tionary. A completed ten-seed DeiT-S experiment extends the
+evidence beyond uniform-random traffic: SAGE lowers mean
+and p99.5 latency and Ψdel at each evaluated nonzero-BER
+point. The CRC32-qualified Class-H path gives a simultane-
+ous 95% per-original silent-delivery bound of 3.18 × 10−7,
+below the 10−6 target, and the HBM pilot supports the porta-
+bility of selective recovery. More broadly, semantic replay
+selection and geographic checkpointing point toward AI
+data-movement systems that spend recovery bandwidth ac-
+cording to both numerical consequence and physical fault
+geography.
+Acknowledgments
+Generative AI disclosure. Generative AI tools were used
+to assist with source code development and debugging, man-
+uscript editing and critique, and result consolidation. The
+authors reviewed all AI-assisted materials and take full re-
+sponsibility for the final content, originality, and technical
+accuracy of the work.
+12
+
+
+SAGE
+References
+[1] Advanced Micro Devices. 2026.
+Reed-Solomon Decoder.
+https:
+//www.amd.com/en/products/adaptive-socs-and-fpgas/intellectual-
+property/do-di-rsd.html
+Product documentation. Accessed 6
+September 2026.
+[2] Niket Agarwal, Tushar Krishna, Li-Shiuan Peh, and Niraj K. Jha. 2009.
+GARNET: A Detailed On-Chip Network Model Inside a Full-System
+Simulator. In Proceedings of the IEEE International Symposium on Per-
+formance Analysis of Systems and Software. IEEE, Piscataway, NJ, USA,
+33–42. doi:10.1109/ISPASS.2009.4919636
+[3] Andres Albanese, Johannes Blömer, Jeff Edmonds, Michael Luby, and
+Madhu Sudan. 1996. Priority Encoding Transmission. IEEE Transac-
+tions on Information Theory 42, 6 (1996), 1737–1744. doi:10.1109/18.
+556670
+[4] Naveed Khan Baloch, Muhammad Iram Baig, and Masoud Daneshtalab.
+2019. Defender: A Low Overhead and Efficient Fault-Tolerant Mecha-
+nism for Reliable On-Chip Router. IEEE Access 7 (2019), 142843–142854.
+doi:10.1109/ACCESS.2019.2944490
+[5] Luca Benini and Giovanni De Micheli. 2002. Networks on Chips: A
+New SoC Paradigm. Computer 35, 1 (2002), 70–78. doi:10.1109/2.976921
+[6] Davide Bertozzi, Luca Benini, and Giovanni De Micheli. 2005. Error
+Control Schemes for On-Chip Communication Links: The Energy-
+Reliability Tradeoff. IEEE Transactions on Computer-Aided Design of
+Integrated Circuits and Systems 24, 6 (2005), 818–831. doi:10.1109/
+TCAD.2005.847907
+[7] Nathan Binkert, Bradford Beckmann, Gabriel Black, Steven K. Rein-
+hardt, Ali Saidi, Arkaprava Basu, Joel Hestness, Derek R. Hower,
+Tushar Krishna, Somayeh Sardashti, Rathijit Sen, Korey Sewell,
+Muhammad Shoaib, Nilay Vaish, Mark D. Hill, and David A. Wood.
+2011. The gem5 simulator. ACM SIGARCH Computer Architecture
+News 39, 2 (2011), 1–7. doi:10.1145/2024716.2024718
+[8] Shashi Borade, Barış Nakiboğlu, and Lizhong Zheng. 2009. Unequal
+Error Protection: An Information-Theoretic Perspective. IEEE Trans-
+actions on Information Theory 55, 12 (2009), 5511–5539. doi:10.1109/
+TIT.2009.2032819
+[9] Raj Chandra Bose and Dwijendra Kumar Ray-Chaudhuri. 1960. On
+a Class of Error Correcting Binary Group Codes. Information and
+Control 3, 1 (1960), 68–79. doi:10.1016/S0019-9958(60)90287-4
+[10] Hsing Min Chen, Carole-Jean Wu, Trevor Mudge, and Chaitali
+Chakrabarti. 2016. RATT-ECC: Rate Adaptive Two-Tiered Error Cor-
+rection Codes for Reliable 3D Die-Stacked Memory. ACM Transactions
+on Architecture and Code Optimization 13, 3, Article 24 (Sept. 2016),
+24 pages. doi:10.1145/2957758
+[11] Yuechen Chen, Md Farhadur Reza, and Ahmed Louri. 2018. DEC-NoC:
+An Approximate Framework Based on Dynamic Error Control with
+Applications to Energy-Efficient NoCs. In Proceedings of the 36th IEEE
+International Conference on Computer Design. IEEE Computer Society,
+Los Alamitos, CA, USA, 480–487. doi:10.1109/ICCD.2018.00078
+[12] Zitao Chen, Guanpeng Li, and Karthik Pattabiraman. 2021. A Low-cost
+Fault Corrector for Deep Neural Networks through Range Restriction.
+In 2021 51st Annual IEEE/IFIP International Conference on Dependable
+Systems and Networks (DSN). IEEE, Piscataway, NJ, USA, 1–13. doi:10.
+1109/DSN48987.2021.00018
+[13] Michael J. Flynn and Patrick Hung. 2005. Microprocessor Design
+Issues: Thoughts on the Road Ahead. IEEE Micro 25, 3 (2005), 16–31.
+doi:10.1109/MM.2005.56
+[14] Suyog Gupta, Ankur Agrawal, Kailash Gopalakrishnan, and Pritish
+Narayanan. 2015. Deep Learning with Limited Numerical Precision. In
+Proceedings of the 32nd International Conference on Machine Learning
+(Proceedings of Machine Learning Research, Vol. 37), Francis Bach and
+David Blei (Eds.). PMLR, Lille, France, 1737–1746. https://proceedings.
+mlr.press/v37/gupta15.html
+[15] Joel Hestness, Sharan Narang, Newsha Ardalani, Gregory Diamos,
+Heewoo Jun, Hassan Kianinejad, Md. Mostofa Ali Patwary, Yang
+Yang, and Yanqi Zhou. 2017. Deep Learning Scaling is Predictable,
+Empirically.
+arXiv preprint arXiv:1712.00409.
+arXiv:1712.00409
+https://arxiv.org/abs/1712.00409
+[16] Kunping Huang, Paul H. Siegel, and Anxiao Jiang. 2020. Functional
+Error Correction for Robust Neural Networks. IEEE Journal on Selected
+Areas in Information Theory 1, 1 (2020), 267–276. doi:10.1109/JSAIT.
+2020.2991430
+[17] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown, Ben-
+jamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and
+Dario Amodei. 2020. Scaling Laws for Neural Language Models. arXiv
+preprint arXiv:2001.08361. arXiv:2001.08361 https://arxiv.org/abs/
+2001.08361
+[18] Alex Krizhevsky, Ilya Sutskever, and Geoffrey E. Hinton. 2012. Im-
+ageNet classification with deep convolutional neural networks. In
+Proceedings of the 25th International Conference on Neural Infor-
+mation Processing Systems. Curran Associates, Inc., Red Hook, NY,
+USA, 1097–1105.
+https://proceedings.neurips.cc/paper/2012/hash/
+c399862d3b9d6b76c8436e924a68c45b-Abstract.html
+[19] Guanpeng Li, Siva Kumar Sastry Hari, Michael B. Sullivan, Timothy
+Tsai, Karthik Pattabiraman, Joel S. Emer, and Stephen W. Keckler.
+2017. Understanding Error Propagation in Deep Learning Neural
+Network (DNN) Accelerators and Applications. In Proceedings of the
+International Conference for High Performance Computing, Network-
+ing, Storage and Analysis (Denver, CO, USA) (SC ’17). Association
+for Computing Machinery, New York, NY, USA, Article 8, 12 pages.
+doi:10.1145/3126908.3126964
+[20] Haocong Luo, Yahya Can Tuğrul, Fatma Nisa Bostancı, Ataberk Ol-
+gun, Abdullah Giray Yağlıkçı, and Onur Mutlu. 2024. Ramulator 2.0: A
+Modern, Modular, and Extensible DRAM Simulator. IEEE Computer Ar-
+chitecture Letters 23, 1 (2024), 112–116. doi:10.1109/LCA.2023.3333759
+[21] Abdulrahman Mahmoud, Neeraj Aggarwal, Alex Nobbe, Jose Rodrigo
+Sanchez Vicarte, Sarita V. Adve, Christopher W. Fletcher, Iuri Frosio,
+and Siva Kumar Sastry Hari. 2020. PyTorchFI: A Runtime Perturbation
+Tool for DNNs. In Proceedings of the 50th Annual IEEE/IFIP International
+Conference on Dependable Systems and Networks Workshops (Valencia,
+Spain). IEEE, Piscataway, NJ, USA, 25–31. doi:10.1109/DSN-W50199.
+2020.00014
+[22] Burt Masnick and Jack K. Wolf. 1967. On Linear Unequal Error Pro-
+tection Codes. IEEE Transactions on Information Theory 13, 4 (1967),
+600–607. doi:10.1109/TIT.1967.1054054
+[23] Paulius Micikevicius, Dusan Stosic, Neil Burgess, Marius Cornea,
+Pradeep Dubey, Richard Grisenthwaite, Sangwon Ha, Alexander
+Heinecke, Patrick Judd, John Kamalu, Naveen Mellempudi, Stuart
+Oberman, Mohammad Shoeybi, Michael Siu, and Hao Wu. 2022.
+FP8 Formats for Deep Learning. arXiv preprint arXiv:2209.05433.
+arXiv:2209.05433 https://arxiv.org/abs/2209.05433
+[24] Dongkook Park, Chrysostomos Nicopoulos, Jongman Kim, Narayanan
+Vijaykrishnan, and Chita R. Das. 2006.
+Exploring Fault-Tolerant
+Network-on-Chip Architectures. In Proceedings of the International
+Conference on Dependable Systems and Networks (Philadelphia, PA,
+USA). IEEE, Piscataway, NJ, USA, 93–104. doi:10.1109/DSN.2006.35
+[25] Adnan Siraj Rakin, Zhezhi He, and Deliang Fan. 2019. Bit-Flip Attack:
+Crushing Neural Network with Progressive Bit Search. In Proceedings
+of the IEEE/CVF International Conference on Computer Vision (Seoul,
+Republic of Korea). IEEE, Piscataway, NJ, USA, 1211–1220. doi:10.
+1109/ICCV.2019.00130
+[26] Muhammad Rashid, Naveed Khan Baloch, Muhammad Akmal
+Shafique, Fawad Hussain, Shahroon Saleem, Yousaf Bin Zikria, and
+Heejung Yu. 2020. Fault-Tolerant Network-On-Chip Router Architec-
+ture Design for Heterogeneous Computing Systems in the Context
+of Internet of Things. Sensors 20, 18, Article 5355 (2020), 20 pages.
+doi:10.3390/s20185355
+[27] Saeed Rashidi, William Won, Sudarshan Srinivasan, Puneet Gupta,
+and Tushar Krishna. 2025. FRED: A Wafer-scale Fabric for 3D Parallel
+13
+
+
+Hung et al.
+DNN Training. In Proceedings of the 52nd Annual International Sympo-
+sium on Computer Architecture (ISCA ’25). Association for Computing
+Machinery, New York, NY, USA, 34–48. doi:10.1145/3695053.3731055
+[28] Brandon Reagen, Udit Gupta, Lillian Pentecost, Paul Whatmough,
+Sae Kyu Lee, Niamh Mulholland, David Brooks, and Gu-Yeon Wei.
+2018. ARES: A Framework for Quantifying the Resilience of Deep
+Neural Networks. In Proceedings of the 55th Annual Design Automa-
+tion Conference (San Francisco, CA, USA) (DAC ’18). Association
+for Computing Machinery, New York, NY, USA, Article 17, 6 pages.
+doi:10.1145/3195970.3195997
+[29] Brandon Reagen, Paul N. Whatmough, Robert Adolf, Saketh Rama,
+Hyunkwang Lee, Sae Kyu Lee, José Miguel Hernández-Lobato, Gu-
+Yeon Wei, and David M. Brooks. 2016. Minerva: Enabling Low-Power,
+Highly-Accurate Deep Neural Network Accelerators. In Proceedings
+of the 43rd Annual IEEE/ACM International Symposium on Computer
+Architecture (Seoul, Republic of Korea) (ISCA ’16). IEEE, Piscataway,
+NJ, USA, 267–278. doi:10.1109/ISCA.2016.32
+[30] Bita Darvish Rouhani, Ritchie Zhao, Ankit More, Mathew Hall, Alireza
+Khodamoradi, Summer Deng, Dhruv Choudhary, Marius Cornea, Eric
+Dellinger, Kristof Denolf, Dusan Stosic, Venmugil Elango, Maximil-
+ian Golub, Alexander Heinecke, Phil James-Roxby, Dharmesh Jani,
+Gaurav Kolhe, Martin Langhammer, Ada Li, Levi Melnick, Maral Mes-
+makhosroshahi, Andres Rodriguez, Michael Schulte, Rasoul Shafipour,
+Lei Shao, Michael Siu, Pradeep Dubey, Paulius Micikevicius, Maxim
+Naumov, Colin Verrilli, Ralph Wittig, Doug Burger, and Eric Chung.
+2023. Microscaling Data Formats for Deep Learning. arXiv preprint
+arXiv:2310.10537. arXiv:2310.10537 https://arxiv.org/abs/2310.10537
+[31] Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev
+Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla,
+Michael Bernstein, Alexander C. Berg, and Fei-Fei Li. 2015. ImageNet
+Large Scale Visual Recognition Challenge. International Journal of
+Computer Vision 115, 3 (2015), 211–252. doi:10.1007/s11263-015-0816-y
+[32] Hugo Touvron, Matthieu Cord, Matthijs Douze, Francisco Massa,
+Alexandre Sablayrolles, and Hervé Jégou. 2021.
+Training Data-
+Efficient Image Transformers & Distillation through Attention. In
+Proceedings of the 38th International Conference on Machine Learn-
+ing (Proceedings of Machine Learning Research, Vol. 139), Marina
+Meila and Tong Zhang (Eds.). PMLR, Virtual Event, 10347–10357.
+https://proceedings.mlr.press/v139/touvron21a.html
+[33] Tom Viering and Marco Loog. 2023. The Shape of Learning Curves: A
+Review. IEEE Transactions on Pattern Analysis and Machine Intelligence
+45, 6 (2023), 7799–7819. doi:10.1109/TPAMI.2022.3220744
+[34] Rui Xie, Yunhua Fang, Asad Ul Haq, Linsen Ma, Sanchari Sen, Swagath
+Venkataramani, Liu Liu, and Tong Zhang. 2025. Making Strong Error-
+Correcting Codes Work Effectively for HBM in AI Inference. arXiv
+preprint arXiv:2512.18152. arXiv:2512.18152 doi:10.48550/arXiv.2512.
+18152
+14
+
+
+SAGE
+A
+Methodology, Calibration, and
+Reproducibility
+This appendix contains the rules of the experiments: cam-
+paign populations, the application-derived trace contract,
+common configuration, implementation scope, manifests,
+semantic-quality calibration, stationarity criteria, and run-
+acceptance gates. Supporting network-level results, includ-
+ing the synthetic extensions and the DeiT-S operating, fault-
+stress, and clean-channel load-stress results, are collected in
+Appendix B. Specifically:
+• Campaigns and Populations: Appendix A.1 defines
+warm-up, pre-guard, measurement populations, seeds,
+and pairing.
+• Application-Derived Trace: Appendix A.2 fixes the
+DeiT-S trace, causal controller trajectory, rate and BER
+points, reporting population, and interpretation.
+• Configuration: Appendix A.3 fixes the network, fault
+map, and geographic-controller parameters.
+• Implementation: Appendix A.4 separates synthe-
+sized hardware from modeled state.
+• Manifests and Pairing: Appendix A.5 specifies the
+manifests and pairing checks.
+• Calibration: Appendix A.6 defines retained-quality
+accounting, summarizes calibration, and tests Class-H
+boundary promotion.
+• Stationarity: Appendix A.7 defines queue-stability
+and saturation diagnostics.
+• Validation Gates: Appendix A.8 lists the checker,
+protocol, and trace-validation gates.
+A.1
+Campaign and Measurement Contracts
+Tables 5 and 6 summarize campaign preparation and reported
+populations and make concrete the methodologies in Sec-
+tions 5.2–5.6. Each original enters the declared population
+once; replay attempts remain attached to it and affect traffic,
+latency, and terminal outcome without enlarging the denom-
+inator. Reported populations are campaign-specific: wrapper
+and synthetic NoC statistics exclude their declared warm-
+up, whereas the DeiT-S operating and fault-stress statistics
+include the complete finite trace. Paired direct-Garnet runs
+share the traffic trace, BER map, executable, and network
+configuration; adaptive runs consume policy-specific check-
+point sequences precomputed causally over the complete
+trace.
+The wrapper has no persistent drain and needs no post-
+guard. Planned segments and reached checks are audited
+over adjacent late wrapper windows. The 60 overlapping
+fixed 34-hop/SAGE rows in the four-point matrix and six-
+point paired sweep agree in every scientific field. The head-
+line, paired 3 × 10−4, and appendix-only 3 × 10−3 synthetic
+direct campaigns aggregate all post-WU originals, while the
+paired 10−3 campaign reports its predeclared cohort. The
+three low-rate DeiT-S campaigns report the complete finite
+Table 5. NoC campaign and measurement contracts. “Post-
+WU” denotes all originals after simulator warm-up.
+Campaign
+Preparation and
+seeds
+Reported population and
+role
+Wrapper design
+space
+Seven policies; 10
+seeds; 6M
+warm-up
+250K/policy/BER/seed;
+four-BER mechanism
+isolation
+Wrapper paired
+stress
+Fixed 34-hop and
+SAGE; 10 seeds;
+6M warm-up
+250K at six BERs; paired
+p99.5 and 𝑞del trend
+Direct Garnet,
+headline
+Fixed
+34-hop/SAGE: 10
+paired; SAGE-P: 10;
+2M warm-up
+15.25M post-WU/run;
+stable headline/ablation at
+3 × 10−5
+Direct Garnet,
+paired 3 × 10−4
+stress
+Fixed 34-hop and
+SAGE; 5 paired
+seeds; 2M
+warm-up
+15.25M post-WU/run;
+windowed stability
+Direct Garnet,
+paired 10−3
+stress
+Fixed 34-hop and
+SAGE; 5 paired
+seeds; 2M
+warm-up; 4M
+pre-guard
+Predeclared 250K latency
+cohort; surrounding run
+diagnoses stationarity
+Direct Garnet,
+DeiT-S
+operating/fault
+stress
+Fixed 34-hop and
+SAGE; 10 paired
+seeds/BER; causal
+plan generation
+over the complete
+trace; first 6M IDs
+are 2M warm-up
+plus 4M pre-guard
+Full 17.25M-original traces
+at 3 × 10−6, 10−5, and
+2 × 10−5, 𝑟= 0.009;
+diagnostics in
+Appendix A.2
+Direct Garnet,
+DeiT-S clean
+load stress
+Fixed 34-hop and
+SAGE; seed-1 pair;
+𝑃base = 0,
+𝑟= 0.0108; same
+simulator run
+contract
+250K latency plus full-trace
+lifecycle; load-selection
+diagnostic, not the normal
+clean baseline
+Direct Garnet,
+paired 3 × 10−3
+extreme stress
+Fixed 34-hop and
+SAGE; 5 paired
+seeds; 2M
+warm-up; 4M
+pre-guard
+15.25M post-WU/run;
+5K-window
+overload-containment
+diagnostic
+trace, with diagnostic coverage specified in Appendix A.2;
+the high-load BER-zero diagnostic reports full-trace lifecycle
+closure and its predeclared latency cohort, but is not pooled
+with the 𝑟= 0.009 campaign. This separates the wrapper
+load-margin result in Section 6.2 from the persistent-queue
+tests in Sections 6.3 and 6.4, and from the finite application-
+derived operating and stress results in Appendix B.4. Statis-
+tics are computed per seed over the named population before
+seed-level aggregation, following Section 5.5.
+15
+
+
+Hung et al.
+Table 6. Qualification and portability campaign contracts.
+Campaign
+Exposure and seeds
+Reported population and
+role
+Endpoint
+decoder
+CRC32/CRC16;
+ten-seed wrapper
+exposure; five
+10M-trial seeds/group
+Eight BER/CRC groups;
+simultaneous one-sided
+95% Class-H bounds
+HBM pilot
+Class-H-only/all-class;
+5 seeds; 40% clean
+saturation
+One million random
+64-byte reads/seed;
+portability
+A.2
+Application-Derived DeiT-S Trace and Reporting
+Contract
+The application experiment uses an immutable, rate-shaped
+communication trace from non-distilled DeiT-S/16 inference
+on selected ImageNet-1K validation images [31, 32]. Twelve
+physical replicas with six in-flight contexts per replica gener-
+ate the same packet IDs, routes, and stage-dependent bursts
+for every paired policy.
+Offered-load selection. The primary campaign caps ag-
+gregate eligibility at 90 originals/cycle, equivalent to 𝑟=
+0.009 over the 10,000-router mesh. A seed-1 scout varied the
+cap before launching the paired grid. For the conservative
+cross-cells used to bracket a common load, the last-injection
+overhang at 𝑟= 0.009 was 1640 cycles for fixed 34-hop at
+3 × 10−6 and 1033 cycles for SAGE at 10−5. At 𝑟= 0.0095,
+the corresponding values were 2468 and 17,706 cycles; at
+𝑟= 0.010, both exceeded 42,000 cycles. Thus, 0.009 is the
+highest tested common rate before abrupt queue accumu-
+lation in either cross-cell. The previous 108-original/cycle
+cap (𝑟= 0.0108) is retained only in the BER-zero load-stress
+diagnostic and is never compared numerically with the lower-
+rate faulted points. Rate shaping bounds same-cycle eligi-
+bility bursts but does not make the finite trace periodic or
+establish stationarity.
+BER and causal plan generation. The operating point
+is 𝑃base = 3 × 10−6; fault stresses at 10−5 and 2 × 10−5 retain
+the same offered load. They are selected independently of
+the uniform-random BER range because the structured trace
+has less recovery-traffic headroom. The 100× hot-region
+multiplier remains unchanged, giving hot-region BERs of
+3 × 10−4, 10−3, and 2 × 10−3, respectively. For each BER, the
+reference controller processes the complete DeiT-S trace in
+packet-ID order at the matching offered rate and BER. It
+emits each packet’s plan before accumulating that packet’s
+model-derived Class-H feedback and updates the source-
+region table every 40K originals, so feedback affects only later
+packet IDs. No uniform-random or higher-BER surrogate is
+used.
+Run and reporting population. Each low-rate run cap-
+tures 17.25M originals: 2M warm-up plus 4M pre-guard sup-
+ply controller and queue history, followed by the [6M, 6.25M)
+cohort and 11M continued-injection originals. Causal plan
+updates continue throughout. The completed grid contains
+ten paired seeds at each of the three nonzero BERs, or 60
+validated policy runs. Within each pair, packet IDs, routes,
+generation cycles, executable, BER map, and network con-
+figuration match; checkpoint plans and endpoint outcomes
+differ. Reported statistics cover the complete trace, not the
+separately exported 250K cohort.
+At 2×10−5, seeds 1–10 vary endpoint faults on one shared
+traffic trace and one SAGE plan. Host builds share the pinned
+source and configuration; each pair shares a binary. Final-
+quiescence telemetry covers all runs; 5K-cycle windows
+cover the two lower BERs and seeds 1–3 at 2 × 10−5.
+The trace exercises the same queues, credits, checker,
+NACK, and replay path as the synthetic runs. Without a
+verified repetition period, these are finite-workload com-
+parisons, not steady-state estimates or end-to-end inference
+accuracy measurements. An absolute saturation threshold re-
+quires an offered-load sweep with bounded and persistently
+growing points.
+A.3
+Trace-Locked Controller Configuration
+Direct Garnet executes exported per-packet checkpoint se-
+quences in trace-locked mode; it neither runs the controller
+nor feeds realized queue or fault outcomes into later plans.
+The offline exporter processes the complete trace causally.
+It updates 𝑛𝑠(𝑟) every 40K originals, so packet 𝑖depends
+only on earlier model-derived Class-H feedback. Tables 7
+and 8 expand the common setup in Section 5.1 and the con-
+troller/checker realization in Sections 3.2 and 4.1–4.3. Table 7
+is common to fixed 34-hop, SAGE, and SAGE-P; Table 8 pins
+the controller used to generate the two adaptive trajectories.
+Trace locking isolates network execution from online con-
+troller computation and realized-outcome feedback; it does
+not freeze one interval table.
+The fixed baseline derives its endpoints directly. SAGE-
+P applies the smallest source-region interval present when
+each packet is planned to every route segment, whereas
+SAGE applies the region-local rule in Section 3.2; their dif-
+ference is therefore checkpoint placement, not network con-
+figuration.
+A.4
+Implementation Realization
+Table 9 expands the cost scope in Sections 4.5 and 6.6. The
+Class-H and Class-M checker rows are synthesized blocks;
+the other rows describe bounded state represented in the
+controller or direct-Garnet model.
+Finite checkpoint-store area and timing, the ordered own-
+ership ledger, and packet-specific early-credit tokens are
+modeled but are not included in the standalone checker-area
+16
+
+
+SAGE
+Table 7. NoC and recovery-protocol configuration.
+Item
+Evaluated setting
+Topology and timing
+100 × 100 mesh; 576-bit links; 2-cycle
+routers; 1-cycle links
+DATA / CTRL routing
+Deterministic XY / YX
+Uniform-random
+offered /
+clean-saturation load
+0.0108 / 0.027 packets/router/cycle
+DeiT-S primary / clean
+load-stress rate
+0.009 / 0.0108 packets/router/cycle
+Flow control
+4 VCs/vnet; 8 entries/VC for DATA and
+CTRL
+Checker path
+16 entries/DATA input, including four
+checked outputs; one
+admission/input/cycle when unstalled;
+12-cycle surcharge
+Retry and arbitration
+One original plus at most two replays;
+at most four consecutive CTRL grants;
+replay DATA has ordinary priority
+Primary handoff
+Ideal local checkpoint handoff;
+protected NACK and replay traffic
+remain explicit
+Table 8. Source-local causal-controller configuration.
+Item
+Evaluated setting
+Geography and BER
+10 × 10 regions, each 10 × 10 routers;
+hot regions (2, 2), (2, 7), (7, 2), (7, 7);
+receiving-region BER; hot multiplier
+100𝑃base
+Interval state
+𝑛0 = 67; 𝑛min = 10; 𝑛max = 199 hops
+Update and score
+40K originals; 𝛼= 1/8; 𝑤𝑅= 10;
+𝑤𝐷= 100
+Trace-locked generation Complete same-trace sequence at
+each campaign’s target BER and
+offered rate; emit each packet’s plan
+before its feedback; update every 40K
+originals
+Thresholds
+𝜃high = 10−3; 𝜃low = 10−4
+High-score action
+Halve, bound by 𝑛min, and reset 𝑐𝑠,𝑟
+Low-score action
+Increment 𝑐𝑠,𝑟; after four such
+windows add five hops, bound by
+𝑛max, and reset
+Middle band
+Leave interval and counter
+unchanged
+Attribution and lifetime
+Apportion feedback by regional hop
+exposure; snapshot endpoints at
+injection
+result. The same ordered DATA/CTRL integration and stag-
+ing limits apply to fixed 34-hop, SAGE, and SAGE-P. Thus the
+reported area is not total router overhead, and the 34.7% in-
+crease in Section 6.6 compares fully pipelined with blocking
+checker RTL only.
+Table 9. Implementation realization and quantified cost.
+Checker entries report latency/initiation interval. DC area
+is in ASAP7 Liberty cell-area units; normalized post-route
+placed-cell area is in parentheses.
+Component
+Realization and cost / configuration
+Class-H checker
+Synthesizable RTL; 11/1 cycles; 2737.4
+(2949.8 𝜇m2)
+Class-M checker
+Synthesizable RTL; 5/1 cycles; 523.3
+(570.4 𝜇m2)
+Region intervals
+Control state; 100 entries × 8 bits =
+100 B/source
+Replay snapshot
+Model/controller state; 576 bits
+(72 B)/active entry, plus metadata
+Checker staging
+16 entries/DATA input, including four
+checked outputs, plus one bounded ingress
+slot/VC
+DATA / CTRL
+network
+4 VCs/vnet; 8-entry buffers; CTRL burst
+limited to four
+A.5
+Manifest and Run Acceptance
+Every accepted NoC publication run emits a formal mani-
+fest, expanding the pairing rules in Section 5.5. It binds the
+executable, invocation, inputs, network configuration, and
+reported packet-ID window before results enter analysis. A
+hash mismatch or failed gate excludes the run before aggre-
+gation.
+Table 10. Fields recorded in the per-run manifest.
+Recorded fields
+Verification purpose
+Source/prototype
+revision; executable
+hash
+Pin source revision and binary
+Command line; policy;
+parameters; seed
+Reconstruct invocation and random
+stream
+BER-map, traffic,
+checkpoint-plan hashes
+Pin exposure, trace, and
+policy-specific segmentation
+VC, buffer, protocol
+configuration
+Pin flow-control and recovery
+capacity
+Packet-ID window;
+reported population
+Pin measurement and accounting
+bounds
+Across paired policies, traffic, BER-map, executable, and
+network-configuration hashes must match. The packet-ID
+bounds enforce each campaign’s declared reporting popu-
+lation, including the full trace where specified. Checkpoint-
+plan identity remains policy-specific: SAGE and SAGE-P
+consume exported plans, whereas the fixed interval derives
+its endpoints directly. Because segmentation changes end-
+point sample identities, Section 5.3 describes fixed 34-hop
+and SAGE as traffic- and seed-paired rather than as receiving
+identical physical fault masks.
+17
+
+
+Hung et al.
+A.6
+Delivered-Quality Accounting and Calibration
+Fixed retained-quality weights. The wrapper and direct-
+Garnet NoC results use fixed class-level coefficients 𝜆𝑀= 4
+and 𝜆𝐿= 0.25 across policies and BER points. For an accepted
+original 𝑖,
+𝑞𝑖=
+1
+(1 + 4𝜌𝑀,𝑖)(1 + 0.25𝜌𝐿,𝑖) .
+(11)
+Here 𝜌𝑀,𝑖and 𝜌𝐿,𝑖are modeled fractions of the original’s
+32 BF16-like values with residual damage, not raw BERs
+or whole-codeword failure probabilities. The quality coeffi-
+cients are distinct from the controller weights 𝑤𝑅,𝑤𝐷; Class-
+H is governed separately by Eq. (2).
+Residual accounting. Let 𝑝𝑖,𝑘be the segment-effective
+XOR BER defined below for successfully committed segment
+𝑘of original 𝑖. For a value’s five Class-M bits within the
+168-bit, single-error-correcting record, the behavioral model
+uses
+𝑑𝑀(𝑝) = 1 −(1 −𝑝)5 −5𝑝(1 −𝑝)167,
+𝜌𝑀,𝑖= 1 −
+Ö
+𝑘
+
+1 −𝑑𝑀(𝑝𝑖,𝑘)
+
+.
+(12)
+The last term removes the sole correctable error in the value’s
+five Class-M bits. For the seven uncoded Class-L bits per
+value, XOR parity is retained across segments:
+𝑝𝐿,𝑖= 1 −Î
+𝑘(1 −2𝑝𝑖,𝑘)
+2
+,
+𝜌𝐿,𝑖= 1 −(1 −𝑝𝐿,𝑖)7.
+(13)
+Fractions are clipped to [0, 1]. Failed attempts do not accu-
+mulate damage: replay restores the preceding checkpoint’s
+quality state. For SAGE+M, the behavioral checker makes
+𝜌𝑀,𝑖= 0 on accepted paths.
+Segment-effective BER. Under the independent-flip model,
+a reached segment 𝑘with receiving-region link BERs 𝑃𝑏(ℓ)
+has effective XOR BER
+𝑝⊕,𝑘= 1 −Î
+ℓ∈𝑘
+ 1 −2𝑃𝑏(ℓ)
+2
+.
+The simulator uses this BER to sample endpoint error counts
+for the 184-bit Class-H, 168-bit Class-M, and 224-bit Class-L
+fields.
+Per-run aggregation. For 𝑁originals in the declared
+cohort and accepted subset A, compute
+𝑞acc =
+1
+|A|
+∑︁
+𝑖∈A
+𝑞𝑖,
+𝑞del = 1
+𝑁
+∑︁
+𝑖∈A
+𝑞𝑖= (1 −𝑃drop)𝑞acc.
+(14)
+Drops score zero; retries are not additional originals. Set
+both quality quantities to zero if none is accepted. Evaluate
+Eq. (11) per original before averaging, not at cohort-mean
+damage. In direct Garnet, 𝑞del equals the mean exported
+accepted_quality in packets.csv over the declared co-
+hort. Quality and Ψdel = 𝐿mean/𝑞del are computed per seed
+before averaging seeds.
+Task-level calibration check. Table 11 uses the sign an-
+chor 𝜆𝑠= 4 and 𝑞del = 1/(1 + 4𝜌𝑠), with neither drops nor
+other injected faults and no per-BER refitting. This explic-
+itly validates the bounded-residual mapping for this specific
+architecture, demonstrating the methodology without claim-
+ing universal per-bit coefficients. Table 12 summarizes the
+fault-injection evidence supporting the semantic class dis-
+tinction.
+Table 11. Task-level check of the delivered-quality coor-
+dinate on AlexNet/CIFAR-100 at 𝑝= 2. Prediction uses
+𝐴0(2/(1 + 4𝜌𝑠)) without per-BER refitting; values are per-
+centage points.
+𝜌𝑠
+Measured
+Predicted
+Error
+0.01
+62.66
+62.67
++0.01
+0.03
+61.60
+61.58
+−0.02
+0.05
+60.62
+60.51
+−0.11
+0.07
+59.40
+59.46
++0.06
+0.09
+58.41
+58.42
++0.02
+Table 12. Representative semantic-calibration evidence.
+Test
+Observation
+Architectural implication
+Exponent
+MSBs
+2.0% after activation;
+83.0%
+with
+safe
+restoration
+Class-H is filtered by
+a catastrophic-risk con-
+straint
+Lower
+expo-
+nent 𝑒3
+0→1: 63.38%; 1→0:
+69.89%
+Class-M is important, di-
+rectional, and bounded
+Mantissa MSB
+69.35% for |𝑥| ≥2 at
+3% BER; near-clean
+for smaller values
+Class-L
+is
+magnitude
+aware
+but
+normally
+non-replaying
+Class-H boundary-promotion sensitivity. We retain
+𝑒4–𝑒7 as the minimum Class-H core and test promoting 𝑒3,
+the sign bit, or both under the same 64-bit budget. A policy-
+specific 800M-trial CRC32 campaign observes no silent Class-
+H error; the worst per-original upper bound is 𝑈95
+pkt = 4.66 ×
+10−7. Under an equal-weight 𝜆= 4 first-order quality sensi-
+tivity and the optimistic assumption that every Class-H size
+retains the 12-cycle checker, the wrapper estimate of Ψdel
+is 355.1, 357.3, and 360.6 cycles for zero, one, and two pro-
+moted positions, respectively, at 𝑃base = 5 × 10−5. Thus, no
+tested promotion improves the estimated quality-normalized
+terminal latency. Width-dependent checker latency would
+further penalize promotion, while the corresponding area
+increase remains a separate implementation cost.
+18
+
+
+SAGE
+A.6.1
+Illustrative Exponent Recentering. Exponent re-
+centering is an optional transport transformation for tensors
+whose stored exponents occupy a narrow interval. For ex-
+ample, the measured AlexNet tensor distribution occupies
+stored BF16 exponents 𝐸∈[118, 128], corresponding to unbi-
+ased exponents approximately [−9, 1]. A sender may encode
+𝐸tx = 𝐸+ 122,
+which maps the occupied interval to 𝐸tx ∈[240, 250]. The
+four most significant transmitted exponent bits are there-
+fore always one over the declared range, eliminating 0→1
+fault opportunities in precisely the exponent positions that
+motivate Class-H protection. Because the transformation is
+one-to-one over the declared exponent interval, it is informa-
+tion preserving: the receiver reconstructs the original BF16
+value exactly, with no reduction in precision or represented
+value set. The receiver restores 𝐸= 𝐸tx −122 before the
+value is consumed; the recentered representation is never
+interpreted numerically.
+The offset and valid original exponent interval are pro-
+tected metadata. The receiver rejects any restoration out-
+side [118, 128], including underflow, overflow, or modular
+wraparound. Recentering does not replace Class-H ECC, the
+end-to-end CRC, or the receiver range checks, and our re-
+ported safety and performance results assign it no benefit.
+It is included here only as an example of how a narrow,
+architecture-measurable exponent distribution can provide
+an additional representation-level hardening opportunity.
+Table 13. Illustrative transport-only exponent recentering.
+Original stored exponent range
+118–128
+Transport offset
++122
+Transmitted exponent range
+240–250
+Receiver restoration
+𝐸= 𝐸tx −122
+A.7
+Stationarity Diagnosis
+This subsection operationalizes the method in Section 5.3
+and the interpretation in Section 6.4. A finite trace eventually
+drains after generation stops, so zero final backlog alone does
+not establish stationary service; the diagnosis therefore uses
+complete windows while original traffic remains at full rate.
+For a window 𝑤= [𝑡0,𝑡1) of width 𝑇𝑤, define
+𝐵(𝑡) = 𝑁gen(< 𝑡) −𝑁term(< 𝑡),
+𝐴𝑤= 𝑁gen(𝑤)/𝑇𝑤,
+𝐶𝑤= 𝑁term(𝑤)/𝑇𝑤,
+Δ𝐵𝑤= [𝐵(𝑡1) −𝐵(𝑡0)]/𝑇𝑤= 𝐴𝑤−𝐶𝑤.
+(15)
+The paired 3 × 10−4 diagnosis uses the final five complete
+full-rate 10K-cycle windows and repeats the test with 5K-
+cycle bins. The paired 10−3 diagnosis aggregates both policies
+over cycles 40K–150K and checks the final 50K cycles. The
+appendix-only 3×10−3 diagnosis uses the final five complete
+full-rate 5K-cycle windows per seed. Persistent 𝐶𝑤< 𝐴𝑤
+with material positive Δ𝐵𝑤denotes saturation; matched rates
+and bounded 𝐵(𝑡) denote queue stability. Because each stress
+point is evaluated at a single offered load, this classification
+separates the tested loads into stationary and nonstationary
+regimes but does not locate an absolute tolerance threshold,
+which would require an offered-load sweep at fixed BER.
+The classification is checked across seeds and windows so
+opposing slopes cannot cancel in an aggregate mean. Drop
+rate is separate because rapid terminal failure can keep a
+queue bounded while providing poor useful service. Only
+queue-stable runs support a steady-state latency interpreta-
+tion; otherwise quantiles describe the growing queue over
+the chosen interval. For the finite DeiT-S trace, generation-
+boundary backlog, final drain, and late-trace trends diagnose
+queue accumulation but do not by themselves identify an
+absolute saturation threshold. The 𝑟= 0.009 nonzero-BER
+points and the 𝑟= 0.0108 BER-zero load stress are classified
+separately and are not combined into a BER trend.
+A.8
+Self-Checks and Protocol Gates
+The three gate groups below validate checker timing and
+backpressure, recovery and ordered credit ownership, and
+trace identity. Failure in any group excludes the run from
+analysis. These gates complement the statistical decoder
+qualification in Section 6.6.
+Publication runs enter analysis only after the full gem5
+build and three gate groups complete:
+1. Checker gate: fixed 11-/5-cycle Class-H/Class-M la-
+tency, initiation interval one, and output-backpressure
+stability.
+2. Protocol gate: zero-BER timing; deterministic single-
+and three-failure NACK/replay/drop tests; one-VC and
+dense four-VC ordering; and exact early-credit cancel-
+lation under forced failure.
+3. Trace gate: traffic, checkpoint plan, executable, BER
+map, network setup, and measurement-window iden-
+tities match the manifest.
+For the application-derived campaign, the trace gate addi-
+tionally checks the rate cap, controller-trajectory and input
+provenance, and exact packet, cycle, source, and destina-
+tion identities across paired policies. It also checks packet-
+lifecycle and ownership/credit-ledger closure. Appendix B.4
+reports the low-rate operating and fault-stress results and
+the separate high-load clean-channel diagnostic.
+19
+
+
+Hung et al.
+B
+Supplementary Evaluation Results
+This appendix collects supporting results and portability
+pilots that complement Section 6. It includes the complete
+Garnet-calibrated wrapper matrices, an extreme-BER direct-
+Garnet diagnostic, the application-derived DeiT-S operating,
+fault-stress, and clean-channel load-stress results, and an
+HBM portability study. Specifically:
+• Four-BER Wrapper Matrix: Appendix B.1 gives the
+complete four-BER, seven-policy design space.
+• Paired Wrapper Extension: Appendix B.2 gives the
+six-point fixed 34-hop and SAGE comparison.
+• Extreme Direct-Garnet Diagnostic: Appendix B.3
+reports overload containment at 𝑃base = 3 × 10−3.
+• Structured-Trace Results: Appendix B.4 reports the
+DeiT-S rate selection, serviceable nonzero-BER points,
+and high-load clean-channel diagnostic.
+• HBM Portability and Semantic Specialization:
+Appendix B.5 evaluates a Ramulator component pilot
+to test semantic recovery selection and presents an
+analytical REACH-style tradeoff for repair spans.
+The methodology, calibration, and reproducibility are de-
+scribed in Appendix A.
+B.1
+Principal Four-BER Matrix
+The matrix contains 280 runs: four principal BERs, seven
+policies, and ten common seeds. Every cell follows the 6M-
+warm-up plus 250K-measurement contract in Appendix A.1.
+We report retry DATA flit-hops/original as 𝑅ℎand planned
+segments/reached checks as P/C. Latencies are cycles. Ta-
+bles 14 and 15 are split only for legibility.
+Table 14. Complete wrapper results at 𝑃base = 2 × 10−5 and
+3 × 10−5 (ten common seeds).
+Policy
+𝑅ℎ
+P/C 𝐿mean
+𝐿99.5
+𝑞del
+Drop
+𝑃base = 2 × 10−5
+End-to-end
+20.658 1.00/1.25 396.8 2551.8 0.8687 0.0738
+Mean-path
+12.902 1.49/1.69 334.3 1414.9 0.8812 0.0551
+Fixed 34-hop 6.131 2.45/2.60 292.4 991.2 0.8978 0.0316
+Fixed 10-hop 1.230 7.12/7.20 312.8 752.1 0.9173 0.0108
+SAGE-P
+1.236 4.73/4.81 284.2 733.4 0.9156 0.0108
+SAGE
+1.377 2.99/3.08 264.3 682.5 0.9123 0.0140
+SAGE+M
+5.247 2.99/2.95 277.6 879.3 0.8472 0.1478
+𝑃base = 3 × 10−5
+End-to-end
+29.780 1.00/1.38 479.9 2587.8 0.8018 0.1508
+Mean-path
+20.708 1.49/1.79 399.9 1507.6 0.8106 0.1393
+Fixed 34-hop 11.210 2.45/2.66 328.1 1137.3 0.8263 0.1162
+Fixed 10-hop 2.786 7.12/7.14 318.6 785.8 0.8626 0.0610
+SAGE-P
+2.799 4.77/4.79 290.5 773.8 0.8593 0.0609
+SAGE
+2.980 3.06/3.13 270.9 726.6 0.8504 0.0742
+SAGE+M
+6.867 3.06/2.86 280.2 944.2 0.7798 0.2164
+Table 15. Complete wrapper results at 𝑃base = 4 × 10−5 and
+5 × 10−5 (ten common seeds).
+Policy
+𝑅ℎ
+P/C 𝐿mean
+𝐿99.5
+𝑞del
+Drop
+𝑃base = 4 × 10−5
+End-to-end
+34.263 1.00/1.44 522.6 2589.6 0.7608 0.2013
+Mean-path
+24.531 1.49/1.83 433.6 1513.5 0.7675 0.1957
+Fixed 34-hop 13.807 2.45/2.66 345.6 1097.7 0.7792 0.1819
+Fixed 10-hop 4.013 7.12/6.98 318.8 792.1 0.8125 0.1280
+SAGE-P
+4.043 4.83/4.69 291.6 784.8 0.8077 0.1277
+SAGE
+4.112 3.17/3.11 272.1 714.9 0.7982 0.1429
+SAGE+M
+7.649 3.17/2.92 283.6 917.9 0.7581 0.2380
+𝑃base = 5 × 10−5
+End-to-end
+36.343 1.00/1.48 542.3 2589.6 0.7386 0.2249
+Mean-path
+26.217 1.49/1.85 448.6 1486.6 0.7448 0.2221
+Fixed 34-hop 14.910 2.45/2.65 352.8 1010.8 0.7547 0.2145
+Fixed 10-hop 4.707 7.12/6.81 316.3 772.7 0.7786 0.1803
+SAGE-P
+4.744 4.95/4.64 290.5 757.0 0.7725 0.1804
+SAGE
+4.714 3.31/3.14 271.6 679.9 0.7651 0.1903
+SAGE+M
+8.106 3.31/3.05 287.3 911.5 0.7502 0.2454
+At the headline 3 × 10−5 point, SAGE reduces retry traffic
+by 73.4% and p99.5 latency by 36.1% relative to the fixed
+34-hop interval.
+Relative to the fixed 10-hop interval, its retry traffic is
+within 7.0% while it uses 57.0% fewer planned segments and
+56.2% fewer reached checks. At 4 × 10−5, allowing Class-M
+failures to invoke replay increases retry flit-hops from 4.112
+to 7.649 (86.0%) and worsens Ψdel = 𝐿mean/𝑞del from 340.9 to
+374.1 cycles (9.7%).
+B.2
+Paired Fixed 34-Hop/SAGE Extension
+The paired extension contains 120 runs: two policies, six
+BERs, and ten common seeds. Rows above 5 × 10−5 are
+detected-failure stress tests outside the CRC-qualified op-
+erating envelope. Positive Δ𝐿99.5 favors SAGE; all ten pairs
+favor SAGE at every listed BER.
+Table 16. Paired wrapper extension (ten common seeds; 6M
+warm-up originals). Latencies are all-outcome p99.5 cycles;
+the final column counts pairs favoring SAGE.
+𝑃base
+(×10−5)
+𝐿99.5
+Fixed/SAGE
+Δ𝐿99.5
+(95% CI)
+𝑞del
+Fixed/SAGE Pairs
+2
+991.2/682.5
+308.7
+[305.4,312.1] 0.8978/0.9123 10/10
+3
+1137.3/726.6
+410.6
+[408.4,412.9] 0.8263/0.8504 10/10
+5
+1010.8/679.9
+330.8
+[329.5,332.1] 0.7547/0.7651 10/10
+10
+923.1/660.6
+262.5
+[261.9,263.2] 0.7056/0.7196 10/10
+20
+938.0/721.0
+217.0
+[211.7,222.3] 0.6322/0.6808 10/10
+50
+1450.9/748.4
+702.5
+[699.3,705.7] 0.4476/0.5395 10/10
+20
+
+
+SAGE
+2
+3
+5
+10
+20
+50
+600
+800
+1,000
+1,200
+1,400
+Base BER 𝑃base (×10−5)
+All-outcome p99.5 latency (cycles)
+Fixed 34-Hop
+SAGE
+Figure 5. All-outcome p99.5 latency in the completed ten-
+seed, 6M-warm-up wrapper sweep. BER points above 5×10−5
+are detected-failure stress tests outside the CRC-qualified
+operating envelope.
+From 5 × 10−5 to 5 × 10−4, a tenfold increase, fixed 34-hop
+p99.5 rises by 43.5% while SAGE’s rises by 10.1%. The corre-
+sponding delivered qualities are 0.4476 and 0.5395. Table 16
+gives the full values, and Figure 5 plots the latency trend.
+The non-monotonicity in Figure 5 is a consequence of the
+all-outcome latency metric under finite retry exhaustion. For
+the fixed 34-hop interval, increasing 𝑃base from 3 × 10−5 to
+5 × 10−5 raises retry flit-hops from 11.210 to 14.910 and drop
+rate from 11.62% to 21.45%, yet lowers all-outcome p99.5
+from 1137.3 to 1010.8 cycles.
+As BER rises, more originals exhaust the finite retry budget
+and terminate before completing the remaining path, turning
+the all-outcome tail downward. Because the wrapper does
+not maintain persistent queues, the direct-Garnet campaign
+(Section 6.4) directly tests high-BER queue stability.
+B.3
+Extreme High-BER Direct-Garnet Diagnostic
+This appendix-only campaign extends Section 6.4 to 𝑃base =
+3 × 10−3, one hundred times the headline BER, under the
+same offered load and five paired seeds. It lies outside the
+CRC-qualified operating envelope and tests overload contain-
+ment rather than a useful BER range or an exact saturation
+threshold.
+Table 17. Appendix-only extreme direct-Garnet stress at
+𝑃base = 3 × 10−3 (five traffic- and seed-paired runs). C/A,
+Δ𝐵, and 𝐵end use the final five complete 5K-cycle full-rate
+windows per seed; drop and latency are per-seed means over
+all 15.25M post-warm-up originals. Fixed-policy latencies
+are descriptive nonstationary outcomes.
+Policy
+C/A
+Δ𝐵/cyc.
+𝐵end
+Drop
+𝐿mean/𝐿99.5
+Fixed 34-hop
+0.533
++50.44
+7.14M
+97.87%
+66.4K/257.1K
+SAGE
+1.000
+−0.002
+34.6K
+93.31%
+321.4/992.0
+All five fixed 34-hop backlog slopes are positive (50.36–
+50.53), while the SAGE slopes remain near zero (−0.012 to
++0.015). The reported end-window backlog is 7.14M originals
+for fixed 34-hop and 34.6K for SAGE. The terminal drop rates,
+however, are 97.87% and 93.31%; thus this point demonstrates
+bounded protocol and network behavior, not useful service,
+a latency operating point, application-level headroom, or an
+exact threshold, consistent with Section 8.
+B.4
+Structured-Trace Operating and Stress Results
+The immutable DeiT-S communication trace drives the same
+direct-Garnet queues, credits, checker, protected NACKs, and
+segment replay as the synthetic campaigns. Its traffic struc-
+ture is application derived, while placement, rate normaliza-
+tion, and the physical mapping remain controlled architec-
+tural choices. The exact trace, causal controller trajectory,
+pairing, and reporting contracts appear in Appendix A.2. The
+experiment tests network-level behavior under structured
+traffic.
+Rate selection. An initial single-seed sweep selected 𝑟=
+0.009 before launching the paired fault campaign. Table 18
+reports the interval between the final eligible generation
+and the final first injection. The two columns are deliber-
+ately conservative cross-cells—the low-BER fixed policy and
+the high-BER SAGE policy—and are used only to locate a
+common load knee, not to compare policies.
+Table 18. Seed-1 DeiT-S rate scout. Values are last-injection
+overhang in cycles. The abrupt increase above 𝑟= 0.009
+motivates the common primary rate.
+Rate
+Fixed 34-hop
+𝑃base = 3 × 10−6
+SAGE
+𝑃base = 10−5
+0.0090
+1,640
+1,033
+0.0095
+2,468
+17,706
+0.0100
+42,883
+48,271
+At 𝑟= 0.009, the campaign uses 𝑃base = 3 × 10−6 as its
+application-derived operating point and 10−5 as a fault stress.
+These BERs are intentionally below the uniform-random
+campaign because the stage-dependent bursts leave less
+recovery-traffic headroom; applying the synthetic BER range
+would primarily measure queue buildup. The same four-hot-
+region map and 100× multiplier are retained, so the local hot
+BERs are still 3 × 10−4 and 10−3.
+21
+
+
+Hung et al.
+Table 19. Completed ten-seed full-trace DeiT-S results at
+𝑟= 0.009. Entries are fixed 34-hop/SAGE means of per-seed
+statistics over 17.25M originals per run. Latencies are cycles
+and quantiles are all-outcome.
+Metric
+𝑃base = 3 × 10−6
+Fixed/SAGE
+𝑃base = 10−5
+Fixed/SAGE
+Mean terminal latency
+284.8 / 237.6
+318.2 / 304.2
+All-outcome p99.5
+2657.1 / 714.0
+4006.2 / 3169.2
+All-outcome p99.9
+5553.9 / 1901.7
+7537.6 / 7990.6
+Mean source-queue
+latency
+25.03 / 4.00
+45.11 / 40.57
+Drop rate (total drops)
+5.80×10−7% (1) /
+2.32×10−6% (4)
+0.05655% (97,551) /
+0.01713% (29,555)
+𝑞del
+0.991649 / 0.991386 0.956179 / 0.960680
+Ψdel
+287.2 / 239.6
+332.7 / 316.7
+Last-injection overhang
+1618 / 551
+1792 / 958
+Final quiescence after
+last eligibility
+2046 / 1078
+2265 / 1522
+Ten-seed low-rate results. At 3 × 10−6, SAGE lowers
+mean, p99.5, p99.9, and source-queue latency by 16.6%, 73.1%,
+65.8%, and 84.0%, respectively, and reduces Ψdel by 16.6%
+despite a 0.000263 lower 𝑞del. All ten pairs favor SAGE on
+each latency metric; the paired p99.5 advantage is 1943.1
+cycles (95% CI [1918.5, 1967.7]). Only one fixed-policy and
+four SAGE originals drop among 172.5M originals per policy.
+At 10−5, SAGE lowers mean latency by 4.4%, p99.5 by
+20.9%, source-queue latency by 10.1%, drop rate by 69.7%,
+and Ψdel by 4.8%, while raising 𝑞del by 0.00450. All ten pairs
+favor SAGE for mean and p99.5; the paired p99.5 advantage is
+837.0 cycles (95% CI [773.7, 900.3]). The p99.9 is instead 453.0
+cycles, or 6.0%, higher under SAGE (95% CI [271.9, 634.1]),
+consistently across all ten pairs, so we make no claim at
+every extreme percentile.
+All 40 runs reach zero backlog and protocol quiescence.
+The fixed 5K-cycle windows show phase-varying queue
+buildup and release, while SAGE reduces the mean last-
+injection overhang and time to final quiescence at both BERs.
+These diagnostics establish serviceability over the completed
+finite traces, not an asymptotic saturation threshold.
+Extended ten-seed fault stress. The additional 𝑃base =
+2 × 10−5 point retains 𝑟= 0.009 and the same full-trace
+population. Table 20 combines seeds 1–10; all ten pairs favor
+SAGE in mean, p99.5, p99.9, source-queue latency, 𝑞del, drop
+rate, and Ψdel.
+Table 20. Extended DeiT-S fault stress at 𝑃base = 2×10−5 and
+𝑟= 0.009: ten paired fault seeds. Entries average per-seed
+full-trace statistics over 17.25M originals per run; latencies
+are cycles and quantiles are all-outcome.
+Metric
+Fixed 34-hop
+SAGE
+Mean terminal latency
+4215.1
+1089.6
+All-outcome p99.5
+158023.2
+32122.2
+All-outcome p99.9
+204845.5 140125.4
+Mean source-queue latency
+3674.4
+762.8
+Drop rate
+3.1542%
+1.3354%
+𝑞acc
+0.925791 0.923424
+𝑞del
+0.896590 0.911092
+Ψdel
+4701.3
+1195.9
+Retry DATA flit-hops/original
+7.878
+2.250
+CTRL flit-hops/original
+7.200
+1.782
+Last-injection overhang
+95354.0
+49870.3
+Final quiescence after last eligibility
+96788.7
+50568.2
+The mean paired advantages are 3125.6 cycles for mean
+latency (95% CI [3081.2, 3169.9]) and 125901.0 cycles for p99.5
+(95% CI [124275.6, 127526.4]). The corresponding reductions
+at the seed means are 74.2% and 79.7%; Ψdel falls by 74.6%.
+Although accepted-only quality 𝑞acc is slightly lower under
+SAGE in every pair, fewer drops raise𝑞del by 0.014502. Across
+172.5M originals per policy, fixed 34-hop drops 5,440,940 and
+SAGE drops 2,303,593.
+All 20 runs terminate with zero backlog and closed pro-
+tocol ledgers; mean time from final eligibility to quiescence
+falls from 96788.7 to 50568.2 cycles. The retained 5K-cycle
+windows for seeds 1–3 show net backlog growth under fixed
+34-hop and net reduction under SAGE over cycles 140K–
+190K in each of those pairs; this windowed observation is
+not extended to seeds 4–10. The ten-seed result supports
+the policy ordering on this finite trace; it does not locate a
+steady-state saturation threshold.
+Table 21. Paired seed-1 DeiT-S clean-channel load-stress
+diagnostic at 𝑃base = 0 and 𝑟= 0.0108. Full-trace counts
+cover 17.25M originals; latency rows use the predeclared
+250K cohort [6M, 6.25M). Latencies are cycles.
+Metric
+Fixed 34-hop
+SAGE
+Accepted originals, full trace
+17.25M 17.25M
+Retry DATA / NACK / drop
+events
+0 / 0 / 0 0 / 0 / 0
+Endpoint checks/original, full
+trace
+2.451
+1.177
+Mean terminal latency, cohort
+2632.7
+801.9
+Mean source-queue latency,
+cohort
+2244.4
+521.7
+Delivered-quality loss
+none
+none
+22
+
+
+SAGE
+High-load clean-channel diagnostic. The former 𝑟=
+0.0108 BER-zero pair is retained as a separate load stress.
+Although both policies eventually drain and all originals
+are delivered, the predeclared cohort is already queue dom-
+inated: source waiting accounts for 2244.4 of 2632.7 mean
+cycles under fixed 34-hop and 521.7 of 801.9 under SAGE.
+Because the finite trace has no verified repetition period, this
+pair is neither a steady-state saturation estimate nor a same-
+load clean baseline for the 𝑟= 0.009 faulted campaign. This
+diagnostic validates trace and protocol closure at a known
+queue-dominated load (𝑟= 0.0108); absolute latencies are
+evaluated separately in the lower-rate faulted campaign.
+B.5
+HBM Portability and Semantic Specialization
+This study tests whether semantic recovery eligibility re-
+mains useful when the contention engine is a memory sys-
+tem rather than a NoC. Motivated by two-tier and selective
+HBM ECC [10, 34], it combines a Ramulator component pi-
+lot with an analytical REACH-style specialization. The pilot
+tests recovery selection; the specialization examines protec-
+tion domains and repair-span costs. Neither implements a
+complete two-level HBM controller or a coupled NoC–HBM–
+compute system.
+B.5.1
+Ramulator Component Pilot.
+Configuration and recovery policies. The pilot uses
+pinned Ramulator 2.0 HBM3 [20] with eight channels and
+one million random 64-byte reads per traffic seed. Five traffic
+seeds are evaluated at an original-request load of 0.4𝑟sat,
+where 𝑟sat is the measured clean saturation rate. Each source
+line contains 𝐵line = 512 bits, corresponding to 32 BF16-like
+values. The experiment includes an exact 𝑃𝑚= 0 sanity point
+and a BER sweep through 𝑃𝑚= 10−3. Unlike the NoC study,
+the fault model has one access exposure per source line and
+no path-length BER multiplier.
+Ramulator supplies memory latency and congestion, while
+the fixed H/M/L wrapper computes exact-binomial class-
+failure probabilities, replay amplification, drops, and retained
+quality. Recovery-expanded traces account for the additional
+memory traffic. The comparison is between Class-H-only re-
+covery and recovery on any detected H/M/L failure. Both re-
+tain the Class-H recovery path; the latter also allows bounded
+Class-M and Class-L outcomes to invoke recovery.
+For per-attempt recovery-trigger probability 𝑝rec and at
+most 𝑅additional attempts, the independent-attempt wrap-
+per accounting is
+𝜈=
+𝑅
+∑︁
+𝑎=0
+𝑝𝑎
+rec.
+Here 𝜈includes the initial attempt. The class-failure and
+quality terms are analytical; the five traffic seeds vary the
+random-read workload rather than constituting five inde-
+pendent decoder-safety campaigns.
+Goodput and overhead accounting. Let 𝑁acc be the
+number of accepted original lines,𝑇sim the simulated elapsed
+time, and 𝑞acc,HBM the wrapper’s mean retained-quality score
+for accepted lines. Semantic goodput is
+𝐺sem = 𝐵line𝑁acc
+𝑇sim
+𝑞acc,HBM.
+Dropped lines contribute no useful payload, and replay at-
+tempts do not count as additional originals. We normalize
+by the clean baseline payload goodput 𝐺0. This throughput-
+based quantity is distinct from the NoC quality-normalized
+terminal latency Ψdel.
+The native-overhead convention treats storage ECC as
+part of the baseline memory-reliability layer rather than
+adding a separate metadata-traffic charge to each policy. At
+𝑃𝑚= 0, all policies have unit quality, 𝜈= 1, zero drops, and
+𝐺sem/𝐺0 = 1 under this convention. Thus, the pilot isolates
+semantic recovery selection; it is not a measurement of the
+incremental parity, packing, or controller cost of the REACH-
+style design below. Sidecar and fractional-overhead models
+charge different metadata traffic and are separate overhead
+sensitivities.
+Result. Table 22 reports normalized semantic goodput
+of 0.9959 for Class-H-only recovery, with negligible amplifi-
+cation. All-class recovery increases 𝜈to 1.2540 and reduces
+normalized semantic goodput to 0.7901. The latter spends ad-
+ditional memory traffic recovering bounded residuals. This
+is consistent with the NoC semantic-replay negative con-
+trol: bounded residuals need not automatically invoke the
+expensive recovery path.
+Table 22. HBM portability pilot at 𝑃𝑚= 10−3: five random-
+read traffic seeds, native-overhead accounting. Values are
+seed means; 𝜈includes the initial access and is rounded to
+four decimals.
+Recovery trigger
+𝜈
+𝐺sem/𝐺0
+Any H/M/L failure
+1.2540
+0.7901
+Class-H failure only
+1.0000
+0.9959
+B.5.2
+Analytical REACH-Style Specialization.
+Protection domains. The architectural example retains
+REACH’s 32-byte data-transfer unit and inner/outer ECC
+structure [34]. Its inner RS(36, 32) code over GF(28) adds
+four parity bytes to 32 data bytes and corrects up to two
+unknown byte-symbol errors or four known byte erasures.
+The outer code operates over GF(216) and repairs chunks
+identified as erasures. These 32-byte chunks are the units of
+the span calculation, distinct from the pilot’s 64-byte source
+requests.
+Semantic specialization changes which fields invoke the
+outer path. Class-H receives inner correction, outer repair,
+23
+
+
+Hung et al.
+and range/non-finite validation. Class-M receives local cor-
+rection and a calibrated bounded fallback without default
+outer repair. Class-L is weakly checked or approximately
+accepted without default outer repair. The four-bit Class-H
+core remains {𝑒4,𝑒5,𝑒6,𝑒7}; the repair-span calculation does
+not require changing the main-text H/M/L boundary.
+Outer-span tradeoff. An H-only span uses fewer data
+bytes, but proportional parity reduction can also reduce
+multi-chunk erasure capacity. For a 2048-byte BF16 scalar
+region, the four Class-H bit planes occupy
+𝑊𝐻= 2048 B × 4
+16 = 512 B.
+For 𝑊data bytes and 𝑃outer-parity bytes, the outer RS pa-
+rameters are 𝑘out = 𝑊/2 and 𝑛out = (𝑊+ 𝑃)/2. A known
+32-byte chunk erasure consumes 16 outer symbols, giving
+a full-chunk erasure capacity 𝐶era = ⌊𝑃/32⌋. Table 23 com-
+pares the full-word span with two H-only choices for the
+same original scalar region.
+Table 23. Analytical data-plus-outer-parity spans for the
+same 2048-byte BF16 scalar region. The 32-byte units are
+burst-equivalent span counts, not measured controller traffic;
+inner parity, commands, and packing costs are excluded.𝐶era
+counts recoverable known 32-byte chunk erasures.
+Domain
+𝑊
+(B)
+𝑃
+(B)
+32-B
+units 𝐶era
+Full word
+2048 128
+68
+4
+H, proportional parity
+512
+32
+17
+1
+H, retained parity
+512 128
+20
+4
+Scaling parity with the protected data gives a 544-byte
+H span, or 17 burst-equivalent units, but reduces the full-
+chunk erasure budget from four to one. Retaining 128 parity
+bytes gives a 640-byte span, or 20 units, while retaining
+four-chunk erasure capacity. Thus, reducing repair span is
+not automatically an equal-reliability comparison. Keeping a
+2048-byte H-only data span instead would cover four times
+as many BF16 values and is not the same-region comparison.
+The full-word reference here is specifically the 2048-byte
+data plus 128-byte parity example, not the separate 8/9-rate
+configuration with 256 parity bytes. Smaller H-only spans
+reduce the bytes involved in an outer recovery; they do not
+by themselves shorten a fixed-latency decoder pipeline. Any
+reduction in repair latency or outer-engine queueing requires
+a corresponding controller implementation and evaluation.
+B.5.3
+Single-Channel Decoder Resource Reference.
+We separately characterize candidate inner decoders using
+single-channel AMD LogiCORE RS cores [1] with one 8-bit
+symbol per cycle over GF(28), with erasure, puncturing, and
+CCSDS modes disabled. Table 24 reports FPGA resources
+and first-symbol latency 𝐿1, measured from the first input
+symbol to the first corrected output symbol. These are stan-
+dalone decoder references, not ASIC area estimates or full-
+bandwidth HBM implementations. The GF(216) outer engine,
+bus adapters, lane replication, packing logic, and controller
+buffers are excluded.
+Table 24. Single-channel LogiCORE inner-decoder reference.
+𝑡counts correctable unknown byte-symbol errors; 𝐿1 is in
+core cycles. BRAM is reproduced in the original report’s
+units.
+Code
+Payload
+𝑡LUTs FFs BRAM 𝐿1
+RS(36, 32) Full
+2
+458 401
+1.0 77
+RS(20, 16) 16-byte subset
+2
+485 397
+1.0 61
+RS(10, 8)
+H only
+1
+400 317
+0.5 36
+Evaluating a 16-byte subset payload demonstrates the
+hardware scaling behavior of a reduced-width semantic con-
+figuration without redefining the core H/M/L bounds evalu-
+ated in the NoC study. A combined H/M code also does not
+provide separate H/M failure flags by itself.
+The two 𝑡= 2 cores use similar resources: shortening
+the protected payload from 32 to 16 bytes does not demon-
+strate an area reduction. It concentrates the same four parity
+bytes on fewer data symbols and reduces 𝐿1 in this single-
+channel configuration. RS(10, 8) uses fewer resources but
+corrects only one unknown byte-symbol error, so it is not
+an equal-strength replacement. These results motivate ex-
+amining protection density and recovery traffic rather than
+assuming that semantic specialization automatically reduces
+decoder area.
+Implementation requirements and scope. Strict H-only
+escalation requires independently interpretable Class-H val-
+idation. A shared H/M code with one uncorrectable flag
+cannot establish that H is intact when only M is to be ap-
+proximately accepted. Separate H/M inner codes or an in-
+dependent H validation mechanism are therefore needed.
+Field packing, swizzle/deswizzle logic, outer-parity updates,
+and separate failure reporting remain additional integration
+costs.
+The random-read pilot does not implement these mecha-
+nisms, qualify the proposed RS hierarchy against silent Class-
+H errors, or evaluate end-to-end task accuracy. Persistent-
+state faults may require reload from a clean copy, scrubbing,
+or checkpoint recovery rather than an ordinary repeated
+access. This evidence confirms the portability of semantic
+recovery eligibility to memory-system contention models,
+establishing a foundation for future REACH-style HBM con-
+troller implementations.
+24

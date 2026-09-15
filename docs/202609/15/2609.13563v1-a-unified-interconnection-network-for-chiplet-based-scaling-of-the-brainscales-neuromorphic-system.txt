@@ -1,0 +1,819 @@
+A Unified Interconnection Network for Chiplet-Based
+Scaling of the BrainScaleS Neuromorphic System
+Robin Heinemann‡ and Johannes Schemmel‡
+‡ Institute of Computer Engineering, Heidelberg University, Heidelberg, Germany
+© 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current
+or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective
+works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works.
+Abstract—The BrainScaleS-2 (BSS-2) neuromorphic architec-
+ture combines analog emulation of spiking neural network (SNN)
+primitives with tightly coupled ADCs and digital processing units.
+These analog SNN primitives are fixed hardware resources that
+cannot be multiplexed, limiting the emulated network size to the
+number of physical hardware copies. To overcome the challenges
+of scaling analog designs, chiplet-based designs offer a promising
+approach with cost and flexibility advantages over monolithic
+scaling. Implementing a chiplet-based BSS-2 architecture requires
+an interconnection network that handles two distinct classes of
+traffic: error-tolerant traffic such as spikes and error-intolerant
+traffic like configuration data or data exchanged by the processing
+units. This work presents the design of a routing chiplet for
+the BSS-2 architecture that enables interconnection of multiple
+BSS-2 units in a 2D mesh topology. Both traffic classes are
+multiplexed over a single wide parallel die-to-die link. Exploiting
+the fault tolerance of SNNs, spikes are transmitted unsecured
+and synchronously, with the arrival time on the receiving side
+directly determining the pre-synaptic time of the spike. Conversely,
+error-intolerant data transmission is secured by a point-to-point
+Automatic Repeat Request protocol and uses credit-based flow
+control. These design choices are validated in simulation, where
+the proposed design can sustain 95% link bandwidth utilization
+for the use case of surrogate gradient training across a wide
+range of spike-to-secured traffic ratios under a 1 × 10−10 bit error
+rate with little impact on spike timing jitter.
+I. INTRODUCTION
+Chiplet-based SoCs offer a promising alternative to large
+monolithic SoCs. They can offer a cost advantage by optimizing
+yield and power or performance binning [1]. Furthermore,
+by splitting up a large monolithic die into multiple smaller
+ones, they allow for more modularity and easier design space
+exploration, by allowing parts of an SoC to be exchanged at a
+finer granularity. The ability to choose different process nodes
+for different parts of the system conveys further advantages,
+especially for analog or mixed-signal designs that do not benefit
+from the digital compute power of the newest process nodes.
+One example is the BrainScaleS neuromorphic system. Its
+current in-silico realization, the BrainScaleS-2 SoC, targets
+a 65 nm process. It consists of an analog core that performs
+continuous-time emulation of up to 512 neurons and 131 072
+synapses combined with on-chip, parallel ADCs and a tightly
+The presented work used systems, which received funding from the European
+Union’s Horizon 2020 Framework Programme for Research and Innovation
+under the Specific Grant Agreements Nos. 720270, 785907 and 945539 (Human
+Brain Project, HBP) and Horizon Europe grant agreement No. 101147319
+(EBRAINS 2.0)
+Correspondence: robin.heinemann@ziti.uni-heidelberg.de
+BSS-2
+FPGA
+Network 
+switch
+Host
+ 
+routing 
+chiplet
+BSS-2
+routing 
+chiplet
+BSS-2
+routing 
+chiplet
+routing 
+chiplet
+FPGA
+C2C link 
+FPGA link
+BSS2 link
+BSS-2
+Figure 1: Schematic overview of a chiplet-based scaling of the BrainScaleS-2
+neuromorphic system. A 2D Mesh of routing chiplets implements an
+Interconnection Network (Interconnection Network), and each routing chiplet
+can be attached to a mixed signal BrainScaleS-2 ASIC. FPGAs connecting to
+some of the routing chiplets allow control of the system from a conventional
+host computer.
+coupled embedded processor [2]. BrainScaleS-2 operates at an
+acceleration factor of 1 000× compared to biological real-time
+and the embedded processor allows for flexible emulation of
+complex plasticity rules [3]. The analog core is area-constrained
+and does not benefit from newer process nodes in the same way
+that the embedded processor can, making chiplet-based scaling
+of the BrainScaleS system a compelling design objective. Data
+exchanged between the neurons takes the form of spikes that
+get emitted by a neuron once it reaches its activation potential.
+A spike carries no payload; instead information is conveyed in
+the timing of spikes. Drawing inspiration from biology, where
+synaptic transmission is unreliable [4] a neuromorphic system
+is expected to operate correctly even in the presence of a
+small loss of spikes. The analog emulation of the neurons and
+synapses operates in continuous-time and cannot be stopped,
+which means that a scaled-up system has to operate in a
+globally asynchronous fashion. Furthermore, congestion will
+alter spike timing, so it is expected that congested spikes can
+be dropped. This reasoning, however does not hold for data like
+configuration data or messages exchanged by the embedded
+processors, where reliability and correctness are essential for
+the system to be usable.
+A chiplet-based scaled-up BrainScaleS-2 system therefore
+needs a unified Interconnection Network (IN) that can carry
+messages of two different classes
+1) event messages, that are forwarded with minimal and
+arXiv:2609.13563v1  [cs.AR]  11 Sep 2026
+
+
+flit 
+gearbox
+weighted 
+arbiter
+22
+last
+event
+flit
+gearbox
+phit 
+decode
+last
+is event
+check
+CRC
+add 
+CRC
+18
+19
+19
+error
+19
+ARQ 
+TX
+ARQ 
+RX
+ACK credit
+ combiner
+FIFO
+ 
+phit 
+encode
+phit 
+decode
+phit 
+decode
+flit
+decode
+North
+C2C link
+South
+C2C link
+East C2C 
+link
+West 
+C2C link
+local
+Non-
+Event 
+Router 
+Event 
+Router
+NACK
+seq
+Routing chiplet
+credit
+level
+seq
+22
+19
+75
+90
+83
+82
+75
+75
+82
+83
+90
+18
+82
+C2C link 
+event  data
+non-event  data
+credit  data
+FPGA link
+BSS2 link
+Figure 2: Schematic overview of the routing chiplet architecture. Incoming physical transfer units get decoded into event or non-event message payload, with
+multiple non-event phits getting accumulated using a framing bit into a larger flit, which carries a CRC used to detect any payload errors. An ARQ scheme
+ensures retransmission of any flits received with an error. Correctly received flits get cumulatively acknowledged using a special acknowledgement flit that gets
+transmitted using the outgoing data path. The same flit type also carries credit information used for flow control. Outgoing flits travel the inverse path, they get
+buffered by the outgoing ARQ logic until their successful reception is acknowledged and get split up into phits for transmission over the physical link. Event
+messages get transmitted over the same physical link with a weighted arbitration scheme that by default prioritizes event messages. Non-event messages get
+routed from a given input port to their target output port by a wormhole router using dimension-ordered X-Y routing. The event router design is not part of
+this work. For evaluation purposes a simple broadcast event router was included.
+deterministic latency to preserve their relative timing, but
+that can tolerate a small loss of messages due to congestion
+or transmission errors
+2) non-event messages, for which reliability and correctness
+are guaranteed
+This work presents the design of such a unified Interconnec-
+tion Network (IN). In the following sections, the architecture
+of the proposed IN is described and the design choices are
+validated in simulation for some basic operation modes.
+II. INTERCONNECTION NETWORK DESCRIPTION
+Fig. 1 shows the high-level system overview. Dedicated
+routing chiplets are connected in a 2D mesh and implement the
+IN. Each routing chiplet can be connected to a BrainScaleS-2
+SoC or an FPGA, which allows control from a conventional
+computer. Previous work has shown that the most energy-
+efficient error control scheme depends on the physical link’s
+parameters, including the link latency, the bit error rate and the
+bandwidth of the links[5]–[7]. The design choices for this IN
+therefore must be considered in the context of the prospective
+physical link used. This work considers an interconnection
+network built using the C2C links described in [8], which
+are tested to ≤1 × 10−10 bit error rate at a data rate of
+2 Gbit s−1. Bonding and area constraints limit the number
+of links carrying data per direction to about 11, for a total
+bandwidth of 22 Gbit s−1 per direction and port.
+In the following, the architecture for the IN is described in
+detail and Fig. 2 gives a schematic overview of it.. For each port,
+the C2C links are organized as a parallel bus. They operate at
+DDR transmitting a 22 bit phit every 1 ns clock cycle. Schemes
+that partition the available link bandwidth statically to specific
+message classes suffer under uneven traffic loads [9]. Therefore,
+a dynamic partitioning scheme is used here, where event
+messages are prioritized and non-event messages use the rest of
+the available bandwidth. To achieve this, event and non-event
+traffic flows are split on the phit level, with each phit including
+a bit indicating its type. For outgoing phits a weighted priority
+arbiter arbitrates between phits from event traffic and non-
+event traffic. The arbiter guarantees a configurable minimum
+throughput of non-event-type messages and prioritizes event-
+type phits beyond that. Multiple non-event phits get combined
+into fixed-sized flits. For synchronization of the gearboxes
+on the sending and receiving side that split up / accumulate
+the phits into flits each phit includes a framing bit. While in
+principle it would be possible to synchronize these gearboxes
+without any additional overhead by for example relying on the
+CRC included in the non-event messages, including a dedicated
+framing bit in each phit allows for fast recovery from a phit
+transmitted with errors that would cause the gearboxes to get
+out of sync. Here the meaning of the framing bit is chosen
+to indicate that a phit is the last phit of a non-event message.
+Misinterpretation of a phit type or the framing bit for non-
+event traffic is expensive to protect against with a CRC, as a
+misinterpretation is equivalent to a random bitflip for all bits of
+a phit. The type and framing bit are therefore protected against
+single bit flips with a Hamming-(7,4) FEC code. Overhead of
+this FEC code is minimized by grouping phits into pairs with
+a shared header, bringing the overhead to 3 bit for event-type
+phits and 4 bit for non-event-type phits as shown in Table I.
+Using AER[10], the resulting 19 bit for the event payload
+allows a unique label for up to 219 = 524 288 neurons or at
+least 1 024 BrainScaleS-2 chips. For real systems it is expected
+that each chip only sees event messages from a subset of the
+neurons in the whole system, allowing for non-unique labels,
+increasing the maximum possible system size.
+Error detection and control for the payload of non-event-
+type messages is performed on a per-flit level, with each flit
+including a CRC. For the proposed system each flit is composed
+of 90 bit allowing protection for a Hamming distance of 3 using
+only 7 bit for the CRC.
+
+
+Table I: Header encoding used for a pair of phits
+payload type 1
+payload type 2
+encoding
+event
+event
+1110002
+event
+none
+10011002
+event
+non-event
+01111002
+event
+non-event last
+01010102
+non-event
+event
+10110102
+non-event
+non-event
+11011002
+non-event
+non-event last
+00101102
+non-event last
+event
+10000112
+non-event last
+non-event
+00011112
+none
+none
+00000002
+Optimized encoding for phit header. The constructed prefix code only requires
+6 bit to encode a pair that contains two events, while all other pairs require
+7 bit. Each code differs by at least three bits from every other code, so a single
+bit flip can be corrected.
+The error control scheme follows a link-level Automatic
+repeat request (ARQ) scheme optimized for minimal latency
+impact of recovery from an error. Each flit contains a sequence
+number and successful reception of a flit is communicated to
+the sender with a special acknowledgement flit. Errors detected
+by the CRC are remedied by retransmission of the flit by the
+sender, which is either triggered by reception of a special
+non-acknowledgement flit that the receiver sends out when it
+detects an error or by a timeout if there are any outstanding
+unacknowledged flits.
+Flits use credit-based flow control to transmit backpressure
+across chip boundaries. The credit count is hereby transmitted
+as part of the special acknowledgement flits.
+Routing of the flits is performed in a wormhole fashion,
+with one or more flits combining into a larger packet. An
+initial flit carries the routing information used to determine the
+target output port for the packet. The IN and router impose
+no artificial limit on the length of a packet, minimizing the
+overhead induced by the routing information.
+Tunneling of protocols with ordering guarantees like AXI
+or the OCP [11] employed on the BrainScaleS-2 ASIC is
+simplified by choosing a deterministic routing function, in this
+case dimension-ordered X-Y routing, which guarantees that the
+interconnection network preserves the order of packets between
+every source target pair. No reordering buffer on the receiving
+side is required. Note, however, that if a source allows for
+multiple outstanding reads to different targets it still needs a
+reordering buffer for read response data, as there is no ordering
+guarantee for the read responses sent by different targets to
+the same source.
+The event router is not considered as part of this work.
+For evaluation purposes a simple broadcast event router was
+included.
+III. SIMULATION-BASED EVALUATION
+To validate the design choices of the proposed IN its behavior
+is investigated in simulation. The described components, phit
+encoders / decoders, ARQ implementation and non-event router
+were implemented in synthesizable SystemVerilog or Amaranth
+HDL [12]. Their correctness was verified using extensive formal
+0.00
+0.25
+0.50
+0.75
+e / link bandwidth
+n = 4
+(e + p) / link bandwidth = 1
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+p / link bandwidth
+0.00
+0.25
+0.50
+0.75
+e / link bandwidth
+n = 6
+700
+800
+900
+1000
+1100
+1200
+1300
+1400
+maximum latency [ns]
+Figure 3: Maximum latency for non-event messages to reach their target for
+different event message rates e and non-event message rates p for different
+number of routing chiplets n in a setup, as shown in Fig. 1. Events are
+generated with a Bernoulli process while non-event messages get injected at
+constant rate. Red marks cases where the imposed message rates was not
+accepted. The links were simulated to be error free.
+verification. To investigate the behavior under errors of the
+presented IN this implementation was compiled into a cycle-
+accurate C++ model using CXXRTL [13] and combined with
+high-level models of the physical links, event and non-event
+traffic implemented in C++.
+For the physical links a fixed-latency lossy channel with
+a fixed bit error rate is simulated. Even though the non-
+event messages trade throughput and latency for reliability
+and correctness, due to the continuous time nature of the larger
+system, the bandwidth and latency achievable in this IN for
+non-event messages are still of interest. First, the maximum
+latency for non-event messages to reach their target in a setup,
+as shown in Fig. 1, is evaluated. The traffic pattern chosen
+for this evaluation is designed to mimic hardware-in-the-loop
+surrogate gradient training. Surrogate gradients are a promising
+technique for training spiking neural networks (SNNs). They
+can be applied to BrainScaleS-2 by operating in a hardware-
+in-the-loop fashion, executing the forward pass on the analog
+computing substrate and using the on chip ADCs to capture
+membrane traces, which are used as input to the backward
+pass executed on a host computer [14]. This gives a uniform
+message rate for the non-event messages (the ADC samples).
+Conversely the event messages are generated from a Bernoulli
+process for each C2C link. Fig. 3 shows the maximum latency
+for n = 4 or 6 routing chiplets in row, with the bandwidth to
+the FPGA assumed to be unlimited. The bit error rate of the
+physical links is simulated at 0, and the physical transmission
+delay is simulated at a large 135 ns to test the limits of the
+IN. The input buffer size and the ARQ sender size is 64 flits
+each in this case. Parameters where the imposed non-event
+message rate could not be sustained are shown in red. For
+low event message rates, the latency is close to the physical
+transmission delay, with a minimum of 610 ns in the case of n
+= 4. With increasing event message rate the latency increases
+due to congestion and the prioritization of event messages.
+The second aspect investigated is the sustained bandwidth
+for non-event messages for a link error rate̸ = 0. Because
+transmission errors inevitably trigger retransmission, absolute
+
+
+routing 
+chiplet
+inject bitflip
+link model 
+link model 
+routing 
+chiplet
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+p / link bandwidth
+0.0
+0.2
+0.4
+0.6
+0.8
+e / link bandwidth
+(e + p) / link bandwidth = 0.95
+101
+102
+103
+MTBF [d]
+A
+B
+Figure 4: (A) Schematic overview of the simulated system. The routing chiplets
+are simulated cycle accurate, while the links simulated as simplified fixed
+latency lossy links. (B) Mean time between failure for different event message
+rates e and non-event message rates p. Events are generated with a Bernoulli
+process; non-event messages get injected at constant rate. A failure indicates
+that the given non-event message rate cannot be accepted and backpressure is
+generated. Red marks cases where a single bitflip causes backpressure to be
+generated. Bit error rate is simulated to be 1 × 10−10 bit−1.
+bandwidth guarantees are impossible. Instead here the mean
+time between failure (MTBF), where a given bandwidth
+cannot be sustained is measured. Realistic bit error rates
+of O(1 × 10−10 bit−1) are too small to be extracted from
+simulation directly. Instead an upper bound for the MTBF
+is calculated from simulation, by measuring the longest time
+trecover required for the steady state buffer levels to be reached
+again after a transmission error occurs over 200 randomly
+injected bitflips. An upper bound for the MTBF under the
+assumption of independent errors is then determined from the
+MTBF for a second transmission error to occur during this
+time:
+MTBF =
+1
+trecoverB2ρ2
+Where B is the link bandwidth and ρ the bit error rate. For this
+traffic pattern, the routing does not influence the error behavior,
+therefore only a single bidirectional C2C link is simulated.
+Fig. 4 shows the obtained MTBF in days for different average
+event and non-event message rates for an ARQ sender and
+input buffer size of again 64 flits each as well as a physical
+link delay of 85 ns. This physical link delay was chosen to
+be the maximum link delay where a single error can be
+tolerated without immediately filling up the ARQ buffer at
+95 % link utilization. The lower limit of MTBF that can be
+tolerated depends on the specific experiment performed with
+the hardware. Usually, failing to sustain a given bandwidth
+is not expected fatal. For example for ADC samples it is
+expected that some amount of lost samples can be tolerated.
+Note also, that this gives the MTBF for a single link, for a
+complete system it has to be divided by the number of links.
+routing chiplet
+FPGA 
+routing chiplet
+non-event
+messages
+125.00 MHz
+62.50 MHz
+41.67 MHz
+31.25 MHz
+rate of event messages
+450
+500
+550
+600
+650
+700
+750
+800
+850
+round trip latency [ns]
+0 hops
+1 hop, no non-event messages
+1 hop, with non-event messages
+A
+B
+Figure 5: (A) Sketch of the three cases considered for the round trip event
+latency simulation. (B) Measurement of round-trip latency for 10 000 event
+messages in simulation. Red gives the baseline without traversing any C2C
+links, while blue and green traverse two C2C links, with non-event messages
+being transported at maximum rate over the C2C link for the blue case. The
+granularity of the histogram is given by the 125 MHz FPGA clock used to
+timestamp the events.
+For example a 16 by 16 mesh contains 960 chip to chip links,
+yielding an MTBF of OMinutes in the worst case.
+Finally the latency and the jitter in the latency incurred by
+the IN for event messages are evaluated. For this evaluation end-
+to-end co-simulation with the current BrainScaleS-2 hardware
+revision and FPGA design was used. Again the physical links
+were modeled as fixed-latency links. In this case a transmission
+delay of 4 ns was evaluated. No errors were injected, as the
+event messages do not have error control. The interface between
+FPGA and BrainScaleS-2 is reused to connect the routing
+chiplet to the FPGA. Fig. 5 shows the loopback event message
+latencies for multiple event message rates and traffic scenarios.
+For this simulation a uniform event message rate was used. In
+red the baseline where only the FPGA to routing chiplet link is
+traversed is shown, while for blue and green two C2C links are
+traversed by the event messages. For blue additional non-event
+messages are injected onto the link at maximum permissible
+rate. The jitter for the event messages is dominated by the jitter
+already introduced by the FPGA to routing chiplet interface
+which was reused from the BrainScaleS-2 ASIC. A thorough
+investigation of it can be found in [15]. In this simulation a
+round-trip latency of 32 ns between two routing chiplets is
+measured.
+For an ARQ sender and input buffer size of 64-flits the post-
+synthesis area estimate of the proposed non-event router, ARQ
+and link-level protocol in 65 nm technology is ≈0.17 mm2
+with ≈0.13 mm2 of that being the input and ARQ buffers.
+Note that this does not include the size of the I/O cells.
+IV. DISCUSSION AND OUTLOOK
+This work presents an IN for mixed traffic of event and non-
+event messages. By utilizing a hybrid error and flow control
+
+
+Table II: Comparison of this work with the IN of other neuromorphic systems that perform realtime event message transmission. Bandwidth compared is the
+physical link bandwidth, not the effective payload bandwidth. For systems where latency depends on congestion the uncongested latency is compared.
+this work
+simulated
+BrainScaleS-2
+FPGA [16]
+BrainScaleS-2
+EXTOLL [17]
+SpiNNaker-1
+C2C [18]
+spiNNlink [19]
+DYNAP-SE2 [20]
+event
+operation
+realtime
+realtime
+grouped and
+timestamped
+realtime
+realtime
+realtime
+event
+flow control
+none
+none
+credit
+counting
+async
+handshake
+global credit
+and per channel
+async
+handshake
+event
+error control
+none
+nonea
+ARQ
+none
+ARQ
+nonea
+non-event
+flow control
+credit
+counting
+credit
+counting
+not
+implemented
+async
+handshake
+global credit
+and per channel
+async
+handshake
+non-event
+error control
+ARQ
+not
+implemented
+ARQ
+nonea
+ARQ
+nonea
+transmitted bits
+per event
+22
+20
+29b
+40 or 72
+32 or 64b
+24
+minimum single
+hop latency
+≥16 nsc
+0.17 µsd
+75 nse
+0.44 µs
+665 nsf
+not reported
+C2C link
+bandwidth
+22 Gbit s−1
+5 Gbit s−1
+16 Gbit s−1
+average 275 Mbit s−1
+3 Gbit s−1
+not reported
+aThe SpiNNaker-1 and DYNAP-SE2 C2C links operate asynchronously making them less susceptible to random bit errors.
+bDoes not include packet header overhead.
+cLower bound that does not include multicast event routing and assumes physical transmission delay of 4 ns. Note this latency does not include the routing
+chiplet to BrainScaleS-2 chiplet latency.
+dHop latency from the FPGA that controls a BrainScaleS-2 chip to the aggregator FPGA.
+eThis includes only the EXTOLL derived single hop latency, not the added latency of the event packing scheme.
+fBoard to board latency between two spiNNlink FPGAs, not the end to end latency from one SpiNNaker core to the next.
+scheme, event messages can be transmitted over the same
+physical link as reliable non-event messages with low latency
+/ jitter. For simple traffic patterns, the simulation-based verifi-
+cation validates the design choices and shows that event traffic
+is transported, absent congestion, with deterministic latency,
+while the error control scheme for non-event messages recovers
+quickly from transmission errors and allows throughput close to
+the link bandwidth with an MTBF of ≥O(1 d). In simulation
+and for a physical transmission delay of 4 ns a round trip latency
+of ≥32 ns is achieved, or 16 ns for a single hop transmission
+and a single router traversal. Note that the router for event
+messages used here is a simple broadcast router; in a final
+deployed system a multicast capable event message router is
+expected to incur an additional overhead.
+Table II gives a comparison with the IN of other systems.
+Note, this is a simplified representation in many cases as a
+simple table cannot capture all details of the respective INs.
+Readers are referred to the cited works to find a more detailed
+description of the respective IN.
+First we compare to previously proposed INs for the
+BrainScaleS-2 ASIC. Thommes et al. [17] demonstrate an IN
+utilizing the EXTOLL network. It inherits its event and non-
+event flow and error control from it, which is credit counting
+and ARQ based. Unlike this work, events are packed into larger
+packets to minimize the overhead of packets and transmitted
+with a timestamp to compensate for the jitter introduced by the
+packing of the events. This introduces additional latency on the
+receiver side and introduces overhead, as the timestamp has to
+be transmitted. The IN presented in Ilmberger and Schemmel
+[16] uses a central FPGA-based router to connect up to 12
+BrainScaleS-2 chips together in a star topology. Event messages
+are transported asynchronously without timestamps, similar to
+the approach presented here, but no scheme for transporting
+non-event messages is described.
+Comparing to other neuromorphic systems, these can be
+split into two groups, systems utilizing global synchronization
+like Loihi and TrueNorth and systems operating in a globally
+asynchronous fashion. The IN implemented by the SpiNNaker-
+1 C2C operates in an asynchronous fashion without further
+error control or detection. A handshake is used for flow control
+and on congestion packets are inserted into a retry buffer.
+Reliable communication between cores or chips is implemented
+in software for SpiNNaker-1. Across PCB edges SpiNNaker-
+1 uses spiNNlink, which uses a hybrid credit counting and
+per channel flow control scheme and an ARQ protocol for
+error control of both event and non-event messages. Finally the
+DYNAP-SE2 IN operates in a similar fashion to the SpiNNaker-
+1 C2C-based IN utilizing an asynchronous physical link with
+handshake for flow control.
+The primary remaining challenge of the IN proposed in this
+work is a routing scheme for the event messages optimized for
+neuromorphic workloads, especially natively handling multicast
+messages. Finally the designed IN is optimized for usage with
+the BrainScaleS-2 neuromorphic system. Extending the design
+to longer event messages composed of multiple phits and by
+supporting a third class of traffic, messages for which errors
+are detected but not corrected would make the architecture
+more applicable to a wider range of neuromorphic systems.
+REFERENCES
+[1]
+A. Kannan, N. E. Jerger, and G. H. Loh, “Enabling
+interposer-based disintegration of multi-core processors,”
+
+
+in Proceedings of the 48th International Symposium
+on Microarchitecture, ser. MICRO-48, Waikiki, Hawaii:
+Association for Computing Machinery, 2015, pp. 546–
+558, ISBN: 9781450340342. DOI: 10.1145/2830772.
+2830808
+[2]
+C. Pehle et al., “The BrainScaleS-2 accelerated neuro-
+morphic system with hybrid plasticity,” Front. Neurosci.,
+vol. 16, 2022, ISSN: 1662-453X. DOI: 10.3389/fnins.
+2022.795876 arXiv: 2201.11063 [cs.NE]. [Online].
+Available: https://www.frontiersin.org/articles/10.3389/
+fnins.2022.795876
+[3]
+A. Atoui et al., “Multi-timescale synaptic plasticity on
+analog neuromorphic hardware,” in 2025 Neuro Inspired
+Computational Elements (NICE), 2025, pp. 1–9. DOI:
+10.1109/NICE65350.2025.11065914
+[4]
+N. A. Hessler, A. M. Shirke, and R. Malinow, “The
+probability of transmitter release at a mammalian central
+synapse,” Nature, vol. 366, no. 6455, pp. 569–572, 1993.
+DOI: 10.1038/366569a0
+[5]
+D. Bertozzi, L. Benini, and G. De Micheli, “Error control
+schemes for on-chip communication links: The energy-
+reliability tradeoff,” IEEE Transactions on Computer-
+Aided Design of Integrated Circuits and Systems, vol. 24,
+no. 6, pp. 818–831, 2005. DOI: 10.1109/TCAD.2005.
+847907
+[6]
+S. Murali, T. Theocharides, N. Vijaykrishnan, M. Irwin,
+L. Benini, and G. De Micheli, “Analysis of error recovery
+schemes for networks on chips,” IEEE Design & Test
+of Computers, vol. 22, no. 5, pp. 434–442, 2005. DOI:
+10.1109/MDT.2005.104
+[7]
+A. Ejlali, B. M. Al-Hashimi, P. Rosinger, S. G. Mire-
+madi, and L. Benini, “Performability/energy tradeoff
+in error-control schemes for on-chip networks,” IEEE
+Transactions on Very Large Scale Integration (VLSI)
+Systems, vol. 18, no. 1, pp. 1–14, 2010. DOI: 10.1109/
+TVLSI.2008.2000994
+[8]
+J. Ilmberger, N. Fiedler, A. Grübl, and J. Schemmel, “A
+flexible multi-standard I/O interface for chip-to-chip
+links in 65 nm CMOS,” in 2024 IEEE Asia Pacific
+Conference on Circuits and Systems (APCCAS), 2024,
+pp. 424–427. DOI: 10 . 1109 / APCCAS62602 . 2024 .
+10808294
+[9]
+E. Rijpkema et al., “Trade-offs in the design of a
+router with both guaranteed and best-effort services for
+networks on chip,” IEE Proceedings - Computers and
+Digital Techniques, vol. 150, pp. 294–302, 5 2003. DOI:
+10.1049/ip-cdt:20030830
+[10]
+M. Mahowald, “VLSI analogs of neuronal visual pro-
+cessing: A synthesis of form and function,” Ph.D.
+dissertation, California Institute of Technology, 1992.
+DOI: 10.7907/Z9CZ35CD
+[11]
+OCP, Open core protocol specification 3.0, 2009. [On-
+line]. Available: http://www.ocpip.org/home
+[12]
+Amaranth contributors, Amaranth hdl: A modern hard-
+ware definition language and toolchain based on python,
+2019. [Online]. Available: https://github.com/amaranth-
+lang/amaranth
+[13]
+whitequark, Cxxrtl simulation engine, 2019. [Online].
+Available: https://github.com/cxxrtl
+[14]
+B. Cramer et al., “Surrogate gradients for analog neu-
+romorphic computing,” Proc. Natl. Acad. Sci. U.S.A.,
+vol. 119, no. 4, 2022. DOI: 10.1073/pnas.2109194119
+[15]
+M. Rettig, “Characterizing the event interface of
+the HICANN-X,” Bachelor thesis, Ruprecht-Karls-
+Universität Heidelberg, 2019.
+[16]
+J. Ilmberger and J. Schemmel, “The brainscales-2 multi-
+chip system: Interconnecting continuous-time neuro-
+morphic compute substrates,” in 2026 Neuro Inspired
+Computational Elements (NICE), 2026, pp. 1–6. DOI:
+10.1109/NICE69539.2026.11567511
+[17]
+T. Thommes, S. Bordukat, A. Grübl, V. Karasenko, E.
+Müller, and J. Schemmel, “Demonstrating BrainScaleS-
+2 inter-chip pulse communication using EXTOLL,”
+in Neuro-inspired Computational Elements Workshop
+(NICE ’22), March 29 – April 1, 2022, Virtual Event,
+USA: Association for Computing Machinery, 2022,
+pp. 98–100, ISBN: 9781450395595. DOI: 10 . 1145 /
+3517343.3517376 arXiv: 2202.12122 [cs.AR].
+[18]
+S. B. Furber, F. Galluppi, S. Temple, and L. A. Plana,
+“The SpiNNaker project,” in Proceedings of the IEEE,
+vol. 102, 2014, pp. 652–665. DOI: 10.1109/JPROC.2014.
+2304638
+[19]
+L. A. Plana et al., “spiNNlink: FPGA-based interconnect
+for the million-core SpiNNaker system,” IEEE Access,
+vol. 8, pp. 84 918–84 928, 2020, ISSN: 2169-3536. DOI:
+10.1109/ACCESS.2020.2991038
+[20]
+O. Richter et al., “DYNAP-SE2: A scalable multi-core
+dynamic neuromorphic asynchronous spiking neural
+network processor,” Neuromorphic Computing and En-
+gineering, vol. 4, no. 1, p. 014 003, Jan. 2024, ISSN:
+2634-4386. DOI: 10.1088/2634-4386/ad1cd7
