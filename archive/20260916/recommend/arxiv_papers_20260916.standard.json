@@ -1,0 +1,297 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-16T22:13:51.652901+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 6,
+    "quick_skim_target": 11,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2609.10970v1",
+      "source": "arxiv",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "abstract": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "authors": [
+        "Haoran Jin",
+        "Jirong Yang",
+        "Zhiheng Zhang",
+        "Justin Shin",
+        "Barry Lyu",
+        "Kangqi Zhang",
+        "Yunpeng Liu",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T01:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.10970v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "chiplet-based codesign of bespoke neural network accelerators for AI workloads",
+      "llm_evidence_cn": "面向AI负载的Chiplet定制神经网络加速器协同设计",
+      "llm_evidence": "面向AI负载的Chiplet定制神经网络加速器协同设计",
+      "canonical_evidence": "面向AI负载的Chiplet定制神经网络加速器协同设计",
+      "llm_tldr_en": "Fengshui co-designs a chiplet ecosystem with bespoke neural network accelerators, resolving the circular dependency between chiplet pool value and accelerator quality to amortize NRE costs.",
+      "llm_tldr_cn": "针对完全定制AI加速器一次性工程成本过高的问题，论文提出Fengshui框架，将算子级拆解与Chiplet集成相结合，在Chiplet池选择与加速器组合之间进行协同设计。通过解决Chiplet池价值与加速器质量互为依赖的循环约束，该方法能在摊销NRE成本的同时构造高能效的定制神经网络加速器，为异构AI芯片设计提供了可复用的协同设计范式。",
+      "llm_tldr": "针对完全定制AI加速器一次性工程成本过高的问题，论文提出Fengshui框架，将算子级拆解与Chiplet集成相结合，在Chiplet池选择与加速器组合之间进行协同设计。通过解决Chiplet池价值与加速器质量互为依赖的循环约束，该方法能在摊销NRE成本的同时构造高能效的定制神经网络加速器，为异构AI芯片设计提供了可复用的协同设计范式。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.13563v1",
+      "source": "arxiv",
+      "title": "A Unified Interconnection Network for Chiplet-Based Scaling of the BrainScaleS Neuromorphic System",
+      "abstract": "The BrainScaleS-2 (BSS-2) neuromorphic architecture combines analog emulation of spiking neural network (SNN) primitives with tightly coupled ADCs and digital processing units. These analog SNN primitives are fixed hardware resources that cannot be multiplexed, limiting the emulated network size to the number of physical hardware copies. To overcome the challenges of scaling analog designs, chiplet-based designs offer a promising approach with cost and flexibility advantages over monolithic scaling. Implementing a chiplet-based BSS-2 architecture requires an interconnection network that handles two distinct classes of traffic: error-tolerant traffic such as spikes and error-intolerant traffic like configuration data or data exchanged by the processing units. This work presents the design of a routing chiplet for the BSS-2 architecture that enables interconnection of multiple BSS-2 units in a 2D mesh topology. Both traffic classes are multiplexed over a single wide parallel die-to-die link. Exploiting the fault tolerance of SNNs, spikes are transmitted unsecured and synchronously, with the arrival time on the receiving side directly determining the pre-synaptic time of the spike. Conversely, error-intolerant data transmission is secured by a point-to-point Automatic Repeat Request protocol and uses credit-based flow control. These design choices are validated in simulation, where the proposed design can sustain $95\\,\\%$ link bandwidth utilization for the use case of surrogate gradient training across a wide range of spike-to-secured traffic ratios under a $1 \\times 10^{-10}$ bit error rate with little impact on spike timing jitter.",
+      "authors": [
+        "Robin Heinemann",
+        "Johannes Schemmel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-11T22:05:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.13563v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "unified interconnection network for chiplet-based scaling of neuromorphic system",
+      "llm_evidence_cn": "面向芯粒扩展的统一互连网络",
+      "llm_evidence": "面向芯粒扩展的统一互连网络",
+      "canonical_evidence": "面向芯粒扩展的统一互连网络",
+      "llm_tldr_en": "Proposes a unified interconnection network that carries both error-tolerant spike traffic and error-intolerant configuration traffic to enable chiplet-based scaling of the BrainScaleS-2 neuromorphic architecture.",
+      "llm_tldr_cn": "论文针对模拟神经形态硬件资源无法复用、可仿真网络规模受限的问题，研究基于芯粒的BrainScaleS-2扩展方案。作者提出一种统一互连网络，同时承载脉冲等容错流量与配置数据等非容错流量两类通信需求。该设计利用芯粒化在成本与灵活性上的优势，突破单片式扩展的瓶颈。工作为神经形态系统的互连架构与芯粒扩展提供了可复用的设计思路。",
+      "llm_tldr": "论文针对模拟神经形态硬件资源无法复用、可仿真网络规模受限的问题，研究基于芯粒的BrainScaleS-2扩展方案。作者提出一种统一互连网络，同时承载脉冲等容错流量与配置数据等非容错流量两类通信需求。该设计利用芯粒化在成本与灵活性上的优势，突破单片式扩展的瓶颈。工作为神经形态系统的互连架构与芯粒扩展提供了可复用的设计思路。",
+      "llm_tags": [
+        "query:noc-arch"
+      ],
+      "matched_query_tag": "query:noc-arch",
+      "matched_query_text": "network-on-chip architecture design and interconnect chip papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.08446v1",
+      "source": "arxiv",
+      "title": "FlexSpIM: An Event-Based Digital Compute-In-Memory Accelerator with Flexible Operand Resolution and Layer-Wise Hybrid Stationarity",
+      "abstract": "Compute-in-memory (CIM) accelerators for spiking neural networks (SNNs) offer a promising solution for achieving $μ$s-level inference latency and ultra-low energy in edge vision applications. However, their limited flexibility at both circuit and system levels restricts their deployment across diverse workloads. This work introduces FlexSpIM, a digital CIM architecture supporting arbitrary operand resolution and shape within a unified storage for weights and neuron states (i.e., membrane potentials). These circuit-level capabilities enable a layer-level hybrid weight- and output-stationary dataflow, maximizing operand reuse and reducing costly on- and off-chip data movement during SNN execution. Measurement results from a fabricated FlexSpIM prototype in 40-nm CMOS demonstrate competitive 1-bit-normalized energy efficiency and higher throughput compared with prior fixed-precision digital CIM-based SNN accelerators, while providing bitwise resolution reconfiguration. Evaluated on the IBM DVS gesture dataset, FlexSpIM achieves 95.8% accuracy while enabling up to 45% energy and 52% latency reductions in large-scale systems compared with fixed stationarity approaches.",
+      "authors": [
+        "Nicolas Chauvaux",
+        "Adrian Kneip",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-08T08:50:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.08446v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "digital compute-in-memory accelerator architecture for spiking neural networks",
+      "llm_evidence_cn": "面向脉冲神经网络的事件驱动数字存内计算加速器",
+      "llm_evidence": "面向脉冲神经网络的事件驱动数字存内计算加速器",
+      "canonical_evidence": "面向脉冲神经网络的事件驱动数字存内计算加速器",
+      "llm_tldr_en": "FlexSpIM is a digital compute-in-memory accelerator for spiking neural networks that supports arbitrary operand resolution and shape, enabling layer-wise hybrid weight and output stationarity to reduce on- and off-chip data movement.",
+      "llm_tldr_cn": "面向边缘视觉的脉冲神经网络存内计算加速器可实现微秒级推理与超低能耗，但电路与系统层面的灵活性不足，难以适配多样负载。本文提出FlexSpIM，一种数字存内计算架构，在统一存储中支持任意操作数分辨率与形状，并据此实现层级的权重/输出混合驻留数据流，最大化操作数复用。该设计减少了片上与片外数据搬运，属于AI加速器硬件架构与数字集成电路设计方向的重要工作。",
+      "llm_tldr": "面向边缘视觉的脉冲神经网络存内计算加速器可实现微秒级推理与超低能耗，但电路与系统层面的灵活性不足，难以适配多样负载。本文提出FlexSpIM，一种数字存内计算架构，在统一存储中支持任意操作数分辨率与形状，并据此实现层级的权重/输出混合驻留数据流，最大化操作数复用。该设计减少了片上与片外数据搬运，属于AI加速器硬件架构与数字集成电路设计方向的重要工作。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.15241v1",
+      "source": "arxiv",
+      "title": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "abstract": "Dynamic-vision-sensor (DVS) cameras generate events on a per-pixel basis with a $μ$s-level temporal resolution, calling for new algorithm-hardware co-design approaches compared to standard frame-based vision. While event-driven graph neural networks (EV-GNNs) emerge as a promising algorithmic solution, they raise new HW challenges by mixing dense-regular compute operations and sparse-irregular memory accesses. We present ETHEREAL, the first EV-GNN accelerator that scales to 640$\\times$480 resolutions, thanks to a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy with a novel region-of-interest spatiotemporal caching mechanism. Measurement results demonstrate end-to-end inference with 25.6$μ$s latency and 1.7$μ$J energy per event on state-of-the-art workloads",
+      "authors": [
+        "Adrian Kneip",
+        "Martin Lefebvre",
+        "Daniel Gehrig",
+        "Victoria Catalán Pastor",
+        "Davide Scaramuzza",
+        "Marian Verhelst",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AR"
+      ],
+      "published": "2026-09-14T09:01:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.15241v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "event-driven graph neural network accelerator processor for edge AI",
+      "llm_evidence_cn": "面向边缘AI的事件驱动图神经网络加速处理器",
+      "llm_evidence": "面向边缘AI的事件驱动图神经网络加速处理器",
+      "canonical_evidence": "面向边缘AI的事件驱动图神经网络加速处理器",
+      "llm_tldr_en": "ETHEREAL is the first event-driven graph neural network accelerator scaling to 640x480 resolution, using a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy with region-of-interest spatiotemporal caching.",
+      "llm_tldr_cn": "动态视觉传感器以微秒级分辨率逐像素产生事件，传统帧式视觉方案不再适用，而事件驱动图神经网络混合了稠密规则计算与稀疏不规则访存，给硬件设计带来挑战。本文提出ETHEREAL，首个可扩展到640x480分辨率的事件驱动图神经网络加速器，采用邻域并行样条卷积引擎与2D/3D分离存储层次，并引入感兴趣区域时空缓存机制。该工作属于边缘AI加速器硬件架构方向的重要成果。",
+      "llm_tldr": "动态视觉传感器以微秒级分辨率逐像素产生事件，传统帧式视觉方案不再适用，而事件驱动图神经网络混合了稠密规则计算与稀疏不规则访存，给硬件设计带来挑战。本文提出ETHEREAL，首个可扩展到640x480分辨率的事件驱动图神经网络加速器，采用邻域并行样条卷积引擎与2D/3D分离存储层次，并引入感兴趣区域时空缓存机制。该工作属于边缘AI加速器硬件架构方向的重要成果。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.09254v1",
+      "source": "arxiv",
+      "title": "DiffLUT-Net: Differentiable Training of FPGA LUT Networks with Learnable Connectivity",
+      "abstract": "Field-programmable gate arrays (FPGAs) enable efficient neural-network inference, but most deployment flows either accelerate multiply-accumulate operations or convert pretrained quantized models into lookup tables (LUTs). We present DiffLUT-Net, an FPGA-native network connected by six-input LUTs that are trained from scratch. We jointly learn the 64 truth-table entries of a LUT and the source to each of its six input ports using a differentiable LUT function relaxation and hardware source selection. After training, the truth tables and connections are discretized, unused logic can be pruned, and the network is exported directly as synthesizable Verilog. Across five benchmarks, DiffLUT-Net achieves favorable accuracy-resource trade-offs. These results demonstrate the effectiveness of jointly learning LUT functions and sparse connectivity for compact FPGA-native inference. The code is available at https://github.com/TUDa-HWAI/DiffLUT-Network.",
+      "authors": [
+        "Jiaqi Ye",
+        "Xinrui Gong",
+        "Jingcun Wang",
+        "Olga Kondrateva",
+        "Bing Li",
+        "Grace Li Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "published": "2026-09-08T15:00:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.09254v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "FPGA-native LUT network for neural network inference hardware",
+      "llm_evidence_cn": "面向神经网络推理硬件的FPGA原生LUT网络",
+      "llm_evidence": "面向神经网络推理硬件的FPGA原生LUT网络",
+      "canonical_evidence": "面向神经网络推理硬件的FPGA原生LUT网络",
+      "llm_tldr_en": "DiffLUT-Net trains six-input LUT networks from scratch with differentiable truth tables and learnable connectivity, exporting synthesizable Verilog for efficient neural-network inference on FPGAs.",
+      "llm_tldr_cn": "FPGA适合神经网络推理，但现有部署流程多只加速乘加运算，或将预训练量化模型转换为查找表。本文提出DiffLUT-Net，一种由六输入LUT连接而成的FPGA原生网络，利用可微LUT函数松弛与硬件源选择，联合学习真值表与各输入端口连接。训练后对真值表与连接离散化、剪枝，并直接导出可综合Verilog。在五个基准上取得良好的精度-资源折衷，为数字集成电路上的AI加速器实现提供了新思路。",
+      "llm_tldr": "FPGA适合神经网络推理，但现有部署流程多只加速乘加运算，或将预训练量化模型转换为查找表。本文提出DiffLUT-Net，一种由六输入LUT连接而成的FPGA原生网络，利用可微LUT函数松弛与硬件源选择，联合学习真值表与各输入端口连接。训练后对真值表与连接离散化、剪枝，并直接导出可综合Verilog。在五个基准上取得良好的精度-资源折衷，为数字集成电路上的AI加速器实现提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10515v1",
+      "source": "arxiv",
+      "title": "PASCAL: A Phase-Aware Shared-Cache Model for Parallel Scans",
+      "abstract": "In modern AI Accelerators and GPGPUs, many concurrent cores repeatedly access the same shared data. This pattern occurs in attention, where different query tiles share the same K/V block, GEMM, where every tile in a row reads the same panel, and many other operators. We name this pattern parallel scan. Due to a significant amount of data reuse in this pattern, the cache is expected to capture as much data reuse as possible and largely reduce requests sent to the main memory for both performance and energy consumption concerns. However, in reality, because of the intrinsic asynchrony of multi-cores, the actual cache miss rate and DRAM traffic can be much higher compared to ideal cases. In this paper, we propose PASCAL, a shared-cache model for parallel scans. It is aware of the dynamic feature of progress divergence across multi-cores, correlate the divergence with the combination of different factors such as occupancy, and predicts the cache miss rate before execution. Because prediction needs no target trace, timing, or counters, PASCAL supports design-space exploration at scales where cycle-accurate simulation is impractical, and its policy-independent bound states how much traffic no replacement policy can avoid. A MAPE of 13.84% is achieved in a 60-configuration dataset with various software pipeline depths, occupancies, and memory access data paths on an NVIDIA GB10 GPU, against 44.79% for physical-wave TileSight and 54.16% for exact symbolic SDCM.",
+      "authors": [
+        "Zhongchun Zhou",
+        "Chengtao Lai",
+        "Songtao Mao"
+      ],
+      "primary_category": "cs.PF",
+      "categories": [
+        "cs.PF",
+        "cs.AR",
+        "cs.DC"
+      ],
+      "published": "2026-09-09T17:48:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.10515v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "shared-cache model for AI accelerators and GPGPUs",
+      "llm_evidence_cn": "面向AI加速器与GPGPU的共享缓存模型",
+      "llm_evidence": "面向AI加速器与GPGPU的共享缓存模型",
+      "canonical_evidence": "面向AI加速器与GPGPU的共享缓存模型",
+      "llm_tldr_en": "PASCAL models shared-cache behavior for parallel scan patterns in AI accelerators, where concurrent cores reuse the same data but asynchronous multicore execution inflates miss rates and DRAM traffic beyond ideal.",
+      "llm_tldr_cn": "在AI加速器和GPGPU中，大量并发核心反复访问相同共享数据，形成注意力、GEMM等算子中的并行扫描模式；由于多核固有异步性，实际缓存缺失率和DRAM流量远高于理想情况。本文提出PASCAL，一种面向并行扫描的共享缓存建模方法，用于刻画并优化这类数据复用行为。该工作为AI加速器存储层次与缓存设计提供了分析工具，对加速器架构研究有支撑价值。",
+      "llm_tldr": "在AI加速器和GPGPU中，大量并发核心反复访问相同共享数据，形成注意力、GEMM等算子中的并行扫描模式；由于多核固有异步性，实际缓存缺失率和DRAM流量远高于理想情况。本文提出PASCAL，一种面向并行扫描的共享缓存建模方法，用于刻画并优化这类数据复用行为。该工作为AI加速器存储层次与缓存设计提供了分析工具，对加速器架构研究有支撑价值。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10861v1",
+      "source": "arxiv",
+      "title": "REACH: Controller-Managed Long-Span ECC for HBM AI Inference",
+      "abstract": "High-Bandwidth Memory (HBM) cost motivates stronger controller protection that can support a wider range of device error rates. Long-span error-correcting codes provide stronger protection at a comparable code rate, but a direct implementation couples small accesses to span-wide state and requires costly decoding at HBM bandwidth. Read-dominated LLM decode offers a favorable setting: sequential reads support span aggregation, while sparse writes limit parity-update traffic. This paper presents REACH, a controller microarchitecture that uses established inner codes to correct common errors and identify unresolved chunks, reserving a long outer code for known-erasure repair. Differential parity bounds write traffic, and a co-designed endpoint preserves 32\\,B transactions without an extra data burst. Ramulator2 sustains 1.88\\,TB/s of application traffic at the highest error stress, while separate full-interface sizing supports a 2.69\\,TB/s application target using ASAP7-synthesized kernels. At this analytical target, REACH's nominal composition uses 55.8\\% less controller area and 57.7\\% less modeled power than the evaluated mean-work direct-long design, showing the benefit of reserving long-span recovery for exceptional requests.",
+      "authors": [
+        "Rui Xie",
+        "Yunhua Fang",
+        "Asad Ul Haq",
+        "Linsen Ma",
+        "Sanchari Sen",
+        "Swagath Venkataramani",
+        "Liu Liu",
+        "Tong Zhang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-09T21:57:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.10861v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "HBM memory controller microarchitecture with long-span ECC for AI inference, AI accelerator hardware",
+      "llm_evidence_cn": "面向AI推理的HBM控制器微架构与长跨度纠错码，属AI加速器硬件",
+      "llm_evidence": "面向AI推理的HBM控制器微架构与长跨度纠错码，属AI加速器硬件",
+      "canonical_evidence": "面向AI推理的HBM控制器微架构与长跨度纠错码，属AI加速器硬件",
+      "llm_tldr_en": "REACH is an HBM controller microarchitecture using inner codes plus a long outer code for known-erasure repair, giving strong ECC protection for read-dominated LLM inference.",
+      "llm_tldr_cn": "针对HBM成本高、需更强控制器保护以覆盖更宽器件误码率、而长跨度纠错码直接实现代价过高的问题，论文提出REACH控制器微架构，用内码纠正常见错误并标记未决块，仅用长外码修复已知擦除，同时以差分奇偶约束写流量。实验面向读为主的LLM解码场景，在保持32字节访问粒度的同时降低了解码与写更新开销，为AI推理系统的内存可靠性与成本优化提供方案。",
+      "llm_tldr": "针对HBM成本高、需更强控制器保护以覆盖更宽器件误码率、而长跨度纠错码直接实现代价过高的问题，论文提出REACH控制器微架构，用内码纠正常见错误并标记未决块，仅用长外码修复已知擦除，同时以差分奇偶约束写流量。实验面向读为主的LLM解码场景，在保持32字节访问粒度的同时降低了解码与写更新开销，为AI推理系统的内存可靠性与成本优化提供方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
