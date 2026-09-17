@@ -1,0 +1,256 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-17T22:01:46.001372+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 5,
+    "quick_skim_target": 11,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2609.17057v2",
+      "source": "arxiv",
+      "title": "Budgeted Express-Mesh: Traffic-Aware Link Placement and Deadlock-Free Adaptive Routing",
+      "abstract": "We present Budgeted Express-Mesh, a topology-routing co-design that adds a small number of traffic-aware express links under a fixed wire budget. An ASPL-based greedy placement is refined by simulation-guided annealing, while packets use committed top-K routes selected from delayed express-link congestion and reservation signals. Across four synthetic workloads, optimized placements consistently improve high-load throughput over Mesh and random placement, and annealing further improves Greedy. The gains persist under delayed quantized congestion information, longer express-link latency, multi-flit packets, and a 16-by-16 heterogeneous workload.",
+      "authors": [
+        "Li Cao",
+        "Jingyuan Ma"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.NI"
+      ],
+      "published": "2026-09-15T12:06:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.17057v2",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "topology-routing co-design with deadlock-free adaptive routing in mesh NoC",
+      "llm_evidence_cn": "Mesh片上网络的拓扑-路由协同设计与无死锁自适应路由",
+      "llm_evidence": "Mesh片上网络的拓扑-路由协同设计与无死锁自适应路由",
+      "canonical_evidence": "Mesh片上网络的拓扑-路由协同设计与无死锁自适应路由",
+      "llm_tldr_en": "Budgeted Express-Mesh co-designs topology and routing by adding traffic-aware express links under a wire budget, using greedy placement plus annealing and committed top-K deadlock-free adaptive routing to boost NoC throughput.",
+      "llm_tldr_cn": "片上网络在固定布线预算下难以兼顾拓扑效率与路由灵活性。论文提出Budgeted Express-Mesh，将拓扑与路由协同设计，在有限线预算内加入少量流量感知的快速链路，用基于ASPL的贪心布置加模拟退火精化，并让数据包采用基于延迟拥塞信号的承诺式top-K路由。在四种合成负载下，优化布置相较Mesh和随机布置持续提升高负载吞吐，且在延迟量化拥塞信息、多flit包与16x16异构负载下依然有效。",
+      "llm_tldr": "片上网络在固定布线预算下难以兼顾拓扑效率与路由灵活性。论文提出Budgeted Express-Mesh，将拓扑与路由协同设计，在有限线预算内加入少量流量感知的快速链路，用基于ASPL的贪心布置加模拟退火精化，并让数据包采用基于延迟拥塞信号的承诺式top-K路由。在四种合成负载下，优化布置相较Mesh和随机布置持续提升高负载吞吐，且在延迟量化拥塞信息、多flit包与16x16异构负载下依然有效。",
+      "llm_tags": [
+        "query:noc-arch"
+      ],
+      "matched_query_tag": "query:noc-arch",
+      "matched_query_text": "papers whose core contribution is network on chip architecture design including topology routing algorithm flow control virtual channel and router microarchitecture",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.10970v1",
+      "source": "arxiv",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "abstract": "Modern ML workloads, with stringent latency and energy constraints, are increasingly hard to run efficiently on homogeneous commodity hardware. We argue that operator-level disaggregation--tailoring microarchitecture, batching, and memory hierarchy to each operator--is essential to overcome these limitations, though the resulting highly bespoke accelerators incur prohibitive Non-Recurring Engineering (NRE) costs. Chiplet-based integration amortizes NRE across applications, but choosing which chiplets to build and how to compose them into accelerators is circularly dependent--a chiplet pool's value depends on the constructed accelerators, while accelerator quality is constrained by available chiplets. This paper introduces Fengshui, a chiplet ecosystem and accelerator co-design framework that jointly optimizes chiplet pool composition and bespoke application-specific integrated circuit (BASIC) design. Fengshui constructs BASICs through operator-level disaggregation, co-exploring chiplet and memory heterogeneity, tensor fusion, and pipeline/tensor/expert parallelism with place-and-route validation for physical implementability. With just 8 strategically selected chiplets, encompassing network switches, processing-in-memory units, and accelerators with diverse microarchitectures, Fengshui-generated BASICs achieve 48.5%, 88.1%, 93.0%, and 97.8% reductions in energy, energy-cost product (EC), energy-delay product (EDP), and energy-delay-cost product (EDPC) over homogeneous accelerators, while scoring within 4.1% of unconstrained heterogeneous designs across diverse neural networks. For datacenter MoE and dense LLM serving, Fengshui reduces prefill energy and EC by up to 16.8% and 28.7%, respectively; for edge autonomous vehicle perception, it achieves 12.0% energy and 23.6% EC reductions under real-time latency constraints.",
+      "authors": [
+        "Haoran Jin",
+        "Jirong Yang",
+        "Zhiheng Zhang",
+        "Justin Shin",
+        "Barry Lyu",
+        "Kangqi Zhang",
+        "Yunpeng Liu",
+        "Nathan Bleier"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-10T01:43:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.10970v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "chiplet-based bespoke neural network accelerator codesign",
+      "llm_evidence_cn": "芯粒化定制神经网络加速器协同设计",
+      "llm_evidence": "芯粒化定制神经网络加速器协同设计",
+      "canonical_evidence": "芯粒化定制神经网络加速器协同设计",
+      "llm_tldr_en": "Fengshui tackles the NRE cost of bespoke ML accelerators by modeling the chiplet ecosystem and codesigning chiplet pools with accelerators, enabling operator-level disaggregation under latency and energy constraints.",
+      "llm_tldr_cn": "现代机器学习工作负载对延迟和能耗要求苛刻，同构通用硬件难以高效运行，而算子级定制加速器又面临高昂的非经常性工程成本。论文提出Fengshui，系统刻画芯粒生态系统，并将芯粒池选择与加速器构造进行协同设计，解决二者相互依赖的循环问题。该方法在延迟与能耗约束下实现算子级解耦与复用，为面向AI的芯粒化加速器架构设计提供了新框架。",
+      "llm_tldr": "现代机器学习工作负载对延迟和能耗要求苛刻，同构通用硬件难以高效运行，而算子级定制加速器又面临高昂的非经常性工程成本。论文提出Fengshui，系统刻画芯粒生态系统，并将芯粒池选择与加速器构造进行协同设计，解决二者相互依赖的循环问题。该方法在延迟与能耗约束下实现算子级解耦与复用，为面向AI的芯粒化加速器架构设计提供了新框架。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.09559v1",
+      "source": "arxiv",
+      "title": "Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization",
+      "abstract": "A 2,048-spin fully connected annealing processor based on differential stochastic simulated annealing (DSSA) is presented as an architectural design in TSMC 28 nm CMOS with a 3 mm x 4 mm post-layout area. The processor closes timing at 500 MHz, integrates a 16 Mb SRAM weight memory, and amortizes stochastic noise across 16 spins with area-efficient random number generators. DSSA keeps a serialized datapath for density but recomputes interactions only for spins that flip, shrinking the effective workload to the active frontier during each annealing run. Spin-select scheduling, priority-based weight reads, and a temperature controller that skips idle steps accelerate sparse updates without sacrificing full connectivity. Post-layout simulation results show 2.7 ms time-to-solution (TTS) and 0.86 mJ energy-to- solution on 2,000-spin problems at 316 mW (0.15 mW/spin), achieving 1.5x lower power and 3.5x lower TTS energy than projected prior fully connected annealers. These results demonstrate the potential of the proposed DSSA architecture for large-scale combinatorial optimization hardware under post-layout evaluation.",
+      "authors": [
+        "Naoya Onizawa",
+        "Md Mohaimenul Alam",
+        "Sean Smithson",
+        "Duckgyu Shin",
+        "Takahiro Hanyu"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-09T00:28:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.09559v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "digital integrated circuit architectural design of an optimization accelerator in 28nm CMOS",
+      "llm_evidence_cn": "28nm CMOS优化加速器的数字集成电路架构设计",
+      "llm_evidence": "28nm CMOS优化加速器的数字集成电路架构设计",
+      "canonical_evidence": "28nm CMOS优化加速器的数字集成电路架构设计",
+      "llm_tldr_en": "The paper presents a 2048-spin fully connected differential stochastic simulated annealing processor in 28nm CMOS that recomputes only flipped spins, integrating 16Mb SRAM and closing timing at 500MHz.",
+      "llm_tldr_cn": "针对大规模组合优化对专用硬件加速的需求，论文设计了一款基于差分随机模拟退火的2048自旋全连接退火处理器，采用TSMC 28nm CMOS工艺实现，集成16Mb SRAM权重存储器，并以面积高效的随机数发生器在16个自旋间分摊随机噪声。其核心创新是仅对发生翻转的自旋重算相互作用，将有效负载压缩至活跃前沿，并配合自旋选择调度、优先级权重读取与温度控制器加速稀疏更新。后布局结果显示芯片面积3mm×4mm、时序收敛于500MHz。该工作为大规模优化问题提供了一种高密度、高能效的专用加速器芯片架构。",
+      "llm_tldr": "针对大规模组合优化对专用硬件加速的需求，论文设计了一款基于差分随机模拟退火的2048自旋全连接退火处理器，采用TSMC 28nm CMOS工艺实现，集成16Mb SRAM权重存储器，并以面积高效的随机数发生器在16个自旋间分摊随机噪声。其核心创新是仅对发生翻转的自旋重算相互作用，将有效负载压缩至活跃前沿，并配合自旋选择调度、优先级权重读取与温度控制器加速稀疏更新。后布局结果显示芯片面积3mm×4mm、时序收敛于500MHz。该工作为大规模优化问题提供了一种高密度、高能效的专用加速器芯片架构。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.10126v1",
+      "source": "arxiv",
+      "title": "SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement",
+      "abstract": "AI interconnects typically protect and replay packets uniformly, yet numerical bit faults differ sharply in consequence: a low-order mantissa flip may resemble quantization noise, while a high-significance exponent flip can produce a catastrophic outlier or non-finite value. We present SAGE, a semantic-aware geographic error-recovery architecture that decouples whether a detected fault merits replay from where replay restarts. For BF16-like data, a workload-calibrated contract separates catastrophic Class-H faults from bounded Class-M and precision Class-L damage. It first applies a Class-H silent-delivery constraint, then ranks admissible policies by quality-normalized terminal latency, $Ψ_{\\rm del}$. Independently, a source-local region table adapts checkpoint intervals to fault geography, shortening recovery segments in noisy regions. Detected Class-H failures may trigger protected negative acknowledgments and full-flit replay; Class-M and Class-L outcomes do not trigger default network replay.   We implement SAGE's endpoint and replay protocol in gem5 Garnet and synthesize its fully pipelined checker in ASAP7. At a stable synthetic operating point, a ten-seed contention-faithful direct-Garnet campaign shows that SAGE reduces $Ψ_{\\rm del}$ by 30.1% relative to fixed 34-hop recovery, combining 28.0% lower mean latency with improved delivered semantic quality. Under higher-BER synthetic stress at the same offered load, SAGE maintains bounded queues while the fixed baseline accumulates backlog. Application-derived DeiT-S communication traces also show lower mean and p99.5 latency at the evaluated nonzero BERs. Within the qualified operating envelope, CRC32 decoder trials yield a simultaneous 95% per-original Class-H silent-delivery upper bound of $3.18\\times10^{-7}$.",
+      "authors": [
+        "Patrick S. Y. Hung",
+        "Zitong Wang",
+        "Zekai Zhang",
+        "Yu Hin Chan",
+        "Shengzhe Lyu",
+        "Ray C. C. Cheung"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-09T13:02:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.10126v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "semantic-aware error recovery for AI interconnect data movement",
+      "llm_evidence_cn": "面向AI互连数据搬运的语义感知错误恢复",
+      "llm_evidence": "面向AI互连数据搬运的语义感知错误恢复",
+      "canonical_evidence": "面向AI互连数据搬运的语义感知错误恢复",
+      "llm_tldr_en": "SAGE argues AI interconnects should not replay all faults uniformly, and proposes a semantic-aware geographic error-recovery architecture that distinguishes catastrophic from bounded faults to optimize replay placement.",
+      "llm_tldr_cn": "AI互连通常对所有数据包统一保护与重传，但数值位错误后果差异巨大：低位尾数翻转近似量化噪声，而高位指数翻转可能产生灾难性异常值。论文提出SAGE语义感知地理错误恢复架构，将是否重传与从何处重传解耦，并用工作负载校准的契约区分灾难性、有界与精度损失三类故障。该方法按质量归一化终端延迟对策略排序，为AI互连的可靠传输与容错设计提供了新思路。",
+      "llm_tldr": "AI互连通常对所有数据包统一保护与重传，但数值位错误后果差异巨大：低位尾数翻转近似量化噪声，而高位指数翻转可能产生灾难性异常值。论文提出SAGE语义感知地理错误恢复架构，将是否重传与从何处重传解耦，并用工作负载校准的契约区分灾难性、有界与精度损失三类故障。该方法按质量归一化终端延迟对策略排序，为AI互连的可靠传输与容错设计提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.15241v1",
+      "source": "arxiv",
+      "title": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "abstract": "Dynamic-vision-sensor (DVS) cameras generate events on a per-pixel basis with a $μ$s-level temporal resolution, calling for new algorithm-hardware co-design approaches compared to standard frame-based vision. While event-driven graph neural networks (EV-GNNs) emerge as a promising algorithmic solution, they raise new HW challenges by mixing dense-regular compute operations and sparse-irregular memory accesses. We present ETHEREAL, the first EV-GNN accelerator that scales to 640$\\times$480 resolutions, thanks to a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy with a novel region-of-interest spatiotemporal caching mechanism. Measurement results demonstrate end-to-end inference with 25.6$μ$s latency and 1.7$μ$J energy per event on state-of-the-art workloads",
+      "authors": [
+        "Adrian Kneip",
+        "Martin Lefebvre",
+        "Daniel Gehrig",
+        "Victoria Catalán Pastor",
+        "Davide Scaramuzza",
+        "Marian Verhelst",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AR"
+      ],
+      "published": "2026-09-14T09:01:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.15241v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "event-driven GNN accelerator with spatiotemporal caching for edge AI",
+      "llm_evidence_cn": "面向边缘AI的事件驱动GNN加速器与时空缓存",
+      "llm_evidence": "面向边缘AI的事件驱动GNN加速器与时空缓存",
+      "canonical_evidence": "面向边缘AI的事件驱动GNN加速器与时空缓存",
+      "llm_tldr_en": "ETHEREAL is an event-driven GNN accelerator for DVS cameras that mixes dense compute and sparse memory access, using a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy to reach 25 us/in latency at 640x480.",
+      "llm_tldr_cn": "动态视觉传感器以微秒级分辨率逐像素产生事件，事件驱动图神经网络兼具稠密规则计算与稀疏不规则访存，给硬件设计带来新挑战。论文提出ETHEREAL，首个可扩展到640x480分辨率的事件驱动GNN加速器，包含邻域并行样条卷积引擎和2D/3D分离存储层次，并引入感兴趣区域时空缓存机制。实测结果达到25微秒/推理的极低延迟，为边缘端AI加速器的算法-硬件协同设计提供了范例。",
+      "llm_tldr": "动态视觉传感器以微秒级分辨率逐像素产生事件，事件驱动图神经网络兼具稠密规则计算与稀疏不规则访存，给硬件设计带来新挑战。论文提出ETHEREAL，首个可扩展到640x480分辨率的事件驱动GNN加速器，包含邻域并行样条卷积引擎和2D/3D分离存储层次，并引入感兴趣区域时空缓存机制。实测结果达到25微秒/推理的极低延迟，为边缘端AI加速器的算法-硬件协同设计提供了范例。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16600v1",
+      "source": "arxiv",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "abstract": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "authors": [
+        "Yi Sheng Chong",
+        "Rakshith Harish",
+        "Rajesh Chandrasekhara Panicker",
+        "Vishnu P. Nambiar",
+        "Anh Tuan Do"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-15T03:51:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.16600v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "CGRA accelerator for edge neural network inference with configurable MAC units",
+      "llm_evidence_cn": "面向边缘神经网络推理、具备可配置MAC单元的可重构加速器",
+      "llm_evidence": "面向边缘神经网络推理、具备可配置MAC单元的可重构加速器",
+      "canonical_evidence": "面向边缘神经网络推理、具备可配置MAC单元的可重构加速器",
+      "llm_tldr_en": "Edge workloads need efficient flexible processing, but typical CGRAs take two cycles per MAC, slowing neural-network inference. This work proposes a CGRA whose PEs use one configurable multiplier for ADD, MUL, or MAC plus dynamic truncation, reaching 420 GOPS/W.",
+      "llm_tldr_cn": "边缘设备需要兼具高能效与灵活性的实时处理能力，而典型粗粒度可重构架构完成一次乘累加需两个周期，导致神经网络推理等密集MAC负载耗时较长。本文提出一种CGRA，其处理单元内含可配置MAC单元，可用同一乘法器完成加法、乘法或乘累加，并引入动态截断以提升能效。该设计在边缘场景下实现了420 GOPS/W的能效，兼顾接近专用加速器的高效率与通用处理器的灵活性。",
+      "llm_tldr": "边缘设备需要兼具高能效与灵活性的实时处理能力，而典型粗粒度可重构架构完成一次乘累加需两个周期，导致神经网络推理等密集MAC负载耗时较长。本文提出一种CGRA，其处理单元内含可配置MAC单元，可用同一乘法器完成加法、乘法或乘累加，并引入动态截断以提升能效。该设计在边缘场景下实现了420 GOPS/W的能效，兼顾接近专用加速器的高效率与通用处理器的灵活性。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

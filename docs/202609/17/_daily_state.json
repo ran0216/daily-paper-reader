@@ -1,0 +1,105 @@
+{
+  "date": "20260917",
+  "date_label": "",
+  "generated_at": "2026-09-17 22:05:09 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.17057v2",
+      "route": "202609/17/2609.17057v2-budgeted-express-mesh-traffic-aware-link-placement-and-deadlock-free-adaptive-routing",
+      "title": "Budgeted Express-Mesh: Traffic-Aware Link Placement and Deadlock-Free Adaptive Routing",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "Mesh片上网络的拓扑-路由协同设计与无死锁自适应路由",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    },
+    {
+      "paper_id": "2609.10970v1",
+      "route": "202609/17/2609.10970v1-fengshui-demystifying-chiplet-ecosystem-and-bespoke-neural-network-accelerator-codesign",
+      "title": "Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "芯粒化定制神经网络加速器协同设计",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    },
+    {
+      "paper_id": "2609.09559v1",
+      "route": "202609/17/2609.09559v1-differential-stochastic-simulated-annealing-processor-for-fully-connected-2048-spin-optimization",
+      "title": "Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "28nm CMOS优化加速器的数字集成电路架构设计",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    },
+    {
+      "paper_id": "2609.10126v1",
+      "route": "202609/17/2609.10126v1-sage-semantic-aware-geographic-error-recovery-for-ai-data-movement",
+      "title": "SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向AI互连数据搬运的语义感知错误恢复",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    },
+    {
+      "paper_id": "2609.15241v1",
+      "route": "202609/17/2609.15241v1-a-25-sinf-event-driven-graph-neural-network-processor-with-spatiotemporal-caching-and-spline-convolution-for-ultra-low-latency-ai-at-the-edge",
+      "title": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘AI的事件驱动GNN加速器与时空缓存",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    },
+    {
+      "paper_id": "2609.16600v1",
+      "route": "202609/17/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘神经网络推理、具备可配置MAC单元的可重构加速器",
+      "first_seen_at": "2026-09-17 22:05:09 UTC",
+      "updated_at": "2026-09-17 22:05:09 UTC"
+    }
+  ]
+}
