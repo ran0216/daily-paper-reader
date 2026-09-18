@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-17</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-18</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 6 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-17 22:05:09 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-18 21:45:20 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 6 篇推荐（精读 1 篇，速读 5 篇）</p>
-<p>精读：《Budgeted Express-Mesh: Traffic-Aware Link Placement and Deadlock-Free Adaptive Routing》（10.0/10）</p>
-<p>速读：《Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign》（7.0/10）, 《Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization》（6.0/10）, 《SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement》（6.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今天筛完 6 篇 AI 加速器相关论文，精读 MeshKV 与 Fengshui 两篇，速读覆盖边缘 GNN、MXFP4 与 CGRA 方向。</p>
+<p>最值得看的是 9.0 分的 MeshKV 用 NoC 织构 KV Cache 来扩展 Transformer 解码，以及 8.0 分的 Fengshui 拆解 Chiplet 生态与定制神经网络加速器的协同设计。</p>
+<p>普通读者可先读 MeshKV 理解解码瓶颈，再顺着 Fengshui 看 Chiplet 如何影响加速器落地。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Budgeted Express-Mesh: Traffic-Aware Link Placement and Deadlock-Free Adaptive Routing">Budgeted Express-Mesh: Traffic-Aware Link Placement and Deadlock-Free Adaptive Routing</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MeshKV: A Network-on-Chip KV Cache Fabric for Scalable Transformer Decoding Accelerators">MeshKV: A Network-on-Chip KV Cache Fabric for Scalable Transformer Decoding Accelerators</span></li><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li><li><span class="dpr-home-dashboard-paper-title" title="Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization">Differential Stochastic Simulated Annealing Processor for Fully Connected 2048-Spin Optimization</span></li><li><span class="dpr-home-dashboard-paper-title" title="SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement">SAGE: Semantic-Aware Geographic Error Recovery for AI Data Movement</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge">A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator">Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>
 </div>
 
