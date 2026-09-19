@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-19",
+  "date": "2026-09-19",
+  "generated_at": "2026-09-19T21:33:52",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/19/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "section": "quick",
+      "title_en": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "authors": "Yi Sheng Chong, Rakshith Harish, Rajesh Chandrasekhara Panicker, Vishnu P. Nambiar, Anh Tuan Do",
+      "date": "2026-09-15",
+      "pdf": "https://arxiv.org/pdf/2609.16600v1",
+      "score": "6.0",
+      "evidence": "面向边缘神经网络推理的可配置MAC CGRA加速器架构",
+      "tldr": "边缘设备需要兼顾高能效与灵活性的实时处理能力，CGRA因兼具通用性与接近专用加速器的效率而成为候选。但传统CGRA执行一次MAC通常需要两个周期，神经网络推理和信号处理中大量MAC操作会显著拖长处理时间。本文提出一种CGRA，其处理元件内集成可配置MAC单元，复用同一乘法器与加法器，可在单周期内完成ADD、MUL或MAC，并利用截断块动态调节MAC输出精度。该设计在40nm CMOS工艺实现，0.6V、21MHz下达到420.6 GOPS/W，能效较当前最优提升1.4倍，适合边缘端MAC密集型实时负载。",
+      "tags": "query:chip-design",
+      "abstract_en": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/19/2609.17718v1-specreuse-spectral-graph-reuse-for-efficient-vision-gnn-inference-on-fpgas",
+      "section": "quick",
+      "title_en": "SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs",
+      "authors": "Isabella Bernhardt Eiliya, Anvitha Ramachandran, Dhruv Parikh, Viktor Prasanna",
+      "date": "2026-09-15",
+      "pdf": "https://arxiv.org/pdf/2609.17718v1",
+      "score": "6.0",
+      "evidence": "面向视觉图神经网络推理的FPGA加速器架构，深度学习加速器设计与优化",
+      "tldr": "视觉图神经网络在FPGA推理中，动态图像图构建(DIGC)需逐层重建图连接，成为延迟与能耗瓶颈。SpecReuse通过计算中间特征的紧致谱描述子，并在描述子漂移低于校准阈值时复用历史图，从而跳过重复构建。配套FPGA架构用轻量硬件实现谱描述子提取与复用控制，兼容现有图构建加速器。实验显示端到端推理最高加速2.69倍，单次推理能耗降低约58–65%，资源开销可忽略且精度损失极小。",
+      "tags": "query:chip-design",
+      "abstract_en": "Dynamic Image Graph Construction (DIGC) is the primary performance bottleneck in FPGA acceleration of Vision Graph Neural Networks (ViGs), reconstructing graph connectivity at every layer through irregular, memory-intensive computation. Existing FPGA accelerators optimize DIGC but still execute it unconditionally, making repeated graph reconstruction a persistent source of latency and energy consumption. We propose the SpecReuse algorithm, which computes compact spectral descriptors of intermediate features and reuses previously constructed graphs when descriptor drift remains below a calibrated threshold. We further present the SpecReuse accelerator, an FPGA architecture that realizes graph reuse through lightweight hardware for spectral descriptor extraction and reuse control while remaining compatible with existing graph-construction accelerators. Experimental results demonstrate up to a $2.69\\times$ speedup in end-to-end inference and approximately 58--65\\% lower energy per inference with negligible FPGA resource overhead and minimal loss in classification accuracy.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/19/2609.18792v1-quantifying-the-effect-of-hcls-on-a-fixed-microarchitecture-mxfp4-accelerator",
+      "section": "quick",
+      "title_en": "Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator",
+      "authors": "Daniele Passaretti, Sajjad Tamimi, Nicola Dall'Ora",
+      "date": "2026-09-16",
+      "pdf": "https://arxiv.org/pdf/2609.18792v1",
+      "score": "6.0",
+      "evidence": "面向边缘AI推理的MXFP4加速器数字集成电路实现",
+      "tldr": "硬件构建语言（HCL）旨在提升硬件设计效率，但跨设计比较难以分离语言与微架构的影响。本文固定 OCP MXFP4 块点积加速器的同一微架构，将 SystemVerilog 基线与 Chisel、SpinalHDL、Amaranth、Clash、Bluespec 及 C++ HLS 实现放在相同 Artix-7、100 MHz、RISC-V 软核流程下对比。所有变体均满足时序，HCL 面积不劣于甚至优于手写 RTL，剩余差异主要来自后端算术 lowering 与位宽选择触发的 DSP 推断。可见 HCL 不同于仅靠 pragma 的 HLS，选型更应看生态与接口，而非 QoR；该工作为固定微架构下的语言效应提供了可复现的量化证据。",
+      "tags": "query:chip-design",
+      "abstract_en": "Hardware Construction Languages (HCLs) aim to improve hardware design productivity while generating register-transfer-level (RTL) circuits without changing the designer's microarchitecture. However, most comparisons between HCLs are either qualitative or evaluate quality of results (QoR) across different designs, making it difficult to separate language effects from design effects. This paper compares the most widely used HCLs using the same fixed design, the OCP MXFP4 block dot product, a quantization primitive at the heart of edge Physical-AI inference, implemented as a single 12-stage, II=1 pipeline. A SystemVerilog baseline is followed by implementations in Chisel, SpinalHDL, Amaranth, Clash, Bluespec, and C++ for high-level synthesis (HLS). Every variant goes through the same flow on the same Artix-7 device set at 100 MhZ, driven by a RISC-V soft core. With the micro-architecture held constant, the comparison is clean: every variant meets timing, and the HCLs match or even undercut hand-written RTL in area. The remaining differences stem not from the algorithm but from how each back end lowers arithmetic, and from a single width choice that silently toggles DSP inference. Unlike HLS, where design decisions are limited to pragmas, the HCLs achieve comparable area and timing. Therefore, the choice comes down to ecosystem fit and interface needs rather than QoR.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-18</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-19</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-18 21:45:20 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-19 21:33:50 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天筛完 6 篇 AI 加速器相关论文，精读 MeshKV 与 Fengshui 两篇，速读覆盖边缘 GNN、MXFP4 与 CGRA 方向。</p>
-<p>最值得看的是 9.0 分的 MeshKV 用 NoC 织构 KV Cache 来扩展 Transformer 解码，以及 8.0 分的 Fengshui 拆解 Chiplet 生态与定制神经网络加速器的协同设计。</p>
-<p>普通读者可先读 MeshKV 理解解码瓶颈，再顺着 Fengshui 看 Chiplet 如何影响加速器落地。</p>
+<p>今日速读3篇硬件加速论文，均获6.0分，聚焦CGRA、FPGA与低精度加速器。</p>
+<p>最值得关注的是可配置MAC与动态截断的CGRA能效方案，以及面向视觉GNN的FPGA频谱图复用推理。</p>
+<p>普通读者可先按兴趣选读其中一篇摘要，再对比MXFP4加速器中HCLs影响的量化结论。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MeshKV: A Network-on-Chip KV Cache Fabric for Scalable Transformer Decoding Accelerators">MeshKV: A Network-on-Chip KV Cache Fabric for Scalable Transformer Decoding Accelerators</span></li><li><span class="dpr-home-dashboard-paper-title" title="Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign">Fengshui: Demystifying Chiplet Ecosystem and Bespoke Neural Network Accelerator Codesign</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge">A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator">Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li><li><span class="dpr-home-dashboard-paper-title" title="SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs">SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator">Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
 </section>
 </div>
 

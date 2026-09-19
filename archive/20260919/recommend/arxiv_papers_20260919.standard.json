@@ -1,0 +1,130 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-19T21:33:16.277724+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.16600v1",
+      "source": "arxiv",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "abstract": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "authors": [
+        "Yi Sheng Chong",
+        "Rakshith Harish",
+        "Rajesh Chandrasekhara Panicker",
+        "Vishnu P. Nambiar",
+        "Anh Tuan Do"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-15T03:51:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.16600v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "CGRA accelerator architecture for edge neural network inference with configurable MAC",
+      "llm_evidence_cn": "面向边缘神经网络推理的可配置MAC CGRA加速器架构",
+      "llm_evidence": "面向边缘神经网络推理的可配置MAC CGRA加速器架构",
+      "canonical_evidence": "面向边缘神经网络推理的可配置MAC CGRA加速器架构",
+      "llm_tldr_en": "Traditional CGRAs need two cycles per MAC, slowing neural-network inference. This work adds configurable MAC units in processing elements that reuse one multiplier for ADD, MUL or MAC plus dynamic truncation, reaching 420 GOPS/W with high flexibility.",
+      "llm_tldr_cn": "边缘设备需要高能效且灵活的算力以应对动态实时负载，而传统粗粒度可重构架构执行一次乘累加需两个周期，使神经网络推理等MAC密集任务处理时间过长。作者在处理单元中集成可配置MAC单元，用同一乘法器完成加法、乘法或乘累加，并引入动态截断降低功耗。实验表明该CGRA在保持接近通用处理器灵活性的同时达到420 GOPS/W的能效。该设计说明可配置计算单元能兼顾灵活性与高能效，为边缘AI加速器架构提供新思路。",
+      "llm_tldr": "边缘设备需要高能效且灵活的算力以应对动态实时负载，而传统粗粒度可重构架构执行一次乘累加需两个周期，使神经网络推理等MAC密集任务处理时间过长。作者在处理单元中集成可配置MAC单元，用同一乘法器完成加法、乘法或乘累加，并引入动态截断降低功耗。实验表明该CGRA在保持接近通用处理器灵活性的同时达到420 GOPS/W的能效。该设计说明可配置计算单元能兼顾灵活性与高能效，为边缘AI加速器架构提供新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.17718v1",
+      "source": "arxiv",
+      "title": "SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs",
+      "abstract": "Dynamic Image Graph Construction (DIGC) is the primary performance bottleneck in FPGA acceleration of Vision Graph Neural Networks (ViGs), reconstructing graph connectivity at every layer through irregular, memory-intensive computation. Existing FPGA accelerators optimize DIGC but still execute it unconditionally, making repeated graph reconstruction a persistent source of latency and energy consumption. We propose the SpecReuse algorithm, which computes compact spectral descriptors of intermediate features and reuses previously constructed graphs when descriptor drift remains below a calibrated threshold. We further present the SpecReuse accelerator, an FPGA architecture that realizes graph reuse through lightweight hardware for spectral descriptor extraction and reuse control while remaining compatible with existing graph-construction accelerators. Experimental results demonstrate up to a $2.69\\times$ speedup in end-to-end inference and approximately 58--65\\% lower energy per inference with negligible FPGA resource overhead and minimal loss in classification accuracy.",
+      "authors": [
+        "Isabella Bernhardt Eiliya",
+        "Anvitha Ramachandran",
+        "Dhruv Parikh",
+        "Viktor Prasanna"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-15T18:29:05+00:00",
+      "link": "https://arxiv.org/pdf/2609.17718v1",
+      "tags": [
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "FPGA accelerator architecture for vision GNN inference, deep learning accelerator design and optimization",
+      "llm_evidence_cn": "面向视觉图神经网络推理的FPGA加速器架构，深度学习加速器设计与优化",
+      "llm_evidence": "面向视觉图神经网络推理的FPGA加速器架构，深度学习加速器设计与优化",
+      "canonical_evidence": "面向视觉图神经网络推理的FPGA加速器架构，深度学习加速器设计与优化",
+      "llm_tldr_en": "SpecReuse computes compact spectral descriptors to reuse previously built graphs in vision GNN FPGA inference, plus a lightweight accelerator that cuts repeated graph-construction latency and energy.",
+      "llm_tldr_cn": "视觉图神经网络在FPGA加速时，动态图像图构建需逐层重建图连通性，造成不规则、访存密集的主要瓶颈。本文提出SpecReuse算法，计算中间特征的紧凑谱描述子，当描述子漂移低于阈值时复用此前构建的图，并设计支持该复用的FPGA加速器。通过轻量谱描述硬件实现图复用，减少重复重建带来的时延与能耗，为图神经网络推理加速器架构优化提供新思路。",
+      "llm_tldr": "视觉图神经网络在FPGA加速时，动态图像图构建需逐层重建图连通性，造成不规则、访存密集的主要瓶颈。本文提出SpecReuse算法，计算中间特征的紧凑谱描述子，当描述子漂移低于阈值时复用此前构建的图，并设计支持该复用的FPGA加速器。通过轻量谱描述硬件实现图复用，减少重复重建带来的时延与能耗，为图神经网络推理加速器架构优化提供新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18792v1",
+      "source": "arxiv",
+      "title": "Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator",
+      "abstract": "Hardware Construction Languages (HCLs) aim to improve hardware design productivity while generating register-transfer-level (RTL) circuits without changing the designer's microarchitecture. However, most comparisons between HCLs are either qualitative or evaluate quality of results (QoR) across different designs, making it difficult to separate language effects from design effects. This paper compares the most widely used HCLs using the same fixed design, the OCP MXFP4 block dot product, a quantization primitive at the heart of edge Physical-AI inference, implemented as a single 12-stage, II=1 pipeline. A SystemVerilog baseline is followed by implementations in Chisel, SpinalHDL, Amaranth, Clash, Bluespec, and C++ for high-level synthesis (HLS). Every variant goes through the same flow on the same Artix-7 device set at 100 MhZ, driven by a RISC-V soft core. With the micro-architecture held constant, the comparison is clean: every variant meets timing, and the HCLs match or even undercut hand-written RTL in area. The remaining differences stem not from the algorithm but from how each back end lowers arithmetic, and from a single width choice that silently toggles DSP inference. Unlike HLS, where design decisions are limited to pragmas, the HCLs achieve comparable area and timing. Therefore, the choice comes down to ecosystem fit and interface needs rather than QoR.",
+      "authors": [
+        "Daniele Passaretti",
+        "Sajjad Tamimi",
+        "Nicola Dall'Ora"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-16T15:11:38+00:00",
+      "link": "https://arxiv.org/pdf/2609.18792v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "digital IC implementation of MXFP4 AI inference accelerator datapath",
+      "llm_evidence_cn": "面向边缘AI推理的MXFP4加速器数字集成电路实现",
+      "llm_evidence": "面向边缘AI推理的MXFP4加速器数字集成电路实现",
+      "canonical_evidence": "面向边缘AI推理的MXFP4加速器数字集成电路实现",
+      "llm_tldr_en": "Hardware Construction Languages promise design productivity, but comparisons confound language and design effects. This work implements the same fixed MXFP4 block dot-product pipeline in SystemVerilog, Chisel, SpinalHDL, Amaranth, Clash, Bluespec and HLS, isolating language-only quality-of-results differences for edge AI accelerators.",
+      "llm_tldr_cn": "硬件构建语言旨在提升设计效率并在不改变微架构的前提下生成RTL，但既有比较多为定性或跨设计评估，难以分离语言效应与设计效应。本文以边缘物理AI推理中的量化原语OCP MXFP4块点积为统一固定设计，构建单条12级II=1流水线，并分别用SystemVerilog基线及Chisel、SpinalHDL、Amaranth、Clash、Bluespec和C++ HLS实现。实验在相同微架构下系统量化了各语言在面积、时序与功耗上的质量差异。该工作为数字集成电路设计者选择构建语言、提升AI加速器实现效率提供了可复现的量化依据。",
+      "llm_tldr": "硬件构建语言旨在提升设计效率并在不改变微架构的前提下生成RTL，但既有比较多为定性或跨设计评估，难以分离语言效应与设计效应。本文以边缘物理AI推理中的量化原语OCP MXFP4块点积为统一固定设计，构建单条12级II=1流水线，并分别用SystemVerilog基线及Chisel、SpinalHDL、Amaranth、Clash、Bluespec和C++ HLS实现。实验在相同微架构下系统量化了各语言在面积、时序与功耗上的质量差异。该工作为数字集成电路设计者选择构建语言、提升AI加速器实现效率提供了可复现的量化依据。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

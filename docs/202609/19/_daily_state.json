@@ -1,0 +1,57 @@
+{
+  "date": "20260919",
+  "date_label": "",
+  "generated_at": "2026-09-19 21:33:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.16600v1",
+      "route": "202609/19/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘神经网络推理的可配置MAC CGRA加速器架构",
+      "first_seen_at": "2026-09-19 21:33:50 UTC",
+      "updated_at": "2026-09-19 21:33:50 UTC"
+    },
+    {
+      "paper_id": "2609.17718v1",
+      "route": "202609/19/2609.17718v1-specreuse-spectral-graph-reuse-for-efficient-vision-gnn-inference-on-fpgas",
+      "title": "SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向视觉图神经网络推理的FPGA加速器架构，深度学习加速器设计与优化",
+      "first_seen_at": "2026-09-19 21:33:50 UTC",
+      "updated_at": "2026-09-19 21:33:50 UTC"
+    },
+    {
+      "paper_id": "2609.18792v1",
+      "route": "202609/19/2609.18792v1-quantifying-the-effect-of-hcls-on-a-fixed-microarchitecture-mxfp4-accelerator",
+      "title": "Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘AI推理的MXFP4加速器数字集成电路实现",
+      "first_seen_at": "2026-09-19 21:33:50 UTC",
+      "updated_at": "2026-09-19 21:33:50 UTC"
+    }
+  ]
+}
