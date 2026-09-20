@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-20",
+  "date": "2026-09-20",
+  "generated_at": "2026-09-20T21:27:54",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/20/2609.15955v1-understanding-the-oversubscription-behaviour-of-dragonfly-networks",
+      "section": "quick",
+      "title_en": "Understanding the oversubscription behaviour of DragonFly+ networks",
+      "authors": "Vlad-Adrian Ulmeanu, Costin Raiciu, Iulian-Ilie Drăcea",
+      "date": "2026-09-14",
+      "pdf": "https://arxiv.org/pdf/2609.15955v1",
+      "score": "7.0",
+      "evidence": "分析DragonFly+互连拓扑的过订阅行为与置换流量路由",
+      "tldr": "1，且其证明只覆盖所有主机对位于不同组、任一接收组至少有两个不同组发送主机的情形。本文指出原证明含两处相互抵消的错误，并隐含未论证假设；随后将结论推广到任意置换模式，只需主机收发不超过线速。进一步给出无期望假设的高概率界，并实验发现全局层布线在一般情形下影响性能，可带来最高不足7%的加速（交换机端口数≤8）。",
+      "tags": "query:noc-arch",
+      "abstract_en": "The Max-Host Dragonfly+ topology's original paper proves that there is a 2:1 worst-case oversubscription ratio in expectation for the permutation traffic pattern. We show that the proof only covers a subset of permutation patterns, specifically those in which all host pairs are in different groups, and for any receiver group there are at least two sending hosts in distinct groups. The proof contains two mistakes that cancel out to produce the correct result. Furthermore, the proof implicitly uses an important observation without a backing argument: traffic leaving an indirect group, now forced to follow min-cost paths to receiver groups, can still be split across almost all outgoing global links, in contrast with splitting traffic from a sender group that can naturally select any outgoing group.   We prove that the 2:1 ratio holds in expectation for a larger set of patterns, including any permutation. We only need to know that any host sends and receives at most line rate traffic. This constraint can be altered to obtain approximations for expected FCT bounds on any pattern. We also attack the oversubscription problem without the expectation assumption, and find bounds that hold with high probability on permutations for small switch radixes.   While in expectation the global layer wiring doesn't affect the oversubscription rate, we experimentally find that it matters in the general case. We find topologies that obtain visible speedups against the default global wiring from the original paper, under $7\\%$ for radixes at most $8$.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/20/2609.15241v1-a-25-sinf-event-driven-graph-neural-network-processor-with-spatiotemporal-caching-and-spline-convolution-for-ultra-low-latency-ai-at-the-edge",
+      "section": "quick",
+      "title_en": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "authors": "Adrian Kneip, Martin Lefebvre, Daniel Gehrig, Victoria Catalán Pastor, Davide Scaramuzza, Marian Verhelst, Charlotte Frenkel",
+      "date": "2026-09-14",
+      "pdf": "https://arxiv.org/pdf/2609.15241v1",
+      "score": "6.0",
+      "evidence": "面向边缘超低延迟AI的事件驱动GNN处理器加速器架构",
+      "tldr": "DVS相机以微秒级事件流感知场景，传统帧式视觉难以满足超低延迟边缘AI需求。事件驱动图神经网络EV-GNN虽具潜力，却面临密集规则计算与稀疏不规则访存的硬件挑战。ETHEREAL采用邻域并行样条卷积引擎，以及二维/三维分拆存储层级和感兴趣区域时空缓存。在640×480分辨率下实现端到端25.6μs推理延迟与每事件1.7μJ能耗，首次将EV-GNN加速器扩展至该分辨率。",
+      "tags": "query:chip-design",
+      "abstract_en": "Dynamic-vision-sensor (DVS) cameras generate events on a per-pixel basis with a $μ$s-level temporal resolution, calling for new algorithm-hardware co-design approaches compared to standard frame-based vision. While event-driven graph neural networks (EV-GNNs) emerge as a promising algorithmic solution, they raise new HW challenges by mixing dense-regular compute operations and sparse-irregular memory accesses. We present ETHEREAL, the first EV-GNN accelerator that scales to 640$\\times$480 resolutions, thanks to a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy with a novel region-of-interest spatiotemporal caching mechanism. Measurement results demonstrate end-to-end inference with 25.6$μ$s latency and 1.7$μ$J energy per event on state-of-the-art workloads",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/20/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "section": "quick",
+      "title_en": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "authors": "Yi Sheng Chong, Rakshith Harish, Rajesh Chandrasekhara Panicker, Vishnu P. Nambiar, Anh Tuan Do",
+      "date": "2026-09-15",
+      "pdf": "https://arxiv.org/pdf/2609.16600v1",
+      "score": "6.0",
+      "evidence": "面向边缘神经网络推理的可重构加速器架构",
+      "tldr": "边缘设备需高效灵活处理动态实时负载，CGRA兼具灵活性与高能效，但传统CGRA执行MAC需两个周期，神经网络与信号处理中大量MAC导致处理时间长。本文提出可配置MAC的处理单元，用同一乘法器与加法器在单周期内完成ADD、MUL或MAC，并加入截断块动态调整MAC读出精度。基于40nm CMOS实现，在0.6V、21MHz下达到420.6GOPS/W，能效比现有最优高1.4倍。",
+      "tags": "query:chip-design",
+      "abstract_en": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

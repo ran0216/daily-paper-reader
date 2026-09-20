@@ -1,0 +1,1085 @@
+Title: Understanding the oversubscription behaviour of DragonFly+ networks
+
+URL Source: https://arxiv.org/pdf/2609.15955v1
+
+Published Time: Tue, 15 Sep 2026 02:57:19 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# Understanding the oversubscription behaviour of DragonFly+ networks 
+
+Vlad-Adrian Ulmeanu 1, Costin Raiciu 1,2, and Iulian-Ilie Dr˘ acea 2
+
+University Politehnica of Bucharest 1, Broadcom 2
+
+{vlad_adrian.ulmeanu@stud.acs. , costin.raiciu@ }upb.ro , iulian-ilie.dracea@broadcom.com 
+
+Abstract —The Max-Host Dragonfly+ topology’s original paper proves that there is a 2:1 worst-case oversubscription ratio in expectation for the permutation traffic pattern. We show that the proof only covers a subset of permutation patterns, specifically those in which all host pairs are in different groups, and for any receiver group there are at least two sending hosts in distinct groups. The proof contains two mistakes that cancel out to produce the correct result. Furthermore, the proof implicitly uses an important observation without a backing argument: traffic leaving an indirect group, now forced to follow min-cost paths to receiver groups, can still be split across almost all outgoing global links, in contrast with splitting traffic from a sender group that can naturally select any outgoing group. We prove that the 2:1 ratio holds in expectation for a larger set of patterns, including any permutation. We only need to know that any host sends and receives at most line rate traffic. This constraint can be altered to obtain approximations for expected FCT bounds on any pattern. We also attack the oversubscription problem without the expectation assumption, and find bounds that hold with high probability on permutations for small switch radixes. While in expectation the global layer wiring doesn’t affect the oversubscription rate, we experimentally find that it matters in the general case. We find topologies that obtain visible speedups against the default global wiring from the original paper, under 
+
+7% for radixes at most 8.
+
+I. I NTRODUCTION 
+
+Low-diameter datacenter topologies that either accommo-date more hosts, or increase the number of redundant paths between two nodes for a fixed switch radix are preferred for LLM training workloads, which can currently make use of tens of thousands of GPUs if training from scratch. The most well-known low-diameter topology is the Dragonfly [8]. Currently 6 of the top 10 supercomputers in the top 500 list [13] use a derivative of it (Cray Slingshot-11). Nvidia is expected to adopt the Dragonfly topology for the next-generation scale-up networks (NVL288 and NVL576) [11], trading a higher oversubscription ratio for keeping the same switch radix, in contrast with the single-tier multi-plane topology currently found in e.g. NVL72. 
+
+Fig. 1: Nodes are organized in groups in the Dragonfly topology. A group has two levels: the first one is made out of hosts. Each host is connected to a switch on the secondary level. These switches form a clique or mesh. The switches’ outgoing pipes unite the group with other ones. There is at least one link (named global) between any pair of groups. Notice that Dragonfly can create many more paths between two specific hosts by not selecting the min-cost switch in the sender group. As a result, a packet may arrive in an intermediate group, from which it will take the min-cost path to the destination. 
+
+Fig. 2: The packet might (or not) need to change the outgoing switch, depending on the topology wiring. Getting to the correct switch takes one extra hop because of the clique structure. We distinguish between routes that don’t need to change the switch and the ones that do by calling the first 1-indirect and the second 2-indirect. Some well-known offsprings of the Dragonfly are the Slim-fly [2], [7] and Dragonfly+ [12]. Slimfly cuts a group’s switch layer, effectively uniting all of its hosts with its only switch, sitting on the global layer. Slimfly’s property is that any two switches on the global layer are at distance of at most two from each other. The property allows us to never need to change the switch when arriving in an intermediate group. Essentially, Slimfly has no equivalent handicap similar to Dragonfly’s need to differentiate 1- and 2-indirect routes. from 
+
+> to
+
+Fig. 3: As an opposite, Dragonfly+ creates another layer with switches in a group. These are now divided into leaf and spine switches. arXiv:2609.15955v1 [cs.NI] 14 Sep 2026 Leaves communicate with hosts and spines, while spines communicate with leaves and other groups’ spines. Leaves and spines are united through a fully-connected layer. While Dragonfly+ increases the number of hosts and the number of paths between two hosts for a given radix compared to Dragonfly, it also increases the penalty for going to the incorrect outgoing spine switch in an intermediate group from one to two hops: see the right part of figure 3. We are interested in the permutation oversubscription proof in expectation from the Dragonfly+ article. While it achieves the correct result, it has several flaws, and can be applied for only a subset of permutation patterns (all host pairs must be in different groups and any group must receive flows from at least two other groups). This prompts us to find a general expected value oversub ratio proof for any permutation pattern. Surprisingly, the resulting proof can be adapted to obtain approximations for any pattern. We also analyze the permutation oversub ratios without the expectation assumption. We obtain high probability theoretical bounds that are useful for small switch radixes, and compare them against results from simulations. All experiments are run on the Ultra Ethernet Transport branch [3] of htsim [5], which aims to match as closely as possible the recent UET specification [6]. We present below known oversubscription ratios on permu-tation patterns for popular low-diameter topologies. All rows but the last are from [12]’s Table I.                   
+
+> Topology name Diameter Max host count (radix = 36) Permutation oversub ratio (expectation)
+> Dragonfly+ 3105’300 2:1 Dragonfly 329’412 (wrongly reported as 26’406) 12:1 improved to
+> ∼2.38 : 1 in [10] Fat Tree (3-level, 2:1 blocking ratio) 415’552 2:1 Fat Tree (3-level, non-blocking) 411’664 1:1 Slimfly 26’144 2:1 HyperX (2D) [1] 22’028 2:1
+
+Apart from other low diameter topologies, Dragonfly+ stands out because of the intermediate-group spine correction cost it incurs, being the most affected by it, with two hops needed to arrive to the outgoing spine, compared to one for Dragonfly and none for Slimfly. Throughout the article, section II provides some problem description for the 2:1 permutation oversubscription proof in expectation. Section III looks at the original proof from [12] and shows its shortcomings, justifying the need for a general case proof, shown in section IV. Ours can be used for other arbitrary traffic patterns to derive expected oversub ratios. Section V computes oversubscription bounds that happen with high probability for low radixes in permutation patterns in the general case, not in expectation. This section also covers experimental results which show that the difference in FCTs created by the global topology wiring’s Z matrix diminishes with an increase in radix. The Z matrix is first encountered in the oversub proof. An entry zi,j counts for some groups i, j how many intermediate groups contain both i, j in the same spine (essentially how many 1-hop corrections are available for each pair of groups). We end with the conclusion in section VI. II. P ROBLEM DEFINITION 
+
+We follow with some introductory notation. All switches in the Dragonfly+ max-host topology have radix k. A group has 
+
+l leaf and s spine switches. Each leaf has p hosts. Each spine has h global links attached. Generally, k is even, and we use the rule-of-thumb k/ 2 = h = s = l = p. We will later see that at least for our oversubscription proof, we need to enforce this rule-of-thumb. Along the article, we also note h = k/ 2
+
+as the half radix where the rule-of-thumb is enforced. The number of groups in the topology is |G| = h2 + 1 . The total number of hosts is N = |G|h2 = h2(h2 + 1) .There are multiple types of paths available between two hosts, out of which we will use the following five (we will denote a path passing through a group-local link by L, and a global link by G):                      
+
+> type description # paths
+> LL (L2)group-local path that only needs to go 1
+> through a leaf switch
+> L4group-local path that needs to visit k
+> 2=h
+> a spine switch as well
+> L2GL 2global path that uses the direct global link 1
+> L2G2L2global path that uses an intermediate h−1
+> group, but only passes through a spine (expected) (1-indirect global)
+> L2GL 2GL 2global path that passes through two spine h2(h−1)
+> switches and a leaf switch in the (expected) intermediate group (2-indirect global)
+
+We will prove the number of paths for each of the five types. For L2, there is only one path, since we never leave the leaf switch that both the sender and receiver hosts share. For L4: by considering the Fully-Connected links between the leaf and spine switch layers in figure 3, we notice that we can use any of the spine switches as intermediates to get from a leaf switch to another, meaning that we have h distinct paths if the hosts share the group, but not the leaf switch. For L2GL 2: since there is a unique link between the two groups, we are also forced to pass through specific spine switches in both groups, meaning that there is only one distinct path. We need the following property before continuing with the last two path counts. 
+
+Property II.1. We have a·b objects that we want to uniformly split into b sectors, each sector taking a objects each. Then the probability that two specific objects end in the same sector is 
+
+(a − 1) /(ab − 1) .a a a 
+
+> bsectors
+
+Fig. 4: Fix WLOG the position of the first object. Then the second object has to randomly choose one of the ab − 1 left positions, out of which only a − 1 are in the same sector as the first object. 
+
+Notation II.2. Let gr : [0 , N) → [0 , |G|) be a function mapping a host id to its respective group id. 
+
+Property II.3. If we take the expectation over all possible global layer wirings, there are h−1 L2G2L2 paths on average. group(i) 
+
+> group(j)
+
+Fig. 5: For a 1-indirect path between two hosts i and j, we need to pick an intermediate group that has a spine with links to both gr( i) and gr( j).We apply property II.1 on an arbitrary switch, which has 
+
+|G| − 1 = ab pipes leaving it, which are grouped into sectors of h = b pipes each. Therefore, the probability of choosing a switch if two specific links ( → gr( i), → gr( j)) are in the same spine is: 
+
+p = 
+
+> |G|− 1
+> h
+
+− 1
+
+|G| − 2 = 
+
+> h2
+> h
+
+− 1
+
+|G| − 2
+
+And the expected number of 1-indirect groups is 
+
+p · (|G| − 2) = h − 1.
+
+Property II.4. The expected number of L2GL 2GL 2 paths is 
+
+h2(h − 1) .The expected number of groups where we can’t directly jump between gr( i) and gr( j) is: 
+
+(1 − p) · (|G| − 2) = |G| − 2 − |G| − 1
+
+h + 1 = h(h − 1) 
+
+In the interior of any intermediate group we can choose any of the h leaf switches between the two fixed spines, so the expected amount of distinct paths is h2(h − 1) .III. O RIGINAL OVERSUBSCRIPTION PROOF DISCUSSION 
+
+We analyze [12]’s own average-case 2:1 oversubscription proof for the permutation pattern 1. We will show the two mistakes that cancel out to produce the correct ratio and discuss the observation with no proof that was implied. 
+
+Assumption III.1. Throughout the paper, we will assume a simple oblivious packet sprayer i.e. Valiant [14]. It picks for each packet a random intermediate group first, that generally describes a non-min-cost path. Afterwards, it follows any min-cost route from it, with tie-breaks chosen randomly. 
+
+Assumption III.2. The original proof only considers worst-case permutations, in which all sender-receiver host pairs must be in different groups. h2 flows h2/(|G|-1) each 
+
+Fig. 6: As a result, h2 flows must leave a group. Since we can use intermediate groups, any packet is allowed to choose any outgoing pipe, resulting in a h2/(|G| − 1) = 1 
+
+expected load per global edge leaving the group. A: h2B: h2C: h2           
+
+> host-leaf  leaf-spine  global
+> D: h2=(|G|-1)· h2/(|G|-1) E: (1-f)h 2G: (c-f)·h 2H: c·h 2I: c·h 2J: c·h 2F: (1-c)·h 2K: c·h 2
+
+Fig. 7: A diagram summarizing the coexisting flows in a group specific to the proof. We color traffic that is still in the sender group as purple, receiver group as blue, intermediate group as yellow, and unknown (receiver or intermediate) as orange. Since all global level links have h2/(|G| − 1) expected load (before accounting for traffic leaving intermediate groups) and we have |G| − 1 global links entering in a group, the expected incoming total traffic is h2 for step D. 
+
+Notation III.3. Some flow from D doesn’t need to travel to the leaf layer, i.e. the 1-indirect flow. Let its expected fraction be f · h2.
+
+Notation III.4. Out of the (1 −f )h2 direct and 2-indirect flow reaching the leaves, we expect only (1 − c)h2 = 1 /(|G| − 1) ·
+
+> 1It can be found in the article in section V, subsection D.
+
+h2 = 1 unit of traffic (where c = 1 − 1/h 2) to have been correctly sent to the destination group (step F). As a result, the other (c−f )·h2 is 2-indirect (step G). From now on, it along with the f · h2 1-indirect flow must follow min-cost paths to their destinations. 
+
+Observation III.5. The distinction between a flow following min-cost paths and path is very important. A packet by itself must now follow a min-cost path, but a flow is made out of multiple packets, and so it follows min-cost paths instead. 
+
+Mistake III.6. The original proof fails to account the (1 −
+
+c) · h2 > 0 flow that is direct and that is not sent back up into the global layer. If this were the only oversight of the original proof, the oversubscription factor would be strictly less than 
+
+2 : 1 , although it would converge to 2 : 1 as h → +∞.
+
+Mistake III.7. The second, bigger mistake with the proof occurs at step H. To get an expected load per outgoing global link, we should divide c·h2 by how many links we can actually use out of h2, but it’s not trivial to compute this, and the proof wrongly assumes that the answer is h2 itself. For each packet, we certainly can’t use the link it arrived through in the intermediate group, since it would send it back to the receiver, so we can divide by at most h2 − 1.
+
+Property III.8. In order to divide by h2 −1, we need for each receiver group to have two hosts in distinct groups sending to it. group α 
+
+> group β
+> ABC
+
+Fig. 8: Suppose by contradiction that there is exactly one group 
+
+α in the permutation sending traffic to a group β.
+
+Observation III.9. Because of assumption III.2 , there must be at least one group that sends to β.Then the pipe marked with B in figure 8 cannot carry indirect traffic, since we would need α to be an indirect group for a pair (γ̸ = α, β ), but the group γ cannot exist because of the supposition. Any packet for which α acts as indirect, e.g. one that arrived through pipe A cannot leave through it, nor through pipe B, so we can divide at most by h2 − 2 for group α (e.g. pipe C can be counted). On the contrary, if the contradiction is not fulfilled and we allow γ to exist, then if we send flow for enough time, pipe B can eventually be used. All other pipes δ → β with 
+
+δ̸ = α already have indirect packets on them since δ acts as an intermediate group for (α, β ). This finishes the proof for 
+
+property III.8 , and should offer some insight on observation III.5 .Finishing figure 7, in step I we will get the c · h2 which are for the destination group, which then gets propagated through steps J and K. As a result, the expected leaf-spine/spine-spine up/down link oversubscription is h2/h 2 + ch 2/(h2 − 1) : 1 = 2 : 1 .IV. O VERSUBSCRIPTION GENERAL PROOF 
+
+We have seen in section III that the original proof only stands for permutation patterns, where all host pairs are from different groups and there are at least two sender groups for each receiver group. This is a strong enough incentive to look for a general-case proof that fixes the original proof’s shortcomings. While the original proof holds only for a subset of the permutation pattern, we will support a superset of them: we only constrain all hosts to send and receive at most line rate. This can be further relaxed to obtain approximate expected FCT estimates for any traffic pattern. Supporting any pattern in which all hosts must receive and send at most line rate can be expressed in the following property: 
+
+Property IV.1. Let any link from the topology be composed of two opposed one-way sub-links. Let rate i,j ∈ [0 , 1] be the fraction of the one-way sub-link bandwidth that host i sends to host j in a timestep. Then: 
+
+> N
+
+X
+
+> j=1
+
+rate i,j ≤ 1 (send at most line rate to host i’s leaf switch) 
+
+> N
+
+X
+
+> j=1
+
+rate j,i ≤ 1 (receive at most line rate from host i’s leaf) These can be written literally as P   
+
+> ior j
+
+W rate i,j ≤ W ,where W is the amount of packets a host can send without feedback, i.e. the congestion window (CWND) variable. We consider rate i,i = 0 .
+
+Section Overview IV.2. We want to prove that regardless of the values that the matrix rate contains, as long as it fulfills property IV.1 , then the expected flow sums for all other network sub-links don’t exceed 2 (i.e. in order to not pass expected 100% bandwidth usage on leaf-spine and global links, we need to not pass 50% usage on host-leaf links). 
+
+Observation IV.3. Esentially, the rate matrix is an input to a Linear Program. We prove that the worst rate ∗ matrix that an optimizer would find will give each flow value passing through a leaf-spine, or a global link a maximum expected value of at most 2. The optimizer works with the coefficients that split the traffic given by Valiant routing. The optimizer maximizes the maximum 2 flow value passing through a leaf-spine, or a global link. 
+
+Question IV.4. Why not just solve the two LPs for practical values of h instead of obtaining a link flow upper bound? The 
+
+rate matrix has Θ( h8) entries. Assuming that rate ∗ is dense and that matrix multiplication can be done in quadratic time, a naive application of an efficient LP solver could be O(h16+ ϵ).
+
+Observation IV.5. The permutation pattern satisfies property IV.1 , as for any host i is an unique host pe (i) that concentrates host i’s entire line rate: rate i, pe (i) = 1 .
+
+A. Global Sub-Link Flow Expected Bound 
+
+Property IV.6. Let 1 ≤ i, j ≤ N be two hosts from different groups. Then the flow that i → j imposes on the global layer is W · rate i,j .
+
+Notation IV.7. Let zgr( i),gr( j) be the number of groups whose connections with groups gr( i) and gr( j) are in the same spine. We may note (z ◦ gr) i,j = zgr( i),gr( j).
+
+Notation IV.8. Let (#0) i,j , (#1) i,j , (#2) i,j be random variables counting how many packets on the i → j host-to-host flow get sent on the only direct link, one of the zgr( i),gr( j)
+
+1-indirect links, or one of the |G| − 2 − zgr( i),gr( j) 2-indirect links: 
+
+(#0) i,j + (#1) i,j + (#2) i,j = W · rate i,j 
+
+(#0) i,j ∼ Binomial 
+
+
+
+W · rate i,j , 1
+
+h2
+
+
+
+(#1) i,j ∼ Binomial 
+
+
+
+W · rate i,j , zgr( i),gr( j)
+
+h2
+
+
+
+(#2) i,j ∼ Binomial 
+
+
+
+W · rate i,j , h2 − 1 − zgr( i),gr( j)
+
+h2
+
+
+
+i.e. (#0) i,j is the sum of W · rate i,j simple Bernoulli events, each with success probability 1/h 2, since only one out-queue is a direct link to gr( j).
+
+Notation IV.9. Let αi,j represent the i → j flow fraction going directly to j’s group. Similarly, let βi,j and γi,j represent the flow fractions going on 1-indirect and 2-indirect routes to 
+
+j’s group. 
+
+E(αi,j ) = E
+
+ (#0) i,j 
+
+W · rate i,j 
+
+
+
+= E((#0) i,j )
+
+W · rate i,j 
+
+= 1
+
+h2 = 4
+
+k2 =not α
+
+E(βi,j ) = (z ◦ gr) i,j 
+
+h2 = α · (z ◦ gr) i,j 
+
+(so expected α per each of (z ◦ gr) i,j edges) 
+
+E(γi,j ) = h2 − 1 − (z ◦ gr) i,j 
+
+h2 = α · (h2 − 1 − (z ◦ gr) i,j )
+
+(exp. α per edge) 
+
+> 2
+
+In order to not resort to a Mixed-Integer Linear Program to maximize the maximum flow, we can instead call Θ( h4) LPs, each maximizing one leaf-spine or global link flow. Because of the implication of property IV.10 , the Dragonfly+ topology is symmetrical in expectation, and so we only need to call 2 LPs instead of Θ( h4), one for an arbitrary leaf-spine link and one for a global link. 
+
+Property IV.10. Valiant routing increases load uniformly (in 
+
+expectation ) over all affected global edges for any global flow 
+
+i → j. Each load increases with α · rate i,j .group(i) group(j) group(i) group(j) E( αij)· rateij rateij · E( βij)/ zij group(i) group(j) rateij · E( γij)/ (|G|-2 - zij) 
+
+Fig. 9: Property IV.10 drawn. zgr( i),gr( j) vanishes when we consider the expected load. We will now compute the expected load on the two global sub-links that unite group x to group y. Let ga,b represent the id of the b-th host from the a-th group ( 1 ≤ a ≤ | G|, 1 ≤ b ≤
+
+lp ). i The load from L2GL 2 paths: x y
+
+Fig. 10: Every pair of hosts’ flows from groups x and y pass through this edge. The load for packets from x to y, only adding to the x → y
+
+sub-link: 
+
+> lp
+
+X
+
+> i=1
+> lp
+
+X
+
+> j=1
+
+α · rate gx,i ,g y,j 
+
+The load for the y → x sub-link: 
+
+> lp
+
+X
+
+> i=1
+> lp
+
+X
+
+> j=1
+
+α · rate gy,j ,g x,i 
+
+From now on, we will forgo mentioning the load for the 
+
+y → x sub-link, since if rate i,j appears in the x → y load sum, rate j,i will appear in the y → x load sum, so both sub-links will be eventually bounded to the same limit. ii The load from L2G2L2 paths: x  
+
+> yz
+> x
+> yz
+
+Fig. 11: Both x and y can act as intermediate groups. For y as an intermediate group: 
+
+X
+
+> z∈A
+> |A|=h−1
+> lp
+
+X
+
+> i=1
+> lp
+
+X
+
+> t=1
+
+α · rate gx,i ,g z,t 
+
+For x as an intermediate group: 
+
+X
+
+> z∈B
+> |B|=h−1
+> lp
+
+X
+
+> t=1
+> lp
+
+X
+
+> j=1
+
+α · rate gz,t ,g y,j 
+
+iii The load from L2GL 2GL 2 paths: x 
+
+> y
+> z
+> x
+> yz
+
+Fig. 12: Again, both x and y can be intermediates. For y as an intermediate group: 
+
+X
+
+> z∈C
+> |C|=h(s−1)
+> lp
+
+X
+
+> i=1
+> lp
+
+X
+
+> t=1
+
+α · rate gx,i ,g z,t 
+
+For x as an intermediate group: 
+
+X
+
+> z∈D
+> |D|=h(s−1)
+> lp
+
+X
+
+> t=1
+> lp
+
+X
+
+> j=1
+
+α · rate gz,t ,g y,j 
+
+Property IV.11. Since there is exactly one link uniting any two different groups, no group can be found twice in A, B,
+
+C, or D. Also, A ∩ C = ∅, since by changing the outgoing spine from y we cannot reach any groups that were reachable through the ingoing spine in y. Similarly, B ∩ D = ∅. Also, from ii and iii, x, y / ∈ A ∪ B ∪ C ∪ D, since in ii we don’t take the link that we just came through, and in iii we change the outgoing spine. Using A ∩ C = ∅ from property IV.11 , we will unite the loads from i, ii (first part), and iii (first part). Afterwards, we will apply property IV.1 with the fixed hosts gx,i :
+
+α
+
+> lp
+
+X
+
+> i=1
+
+ lp X
+
+> j=1
+
+rate gx,i ,g y,j + X
+
+> z∈A∪Clp
+
+X
+
+> t=1
+
+rate gx,i ,g z,t 
+
+
+
+From property IV.11 , y / ∈ A∪C ⇒ gy,j ̸ = gz∈A∪C,t . Also, 
+
+A ∩ C = ∅ ⇒ gz∈A,t ̸ = gz∈C,t . This means that our previous sum is at most: 
+
+α
+
+> lp
+
+X
+
+> i=1 N
+
+X
+
+> j=1
+
+rate gx,i ,j 
+
+> p. IV.1
+
+≤ α
+
+> lp
+
+X
+
+> i=1
+
+1 = α · lp = 4
+
+k2 · k
+
+2
+
+k
+
+2 = 1 
+
+Similarly, we will apply property IV.1 (the second inequality this time) over the fixed hosts gy,j using 
+
+B ∩ D = ∅ from property IV.11 with the remaining loads from ii and iii, obtaining another flow bound of one. Summing both flow bounds gives us an expected total bound for the x → y sub-link of at most 1 + 1 = 2 . Implicitly, we can get a bound of 2 as well for the y → x sub-link. 
+
+B. Leaf - Spine Sub-Link Flow Expected Bound 
+
+We will apply the same rationale as in the previous subsection, aiming to apply property IV.1 as little times as possible, although bounding may be more complicated. For a fixed arbitrary group, let leaf x,q represent the host id of the q-th host under the x-th leaf router ( 1 ≤ x ≤ l, 1 ≤ q ≤ p). We will note the leaf router with x and the spine router with y.iv We first count the load from L4 paths. x
+
+> y
+> leaf x,·
+> z
+> leaf z,·
+
+Fig. 13: The receiver host will be in the same group, under leaf z.The path is obligated to pass through x since it has one end in one host under it, but it doesn’t necessarily need to pass through y. It can choose any spine router and continue to the t leaf router. Because of oblivious spraying, on average only 1/s will pass through x → y:
+
+1
+
+s
+
+> p
+
+X
+
+> i=1
+> l
+
+X
+
+> t=1
+> t̸=xp
+
+X
+
+> j=1
+
+rate leaf x,i ,leaf t,j 
+
+We will count in v the load imposed by path types 
+
+L2GL 2, L 2G2L2, L 2GL 2GL 2 (we will first only consider 
+
+L2GL 2GL 2 paths where the x → y sub-link is not in the intermediate group). y 
+
+> x
+> e
+> ∈Fe∈Ge
+
+Fig. 14: We will leave x → y’s group through one of the h
+
+links outgoing from y. We will arrive in a group e ∈ E, |E| =
+
+h.For a fixed e ∈ E, this group can either be final (accounting for L2GL 2 paths) or intermediate, and we can leave it through the same spine that we arrived in (arriving in a group from 
+
+Fe, |Fe| = h − 1, accounting for L2G2L2 paths), or through another spine (arriving in a group from Ge, |Ge| = ( s − 1) h,accounting for some L2GL 2GL 2 paths). 
+
+Property IV.12. For a fixed e ∈ E, no two groups can be found twice in Fe or Ge, and Fe ∩ Ge = ∅ since there is only one link between any two different groups, and we get to groups in Fe and Ge by leaving through different spines. Also, e / ∈ Fe ∪Ge, since we must leave e to get to Fe ∪Ge. For 
+
+He = {e}∪ Fe∪Ge, it follows that |He| = 1+ h−1+( s−1) h =
+
+sh .v The load is: 
+
+α X
+
+> e∈E
+
+X
+
+> z∈He
+> p
+
+X
+
+> i=1
+> lp
+
+X
+
+> j=1
+
+rate leaf x,i ,g z,j 
+
+We will now unite the loads from iv and v. We will use 
+
+α = 1 /s 2 and factor 1/s 2 out of everything: 
+
+1
+
+s2
+
+> p
+
+X
+
+> i=1
+
+
+
+s
+
+> l
+
+X
+
+> t=1
+> t̸=xp
+
+X
+
+> j=1
+
+rate leaf x,i ,leaf t,j +
+
+X
+
+> e∈E
+
+X
+
+> z∈He
+> lp
+
+X
+
+> j=1
+
+rate leaf x,i ,g z,j 
+
+
+
+Since the first double sum in the parenthesis is repeated s
+
+times, and s = h = |E|, we will distribute one sum for each 
+
+e ∈ E:
+
+1
+
+s2
+
+> p
+
+X
+
+> i=1
+
+X
+
+> e∈E
+
+ lX
+
+> t=1
+> t̸=xp
+
+X
+
+> j=1
+
+rate leaf x,i ,leaf t,j + X
+
+> z∈He
+> lp
+
+X
+
+> j=1
+
+rate leaf x,i ,g z,j 
+
+
+
+We can swap the first two summation signs ( i, e ) and apply 
+
+property IV.1 over the fixed hosts leaf x,i in the parenthesis, since leaf t,j is part of x → y’s group which cannot be found in He. We also use property IV.12 to guarantee that no gz,j 
+
+is found twice: 
+
+1
+
+s2
+
+X
+
+> e∈Ep
+
+X
+
+> i=1
+
+ lX
+
+> t=1
+> t̸=xp
+
+X
+
+> j=1
+
+rate leaf x,i ,leaf t,j +
+
+X
+
+> z∈He
+> lp
+
+X
+
+> j=1
+
+rate leaf x,i ,g z,j 
+
+
+
+≤≤ 1
+
+s2
+
+X
+
+> e∈Ep
+
+X
+
+> i=1 N
+
+X
+
+> j=1
+
+rate leaf x,i ,j 
+
+> p. IV.1
+
+≤ 1
+
+s2
+
+X
+
+> e∈Ep
+
+X
+
+> i=1
+
+1 = ph s2 = 1 
+
+vi We finish by counting the load imposed by L2GL 2GL 2
+
+paths for which y → x is part of the intermediate group. y  
+
+> x
+> group z
+> group w
+
+Fig. 15: The load going from group z to group w enters y →
+
+x’s group. The ingoing spine is fixed in y. y → x will support on average 1/l of the total load, since we can spray over any leaf router in the intermediate group. The load on the y → x sub-link is: 
+
+αl
+
+X
+
+> z∈I
+> |I|=h
+
+X
+
+> w∈J
+> |J|=( s−1) hlp
+
+X
+
+> i=1
+> lp
+
+X
+
+> j=1
+
+rate gz,i ,g w,j 
+
+Property IV.13. No two groups can be found twice in either 
+
+I or J, and I ∩ J = ∅, similarly like property IV.12 .We apply property IV.1 over the fixed hosts gz,i :
+
+αl
+
+> lp
+
+X
+
+> i=1
+
+X
+
+> z∈I
+
+X 
+
+> w∈Jlp
+
+X
+
+> j=1
+
+rate gz,i ,g w,j 
+
+
+
+≤≤ αl
+
+> lp
+
+X
+
+> i=1
+
+X
+
+> z∈I
+> N
+
+X
+
+> j=1
+
+rate gz,i ,j 
+
+> p. IV.1
+
+≤ αl
+
+> lp
+
+X
+
+> i=1
+
+X
+
+> z∈I
+
+1 = α · lph l = 1 
+
+Implicitly, we get a bound of 1 from vi for the x → y
+
+sub-link as well. We sum the flow bounds from iv, v and vi, getting an expected upper bound for any leaf-spine sub-link of at most 1 + 1 = 2 .
+
+C. Discussion 
+
+Theorem IV.14. We have shown that it is possible for any 
+
+rate matrix that supports property IV.1 to bound all (global and leaf-spine) sub-link flows in expectation to at most two times the maximum flow on the host-leaf sub-links, making any leaf and spine router’s oversubscription ratio at most 2:1 against the host-leaf flow in expectation. 
+
+Observation IV.15. The multiple constraints that we have encountered during subsections IV-A ( αlp = 1 ) and IV-B (αs 2 = 1 , s = h, αph = 1 ) show that the general rule of thumb h = s = l = p must hold in order for the presented proof to work. 
+
+Property IV.16. Instead of capping the send and receive per host up to at most line rate, if any host sends at most s times the line rate, and receives at most r times the line rate, then the estimate in expectation is 2 max( s, r ) : 1 .Some example estimates can be found below. The approx-imations perform better if |s − r| → 0:                            
+
+> Traffic Pattern srOversubscription ratio estimate
+> Permutation 112:1 Incast 1N−12(N −1) : 1
+> (instead of the correct
+> (N −1) : 1 )All-to-All N−1N−12(N −1) : 1
+> Partial All-to-All
+> mgroups out of |G|mh 2−1mh 2−12( mh 2−1) : 1
+> (see figure 16)
+
+The first of several experiments from htsim can be found below. Some relevant htsim arguments are mentioned:                                
+
+> Feature Name Description
+> Packet Size 4KB + 54 bytes Flow Size 2·10 6bytes Link Speed 100 Gbps Link Delay 1μsSwitch Delay 0sMax RTT 15 μsMax Hops 8Path Count used in ECMP dummy 128 Congestion Control Sender-only Receiver-only no CC with infinite queue size, CWND BDP 33 packets Queue Size BDP ECN tagging only if CC is used: from 20% to 80% queue size 35710 # all-to-all used groups 25 50 75 100 125 150 175 Oversub ratio : 1
+> K = 6 (10 groups)
+> 4813 17 # all-to-all used groups 100 200 300 400 500 600
+> K = 8 (17 groups)
+> expected theoretical mean observed
+
+Fig. 16: m-group partial all-to-all, sender-only CC: we com-pare the expected theoretical 2( mh 2 − 1) : 1 ratio with the mean ratio observed in practice. We take the mean over a batch of m-groups such that each group is selected in as many batches as another (Balanced Incomplete Block Design). We obtain the ratio in practice by dividing the mean FCT with the mean time needed to finish one direct global flow ( ∼ 180 μs). While the behaviour observed in practice isn’t linear, it is approximated decently by our formula. V. O VERSUBSCRIPTION : H IGH PROBABILITY BOUNDS 
+
+We have proven in section IV that even a simple Valiant load balancer can achieve an expected 2:1 oversubscription bound on all switches, given that all hosts send and receive at most line rate per timestep. In this section, we concentrate on finding oversubscription bounds that hold with high probability (w.h.p.) in the general case, with no expectation presumption. 
+
+Section Overview V.1. If we want to use the expected value proof’s framework, we should simply bound α w.h.p. However, this is difficult to do while keeping the same general per-host line rate constraint. Remember that: 
+
+(#0) i,j ∼ Binomial 
+
+
+
+W · rate i,j , 1
+
+h2
+
+
+
+An immediate idea would be to apply Chernoff’s inequality to upper bound (#0) i,j . However, the bound is very inefficient if there are very few Bernoulli events summed. Here there are 
+
+W · rate i,j , and we don’t have any particular lower bound for 
+
+rate i,j but 0. We concentrate on the permutation pattern, as there is an unique host pe (i) that concentrates host i’s entire line rate: rate i, pe (i) = 1 .Applying Chernoff’s inequality on (#0) i, pe (i) ∼
+
+Bin (W, 1/h 2) gives: 
+
+P
+
+
+
+(#0) i, pe (i) ≥ Wh2=not μ
+
+(1 + δ)
+
+
+
+≤ exp 
+
+
+
+− δ2
+
+3 μ
+
+
+
+∀ δ ∈ (0 , 1) 
+
+For each host i we have h2 events, one for each outgoing link out of i’s group gr( i), so in total for N hosts we have 
+
+N h2 events. By applying the union bound we obtain: 
+
+P
+
+[ 
+
+> i
+
+[
+
+> global link
+> ∈gr( i)
+
+(#0) i, pe (i) ≥ μ(1 + δ)
+
+
+
+≤ N h2 exp 
+
+
+
+− δ2
+
+3 μ
+
+
+
+Then the probability that none of these unions happen is the complement: 
+
+p = 1 − h4(h2 + 1) exp 
+
+
+
+− δ2
+
+3 · Wh2
+
+
+
+Property V.2. If we use the lowest δ such that p would be considered high probability, then αi,j ≤ (1 + δ)/h 2 w.h.p, and the oversubscription bound would be 2(1 + δ) : 1 w.h.p. We will compute the lowest δ s.t. p ≥ 1−10 −2 numerically for each h, with μ = W/h 2 and N = h2(h2 + 1) . Since W
+
+is present here, we need an accurate estimate of CWND. If we know the congestion control mechanism, then we should follow the CWND imposed by it, usually 1 or 1.5times the BDP. The largest value of CWND happens if we use infinite queue sizes and no congestion control. 
+
+Property V.3. Following the 2:1 expected oversubscription rate, we estimate that the largest number of concurring packets on a pipe is: 
+
+2 · flow size packet size = 2 · 2 · 10 6
+
+4096 + 54 ≃ 2 · 481 = 962 packets For W = 962 packets, we get the following numerical results: 
+
+h N p δ 2(1 + δ) : 1 2 20 0.990 0.335 2.67 : 1 3 90 0.990 0.565 3.13 : 1 4 272 0.990 0.805 3.61 : 1 5 650 0.956 1 bound is unusable for h ≥ 5.
+
+Unfortunately, the Chernoff bound will always be weaker with a higher h, as (#0) i, pe (i) ∼ Bin (W, 1/h 2)’s mean decreases when h increases, equivalent with lowering the number of trials W instead. 
+
+Observation V.4. We could try to be less strict and allow some event complements to not hold, instead of wanting all of them to be true. For example, we could allow h2 out of N
+
+hosts to not meet the bound. 
+
+p = 1 −
+
+ N
+
+h2
+
+
+
+h2 · exp 
+
+
+
+− δ2
+
+3 μh 2
+
+This complicates the routing scheme. Any flow that doesn’t finish in 2(1 + δ) times the FCT of a single global flow should be backtracked and resent with new spraying decisions. However, this will only increase the maximum usable h:
+
+h N p δ 3 · 2(1 + δ) : 1 
+
+5 650 0.992 0.59 3 · 3.18 : 1 
+
+6 1332 0.993 0.731 3 · 3.461 : 1 
+
+7 2450 0.992 0.876 3 · 3.752 : 1 
+
+8 4160 < 0 1 bound is unusable for h ≥ 8.
+
+Observation V.5. We should consider Power-of-Two-Choices-like [9] packet sprayers instead of simple oblivious ones for oversubscription bounds. Repeating for each group’s h2 hosts with W packets each, if we randomly sample h ≥ d ≥ 2
+
+outward queues on the leaf/spine layers and choose the least filled one, we can have the maximum load in an outward spine queue of: 
+
+P
+
+
+
+max 
+
+> i∈Group
+
+
+
+(#0) i, pe (i)
+
+
+
+≤ Wh2 + ln ln h2
+
+ln d + q − 1 + O(1) 
+
+
+
+≤≤ 1 − Θ( h−q )
+
+For any integer q ≥ 1. If we want all |G| events (one for each group) to hold w.h.p., we need q ≥ 1+2 , as |G| ∈ Θ( h2).Factorizing W/h 2, we can get an upper bound for α with probability 1 − Θ( h−(q−2) ):
+
+α ≤ Wh2
+
+h
+
+1 + ln ln h2/ ln d + ( q − 1) + O(1) 
+
+W/h 2=δ
+
+i
+
+Which gives us an oversubscription bound of 2(1 + δ) : 1 .In order to achieve a constant upper bound for δ, we would need ln ln h2/ ln d ≥ ln ln h2/ ln h to decrease faster than 
+
+h−2, which is impossible. In practice, the quality of the bound is highly dependent on the choice for O(1) when h is small. Because of it, the bound is generally too optimistic for a small h, and becomes increasingly too pessimistic as h increases because of h−2.Several permutation pattern experiments from htsim follow. They specifically have these arguments: 
+
+# permutation traffic patterns 100 
+
+# different run seeds per pattern 10 
+
+# different global topologies for each Z matrix type (fig. 17 only) 5best random default 300 350 400 450 500 550 600 K = 4: FCT (  s)                 
+
+> NSCC
+> best random default 300 350 400 450
+> RCCC
+> best random default 250 300 350 400 450 500
+> !CC, inf QS, inf CWND
+> best random default 400 450 500 550 600 K = 6: FCT (  s)
+> best random default 350 400 450 500 550
+> best random default 350 400 450 500 550
+> best random default 450 500 550 600 650 K = 8: FCT (  s)
+> best random default 400 450 500 550 600 650
+> best random default 400 450 500 550 600 650
+
+Fig. 17: We investigate whether the Z matrix from notation IV.7 can influence the performance of permutation patterns. The best global topologies have all zgr( i),gr( pe (i)) = h −
+
+1. We also bar plot random topologies, and the default 
+
+configuration used in [12]. 
+
+Property V.6. There are infinitely many half-radixes h for which there exists a best topology with all (z ◦ gr) i, pe (i) =
+
+h − 1. Lemma 2.8 from [4] proves that one exists if h is a prime power. The default configuration can be described as: 
+
+if src_g < dst_g: # src_g, dst_g are group ids src_sw = (dst_g - 1) / hdst_sw = src_g / h # src_sw, dst_sw are spine switch ids, local for each group. The dashed horizontal line is the Chernoff estimate for the top 99% from figure 18. There is a visible ranking between topology types for k = 4 , but it dims between best and 
+
+random for k = 6 and virtually disappears for k = 8 .The biggest speedup achieved against default is ∼ 7% ,and occurs for k = 8 for sender-only CC. Note however that sender-only performs much worse for permutation patterns than receiver-only CC, where the speedup is unnotable. 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0 K = 4: % of sims being under oversub limit                                 
+
+> NSCC
+> 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0
+> RCCC
+> 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0
+> !CC, inf QS, inf CWND
+> Simulations Chernoff estimate 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0 K = 6: % of sims being under oversub limit 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0 2.0 2.5 3.0 3.5 4.0 0.0 0.2 0.4 0.6 0.8 1.0 Simulations Chernoff estimate 2.0 2.5 3.0 3.5 4.0 oversub coefficient 0.0 0.2 0.4 0.6 0.8 1.0 K = 8: % of sims being under oversub limit 2.0 2.5 3.0 3.5 4.0 oversub coefficient 0.0 0.2 0.4 0.6 0.8 1.0 2.0 2.5 3.0 3.5 4.0 oversub coefficient 0.0 0.2 0.4 0.6 0.8 1.0 Simulations Chernoff estimate
+
+Fig. 18: CDFs showing the fraction of permutation patterns whose oversubscription coefficient is under a certain value in 
+
+[2 , 4] . The blue curve represents results from htsim runs. The orange curve represents the Chernoff/Union Bound estimate from property V.2 considering Valiant routing. The three rows represent the lowest three valid radixes 
+
+k ∈ {4, 6, 8}. The columns represent different congestion control mechanisms being used, sender/reciever-only, or no CC with infinite queue size and CWND. Each plot has an additional three vertical lines. The dim black line represents the lowest oversub coefficient which covers at least 50% of runs. The darker black line counts 
+
+99% of runs. The red line represents the Chernoff bound estimate for the top 99% .The Chernoff bound should optimally be always more pessimistic than the actual runs, and should converge at 99% 
+
+at the same time. The 50% bound should be hit by the runs at 2.0 oversubscription (as it can be seen in figure 17, the median (orange line) and mean (green triangle) empirically overlap and can be used interchangeably here). 
+
+W is always set up for the infinite queue size, even if the sender-only and receiver-only CC have the CWND set to 
+
+1 and 1.5 times the BDP respectively. While the Chernoff bound provides a great estimate for sender-only and infinite queue size when k = 4 , it becomes visibly rough for all settings when k increases. The receiver-only CC is closest to theory, reaching 50% almost instantly after the 2.0 coefficient. Interestingly, the 50% and 99% lines always draw closer as k increases, while the 99% line moves slightly to the left in the receiver-only and no CC, infinite queue size settings. While we cannot prove that the 99% will be reached earlier for higher values of k, we can empirically state that the 2.67 : 1 
+
+oversubscription bound for k = 4 holds with at least 99% 
+
+probability for any k ≥ 4 in the receiver-only CC setting. VI. C ONCLUSION 
+
+We have fixed and augmented the original Dragonfly+ [12] 2:1 oversubscription proof in expectation for the permutation traffic pattern, and in turn made it applicable to a vaster set of patterns. We only need all hosts to both send and receive at most line rate. This can be expanded to obtain an expected oversubscription estimate for any pattern. If any host sends at most s times the line rate, and receives at most r times the line rate, then the estimate is 2 max( s, r ) : 1 . This works better if s is closer to r, for example for all-to-all we have 
+
+s = r = N −1 (host count). We obtain reasonable high probability (99% )oversubscription bounds for small values of k on the permutation pattern: 2.67 : 1 for k = 4 and 3.13 : 1
+
+for k = 6, when using sender-only CC. Interestingly, for receiver-only CC and no CC, infinite queue size and CWND, we empirically notice that 99% of simulations finish with a smaller oversub bound, while their associated CDF rises faster for a higher radix k. If we can formally prove this, we could use the weak 2.67 : 1 bound for k = 4 for any k.Experimental results show that at least for a small k and sender-only CC, the global topology can influence the oversub-scription bound through the Z matrix, where zi,j counts how many intermediate groups have groups i, j in the same spine. We observe speedups against the default global topology used in [12] of at most ∼ 7% for k ≤ 8. We hypothesize that for a large enough k all possible global topologies will eventually perform similarly, at least in a theoretical infinite queue size and CWND setup. ACKNOWLEDGMENT 
+
+We thank the anonymous reviewers for their constructive feedback. We thank our faculty for providing the compute cluster used for simulations. REFERENCES [1] Jung Ho Ahn, Nathan Binkert, Al Davis, Moray McLaren, and Robert S Schreiber. Hyperx: topology, routing, and packaging of efficient large-scale networks. In Proceedings of the Conference on High Performance Computing Networking, Storage and Analysis , pages 1–11, 2009. doi: 10.1145/1654059.1654101 .[2] Maciej Besta and Torsten Hoefler. Slim fly: a cost effective low-diameter network topology. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis , SC ’14, page 348–359. IEEE Press, 2014. doi:10.1109/SC.2014.34 .[3] Ultra Ethernet Consortium. Uet htsim fork, 2025. URL: https://github. com/ultraethernet/uet-htsim. [4] Steven Furino. Existence results for near resolvable designs. Journal of Combinatorial Designs , 3(2):101–113, 1995. doi:10.1002/jcd. 3180030204 .[5] Mark Handley, Costin Raiciu, Alexandru Agache, Andrei Voinescu, Andrew W. Moore, Gianni Antichi, and Marcin W´ ojcik. Re-architecting datacenter networks and stacks for low latency and high performance. In Proceedings of the Conference of the ACM Special Interest Group on Data Communication , SIGCOMM ’17, page 29–42, New York, NY, USA, 2017. Association for Computing Machinery. doi:10.1145/ 3098822.3098825 .[6] Torsten Hoefler, Karen Schramm, Eric Spada, Keith Underwood, Cedell Alexander, Bob Alverson, Paul Bottorff, Adrian Caulfield, Mark Han-dley, Cathy Huang, Costin Raiciu, Abdul Kabbani, Eugene Opsasnick, Rong Pan, Adee Ran, and Rip Sohan. Ultra ethernet’s design principles and architectural innovations, 2025. doi:10.48550/arXiv.2508. 08906 .[7] Kelly Isham, Laura Monroe, Kartik Lakhotia, Aleyah Dawkins, Daniel Hwang, and Ales Kubicek. Edge-disjoint spanning trees on star prod-ucts. In 2025 IEEE International Parallel and Distributed Processing Symposium (IPDPS) , pages 309–321. IEEE, 2025. doi:10.48550/ arXiv.2403.12231 .[8] John Kim, Wiliam J. Dally, Steve Scott, and Dennis Abts. Technology-driven, highly-scalable dragonfly topology. In Proceedings of the 35th Annual International Symposium on Computer Architecture , ISCA ’08, page 77–88, USA, 2008. IEEE Computer Society. doi:10.1109/ ISCA.2008.19 .[9] Michael Mitzenmacher. The power of two choices in randomized load balancing. IEEE transactions on parallel and distributed systems ,12(10):1094–1104, 2002. doi:10.1109/71.963420 .[10] Bogdan Prisacari, German Rodriguez, Marina Garcia, Enrique Vallejo, Ramon Beivide, and Cyriel Minkenberg. Performance implications of remote-only load balancing under adversarial traffic in dragonflies. In Proceedings of the 8th International Workshop on Interconnection Network Architecture: On-Chip, Multi-Chip , pages 1–4, 2014. doi: 10.1145/2556857.2556860 .[11] SemiAnalysis. Nvidia gtc commentary, 2026. URL: https://newsletter. semianalysis.com/p/nvidia-the-inference-kingdom-expands. [12] Alexander Shpiner, Zachy Haramaty, Saar Eliad, Vladimir Zdornov, Barak Gafni, and Eitan Zahavi. Dragonfly+: Low cost topology for scaling datacenters. In 2017 IEEE 3rd International Workshop on High-Performance Interconnection Networks in the Exascale and Big-Data Era (HiPINEB) , pages 1–8, 2017. doi:10.1109/HiPINEB.2017. 11 .[13] TOP500. Supercomputer ranking, 2025. URL: https://top500.org/lists/ top500/2025/11/. [14] Leslie Valiant. A scheme for fast parallel communication. SIAM Journal on Computing , 11(2):350–361, 1982. doi:10.1137/0211027 .

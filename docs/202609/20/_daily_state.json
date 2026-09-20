@@ -1,0 +1,57 @@
+{
+  "date": "20260920",
+  "date_label": "",
+  "generated_at": "2026-09-20 21:27:52 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.15955v1",
+      "route": "202609/20/2609.15955v1-understanding-the-oversubscription-behaviour-of-dragonfly-networks",
+      "title": "Understanding the oversubscription behaviour of DragonFly+ networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "分析DragonFly+互连拓扑的过订阅行为与置换流量路由",
+      "first_seen_at": "2026-09-20 21:27:52 UTC",
+      "updated_at": "2026-09-20 21:27:52 UTC"
+    },
+    {
+      "paper_id": "2609.15241v1",
+      "route": "202609/20/2609.15241v1-a-25-sinf-event-driven-graph-neural-network-processor-with-spatiotemporal-caching-and-spline-convolution-for-ultra-low-latency-ai-at-the-edge",
+      "title": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘超低延迟AI的事件驱动GNN处理器加速器架构",
+      "first_seen_at": "2026-09-20 21:27:52 UTC",
+      "updated_at": "2026-09-20 21:27:52 UTC"
+    },
+    {
+      "paper_id": "2609.16600v1",
+      "route": "202609/20/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘神经网络推理的可重构加速器架构",
+      "first_seen_at": "2026-09-20 21:27:52 UTC",
+      "updated_at": "2026-09-20 21:27:52 UTC"
+    }
+  ]
+}

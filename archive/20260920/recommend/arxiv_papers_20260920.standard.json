@@ -1,0 +1,135 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-20T21:26:53.824263+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.15955v1",
+      "source": "arxiv",
+      "title": "Understanding the oversubscription behaviour of DragonFly+ networks",
+      "abstract": "The Max-Host Dragonfly+ topology's original paper proves that there is a 2:1 worst-case oversubscription ratio in expectation for the permutation traffic pattern. We show that the proof only covers a subset of permutation patterns, specifically those in which all host pairs are in different groups, and for any receiver group there are at least two sending hosts in distinct groups. The proof contains two mistakes that cancel out to produce the correct result. Furthermore, the proof implicitly uses an important observation without a backing argument: traffic leaving an indirect group, now forced to follow min-cost paths to receiver groups, can still be split across almost all outgoing global links, in contrast with splitting traffic from a sender group that can naturally select any outgoing group.   We prove that the 2:1 ratio holds in expectation for a larger set of patterns, including any permutation. We only need to know that any host sends and receives at most line rate traffic. This constraint can be altered to obtain approximations for expected FCT bounds on any pattern. We also attack the oversubscription problem without the expectation assumption, and find bounds that hold with high probability on permutations for small switch radixes.   While in expectation the global layer wiring doesn't affect the oversubscription rate, we experimentally find that it matters in the general case. We find topologies that obtain visible speedups against the default global wiring from the original paper, under $7\\%$ for radixes at most $8$.",
+      "authors": [
+        "Vlad-Adrian Ulmeanu",
+        "Costin Raiciu",
+        "Iulian-Ilie Drăcea"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-09-14T17:50:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.15955v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "analysis of DragonFly+ interconnect topology oversubscription and permutation traffic routing",
+      "llm_evidence_cn": "分析DragonFly+互连拓扑的过订阅行为与置换流量路由",
+      "llm_evidence": "分析DragonFly+互连拓扑的过订阅行为与置换流量路由",
+      "canonical_evidence": "分析DragonFly+互连拓扑的过订阅行为与置换流量路由",
+      "llm_tldr_en": "The paper re-examines the Max-Host DragonFly+ proof of a 2:1 worst-case oversubscription ratio, showing it covers only a subset of permutation patterns and contains cancelling errors, and clarifies traffic splitting on global links.",
+      "llm_tldr_cn": "该论文重新审视Max-Host DragonFly+拓扑原始论文关于置换流量下2:1最坏过订阅比的证明，指出原证明仅覆盖部分置换模式，且存在相互抵消的错误，并指出从间接组出发的流量可被分散到几乎所有全局链路这一未经论证的隐含假设。作者据此给出更严格的过订阅行为分析，为HPC与片上互连拓扑的流量分配与路由设计提供修正性参考。",
+      "llm_tldr": "该论文重新审视Max-Host DragonFly+拓扑原始论文关于置换流量下2:1最坏过订阅比的证明，指出原证明仅覆盖部分置换模式，且存在相互抵消的错误，并指出从间接组出发的流量可被分散到几乎所有全局链路这一未经论证的隐含假设。作者据此给出更严格的过订阅行为分析，为HPC与片上互连拓扑的流量分配与路由设计提供修正性参考。",
+      "llm_tags": [
+        "query:noc-arch"
+      ],
+      "matched_query_tag": "query:noc-arch",
+      "matched_query_text": "classic foundational and recent research on on chip interconnection network architecture and design",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15241v1",
+      "source": "arxiv",
+      "title": "A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge",
+      "abstract": "Dynamic-vision-sensor (DVS) cameras generate events on a per-pixel basis with a $μ$s-level temporal resolution, calling for new algorithm-hardware co-design approaches compared to standard frame-based vision. While event-driven graph neural networks (EV-GNNs) emerge as a promising algorithmic solution, they raise new HW challenges by mixing dense-regular compute operations and sparse-irregular memory accesses. We present ETHEREAL, the first EV-GNN accelerator that scales to 640$\\times$480 resolutions, thanks to a neighbor-parallel spline convolution engine and a 2D/3D-split memory hierarchy with a novel region-of-interest spatiotemporal caching mechanism. Measurement results demonstrate end-to-end inference with 25.6$μ$s latency and 1.7$μ$J energy per event on state-of-the-art workloads",
+      "authors": [
+        "Adrian Kneip",
+        "Martin Lefebvre",
+        "Daniel Gehrig",
+        "Victoria Catalán Pastor",
+        "Davide Scaramuzza",
+        "Marian Verhelst",
+        "Charlotte Frenkel"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AR"
+      ],
+      "published": "2026-09-14T09:01:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.15241v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "event-driven GNN processor accelerator architecture for ultra-low-latency edge AI",
+      "llm_evidence_cn": "面向边缘超低延迟AI的事件驱动GNN处理器加速器架构",
+      "llm_evidence": "面向边缘超低延迟AI的事件驱动GNN处理器加速器架构",
+      "canonical_evidence": "面向边缘超低延迟AI的事件驱动GNN处理器加速器架构",
+      "llm_tldr_en": "Presents ETHEREAL, the first event-driven GNN accelerator scaling to 640x480 resolution, with a neighbor-parallel spline convolution engine and 2D/3D-split memory hierarchy.",
+      "llm_tldr_cn": "论文针对动态视觉传感器产生微秒级事件流、而事件驱动图神经网络同时混合稠密规则计算与稀疏不规则访存、给硬件加速带来新挑战的问题，提出ETHEREAL加速器。该处理器采用邻域并行样条卷积引擎，以及配备感兴趣区域时空缓存机制的2D/3D分层存储架构。作为首个可扩展到640×480分辨率的事件驱动GNN加速器，它实现了约25微秒每次推理的超低延迟，为边缘端事件驱动AI提供了高效的算法-硬件协同处理器方案。",
+      "llm_tldr": "论文针对动态视觉传感器产生微秒级事件流、而事件驱动图神经网络同时混合稠密规则计算与稀疏不规则访存、给硬件加速带来新挑战的问题，提出ETHEREAL加速器。该处理器采用邻域并行样条卷积引擎，以及配备感兴趣区域时空缓存机制的2D/3D分层存储架构。作为首个可扩展到640×480分辨率的事件驱动GNN加速器，它实现了约25微秒每次推理的超低延迟，为边缘端事件驱动AI提供了高效的算法-硬件协同处理器方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16600v1",
+      "source": "arxiv",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "abstract": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "authors": [
+        "Yi Sheng Chong",
+        "Rakshith Harish",
+        "Rajesh Chandrasekhara Panicker",
+        "Vishnu P. Nambiar",
+        "Anh Tuan Do"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-15T03:51:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.16600v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "reconfigurable accelerator architecture for edge neural-network inference",
+      "llm_evidence_cn": "面向边缘神经网络推理的可重构加速器架构",
+      "llm_evidence": "面向边缘神经网络推理的可重构加速器架构",
+      "canonical_evidence": "面向边缘神经网络推理的可重构加速器架构",
+      "llm_tldr_en": "Edge devices need efficient yet flexible processing, but typical CGRAs take two cycles per MAC, slowing neural-network inference. This work adds configurable MAC units in PEs so one multiplier does ADD, MUL, or MAC, plus dynamic truncation, reaching 420 GOPS/W.",
+      "llm_tldr_cn": "边缘设备要求兼具高能效与灵活性的处理能力，而典型粗粒度可重构架构执行MAC运算需两个周期，导致神经网络推理等MAC密集任务耗时较长。本文提出在PE中集成可配置MAC单元，使同一乘法器可按需完成加法、乘法或MAC，并配合动态截断降低功耗。该设计实现了420 GOPS/W的能效，兼顾通用处理器的灵活性与接近专用加速器的高效率。这一结果说明CGRA可作为边缘端AI推理的实用加速方案。",
+      "llm_tldr": "边缘设备要求兼具高能效与灵活性的处理能力，而典型粗粒度可重构架构执行MAC运算需两个周期，导致神经网络推理等MAC密集任务耗时较长。本文提出在PE中集成可配置MAC单元，使同一乘法器可按需完成加法、乘法或MAC，并配合动态截断降低功耗。该设计实现了420 GOPS/W的能效，兼顾通用处理器的灵活性与接近专用加速器的高效率。这一结果说明CGRA可作为边缘端AI推理的实用加速方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
