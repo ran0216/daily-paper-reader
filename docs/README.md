@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-20</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-21</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 3 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-20 21:27:52 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-21 22:22:00 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-20 日报速读 3 篇，最高分 7.0，聚焦 DragonFly+ 网络超额订阅行为与两款低功耗边缘 AI 芯片设计。最值得关注的是 DragonFly+ 在大规模互连中的超额订阅表现，以及面向超低延迟边缘计算的 GNN 处理器和 420 GOPS/W CGRA。普通读者可优先了解互连网络如何影响 AI 算力效率，再按兴趣深入芯片架构细节。</p>
+<p>2026-09-21 日报：精读挂零、速读3篇，硬件加速与边缘AI是今日主线。</p>
+<p>最值得看的是7.0分的CGRA可配置MAC与动态截断，以及6.0分的事件驱动GNN处理器和FPGA视觉GNN谱复用方案。</p>
+<p>普通读者建议先读最高分CGRA，再按“超低延迟边缘AI”或“FPGA上视觉GNN”兴趣选读后两篇。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -94,9 +96,9 @@
     <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Understanding the oversubscription behaviour of DragonFly+ networks">Understanding the oversubscription behaviour of DragonFly+ networks</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge">A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge">A 25-$μ$s/inf Event-driven Graph Neural Network Processor with Spatiotemporal Caching and Spline Convolution for Ultra-low-latency AI at the Edge</span></li><li><span class="dpr-home-dashboard-paper-title" title="SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs">SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>2</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
 </section>
 </div>
 
