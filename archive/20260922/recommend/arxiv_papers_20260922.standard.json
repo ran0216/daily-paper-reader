@@ -1,0 +1,131 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-22T22:10:41.452584+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.24288v1",
+      "source": "arxiv",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "abstract": "This work presents a circuit-architecture-training co-design framework that exploits sense-amplifier (SA) regeneration to detect analog-output similarity and reduce SAR comparisons in compute-in-memory (CIM) systems. Hardware-aware training incorporates circuit-characterized SA disturbance and encoding errors caused by prefix reuse, enabling aggressive comparison skipping. The detector is characterized through 55-nm CMOS schematic simulations, with system-level evaluation on WRN-28-10, ResNet20, and DeiT using an ISAAC-based W4A4 CIM model. On WRN-28-10, the proposed approach achieves 77.3% Top-1 accuracy (W4A4 baseline: 78.4%) while reducing SAR comparisons by 48.19% across the evaluated layers. Energy-budget analysis estimates a 27.18% reduction in reference ADC energy after detector overhead, leaving 0.52 pJ per conversion to accommodate additional control and peripheral costs.",
+      "authors": [
+        "Yufei Liu",
+        "Shuang Liu",
+        "Junjie Wang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-21T08:47:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.24288v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "circuit-architecture-training co-design for analog compute-in-memory AI accelerator",
+      "llm_evidence_cn": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "llm_evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "canonical_evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "llm_tldr_en": "This work co-designs circuit, architecture, and training to exploit sense-amplifier regeneration for detecting analog-output similarity, skipping SAR comparisons in analog compute-in-memory, achieving about 48 percent fewer comparisons on WRN-28-10 with minimal accuracy loss.",
+      "llm_tldr_cn": "模拟存内计算中SAR比较是主要开销，如何在保持精度的同时减少比较次数是关键难题。该工作提出电路-架构-训练协同设计框架，利用灵敏放大器的再生特性检测模拟输出相似性，并将电路扰动与前缀复用编码误差纳入硬件感知训练。在55nm CMOS下表征检测器，于WRN-28-10、ResNet20、DeiT上以ISAAC式W4A4模型评测，SAR比较减少48.19%，Top-1精度仅下降约1.1个百分点。该方案为存内计算AI加速器的能效优化提供了可行的协同设计路径。",
+      "llm_tldr": "模拟存内计算中SAR比较是主要开销，如何在保持精度的同时减少比较次数是关键难题。该工作提出电路-架构-训练协同设计框架，利用灵敏放大器的再生特性检测模拟输出相似性，并将电路扰动与前缀复用编码误差纳入硬件感知训练。在55nm CMOS下表征检测器，于WRN-28-10、ResNet20、DeiT上以ISAAC式W4A4模型评测，SAR比较减少48.19%，Top-1精度仅下降约1.1个百分点。该方案为存内计算AI加速器的能效优化提供了可行的协同设计路径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.16600v1",
+      "source": "arxiv",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "abstract": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "authors": [
+        "Yi Sheng Chong",
+        "Rakshith Harish",
+        "Rajesh Chandrasekhara Panicker",
+        "Vishnu P. Nambiar",
+        "Anh Tuan Do"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-15T03:51:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.16600v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "edge AI accelerator with configurable MAC and dynamic truncation",
+      "llm_evidence_cn": "面向边缘AI的可配置MAC与动态截断CGRA加速器",
+      "llm_evidence": "面向边缘AI的可配置MAC与动态截断CGRA加速器",
+      "canonical_evidence": "面向边缘AI的可配置MAC与动态截断CGRA加速器",
+      "llm_tldr_en": "A coarse-grain reconfigurable architecture with configurable MAC units in its processing elements performs ADD, MUL or MAC on the same multiplier and achieves 420 GOPS/W for edge neural network workloads.",
+      "llm_tldr_cn": "边缘设备要求既高效又灵活的实时处理能力，而典型粗粒度可重构架构（CGRA）执行一次乘加需两个周期，面对大量MAC的神经网络推理时处理时间过长。本文提出一种在处理单元中集成可配置MAC的CGRA，同一乘法器可完成加法、乘法或乘加，并采用动态截断。该设计实现420 GOPS/W的能效，表明其能在保持通用灵活性的同时接近专用加速器的效率。",
+      "llm_tldr": "边缘设备要求既高效又灵活的实时处理能力，而典型粗粒度可重构架构（CGRA）执行一次乘加需两个周期，面对大量MAC的神经网络推理时处理时间过长。本文提出一种在处理单元中集成可配置MAC的CGRA，同一乘法器可完成加法、乘法或乘加，并采用动态截断。该设计实现420 GOPS/W的能效，表明其能在保持通用灵活性的同时接近专用加速器的效率。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.22343v1",
+      "source": "arxiv",
+      "title": "Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU",
+      "abstract": "Post-quantum cryptography (PQC) acceleration has been studied for CPUs and FPGAs, yet GPGPUs - dominating high-throughput computing - remain unexplored for PQC hardware integration as a functional unit. We present what is, to our knowledge, the first such integration: the Vortex Post-Quantum Crypto Unit (PCU) on the open-source Vortex RISC-V GPGPU. The PCU implements a 256-point NTT over Kyber (q=3329) and Dilithium (q=8380417) moduli in 134 logic cells (73 LUT4 + 61 CCU2C) - the smallest reported NTT accelerator by logic-cell count, 2.8x smaller than the next smallest design. It achieves 228.78 MHz on Lattice ECP5 and 299.8 MHz place-and-route on Xilinx Artix-7, and passes 253 functional tests across 7 suites. On Vortex SimX, it achieves 42.6x acceleration over GPU ALU execution, projecting to roughly 36x speedup on RTL. Synthesized to ASAP7 7nm, the NTT datapath occupies 96.53 um^2 (post-route) at 702 MHz. This work establishes a foundation for integrating PQC hardware acceleration into general-purpose parallel computing.",
+      "authors": [
+        "Hossam Hassan",
+        "Marc Xander Makkes",
+        "Chae Eun Lee",
+        "Hyungmin Yoon"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-16T23:22:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.22343v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "hardware accelerator design integrated into a RISC-V GPGPU, digital IC design space exploration",
+      "llm_evidence_cn": "集成于RISC-V GPGPU的硬件加速器设计，属数字集成电路设计空间探索",
+      "llm_evidence": "集成于RISC-V GPGPU的硬件加速器设计，属数字集成电路设计空间探索",
+      "canonical_evidence": "集成于RISC-V GPGPU的硬件加速器设计，属数字集成电路设计空间探索",
+      "llm_tldr_en": "This paper addresses the unexplored integration of post-quantum cryptography acceleration as a functional unit on GPGPUs. It designs the Vortex Post-Quantum Crypto Unit on an open-source RISC-V GPGPU, implementing a 256-point NTT in 134 logic cells, achieving up to 299.8 MHz on FPGA and passing 253 functional tests.",
+      "llm_tldr_cn": "后量子密码加速此前主要针对CPU与FPGA研究，而在主导高吞吐计算的GPGPU上作为功能单元集成尚属空白。作者在开源RISC-V GPGPU Vortex上设计后量子密码单元PCU，针对Kyber与Dilithium模数实现256点NTT，仅用134个逻辑单元，比此前最小设计小2.8倍。该单元在Lattice ECP5上达228.78MHz、在Xilinx Artix-7上布局布线后达299.8MHz，并通过7套共253项功能测试，展示了在GPGPU中集成专用加速单元的可行性，为CPU/GPU类加速器架构设计提供了实例。",
+      "llm_tldr": "后量子密码加速此前主要针对CPU与FPGA研究，而在主导高吞吐计算的GPGPU上作为功能单元集成尚属空白。作者在开源RISC-V GPGPU Vortex上设计后量子密码单元PCU，针对Kyber与Dilithium模数实现256点NTT，仅用134个逻辑单元，比此前最小设计小2.8倍。该单元在Lattice ECP5上达228.78MHz、在Xilinx Artix-7上布局布线后达299.8MHz，并通过7套共253项功能测试，展示了在GPGPU中集成专用加速单元的可行性，为CPU/GPU类加速器架构设计提供了实例。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

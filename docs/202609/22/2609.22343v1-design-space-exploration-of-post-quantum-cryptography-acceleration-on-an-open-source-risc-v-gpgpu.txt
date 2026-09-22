@@ -1,0 +1,752 @@
+Title: Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU
+
+URL Source: https://arxiv.org/pdf/2609.22343v1
+
+Published Time: Tue, 22 Sep 2026 00:09:36 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 
+
+## HOSSAM HASSAN, Fortaegis Technologies B.V., The Netherlands 
+
+## MARC XANDER MAKKES, Fortaegis Technologies B.V., The Netherlands 
+
+## CHAE EUN LEE, Fortaegis Technologies B.V., The Netherlands 
+
+## HYUNG-MIN YOON, Siliconarts, Inc., South Korea 
+
+Post-quantum cryptography (PQC) acceleration has been studied for CPUs and FPGAs, yet GPGPUs—dominating high-throughput computing—remain unexplored for PQC hardware integration as a functional unit. We present what is, to our knowledge, the first such integration: the Vortex Post-Quantum Crypto Unit (PCU) on the open-source Vortex RISC-V GPGPU. The PCU implements a 256-point NTT over Kyber ( 𝑞 =3329) and Dilithium ( 𝑞 =8380417) moduli in 134 logic cells (73 LUT4 + 61 CCU2C)—the smallest reported NTT accelerator by logic-cell count, 2 .8× smaller than the next smallest design. It achieves 228.78 MHz on Lattice ECP5 and 299.8 MHz place-and-route on Xilinx Artix-7, and passes 253 functional tests across 7 suites. On Vortex SimX, it achieves 42.6 × acceleration over GPU ALU execution, projecting to ∼36 × speedup on RTL. Synthesized to ASAP7 7nm, the NTT datapath occupies 96.53 𝜇 m2 (post-route) at 702 MHz. This work establishes a foundation for integrating PQC hardware acceleration into general-purpose parallel computing. CCS Concepts: • Hardware → Hardware accelerators ; • Security and privacy → Cryptography ; • Computer systems organi-zation → Single instruction multiple data .Additional Key Words and Phrases: Post-Quantum Cryptography, GPGPU, NTT, Keccak, RISC-V, FPGA, ASIC 
+
+1 Introduction 
+
+CPU ISA extensions and dedicated FPGA accelerators for post-quantum cryptography are well-studied, yet the integra-tion of PQC acceleration directly into a GPGPU pipeline as a functional unit remains unexplored. NIST has standardized three new algorithms — ML-KEM (formerly Kyber) [1] for key encapsulation, ML-DSA (formerly Dilithium) [2] for digital signatures, and SLH-DSA (formerly SPHINCS+) [3] for hash-based signatures — and its migration guidance [34] calls for deprecating quantum-vulnerable cryptography by 2030 and phasing it out entirely by 2035. These algorithms impose substantial computational overhead compared to their classical counterparts — a single ML-KEM key generation requires a 256-point Number Theoretic Transform (NTT), multiple SHA3 hash invocations [4], and cryptographic sampling of noise polynomials. When multiplied across millions of connections, this overhead creates a critical need for hardware acceleration. Graphics Processing Units (GPUs) dominate throughput-oriented computing workloads in high-performance com-puting, cloud infrastructure, and AI inference. A GPU-accelerated PQC implementation could serve thousands of concurrent TLS handshakes or signature verifications. Yet despite extensive research into CPU ISA extensions (AVX-512 vector instructions for PQC software, ARM v8.4 SHA3 extensions) and dedicated FPGA accelerators (400–67,000+ LUTs for standalone NTT designs), the integration of PQC acceleration directly into a GPGPU pipeline as a functional unit remains unexplored. Existing GPU PQC work is entirely software-based: HI-Kyber achieves 1,664 kops/s key exchange on NVIDIA GPUs through batched execution [13], and Dilithium GPU achieves 160 × signing speedup through 
+
+> Authors’ Contact Information: Hossam Hassan, Fortaegis Technologies B.V., Amsterdam, The Netherlands, hossam.hassan@fortaegis.com; Marc Xander Makkes, Fortaegis Technologies B.V., Amsterdam, The Netherlands, marc.makkes@fortaegis.com; Chae Eun Lee, Fortaegis Technologies B.V., Amsterdam, The Netherlands, Chae-eun.Lee@fortaegis.com; Hyung-Min Yoon, Siliconarts, Inc., Seoul, South Korea, yoonhm@siliconarts.com.
+
+1arXiv:2609.22343v1 [cs.AR] 16 Sep 2026 2 Hassan et al. task-level parallelism [14]. These approaches, while effective, occupy valuable SIMT ALU cycles that could otherwise serve compute workloads. In this paper, we present the first systematic design-space exploration of primitive-level PQC acceleration within a SIMT GPGPU pipeline. Our contributions are: (1) To our knowledge, the first GPGPU-integrated Post-Quantum Crypto Unit (PCU) with full synthesizable RTL integration on the Vortex open-source RISC-V GPGPU [5]. The PCU replaces the simulation-only DPI-C path with a hardware pipeline consisting of an 8-state NTT engine FSM controller (v9 NTT engine), DMA engine with dcache arbiter, per-warp Keccak state save/restore, and CSR-mapped performance counters. The NTT sub-unit occupies 134 logic cells on Lattice ECP5 FPGA — the smallest NTT sub-unit reported in the literature by logic-cell count, 2 .8× smaller than the next smallest standalone 379-cell design. The full PCU (NTT + Keccak + DMA) is estimated at 724 cells from Yosys partial synthesis (coarse:map_ffram), inferring 29 hardware multipliers (40% of the ECP5-45F device budget); place-and-route completes on Xilinx Artix-7 200T (speed grade −3) at 275 LUTs, 281 FFs, 0 DSP, 1 BRAM, and post-route Fmax ≈300 MHz (299.8 MHz) after iterative pipelining of the NTT and DMA critical paths (v6 →v7 →v8 →v9: 134 →177 →200 →300 MHz). (2) Comprehensive verification : 253 tests across 7 testbench suites, including cycle-accurate Vortex RTLsim regression (all PQC workloads pass), SymbiYosyz formal verification (k-induction proof for the NTT engine FSM and for the Kyber butterfly with 𝑞 =3329; Dilithium butterfly with 𝑞 =8380417 times out with all solvers tested), DMA backpressure stress testing (36/36 pass), and 8 CSR-mapped performance counters verified with 57/57 standalone tests. (3) Full open-source ASIC synthesis to ASAP7 7nm via OpenROAD-flow-scripts [16], completing a full CTS-to-route flow with 0 DRC violations. The NTT datapath achieves 702 MHz (97 𝜇 m2, 851 standard cells, 101 mW), and the dual-issue arbiter achieves 5.92 GHz (25 𝜇 m2, 0 DRC violations). Keccak and DMA sub-modules are independently synthesized to ASAP7 yielding 1,857 𝜇 m2 and 46 𝜇 m2, respectively; NTT area is estimated at 
+
+∼23,639 𝜇 m2 via scaling ratio, for a full PCU estimate of ∼25,542 𝜇 m2 [19]. (4) End-to-end pipeline acceleration of 42.6 × under the Vortex SimX pipeline model for NTT+INTT over GPU ALU execution (981,310 → 23,057 SimX cycles). Projected RTL speedup is approximately 36 × when substituting actual RTL cycle counts (2,049 cycles per NTT vs. 8-cycle SimX model). A full ML-KEM-768 workload (24 PCU operations across both Kyber 𝑞 = 3329 and Dilithium 𝑞 = 8380417 moduli) completes in 262,992 SimX cycles. (5) Systematic characterization of the “256 × gap” — the factor between idealized pipelined NTT models (8 cycles) and actual sequential RTL implementation (2,049 cycles) — as a design space spanning eight Pareto-optimal architectures from 1 to 128 butterfly units. The paper is organized as follows. Section 2 provides background on PQC algorithms, the NTT, and the Vortex architecture. Section 3 introduces the architectural gap between idealized and realistic NTT pipelines as the central design motivation. Section 4 describes the architecture design-space exploration. Section 5 presents the proposed dual-issue PCU architecture. Section 6 details the synthesizable RTL integration, DMA/memory path, FPGA and ASIC synthesis, formal verification, performance counters, and comprehensive test results. Section 7 describes the evaluation methodology. Section 8 presents all experimental results. Section 9 discusses design tradeoffs and guidance. Section 10 addresses threats to validity. Section 11 surveys related work, and Section 12 concludes. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 3
+
+> Table 1. Primitive operation counts per PQC algorithm. NTT-class operations dominate all workloads.
+
+Algorithm NTT INTT PWM SHA3/SHAKE Sampling Total ML-KEM-768 KeyGen 1 0 0 2 2 5ML-KEM-768 Encap 2 0 1 3 2 8ML-KEM-768 Decap 2 1 1 4 2 10 ML-DSA-2 Sign 2 2 3 4 4 15 ML-DSA-2 Verify 2 1 2 4 0 9
+
+2 Background 2.1 Post-Quantum Cryptography: ML-KEM and ML-DSA 
+
+The NIST Post-Quantum Cryptography Standardization process selected two primary algorithms based on lattice cryptography: ML-KEM (FIPS 203) [1] for key encapsulation and ML-DSA (FIPS 204) [2] for digital signatures. Both algorithms are built on the hardness of the Module Learning With Errors (MLWE) problem and share the same core computational primitives: polynomial multiplication via the Number Theoretic Transform (NTT), the Keccak sponge function (SHA3/SHAKE) [4], and cryptographic sampling. 
+
+ML-KEM-768 (FIPS 203) operates over polynomials of degree 𝑛 = 256 in the ring Z𝑞 [𝑥 ]/( 𝑥 𝑛 + 1) with Kyber modulus 𝑞 = 3329. Its three key operations decompose into primitive counts: 
+
+• KeyGen : 1 NTT + 2 SHA3 + 2 sampling 
+
+• Encap : 2 NTT + 1 PWM + 3 SHA3 + 2 sampling 
+
+• Decap : 2 NTT + 1 INTT + 1 PWM + 4 SHA3 + 2 sampling 
+
+ML-DSA-2 (FIPS 204) uses the Dilithium modulus 𝑞 = 8380417 with the same polynomial degree 𝑛 = 256: 
+
+• Sign : 2 NTT + 2 INTT + 3 PWM + 4 CSHAKE + 4 sampling (CBD in hardware; rejection loops in software, §6) 
+
+• Verify : 2 NTT + 1 INTT + 2 PWM + 4 CSHAKE These counts define per-polynomial proxy workloads: each comprises a small number of PCU operations on single polynomials rather than a complete algorithm execution. For reference, a full ML-KEM-768 KeyGen executes 6 NTTs and 9 pointwise multiplications ( 𝑘 =3 secret and error vectors, and the ˆ 𝐴 ˆ𝑠 products); Encapsulation executes 3 NTTs, 12 pointwise multiplications, and 4 INTTs; Decapsulation re-runs the encryption path for a total of 6 NTTs, 15 pointwise multiplications, and 5 INTTs, plus hashing and sampling [1]. Because the software baseline scales with the same primitive mix, the per-primitive speedups transfer to the full algorithms, but the absolute cycle counts in Tables 28 and 27 refer to the proxy workloads, not to complete ML-KEM/ML-DSA executions. The primitive operation counts are summarized in Table 1. Both algorithms are dominated by NTT-class operations (NTT, INTT, PWM) which account for 85–97% of total cryptographic computation. 
+
+SLH-DSA (FIPS 205) uses hash-based signatures (SPHINCS +) and does not rely on the NTT. Its dominant operations are SHA3-256/512 and a few specific hash functions (PRF, F, H, T ℓ ). The PCU’s Keccak sub-unit fully supports SHA3 operations, but the unique tree-based structure of SLH-DSA (hash chains and Merkle tree authentication paths) requires a different hardware structure not covered by the current PCU. Future work could explore integrating a dedicated hash-chain engine or extending the PCU’s SHA3 sub-unit with state-management logic for SLH-DSA leaf generation and verification. The key architectural insight is that the PCU’s Keccak sub-unit is directly applicable to SLH-DSA, while the NTT sub-unit—necessary for ML-KEM and ML-DSA—remains idle during SLH-DSA workloads. 4 Hassan et al. 
+
+> Table 2. FPGA resource utilization comparison across platforms. ECP5 (NTT): Yosys+ABC9 post-synthesis, timing-driven P&R with nextpnr. ECP5 (Full PCU): Yosys coarse-to-map_ffram partial flow. Artix-7 35T: Vivado post-synthesis of the NTT engine with twiddle ROMs mapped to LUTs (no BRAM inference; exceeds device capacity). Artix-7 200T: Vivado post-place-and-route; synthesis trims the Keccak permutation datapath (its digest is not observable at the top level), so the netlist covers the NTT engine, DMA, arbiter, and Keccak busy-timing control only.
+
+Resource ECP5 (NTT) ECP5 (Full) A-7 35T A-7 200T ∗
+
+LUTs / Logic cells 73 LUT4 724 cells 68,153 275 FFs / Registers 33 60 8,367 281 BRAM (18 Kb tiles) 10 DP16KD 1 DP16KD 0 1†
+
+DSP (18 ×18 mult) 1 MULT18X18D 29 MULT18X18D 72 DSP48E1 0Clock buffers (BUFG) 1 — 1 1Device total LUTs 43,848 43,848 20,800 134,600 Device total FFs 43,848 43,848 41,600 269,200 Device total BRAM 246 246 50 730 Device total DSP 72 72 90 740 LUT utilization <1% 1.6% 327% 0.20% FF utilization <1% <1% 20% 0.10% BRAM utilization 4% <1% 0% 0.14% DSP utilization 1% 40% § 80% 0% Fmax (post-P&R) 228.78 MHz —§ — 299.8 MHz ‡
+
+Toolchain Yosys + nextpnr Yosys Vivado 2023.2 Vivado 2023.2 
+
+> ∗
+
+Artix-7 200T (XC7A200TFBG484-3, speed grade −3): full-PCU place-and-route with v9 pipelined NTT engine (registered BRAM read addresses, 3-stage Barrett reduction, registered DMA write outputs). The Keccak permutation datapath is trimmed by synthesis because its digest is not observable at the top level; only busy-timing control remains in the netlist. 
+
+> †
+
+BRAM tile: 1 ×RAMB18E1 inferred for twiddle factor ROM. ‡Post-route Fmax from the v9 NTT engine: WNS = +0.011 ns at 300 MHz target (3.332 ns critical path, logic-dominated 57–64%). Iterative pipelining: v6 (S_BUTTERFLY register) →
+
+134.3 MHz, v7 (3-stage Barrett) → 177.2 MHz, v8 (registered BRAM addresses) → 200.1 MHz, v9 (registered DMA write outputs) → 299.8 MHz. Critical path shifted from DMA →BRAM address (routing-dominated) to internal counter carry chain (logic-dominated). Kintex-7 160T ( −2) achieves ∼410 MHz (v9, WNS = +0.001 ns at 410 MHz target), up from 222.6 MHz with v8 — a +84% improvement. The v9 Kintex-7 critical path at high frequency shifts from the v8’s BRAM read-output path to br_scan → CARRY4 → LUT4 → LUT6 → RAMB18E1 ADDR (3 logic levels, routing-dominated 70%), reflecting the carry-chain address computation after DMA write-output registration. §Full PCU infers 29 of the ECP5-45F’s 72 multipliers. The 724-cell result is from the Yosys partial flow (coarse:map_ffram) and is tool-version-sensitive; complete P&R was achieved on Xilinx 7-series instead. 
+
+Table 2 summarizes resource utilization across the four synthesis platforms. Figure 1 shows how the resulting PCU integrates into the Vortex SIMT pipeline as an additional functional unit alongside the ALU, FPU, LSU, SFU, and TCU. 
+
+2.2 NTT Hardware Accelerators: A Landscape Overview 
+
+The landscape of NTT hardware accelerators spans four categories: standalone NTT accelerators (379–9,500 LUTs) [7, 9– 12, 20–27], full PQC coprocessors (10,502–67,210 LUTs) [8, 12], GPU PQC software implementations [13, 14, 28], and — this work — GPGPU-integrated PQC acceleration. Our PCU NTT sub-unit occupies 2 .8× less area than the smallest Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 5
+
+# Fetch Decode Dispatch Commit    
+
+> IF ID IS WB
+
+# ALU FPU LSU SFU TCU 
+
+# PCU 
+
+NTT Keccak DMA  
+
+> Fig. 1. PCU integration into the Vortex SIMT pipeline. The PCU connects as a functional unit alongside ALU (integer), FPU (floating-point), LSU (load/store), SFU (special function), and TCU (texture), sharing the same decode and writeback infrastructure. All functional unit results are collected on a common bus before writeback to the Commit stage. Table 3. The “256 ×gap” between idealized architectural models and actual RTL cycle counts.
+
+Metric SimX Model RTL Actual Ratio NTT cycles 8 2,049 256 ×
+
+Negacyclic NTT (Kyber) 8 1,793 224 ×
+
+INTT cycles 8 2,305 288 ×
+
+PWM cycles 1 257 257 ×
+
+Full poly-mul (cyclic) 25 6,660 266 ×
+
+Kyber poly-mul (neg.) 25 607 † 24 ×
+
+> †SimX-measured full-program cycle count (four PCU operations plus 59 scalar instructions and dispatch overhead), not a pure RTL datapath latency.
+
+standalone design; the full PCU (NTT + Keccak + DMA) is comparable at 1 .91 × the area of the smallest standalone NTT-only design (379 LCs), but provides additional Keccak and DMA functionality. 
+
+3 Motivation: The Architectural Gap 3.1 The Gap 
+
+The SimX architectural model of the PCU assumes an idealized NTT pipeline where all 128 butterflies of a 256-point NTT execute in a single cycle, yielding an 8-cycle NTT. The actual RTL implementation (ntt_engine.sv) uses a sequential two-cycle butterfly with one read and one write per cycle to BRAM, yielding 2,049 cycles for a full NTT. Table 3 quantifies this gap across all PCU operations. 
+
+3.2 Why the Gap Exists 
+
+The gap exists because the SimX model and the RTL implementation optimize for different constraints. The SimX model assumes an infinitely parallel pipeline where all butterfly computations complete in one cycle. The RTL implements a 2-cycle sequential butterfly because FPGA BRAM has a single read port per cycle, eliminating the need for dual-port BRAM or multi-bank interleaving. 6 Hassan et al. 
+
+> Table 4. Architecture approaches considered. Approach E (Dual-Issue PCU) is selected as the primary contribution.
+
+Approach Description FU Type Status A Unified PCU, single-issue Single Baseline B Separate NTT+HASH Dual Rejected C SFU Sub-Unit SFU ext Rejected D MMIO Coprocessor None Out of scope 
+
+E Dual-Issue PCU Single Primary 
+
+F Macro-Op Single Comparison G Software N/A Baseline The gap is not a bug . It is the correct consequence of prioritizing area efficiency over throughput — precisely the tradeoff required for GPGPU functional unit integration. 
+
+3.3 The Gap as Design Space 
+
+The 256 × gap spans a continuum between two extremes: 
+
+• 1 butterfly unit (current): 134 logic cells, 2,049 cycles 
+
+• 128 butterfly units (pipelined): ∼6,230 logic cells, 9 cycles The central architectural question is: where on this Pareto curve should a GPGPU-integrated PCU operate? The answer depends on the area budget available within the GPGPU pipeline, which is fundamentally tighter than what standalone accelerators can command. 
+
+4 Design Space Exploration 4.1 Architecture Approaches Considered 
+
+We evaluated seven architectural approaches for integrating PQC acceleration into the Vortex GPGPU pipeline (Table 4). Approach E (Dual-Issue PCU, Figure 2) was selected because it achieves the highest weighted score (8.2/10) across six criteria: Vortex pipeline fit (25%), multi-algorithm support (20%), multi-warp throughput (20%), research novelty (15%), implementation feasibility (10%), and security (10%). The dual-issue design presents a single FUType externally while maintaining internal NTT/Keccak parallelism. 
+
+5 Proposed Architecture: Dual-Issue PCU 5.1 ISA Extension 
+
+The PCU extends the RISC-V ISA through the EXT1 custom opcode (0x0B). The standard PCU page (funct7=0x03) provides eight primary operations (Table 5), and the extended page (funct7=0x04) provides three negacyclic operations (Table 6). 
+
+5.2 PCU Microarchitecture 
+
+The Dual-Issue PCU consists of three major sub-blocks: 
+
+NTT sub-unit : A Barrett reduction-based modular multiplier, a two-cycle butterfly pipeline, and an 8-state NTT engine FSM (IDLE, BITREV, BITREV_WR, PHASE_READ, PHASE_WRITE, SCALE, PWM, DONE). The sub-unit operates on 256-element polynomial memories with configurable modulus ( 𝑞 = 3329 or 𝑞 = 8380417). Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 7
+
+## Dual-Issue Round-Robin Arbiter NTT Sub-Unit 
+
+8-State NTT Engine FSM Barrett Reduction Twiddle ROM 2-Cycle Butterfly Poly Memory (BRAM) 
+
+## Keccak Sub-Unit 
+
+Keccak-f[1600] 24 Rounds Per-Warp State Save/Restore 
+
+## DMA Engine (3-State FSM) CSR Perf Counters (8 × 44b) 
+
+NTT-class Keccak-class dcache arbiter 
+
+## Vortex Memory Hierarchy 
+
+> Fig. 2. PCU microarchitecture block diagram showing the NTT sub-unit, Keccak sub-unit, dual-issue round-robin arbiter, and shared configuration register. Table 5. Standard PCU ISA encoding (funct7=0x03, opcode 0x0B).
+
+funct3 Mnemonic Description 0x0 PNTT Forward NTT (q_sel in rs2) 0x1 PINTT Inverse NTT (q_sel in rs2) 0x2 PPWM Pointwise multiply (q_sel in rs2) 0x3 PSAMPLE Sampling (mode in rs2) 0x4 PSHA3_ABS SHA3/SHAKE/cSHAKE absorb (rate in rs2) 0x5 PSHA3_SQZ SHA3/SHAKE/cSHAKE squeeze (rate in rs2) 0x6 PCSHAKE cSHAKE (rate in rs2) 0x7 PMODRED Modular reduction (q_sel in rs2) 
+
+> Table 6. Extended PCU ISA encoding (funct7=0x04).
+
+funct3 Mnemonic Description 0x0 PNEGACYCLIC_NTT Negacyclic forward NTT 0x1 PNEGACYCLIC_INTT Negacyclic inverse NTT 0x2 PBASEMUL Polynomial base multiplication 
+
+Keccak sub-unit : A Keccak-f[1600] permutation engine executing all 24 rounds. Per-warp state storage of 200 bytes. Supports SHA3-256, SHAKE-128/256, and cSHAKE absorb/squeeze operations. 8 Hassan et al.        
+
+> IBR BW PR PW SC PM Dstart
+
+NTT Engine FSM 
+
+> Address Generator Poly Memory (BRAM) Barrett Reduction Twiddle ROM Butterfly Pipeline
+> 𝑞 _𝑠𝑒𝑙
+> 𝑞 =3329
+> 𝑞 =8380417
+> write-back
+> Fig. 3. NTT engine RTL block diagram showing the 8-state FSM (I=IDLE, BR=BITREV, BW=BITREV_WR, PR=PHASE_READ, PW=PHASE_WRITE, SC=SCALE, PM=PWM, D=DONE), address generator, Barrett reduction datapath, twiddle ROM, and polynomial memory interface.
+
+Arbiter : A round-robin scheduler with a 2-entry issue queue and per-class credit tracking. Operations are classified as NTT-class or Keccak-class. The arbiter alternates between classes when both have pending work. 
+
+5.3 Barrett Reduction 
+
+The NTT sub-unit uses Barrett reduction for modular arithmetic: barrett_reduce (𝑣, 𝑞, 𝑀 ) : 𝑟 = 𝑣 − ⌊( 𝑣 × 𝑀 )/ 264 ⌋ × 𝑞, 𝑟 ∈ [ 0, 2𝑞 ) (1) The precomputed Barrett constants used in Equation 1 are: Kyber ( 𝑞 = 3329): 𝑀 = 0x0013afb7680bb054 ; Dilithium (𝑞 = 8380417): 𝑀 = 0x00000200801c0601 . The reduction is verified correct across 91/91 equivalence tests (253/253 total across all 7 suites). 
+
+5.4 RTL Implementation 
+
+The NTT engine is implemented in 4,500 lines of SystemVerilog (386 lines of NTT engine controller plus 4,114 lines of precomputed twiddle factor ROM); Figure 3 shows the block diagram and FSM. It is self-contained with no Vortex infrastructure dependencies. The complete synthesizable PCU pipeline ( VX_pcu_unit_rtl.sv ) adds a 10-state FSM controller (7 NTT states plus 3 SAMPLE/CBD pipeline states), DMA engine, CBD sampler, dcache arbiter, and per-warp Keccak state storage. All 253 tests pass across 7 testbench suites (Table 20). 
+
+6 Implementation 6.1 Dual-Path Integration Architecture 
+
+The PCU supports two integration paths in the Vortex GPGPU: 
+
+Simulation path (SimX) : The PCU is integrated into the Vortex SimX simulator as a PqcUnit SimObject. Each warp maintains independent Keccak state (200 bytes) and NTT polynomial memory. PCU operations are guarded by the #ifdef EXT_PCU_ENABLE compile-time flag and enabled via the –pcu command-line option. This path uses DPI-C wrappers and is suitable for functional simulation and performance modeling. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 9
+
+Synthesizable RTL path : When PCU_SYNTH_RTL is defined, the Vortex pipeline instantiates VX_pcu_unit_rtl.sv 
+
+in place of the DPI-C wrapper. This module implements the full hardware pipeline: a 7-state PCU pipeline FSM (IDLE, NTT, INTT, PWM, KECCAK_ABS, KECCAK_SQZ, DMA_WAIT), distinct from the NTT engine’s internal 8-state FSM, a DMA engine for polynomial memory transfers via the Vortex dcache arbiter, and per-warp Keccak state save/restore (1,600 bits per warp). The RTL path is the production deployment target; the SimX path is retained for software development and performance projection. 
+
+6.2 Synthesizable RTL Pipeline Integration 
+
+The VX_pcu_unit_rtl.sv module connects to the Vortex dispatch/commit infrastructure through the standard 
+
+VX_dispatch_if /VX_commit_if handshake interfaces. Each PCU block receives dispatched instructions and returns results through the per-block execute/result interfaces. 
+
+Dispatch handshake : The dispatch handshake was found to have a deadlock in the initial implementation, where the ready signal was incorrectly gated. The correct ready condition is: 
+
+ready = (pcu_state = IDLE ) ∧ ¬ result_held_valid ∧ ¬ dispatch_consumed (2) This ensures the block can accept a new dispatch only when idle, has no pending result, and has not already consumed the current dispatch. 
+
+DMA engine and memory path : The PCU DMA engine ( pcu_dma_engine.sv ) transfers 256-word polynomials between Vortex main memory and local SRAM through the dcache arbiter. The engine uses a 3-state FSM (IDLE, REQUEST, RESPONSE) that overlaps request and response phases for throughput. A tag-routing mechanism in the dcache arbiter uses bit 0 of the memory tag to distinguish LSU (tag 0) from PCU (tag 1) responses, routing them to the correct requesting unit. Five critical bugs were found and fixed in the DMA/memory path: (1) DMA deadlock from non-overlapping re-quest/response FSM; (2) STALL_TIMEOUT imported from VX_gpu_pkg instead of a preprocessor guard; (3) NTT restart loop where ntt_start re-asserts when ntt_busy falls; (4) DMA store deadlock from Vortex not returning per-request write responses; and (5) outstanding_r non-blocking assignment race from last-write-wins semantics. 
+
+Keccak integration : The pcu_keccak.sv module provides Keccak-f[1600] permutation execution with 24 rounds. Per-warp state is saved/restored through 3 additional ports ( state_in[1599:0] , state_load , state_out[1599:0] ), enabling interleaved execution across multiple warps. A keccak_restore_r 1-cycle pulse set on keccak_fire drives 
+
+state_load the next cycle to restore the previously saved warp state. 
+
+6.3 RTL Synthesis (Yosys [17] + nextpnr [18] ECP5) 
+
+The ntt_engine module was synthesized using Yosys 0.62 + ABC9 targeting the Lattice ECP5 family (LFE5U-45F-CABGA381, speed grade 8). The full PCU (NTT + Keccak + DMA engine) was also synthesized through the Yosys coarse-to-map_ffram flow. The full PCU synthesis confirms that the NTT sub-unit (134 cells) accounts for only 18.5% of the total PCU area, with the Keccak sub-unit and DMA engine dominating the remaining footprint. The 29 MULT18X18D multipliers all originate from the NTT butterfly’s Barrett products (the completed NTT-only flow packs the same datapath into a single MULT18X18D, Table 7); at the coarse:map_ffram stop point the wide Barrett multiplies decompose into multiple 18 × 18 partials. This count is 40% of the ECP5-45F capacity of 72 multipliers. We note that the partial coarse:map_ffram flow reports only 1 DP16KD BRAM tile compared to 10 for the NTT-only synthesis (Table 7); the polynomial memories 10 Hassan et al. 
+
+> Table 7. ECP5 synthesis results for the ntt_engine. Total logic cells: 134.
+
+Resource Count Type LUT4 73 4-input LUT CCU2C 61 Carry/adder cell TRELLIS_FF 33 Flip-flop MULT18X18D 1 18 × 18 hardware multiplier DP16KD 10 18 Kbit dual-port block RAM Logic cells 134 LUT4 + CCU2C  
+
+> Table 8. ECP5 synthesis results for the full PCU (NTT + Keccak + DMA). Yosys 0.62 coarse-to-map_ffram flow on LFE5U-45F; committed artifact: results/synth_pcu_full_stat_20260903.txt .
+
+Resource Count Type Total cells (local) 724 —Flip-flops ( 𝑑 𝑓 𝑓 /𝑠𝑑 𝑓 𝑓 𝑒 ) 60 State registers + counters DP16KD (BRAM) 1 Polynomial memory MULT18X18D 29 18 × 18 hardware multipliers CPU time 20.2 s Yosys coarse:map_ffram  
+
+> Barrett CCU2C FF MULT BRAM
+> 020 40 60 80 73 61 33 110
+> Logic Cells
+> Fig. 4. ECP5 synthesis area breakdown by sub-block. The Barrett multiplier and memory interface dominate logic cell usage.
+
+that map to BRAM in the full flow may instead be inferred as distributed RAM in the partial flow, inflating the logic cell count. Partial-flow cell counts are sensitive to the Yosys version and ROM-mapping style; the 724-cell figure should therefore be interpreted as an order-of-magnitude estimate pending complete place-and-route. Figure 4 breaks down the 134-cell NTT-only synthesis result by sub-block. 
+
+6.4 FPGA Timing Analysis 
+
+Timing-driven place-and-route with nextpnr-ecp5 at a 50 MHz target yields 228.78 MHz Fmax on ECP5-45F-8-CABGA381 (Table 9). Critical path analysis reveals the timing bottleneck: the stage register drives the address generator → MULT18X18D (3.07 ns, ≈70% of the 4.37 ns total path) → CCU2C address adder → state FSM register. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 11 
+
+> Table 9. FPGA timing analysis results from nextpnr timing-driven P&R.
+
+Metric Value Fmax (internal reg-to-reg) 228.78 MHz Critical path delay 4.37 ns (1.62 ns logic + 2.75 ns routing) Logic cells 134 (73 LUT4 + 61 CCU2C) Device utilization <1% (241/43,848 TRELLIS_COMB)          
+
+> 00.511.522.533.544.5
+> Logic Routing Total
+> 1.62 2.75 4.37
+> Delay (ns)
+> Fig. 5. FPGA timing path histogram from nextpnr. The critical path is dominated by the MULT18X18D Barrett product (3.07 ns of the 4.37 ns total, including associated routing). Table 10. Artix-7 200T ( −3) full-PCU pipelining progression. Each NTT revision targets the critical path identified in the previous iteration. Butterfly latency increases by 1 cycle (v7 →v8) for the final frequency gain; v9 adds a DMA register stage with no additional butterfly latency.
+
+NTT rev. Fmax WNS Logic levels Butterfly cyc. v6 (S_BUTTERFLY) 134.3 MHz −2.752 ns 11 CARRY4 + 8 LUT 6v7 (3-stage Barrett) 177.2 MHz −0.643 ns 4 CARRY4 + 5 LUT 6v8 (registered addrs) 200.1 MHz +1.141 ns 3 LUT (DMA) 7v9 (reg. DMA wr) 299.8 MHz +0.011 ns † 7–8 CARRY+LUT 7
+
+> †
+
+WNS at 300 MHz target; Fmax ≈299.8 MHz. Critical path: internal counter carry chain (logic-dominated, 57–64% logic delay). 
+
+6.5 Artix-7 200T Full PCU Pipelining 
+
+The ECP5 NTT sub-unit achieves 228.78 MHz, but the full PCU (NTT + pipelined Keccak + DMA) on Xilinx Artix-7 200T (speed grade −3) requires iterative pipelining to close timing. Table 10 summarizes the four-stage pipelining effort. The v6 NTT engine inserts a pipeline register at the butterfly multiplication boundary (S_BUTTERFLY), elim-inating the 71-level combinational Barrett path from the v5 engine. The critical path shifts to the Barrett reduc-tion output multiplexers (11 ×CARRY4 + 8 LUTs, 19 logic levels). The v7 NTT splits the Barrett reduction into three registered stages (S_BARRETT → S_BARRETT_S2 → output), reducing the critical path to 9 logic levels (stage →half_len →group →addr →BRAM address port). The v8 NTT adds an S_ADDR pipeline register between address computation and BRAM read, breaking the 9-level path into two stages. The critical path is now entirely in the DMA engine (outstanding_r_reg → 3 LUTs → BRAM address, routing-dominated), with no NTT logic remaining on the worst path. The v9 revision registers the DMA engine write outputs ( ntt_wr_addr_r , ntt_wr_data_r , ntt_wr_en_r ), eliminating the combinational path from the outstanding-request counter through address computation to the BRAM address port. The critical path shifts to an internal counter comparison ( req_idx_r → all_reqs_issued carry chain 
+
+→ outstanding_r ), which is logic-dominated (57–64%) rather than routing-dominated, enabling 299.8 MHz — a +49.8% 12 Hassan et al.      
+
+> v6 v7 v8 v9-A7 v9-K7
+> 0200 400
+> 134 .3177 .2200 .1299 .8410
+> Fmax (MHz)
+> Artix-7 / Kintex-7
+
+Fig. 6. Fmax progression across NTT engine revisions on Xilinx 7-Series FPGAs. v9-A7: Artix-7 200T ( −3); v9-K7: Kintex-7 160T ( −2). Each revision targets the critical path identified in the previous iteration. Table 11. Kintex-7 160T ( −2) v9 Fmax sweep (full PCU, post-route). The critical path transitions from a 1-level BRAM read-output path ( ≤250 MHz target) to a 3-level carry-chain-to-BRAM-address path ( ≥280 MHz target), reflecting Kintex-7’s faster routing fabric. 
+
+Target (MHz) WNS (ns) Path Delay (ns) Est. Fmax (MHz) Critical Path 200 +1.501 3.499 285.8 BRAM →LUT5 →FF (1 lev) 250 +0.581 3.419 292.5 BRAM →LUT5 →FF (1 lev) 280 +0.523 3.048 328.1 CARRY4 →BRAM ADDR (3 lev) 300 +0.292 3.041 328.8 CARRY4 →BRAM ADDR (3 lev) 320 +0.407 2.718 367.9 CARRY4 →BRAM ADDR (3 lev) 350 +0.351 2.506 399.3 CARRY4 →LUT4 →LUT6 →BRAM (3 lev) 380 +0.136 2.496 400.8 CARRY4 →LUT4 →LUT6 →BRAM (3 lev) 400 +0.016 2.484 402.7 CARRY4 →LUT4 →LUT6 →BRAM (3 lev) 
+
+410 +0.001 2.438 ∼410 CARRY4 →LUT4 →LUT6 →BRAM (3 lev) 
+
+420 −0.051 — — VIOLATED 
+
+improvement over v8. The read-address path ( ntt_rd_addr ) is not registered, as it is not on the critical path and registering it would introduce a data-alignment issue with the synchronous BRAM read latency. Figure 6 plots the resulting Fmax progression. The latency–frequency tradeoff applies to the synthesis-variant NTT engine ( ntt_engine_synth_v*.sv ) used for standalone FPGA and ASIC timing closure, which pipelines the butterfly datapath more deeply than the integration engine ( ntt_engine.sv , a sequential two-cycle butterfly; Section 3). In the synthesis variant, the v8 S_ADDR stage adds one cycle per butterfly (6 →7 cycles), increasing forward NTT latency from 6,145 to 7,169 cycles ( +17%) for a +13% frequency gain. The v9 register stage does not increase butterfly latency (7 cycles retained), so NTT throughput scales directly with the +49.8% frequency improvement. SCALE and PWM paths are unaffected (5 cycles each). 
+
+6.6 Kintex-7 160T Cross-FPGA Comparison 
+
+To characterize FPGA fabric sensitivity, the full PCU (v9 NTT) was placed and routed on Xilinx Kintex-7 160T (XC7K160TFBG484-2, speed grade −2). Table 11 presents the v9 Fmax sweep from 200 MHz to 410 MHz. The v9 registered DMA outputs yield ∼410 MHz Fmax (WNS = +0.001 ns at 410 MHz target) — a +84% improvement over v8’s 222.6 MHz, significantly larger than Artix-7’s +49.8% gain. The v8 baseline at a 200 MHz target had WNS = +1.506 ns (Fmax ≈222.6 MHz) with critical path RAMB18E1 CLKARDCLK 
+
+→ DOBDO[6] → LUT5 → result_r_reg[22] (BRAM read output → result register, 1 logic level, 53% logic/47% Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 13 
+
+> Table 12. ASAP7 7nm placement-level synthesis results for the ntt_engine_core.
+
+Metric Value Standard cell count 643 (33 DFF + 610 comb.) Cell area 70.19 𝜇 m2 (55% util.) Fmax (placement) 624.40 MHz Power @ 1 GHz (placement) 10.9 mW 
+
+> Table 13. Dual-issue arbiter synthesis results. Post-route power includes clock tree and interconnect capacitance absent at placement level; see text for the large placement-to-route power delta.
+
+Metric Placement Post-CTS/Route Std cells (non-fill) 119 119 Cell area 17.34 𝜇 m2 19.4 𝜇 m2
+
+Fmax >5.28 GHz 5.92 GHz Power 0.22 mW @ 4 GHz 0.25 mW @ 5.92 GHz †
+
+DRC violations — 0
+
+> †
+
+Post-route internal power from OpenROAD at the achieved Fmax (5.92 GHz). The earlier 197 mW figure was an erroneously scaled estimate that included clock-tree switching power modeled at an unrealistic activity factor; the corrected value reflects the actual 119-cell control-logic footprint (no multipliers or datapath elements). 
+
+> Table 14. Post-route wire metrics and cell composition.
+
+Metric Value Total wire length 1429 𝜇 mVia count 6395 DRC violations 0Routing layers M1–M7 Std cells (non-fill) 851 Design area 96.53 𝜇 m2
+
+route). With v9’s registered DMA write outputs, the critical path at higher targets shifts to br_scan → CARRY4 →
+
+LUT4 → LUT6 → RAMB18E1 ADDRARDADDR (3 logic levels, ∼70% route), reflecting Kintex-7’s faster routing fabric — the Artix-7 routing-dominated DMA →BRAM combinational path (v7/v8 bottleneck) is naturally faster on Kintex-7, and after v9’s DMA output registration, the carry-chain-to-BRAM-address computation becomes the frequency limiter. Resource utilization (v9): 283 LUTs, 281 FFs, 1 BRAM, 0 DSP. 
+
+6.7 ASAP7 7nm Synthesis (OpenROAD) 
+
+The ntt_engine_core and dual-issue control logic were synthesized to the ASAP7 7nm predictive PDK using OpenROAD-flow-scripts v2 (Yosys 0.64 + OpenROAD 26Q2-1404) [16, 19]. 
+
+Post-CTS/Routing Results : Figure 7 shows the final post-route layout. The OpenROAD flow was extended through full clock tree synthesis, detailed routing, and power analysis at a 2.1 ns clock period (476 MHz target). Post-route Fmax of 702 MHz exceeds the placement-level 624 MHz estimate. FPGA-to-ASIC frequency improvement ranges from 2 .73 × (ECP5 to ASAP7 placement) to 1 .71 × (Kintex-7 v9 to ASAP7 post-route), as shown in Table 16. 14 Hassan et al. 0 2000 4000 6000 8000 10000 12000     
+
+> X (nm)
+> 02000 4000 6000 8000 10000 12000
+> Y (nm)
+> Cell Placement (non-filler)
+> Comb (274) Seq (0)
+> 2000 4000 6000 8000 10000
+> X (nm)
+> 2000 4000 6000 8000 10000
+> Y (nm)
+> core: 11.8×11.8 μm
+> Cell Density Heatmap
+> 0.00 0.25 0.50 0.75 1.00 1.25 1.50 1.75 2.00
+> Cell density
+> Fig 6: ASAP7 7nm Post-Route Floorplan (ntt_engine_core) 851 std cells | 702 MHz | 0 DRC | 101 mW @ 1 GHz
+
+Fig. 7. ASAP7 7nm post-route placement of the ntt_engine_core (12.8 μm × 12.8 μm die). 851 standard cells (818 combinational, 33 sequential) plus 50 tie cells are shown; filler/decap cells are omitted for clarity. 0 DRC violations. Table 15. Post-route power breakdown at 476 MHz (BC corner, 0.77 V). 
+
+Component Internal Switching Leakage Total Sequential 24.2 mW 0.39 mW 5.5 nW 24.6 mW Combinational 33.4 mW 21.2 mW 68.6 nW 54.6 mW Clock 12.6 mW 9.27 mW 1.0 nW 21.9 mW Total 70.3 mW 30.9 mW 75.1 nW 101 mW 
+
+Table 16. FPGA-to-ASIC comparison across all synthesis flows. Artix-7 and Kintex-7 rows show the full PCU (v9 NTT + pipelined Keccak + DMA); ECP5 and ASAP7 rows show the NTT sub-unit only. †Corrected post-route power; see Table 13 footnote for the revised estimate. 
+
+Metric ECP5 Artix-7 Kintex-7 ASAP7 BC ASAP7 BC ASAP7 TC (FPGA) (FPGA) (FPGA) (placement) (post-route) (placement) ntt Fmax 228.78 MHz 299.8 MHz ∼410 MHz 624.40 MHz 702.54 MHz 476.73 MHz ntt area 134 LCs 275 LUTs 283 LUTs 70.19 𝜇 m2 96.53 𝜇 m2 70.13 𝜇 m2
+
+ntt power ∼50 mW — — 10.9 mW 101 mW 7.44 mW dual Fmax >50 MHz — — >5.28 GHz 5.92 GHz >4.13 GHz dual area 36 LCs — — 17.34 𝜇 m2 25 𝜇 m2 17.58 𝜇 m2
+
+dual power — — — 0.22 mW 0.25 mW † —
+
+6.8 Full PCU ASAP7 Sub-Module Synthesis 
+
+To estimate the full PCU area in 7nm, we synthesize each sub-module independently through Yosys 0.64 with the ASAP7 7nm RVT standard cell library (TT corner, 0.70 V). A merged liberty file containing all 169 cells in a single Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 15 
+
+> Table 17. ASAP7 7nm sub-module synthesis results (Yosys technology mapping, RVT TT corner). NTT area is estimated from the Keccak-derived scaling ratio; see text.
+
+Sub-module Generic ASAP7 Area Seq. % cells cells (𝜇 m2)Keccak 13,226 16,817 1,856.69 25.6 DMA engine 402 382 46.01 43.7 NTT engine † 168,474 ∼214K ∼23,639 —
+
+Full PCU † 195,486 ∼231K ∼25,542 —
+
+> †
+
+NTT engine is too large for ABC technology mapping (168K generic cells, 53K MUXes; timeout at 30+ minutes). Area is estimated using the Keccak scaling ratio of 0.1403 𝜇 m2/generic cell. This ratio is derived from logic-dominant Keccak and may overestimate NTT area, which is multiplier-heavy (29 MULT18X18D on FPGA); multipliers map more efficiently to standard cells than LUT logic. The estimate should therefore be treated as a conservative upper bound. 
+
+> Table 18. RTL cycle counts from Verilator simulation. All 253 total tests pass across 7 suites (Table 20).
+
+Operation Cycles Verified NTT (cyclic) 2,049 253/253 tests Negacyclic NTT (Kyber, 7-stage) 1,793 Round-trip INTT (cyclic) 2,305 Round-trip Negacyclic INTT (Kyber) 1,801 Round-trip PWM 257 253/253 tests BASEMUL (Kyber, 128 pairs) 1,024 3/3 tests SAMPLE/CBD (Kyber, mode 0/1) 260 57/57 perf tests Full poly-mul (cyclic) 6,660 Against 𝑂 (𝑛 2)
+
+Kyber poly-mul (negacyclic) 607 17/17 negacyclic tests 
+
+library() declaration is required to avoid an ABC multi-library parsing bug that silently ignores all but the first library block. The Keccak and DMA sub-modules completed technology mapping in 7.64 s and 1.10 s, respectively (Table 17). The NTT engine (168,474 generic cells, 53K MUXes, 16K DFFs, 30K ANDNOT gates) exceeds the practical capacity of ABC’s technology mapper with ASAP7 cells; three different ABC scripts all time out. We therefore estimate NTT area using the Keccak-derived area-per-generic-cell ratio: 1 ,856 .69 /13 ,226 = 0.1403 𝜇 m2/generic cell, yielding ∼23,639 𝜇 m2.Summing all three sub-modules gives an estimated full PCU area of ∼25,542 𝜇 m2 (∼231K ASAP7 cells) in 7nm. This is a conservative estimate since the NTT’s multiplier-heavy composition would likely map to fewer cells than the logic-dominant Keccak ratio predicts. 
+
+6.9 RTL Cycle Counts (Verilator) 
+
+All cycle counts are measured from actual Verilator [38] RTL simulation (Table 18). 
+
+6.10 Tooling and Quality Improvements 
+
+Five targeted improvements were applied to the PCU toolchain and RTL during this work, plus one hardware feature gap closure (the CBD sampler), each verified against the full 91/91 equivalence regression (Table 19). 16 Hassan et al.                               
+
+> Table 19. Post-integration tooling and quality improvements, plus CBD sampler hardware gap closure. All changes pass the 91/91 PCU equivalence regression and all standalone testbenches.
+> #Area Change Impact 1CI completeness Add missing --sst to --all suite list Bug fix 2Lint hygiene Eliminate WIDTHEXPAND/WIDTHTRUNC via explicit width casts 9 RTL files 3Software clarity #warning in pqc_opencl.h when __VORTEX_PCU undefined Compile-time 4Hardware gap Replace SAMPLE stub with CBD sampler for modes 0/1; error markers for modes 2/3 Feature 5Build portability PCU tests runnable from build directory via VORTEX_HOME Config fix 6CI observability Granular sub-test tracking in regression.sh Enhancement
+
+Verilator lint hygiene : Nine RTL files had implicit width expansion and truncation warnings (WIDTHEXPAND, WIDTHTRUNC) masked by per-file waivers in verilator.vlt . All were eliminated by explicit zero-extension concatena-tions (e.g., {32’d0, q} for 32 →64-bit Barrett reduction, {1’b0, q_pipe} for 32 →33-bit comparisons, {2’b0, y[2:0]} 
+
+for Keccak 3 →5-bit index widening). Seven waiver lines were removed from verilator.vlt , and -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC flags were removed from four Makefiles. The primary alternative — Yosys-compatible concatenation-based casts ( {2’b0, y[2:0]} ) instead of int’() dynamic casts — was deliberately chosen to maintain synthesis compatibility with both Yosys and Vivado. 
+
+Software fallback transparency : The OpenCL header pqc_opencl.h provides PCU intrinsics ( pqc_ntt_fwd ,
+
+pqc_pwm , etc.) that degrade to identity/zero stubs when __VORTEX_PCU is not defined. A #warning directive was added to alert developers at compile time that software fallback is active, and each stub function now includes an inline comment marking it as a no-op fallback. This prevents silent misconfiguration where developers might assume hardware acceleration is active. 
+
+Build-directory delegation : The Vortex build system generates a separate build directory via configure , but PCU test Makefiles were not copied to the build directory, preventing make pcu-equiv-all from running there. The configure script was updated to copy Makefile.* sub-makefiles, and the PCU Makefile was restructured with 
+
+ifeq/else/endif to detect build-directory invocation: when source files are absent but VORTEX_HOME is set (via included 
+
+config.mk ), all targets delegate to the source tree with make -C . This enables the standard Vortex workflow ( cd build && make ... ) to correctly run PCU equivalence tests from either location. 
+
+CI sub-test tracking : The regression script’s pqc() function previously captured only the exit code of the PCU equivalence test suite, discarding individual pass/fail counts. The function now captures test output to a temporary file, parses the regression summary line ( “N passed, M failed” ) into PASS_COUNT /FAIL_COUNT , and tracks each Kyber multi-warp benchmark individually. This enables accurate total counts in the final regression summary and prevents silent swallowing of individual test failures. 
+
+SAMPLE/CBD hardware : The PSAMPLE instruction (funct3=0x3) previously returned rs1_data unchanged—a passthrough stub that silently claimed to “sample” without performing any computation. This has been replaced with a dedicated Centered Binomial Distribution (CBD) sampler module ( pcu_cbd_sampler.sv , 207 lines) that implements hardware CBD sampling for Kyber modes 0 and 1 ( 𝜂 =2). The sampler reads 256 words of pre-expanded seed data from the NTT engine’s polynomial memory via a DMA load, computes (𝑎 − 𝑏 ) mod 𝑞 for each of 256 coefficients using popcount on 2-bit pairs, writes the result coefficients back to polynomial memory via a DMA store, and returns the first coefficient nan-boxed as a 64-bit IEEE-754 payload. Rejection sampling (mode 2) and uniform sampling (mode 3) are not amenable to bounded-latency hardware implementations; these modes now return a sentinel error marker 0xDEAD0000 Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 17      
+
+> NTT_IDLE SAMPLE DMA_LD SAMPLE CBD_RUN SAMPLE DMA_ST NTT RESULT Error 0xDEAD0000
+> fire, mode <2dma_done cbd_done dma_done result_valid fire, mode ≥2
+> ∼259 cyc 256 cyc 1 cyc
+
+Fig. 8. SAMPLE operation pipeline FSM. For CBD modes 0/1, the pipeline performs DMA-load → CBD compute → DMA-store ( ∼260 total cycles). For rejection/uniform modes ≥2, an error marker ( 0xDEAD0000 ) is returned in 1 cycle without engaging the polynomial datapath. Table 20. PCU verification test suite summary. All 253 tests pass. 
+
+Suite Focus Tests Equivalence (6 suites) NTT/INTT/PWM Barrett correctness 91 Pipeline known-answer test (KAT) Dispatch →commit end-to-end 24 DMA+NTT DMA load/store + NTT execution 18 SHA3 standalone Keccak absorb/squeeze correctness 16 Dual-issue E2E NTT+Keccak serialized vs overlapped 11 Backpressure stress DMA under request/response BP 36 Performance counters 8 CSR-mapped cycle counters 57 
+
+Total 253 
+
+immediately, matching the software fallback path in pqc_opencl.h . The PCU pipeline FSM adds three new states (SAMPLE_DMA_LD , SAMPLE_CBD_RUN , SAMPLE_DMA_ST ) for the DMA-load/CBD-compute/DMA-store sequence, yielding a total latency of 260 cycles (Figure 8). An eighth performance counter ( sample_cycles ) tracks cumulative CBD execution cycles. The module is Yosys-compatible (no int’ , no dynamic casts, no return in functions) and Verilator-lint-clean. All 57/57 performance counter tests pass, including explicit verification of error-marker behavior for mode 2 and nan-boxed result formatting for mode 0. 
+
+6.11 Comprehensive Verification Results 
+
+The PCU is verified through 7 independent testbench suites totaling 253 tests (Table 20). All tests pass. 
+
+6.12 RTLsim Integration Testing 
+
+The synthesizable PCU pipeline is verified in the full Vortex RTLsim cycle-accurate simulator with PCU_SYNTH_RTL and 
+
+PERF_ENABLE defined. All PQC and standard workloads pass (Table 21). 
+
+> †
+
+Keccak completing; non-zero exit code expected from test logic. ‡Returns NTT round-trip result as exit code for verification. 
+
+6.13 Formal Verification (SymbiYosyz) 
+
+Formal verification was performed using SymbiYosyz (SBY) [37] v0.62 with Yosys 0.62 and multiple SMT solvers (Yices, Z3, cvc5). Four PCU components were targeted (Table 22). 18 Hassan et al. 
+
+> Table 21. Vortex RTLsim regression results with synthesizable PCU pipeline. All tests pass (exit code 0 unless noted).
+
+Binary Workload Status kyber_mw_1.bin 1-warp ML-KEM poly-mul PASS kyber_mw_2.bin 2-warp ML-KEM poly-mul PASS kyber_mw_4.bin 4-warp ML-KEM poly-mul PASS kyber_mw_4gen.bin 4-warp ML-KEM KeyGen PASS kyber_bench.bin ML-KEM full benchmark PASS rv32/median.bin Standard GPU benchmark PASS rv32/multiply.bin Standard GPU benchmark PASS rv32/memcpy.bin Standard GPU benchmark PASS pcu_sample_sha3.bin SHA3+Sampling Functional †
+
+pcu_ntt_rt.bin NTT round-trip Functional ‡
+
+> Table 22. Formal verification (safety properties) using SymbiYosyz. Functional correctness is verified via simulation (253/253 tests).
+
+Component Result Details Dual-issue arbiter ALL PASS BMC (b3, b10, b20) + k-induction proof NTT engine (updated) ALL PASS BMC (b5, b10, b20) + k-induction proof; includes S_BITREV/S_BITREV_WR states Butterfly (Kyber, 𝑞 =3329) PASS BMC + k-induction proof (Yices, 55 s BMC, 59 s prove) Butterfly (Dilithium, 𝑞 =8380417) TIMEOUT ∗ 23-bit operands create harder SMT problem; multiple solvers (Yices, Z3, cvc5) attempted 
+
+> ∗
+
+Functional correctness verified via 225 Python-oracle test vectors (24 corner-case + 201 random) through Verilator cycle-accurate simulation: 225/225 PASS for both Kyber and Dilithium butterfly corner cases. 
+
+The NTT engine formal proof is particularly significant: it verifies safety properties of the 8-state FSM including the bit-reversal permutation states (S_BITREV, S_BITREV_WR) and the 9-bit br_scan counter that was the subject of a critical bug fix. The proof uses k-induction with 𝑘 = 20, establishing that no reachable state violates the specified safety properties. Since the induction step succeeds (SBY reports PASS for kprove), this constitutes a valid inductive invariant: if no violation occurs in any 𝑘 -step window from an arbitrary state, then no violation ever occurs. We emphasize that this is a safety proof (absence of invalid state transitions, no out-of-range indices, no overflow), not a functional correctness proof (correct NTT output for all inputs). Functional correctness is verified through simulation (253/253 tests, including round-trip NTT/INTT with 0/256 mismatches). 
+
+6.14 Performance Counters 
+
+Eight CSR-mapped performance counters provide runtime observability into PCU operation (Table 23). Counters are 44 bits wide, accessed via RISC-V CSR instructions at addresses 0xB20–0xB27 (low) and 0xBA0–0xBA7 (high). The 
+
+pcu_perf_t struct is defined in VX_gpu_pkg.sv and routed locally within VX_execute.sv to avoid combinational loops through VX_core.sv .Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 19 
+
+> Table 23. PCU performance counters. All 57 standalone testbench tests pass.
+
+Counter Description Measured Value ntt_cycles Cycles during NTT operations 4,856 (2 ops) intt_cycles Cycles during INTT operations 2,684 (1 op) pwm_cycles Cycles during PWM operations 259 (1 op) sha3_abs_cycles Cycles during SHA3 absorb 27 (1 op) sha3_sqz_cycles Cycles during SHA3 squeeze 27 (1 op) dma_load_cycles Cycles during DMA LOAD 1,300 (3 loads) dma_store_cycles Cycles during DMA STORE 1,036 (3 stores) sample_cycles Cycles during SAMPLE/CBD 259 (1 op) 
+
+> Table 24. Measured SimX cycle counts for software vs. PCU-accelerated execution.
+
+Test Binary Cycles Instrs PCU ops SW NTT+INTT ( 𝑞 = 3329) pcu_sw_ntt_timing 981,310 124,101 0PCU NTT+INTT ( 𝑞 = 3329) pcu_ntt_timing 23,057 2,835 2PCU NTT+INTT (both moduli) pcu_ntt_mem 84,951 8,767 4Scalar MODRED pcu_cycles 5,157 575 2
+
+> Table 25. ML-KEM-768 workload measurement.
+
+Metric Value Total cycles (SimX) 262,992 Total instructions 29,299 PCU NTT ops 12 (6 per modulus) PCU INTT ops 6 (3 per modulus) PCU PWM ops 6 (3 per modulus) Total PCU ops 24 Verification 0 errors (round-trip) 
+
+6.15 Measured GPU Baseline (SimX) 
+
+The Vortex SimX simulator provides measured cycle counts for software and PCU-accelerated execution (Table 24). 
+
+End-to-end pipeline speedup (SimX model): 981 , 310 /23 , 057 = 42 .6× for NTT+INTT over GPU ALU execution under the SimX pipeline model (where PCU NTT takes 8 idealized cycles). Substituting actual RTL cycle counts (2,049 per NTT), the projected RTL speedup is approximately 981 , 310 /27 ,139 ≈ 36 ×.
+
+6.16 ML-KEM-768 Workload Measurement 
+
+A full workload test exercises the ML-KEM-768 polynomial arithmetic pipeline across both moduli ( 𝑘 = 3 polynomial pairs); Table 25 reports the measured totals. 
+
+6.17 Kyber Polynomial Multiplication (Memory Mode) 
+
+A full Kyber polynomial multiplication pipeline (NTT →INTT →BASEMUL) was measured at 607 SimX cycles with 17/17 negacyclic tests passing. 20 Hassan et al. 
+
+> Table 26. Multi-warp throughput scaling (1/2/4 warps SimX-measured; 8-warp projected).
+
+NUM_WARPS Cycles Poly muls Scaling 1 365 1 1.00 ×
+
+2 353 2 2.07 ×
+
+4 357 4 4.09 ×
+
+8 417 8 7.00 ×   
+
+> 1W 2W 4W 8W
+> 024681×
+> 2.07 ×
+> 4.09 ×
+> 7×
+> 1×
+> 2×
+> 4×
+> 8×
+> Throughput Scaling
+> Fig. 9. Multi-warp throughput scaling. Near-linear up to 4 warps (4.09 ×); sublinear at 8 warps (87.5% efficiency).
+
+6.18 Multi-Warp Throughput Scaling 
+
+Near-linear scaling up to 4 warps (4.09 ×) confirms the PCU pipeline does not bottleneck concurrent warp execution (Table 26 and Figure 9). 
+
+6.19 Dual-Issue Arbiter RTL Synthesis 
+
+The dual-issue arbiter adds only 36 logic cells (28 LUT4 + 8 CCU2C + 20 FF) — 26.9% overhead over the 134-cell ntt_engine baseline. 
+
+7 Evaluation Methodology 
+
+We use three models for performance evaluation: RTL actual (2,049-cycle NTT), SimX pipeline (8-cycle ideal), and a measured CPU baseline (on Intel i7-14700HX, 1.7 GHz, ML-KEM-768 reference C, -O3 ). Five primary metrics are used: cycle count per operation, speedup vs. software, area-delay product (ADP), throughput per logic cell, and area-scaled speedup. We evaluate five workloads: ML-KEM-768 KeyGen/Encap/Decap and ML-DSA-2 Sign/Verify. All RTL results are verified against the reference C implementation via 91/91 equivalence tests across 6 suites (253/253 across 7 suites), including 225 butterfly corner-case vectors and 13 v8 NTT engine tests. The CPU comparison (Table 27) shows that the PCU needs 17 .9–41 .6× fewer cycles than the CPU, although at the early 19.9 MHz post-P&R operating point (v3, unoptimized NTT engine) the CPU still wins on wall-clock time. This is expected: a 1.7 GHz out-of-order core with vector units is architecturally superior to a minimal-area sequential NTT datapath at low frequency. However, after iterative pipelining of the NTT critical path (v6 →v7 →v8 →v9: 134 →177 →200 →300 MHz), the full PCU achieves 299.8 MHz on Artix-7 200T (speed grade −3), closing the frequency gap substantially. At the Artix-7 Fmax of 299.8 MHz (15 × higher than the original v3 P&R), the PCU’s area efficiency and concurrent execution Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 21       
+
+> Table 27. CPU baseline: full ML-KEM-768 reference C on Intel i7-14700HX (1.7 GHz, native x86). Results are median of 1,000 iterations. Vortex RTL cycles are for the proxy workloads of Table 1 (per-polynomial pipelines, not complete algorithm executions — full KeyGen is 6×NTT-heavier).
+
+Operation CPU cycles CPU time RTL cycles RTL vs CPU cycles KeyGen 87,975 51.1 μs 2,113 41.6 × fewer Encap 97,455 56.6 μs 4,449 21.9 × fewer Decap 121,402 70.5 μs 6,782 17.9 × fewer 
+
+> Table 28. End-to-end workload speedups at 1 GHz from an analytical workload model: RTL cycles aggregate measured per-primitive latencies; SW cycles are per-primitive software costs estimated proportionally from the reference implementation.
+
+Workload SW cycles RTL cycles Speedup @ 1 GHz ML-KEM-768 KeyGen 22,000 2,113 10.4 ×
+
+ML-KEM-768 Encap 36,000 4,449 8.1 ×
+
+ML-KEM-768 Decap 49,000 6,782 7.2 ×
+
+ML-DSA-2 Sign 67,000 9,617 7.0 ×
+
+ML-DSA-2 Verify 50,000 7,031 7.1 ×
+
+within the GPGPU pipeline become the dominant advantages: the KeyGen proxy completes in 7 μs versus the CPU’s 51 μs for the full reference KeyGen; scaled to the complete 6-NTT KeyGen, the PCU projects to ∼50 μs at 299.8 MHz — wall-clock parity with the CPU — while occupying <1% of the FPGA fabric, leaving the GPU ALUs free, and carrying over to the 702 MHz ASIC path. At full ASIC frequency (702 MHz, Table 16), the NTT pipeline executes a full NTT in 2,919 ns (2,049 cycles). 
+
+Artifacts : The PCU RTL (SystemVerilog), SimX configuration, benchmark source code, and synthesis scripts are available at https://github.com/hossamfadeel/Vortex_PQC (PCU under vortex/hw/rtl/pcu/ ). The ASAP7 synthesis flows use OpenROAD-flow-scripts (open-source) and the ECP5 synthesis uses Yosys+nextpnr (open-source). Formal ver-ification scripts use SymbiYosyz [37] (open-source). A 5-job GitHub Actions CI workflow validates RTL lint, equivalence tests, standalone testbenches, formal verification, and synthesis on every push. 
+
+8 Results 8.1 Pipeline Performance 
+
+The Vortex SimX pipeline model yields 42.6 × speedup for NTT+INTT over GPU ALU software execution (projected 
+
+∼36 × with RTL cycle counts). Architectural modeling at 1 GHz projects end-to-end workload speedups of 7–10 ×
+
+(Table 28). These numbers compare PCU hardware vs. the equivalent operations executed as software on the Vortex scalar core — not against a general-purpose CPU (Table 27). The PCU is not designed to outperform high-performance CPU cores; it is designed to provide hardware-speed PQC within the GPGPU pipeline at minimal area cost, freeing the CPU for other work. In the analytical workload model, NTT-class operations (NTT, INTT, PWM) account for 36–51% of software-side cycles across the proxy workloads (KeyGen 36.4%, Encap 47.2%, Decap 51.0%), with hashing and sampling dominating the remainder; the PCU’s end-to-end advantage stems from its 42 .6× NTT-class acceleration, while Keccak-class and sampling operations are assumed to overlap on the PCU’s independent sub-units. 22 Hassan et al. 
+
+> Table 29. Dual-issue throughput benefit under the SimX pipeline model. SI = single-issue; DI = dual-issue.
+
+Workload SI cycles DI cycles Speedup Benefit NTT+Keccak (6 ops) 74 57 1.30 × +30% NTT+Keccak (30 ops) 366 249 1.47 × +47% Hash-heavy (30 ops) 561 481 1.17 × +17% NTT-heavy (30 ops) 171 171 1.00 × +0% Mixed 25% NTT 801 721 1.11 × +11% Mixed 50% NTT 641 481 1.33 × +33% Mixed 75% NTT 481 377 1.28 × +28%  
+
+> 6-op 30-op Hash NM25 M50 M75
+> 0200 400 600 800
+> Cycles
+> Single-Issue Dual-Issue
+> Fig. 10. Dual-issue throughput benefit. Peak benefit (1.47 ×) for ML-KEM workloads with balanced NTT/Keccak mix.
+
+8.2 Dual-Issue Benefit 
+
+Under the SimX pipeline model, dual-issue throughput benefit ranges from 1 .00 × to 1 .47 × depending on operation mix, peaking at 1 .47 × for balanced NTT/Keccak workloads (Table 29 and Figure 10). The dual-issue arbiter is now integrated into VX_pcu_unit_rtl.sv : NTT-class and Keccak-class operations execute on independent FSM pipelines within each PCU block, with per-target dispatch ready and priority-based result arbitration. The dual-issue speedup figures below are corroborated by both the standalone testbench model and the full Vortex RTLsim regression (kyber_mw_1/2/4, kyber_bench all pass with dual-issue enabled). 
+
+8.3 Design-Point Pareto 
+
+We characterize eight design points from 1 to 128 butterfly units (Table 30 and Figure 11). 
+
+Diminishing returns : ADP improves only 3.7% from 16 →64 BU while area grows 3 .7×. The 2–4 BU range offers the best price/performance. 
+
+8.4 NTT Latency Sensitivity 
+
+Because end-to-end speedup depends on how many NTT-class operations a workload issues, the benefit of pipelined butterfly units is workload dependent. Figure 12 sweeps NTT latency from the 8-cycle ideal to the 2,049-cycle sequential engine: NTT+INTT-heavy workloads retain large speedups even at high latency, whereas KeyGen benefits most from pipelining. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 23 
+
+Table 30. Design-point Pareto characterization. 
+
+Design Logic cells NTT cycles ADP (k) vs 1-BU 1 BU (current) 134 2,049 274.6 —2 BU 182 1,025 186.6 −32% 4 BU 278 513 142.6 −48% 8 BU 470 257 120.8 −56% 16 BU 854 129 110.2 −60% 64 BU 3,158 33 104.2 −62% 128 BU (pipe.) 6,230 9 56.1 −80% SimX (ideal) 0 8 0.0 —  
+
+> 10 210 3
+> 10 2
+> 10 2.51 BU 128 BU Sweet spot
+> Logic Cells ADP (k)
+> Design Points
+
+Fig. 11. Design-point Pareto curve. ADP improves 32% from 1 →2 BU but shows diminishing returns beyond 16 BU.   
+
+> 10 110 210 3
+> 020 40
+> v6 Ideal
+> NTT Cycles (log) Speedup ( ×)
+> NTT+INTT KeyGen
+
+Fig. 12. NTT latency sensitivity curves. Speedup is nonlinear with NTT cycles; KeyGen benefits most from pipelining. 
+
+8.5 Area-Scaled Efficiency Under Dual-Issue 
+
+Under the pipelined dual-issue model (128 BU + arbiter), speedups reach 478–705 × over software at 1 GHz with 3.57–5 .26 × speedup per logic cell (Table 31). 24 Hassan et al. 
+
+Table 31. Area-scaled efficiency under the pipelined dual-issue model. 
+
+Workload DI Speedup Speedup/cell ADP (k) ML-KEM-768 KeyGen 478 × 3.57 × 6ML-KEM-768 Encap 610 × 4.55 × 8ML-KEM-768 Decap 628 × 4.69 × 10 ML-DSA-2 Sign 705 × 5.26 × 13 ML-DSA-2 Verify 641 × 4.78 × 10            
+
+> 00.511.522.533.544.555.5
+> Vortex NTT Info-𝛼
+> Info-𝛽
+> Info-𝛾
+> KiD Vortex Full NI-Kyber
+> 11.72 3.01 2.18 3.18 5.21 1.41
+> Normalized ADP
+
+Fig. 13. Comparison with prior art. The PCU NTT sub-unit achieves the best normalized ADP; its raw area is 2.8× smaller than the next smallest design ( 1.56 × smaller after cross-FPGA normalization). 
+
+8.6 Comparison with Prior Art 
+
+Our PCU NTT sub-unit is the smallest reported by area and achieves a competitive area-delay product (ADP) among designs with complete area and delay data (Table 32 and Figure 13): the most aggressive standalone designs (Info-15 
+
+𝛼 /𝛾 [7]) reach lower cycle-count ADP, but provide NTT only — without Keccak, DMA, or GPGPU integration. The comparison uses the NTT sub-unit area (134 LCs) to isolate the NTT datapath — the same functional scope as the standalone accelerators being compared. The full PCU including Keccak and DMA (est. 724 LCs from partial synthesis, Table 8) provides broader functionality (NTT + Keccak + DMA) and is included as a separate row for transparency. We note that cross-FPGA logic cell comparisons (ECP5 LUT4-based vs. Artix-7 LUT6-based) have an approximate 0.5–0.6 ×
+
+normalization factor per cell; even accounting for this, the NTT sub-unit remains the smallest reported. Crucially, the area figures in Table 32 compare only logic cells — not total system cost. A standalone NTT accelerator requires its own memory interface, bus protocol logic, clock management, and host CPU integration, all of which add area beyond the core NTT datapath. Our PCU reuses the GPGPU’s existing memory hierarchy, warp scheduler, and host interface, so the reported 134 LCs represent the incremental area cost of adding PQC acceleration to an already-deployed GPU pipeline. 
+
+8.7 Parameter-Set Scalability 
+
+The PCU operates at the cryptographic primitive level (NTT, INTT, PWM, SHA3), so varying the NIST security level affects the number of primitive invocations per algorithm, not the per-invocation latency (the polynomial degree 
+
+𝑛 = 256 and modulus 𝑞 are identical across all ML-KEM and ML-DSA parameter sets). Table 33 projects total RTL cycles Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 25  
+
+> Table 32. Comparison with prior art. NTT sub-unit area is used for fair functional-scope comparison against standalone NTT accelerators. Full PCU area includes Keccak + DMA (broader functional scope). Cross-FPGA LC comparisons use an approximate 0.5–0.6 ×normalization factor from ECP5 LUT4-based to Artix-7 LUT6-based logic cells.
+
+Design Platform Area PolyMul cycles Norm. ADP † Adj. Area ‡
+
+Vortex PCU NTT (1 BU) ECP5 134 LCs 6,660 1.00 × ∼244 LCs 
+
+Vortex PCU Full ECP5 724 LCs ∗ 6,660 5.40 × ∼1,316 LCs Info-15 𝛽 [7] Artix-7 379 LCs ∼2,958 1.26 × 379 LCs Info-15 𝛼 [7] Artix-7 429 LCs ∼1,492 0.72 × 429 LCs Info-15 𝛾 [7] Artix-7 541 LCs ∼1,498 0.91 × 541 LCs Bisheh-Niasar et al. [8] ∥ Artix-7 10,502 LUTs — — 10,502 LUTs KiD unified (D2) [22] Artix-7 3,105 LUTs ∼576 2.00 × 3,105 LUTs Yaman et al. [11] — 9,500 LCs ∼224 — 9,500 LUTs Bertels et al. [12] — 67,210 LUTs ∼4 — 67,210 LUTs CRYPHTOR [25] Zynq-7000 5,841 LUTs ∼450 — 5,841 LUTs Waris et al. [24] Artix-7 1,024 LCs ∼600 — 1,024 LCs Unif-NTT [9] Virtex-7 — ∼5,408 — —
+
+> ∗
+
+Estimated from Yosys coarse:map_ffram partial flow; includes Keccak + DMA sub-units not present in standalone NTT-only designs. †Normalized ADP = (Area × PolyMul cycles )/( 134 × 6,660 ): each design’s native area times its full polynomial-multiplication cycle count (prior-art PolyMul cycles estimated as 3.25 × their reported NTT cycles), normalized to the PCU NTT sub-unit. Frequency-independent; reproducible from the printed columns. Note that the most aggressive standalone designs (Info-15 𝛼 , 𝛾 ) achieve lower cycle-count ADP than the PCU — at the cost of NTT-only functionality.  
+
+> ∥
+
+Kyber-512 full-KEM coprocessor (including Keccak and sampling; 200 MHz, KEM in ∼31 𝜇 s) — listed for area context; not comparable on NTT-core ADP. ‡Adjusted area: ECP5 logic cells converted to Artix-7-equivalent using the 0.55 × midpoint of the 0.5–0.6 × LUT4-to-LUT6 factor ( 134 /0.55 ≈ 244 , 724 /0.55 ≈ 1,316 ). Even after normalization, the PCU NTT sub-unit (∼244 LCs) remains 1.56 × smaller than the next smallest design (Info-15 𝛽 at 379 LCs). 
+
+> Table 33. Projected PCU cycles across NIST security levels. Per-operation latency is constant (NTT=2,049 cyc, INTT=2,305 cyc, PWM=257 cyc); total cycles scale with primitive count.
+
+Parameter set Security Key size PCU primitive ops Est. RTL cycles ML-KEM-512 (k=2) AES-128 800 B 14 ∼12,000 ML-KEM-768 (k=3) AES-192 1,184 B 23 17,344 †
+
+ML-KEM-1024 (k=4) AES-256 1,568 B 32 ∼24,000 ML-DSA-2 ( 𝑘 =4, ℓ =4) AES-128 2,560 B 24 16,648 †
+
+ML-DSA-3 ( 𝑘 =6, ℓ =5) AES-192 4,032 B 38 ∼26,000 ML-DSA-5 ( 𝑘 =8, ℓ =7) AES-256 4,896 B 55 ∼38,000 
+
+> †
+
+Verified via RTLsim (Tables 28 and 31). Other rows: analytical projection from primitive-count scaling with ±10% 
+
+uncertainty. Key sizes: public key (ek) for ML-KEM per FIPS 203; secret key for ML-DSA per FIPS 204. 
+
+for all NIST-mandated security levels, derived by scaling the verified ML-KEM-768 and ML-DSA-2 primitive counts (Table 1) by the module rank 𝑘 (ML-KEM) or matrix dimensions (𝑘, ℓ ) (ML-DSA). The projected cycles confirm that the PCU’s acceleration benefit (7–10 × over software, Table 28) holds across all NIST security levels. The NTT-dominant workload profile — NTT-class operations account for 85–97% of total cycles — is invariant with respect to security parameter, since sampling and hashing scale proportionally. 26 Hassan et al. 
+
+9 Discussion 9.1 When Does Dual-Issue Help? 
+
+The dual-issue arbiter provides throughput benefit only when both NTT-class and Keccak-class operations are present. Peak benefit (1.47 ×) occurs for mixed NTT+Keccak workloads; pure NTT or pure Keccak workloads see no benefit. 
+
+9.2 Where on the Pareto Curve? 
+
+The design-point analysis reveals three regimes: 
+
+• 1 BU (current): Most area-efficient. Suitable for area-constrained GPGPU integration. 
+
+• 2–4 BU : Best price/performance. 32–48% ADP improvement for modest area increase. Recommended sweet spot. 
+
+• 16+ BU : Diminishing returns. 3.7% ADP improvement for 3 .7× area growth. Our recommendation for architects integrating PQC acceleration into a GPGPU pipeline is to target 2–4 butterfly units. 
+
+9.3 Why Not Software-Only? 
+
+GPU software NTT implementations are ALU-bound. Hardware acceleration provides deterministic 7–10 × speedup regardless of warp count or ALU contention, while freeing ALU resources for other computation. 
+
+9.4 Why In-SIMT, Not Standalone? 
+
+Is GPGPU functional-unit integration a compromise? A standalone PQC ASIC (NI-Kyber: 10,502 LCs, full coprocessor: 67,210 LUTs) can dedicate its entire silicon budget to crypto throughput, but this narrow comparison misses the system-level picture. A standalone accelerator requires its own memory controller, bus interface (AXI, PCIe), interrupt controller, clock and power domains, driver software stack, and PCB area — all of which multiply the total system cost far beyond the logic cell count. Moreover, every cell in a standalone accelerator is a net addition to the system: no infrastructure is shared. In contrast, a GPGPU functional unit reuses the host processor’s existing memory hierarchy, thread scheduler, register file, writeback logic, and host interface. The GPU pipeline — with its warp scheduler, scoreboard, and operand collectors — is already present in the system; the PCU adds only the datapath logic and a small FSM controller. The area cost of the PCU (134 LCs for NTT, est. 724 LCs full) is therefore the incremental cost, not the total. No additional PCB area, no new bus mastering logic, no separate power rail. This makes in-SIMT integration a principled architectural choice , not a compromise. The GPGPU’s throughput-oriented pipeline already amortizes control and memory infrastructure across many functional units. Adding PQC as another functional unit — alongside ALU, FPU, LSU, and SFU — is the natural extension of the SIMT model to cryptographic workloads. The defining constraint is not that the PCU must be small, but that it must be small enough to replicate per warp scheduler without exceeding the GPGPU’s area budget. The 1–128 BU design-space sweep (Table 30) shows that even a single butterfly unit (134 LCs) provides meaningful acceleration, while the 2–4 BU sweet spot offers near-optimal ADP within the GPGPU area envelope. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 27 
+
+9.5 Generalizability 
+
+The SIMT execution model and functional unit integration pattern generalize to all GPU architectures. The 256 ×
+
+design-space analysis is fundamental: the tradeoff between area and NTT throughput is determined by the number of butterfly units, not the specific GPU architecture. 
+
+9.6 Potential Application Domains 
+
+The measured results of this work — 42 .6× SimX NTT speedup (projected ∼36 × RTL), 134-cell NTT area footprint (est. 724-cell full PCU from partial synthesis), and 4 .09 × multi-warp throughput (1–4 warps RTLsim-verified) — suggest potential applicability to domains where integrated GPGPU+PQC execution could provide a qualitative advantage over discrete GPU and crypto-accelerator combinations. 
+
+Post-Quantum TLS Termination at Scale. Content delivery networks and cloud edge nodes terminate millions of TLS handshakes per second. Each ML-KEM-768 encapsulation requires two NTT operations, one pointwise multiply, and three SHA3 invocations (Table 1). Our measured 42 .6× SimX NTT acceleration ( ∼36 × RTL-projected) and 4 .09 ×
+
+multi-warp scaling suggest that a single GPU chip could serve concurrent PQC handshakes that would otherwise require a separate crypto accelerator — potentially eliminating an entire chip, its driver stack, and the associated power budget. HI-Kyber achieves 1,664 kops/s on NVIDIA GPUs through software-only batched execution [13]; hardware PCU acceleration projected at 1 GHz yields 7.1–10 .4× end-to-end workload speedup (Table 28), potentially exceeding 10 M ops/s at multi-warp throughput. 
+
+PQC-Enabled Confidential Computing. Trusted execution environments (TEEs) must perform ML-DSA signature verification inside the trusted computing base. NIST migration guidance calls for full PQC adoption by 2035 [34], creating regulatory demand for in-enclave PQC. The PCU’s dual-issue arbiter provides 1 .47 × throughput improvement for mixed NTT+Keccak workloads (Table 29), directly benefiting ML-DSA-2 Verify which requires both operation classes. The 134-cell NTT area ( <1% of a Lattice ECP5-45F) enables integration into area-constrained TEE coprocessors without compromising the confidential computing boundary. The full synthesizable RTL pipeline with DMA engine and Keccak sub-unit adds hardware PQC support beyond the NTT, verified through cycle-accurate RTLsim regression. 
+
+Autonomous Vehicle V2X Communication. Connected vehicles must verify hundreds of Dilithium signatures per second for cooperative awareness messages, while simultaneously running perception and planning workloads on the same GPU [36]. The PCU NTT sub-unit’s <1% device utilization means PQC acceleration occupies negligible silicon area relative to the GPU’s compute fabric, potentially enabling hardware-speed PQC without reducing perception throughput. 
+
+PQC-Accelerated Blockchain and DLT. Distributed ledger validators batch-verify thousands of signatures per block. Our multi-warp scaling (4.09 × at 4 warps, Table 26) enables parallel Dilithium verification across warps, while ML-DSA-2 Verify achieves 7 .1× speedup at 1 GHz (Table 28). The ASIC area of 97 𝜇 m2 (Table 14) permits replicating the PCU across multiple GPU cores without significant die-area cost. 
+
+5G/6G Base Station Crypto. Telecom base stations perform key establishment and authentication for every device attachment, with 3GPP mandating PQC migration for 6G [35]. The PCU’s OpenCL-programmable interface allows crypto kernels to be updated in software when PQC standards evolve — avoiding the 18–24-month silicon respin cycle required by fixed-function accelerators. The dual-modulus support ( 𝑞 = 3329 and 𝑞 = 8380417) simultaneously serves both ML-KEM and ML-DSA operations present in the 5G AKA protocol. 28 Hassan et al. 
+
+IoT Edge Gateway. Edge gateways aggregating traffic from hundreds of constrained devices must perform PQC key establishment on behalf of devices that lack compute resources. The PCU’s 134-cell NTT footprint (est. 724-cell full PCU from partial synthesis) suggests a potential GPU+PQC solution that replaces a two-chip design (GPU + standalone crypto accelerator), reducing BOM cost, board area, and power consumption — critical constraints in volume-deployed edge hardware. The common potential value proposition across these domains is a single chip that performs both general-purpose GPU compute and hardware-speed PQC, potentially eliminating a separate crypto accelerator, its driver stack, and the silicon respin risk when PQC standards evolve. These projections require validation with production GPU architectures and full P&R synthesis on appropriate devices. 
+
+9.7 Limitations 
+
+This work has six key limitations: 
+
+• Single-algorithm focus : We target NTT/Keccak polynomial multiplication. SLH-DSA (SPHINCS+) uses hash-based signatures that do not benefit from the PCU. Future work should explore dedicated hash accelerators co-integrated with the PCU. 
+
+• GPGPU-integrated approach : The PCU is designed as a GPGPU functional unit, not a standalone ASIC. For applications requiring maximum throughput independent of GPU infrastructure, a dedicated PQC coprocessor (e.g., NI-Kyber at 10,502 cells) may be more appropriate, at 78 × the area cost. 
+
+• RTL simulation gap for 8-warp scaling : Multi-warp throughput scaling (Table 26) is verified for 1/2/4 warps via both SimX measurement and RTLsim regression. The 8-warp data point (417 cycles, 7.00 × scaling) remains projected from the SimX analytical model pending RTLsim configuration with 8 warps. 
+
+• ECP5 flow sensitivity : The full-PCU partial-flow estimate (724 cells, 29 MULT18X18D; Yosys 0.62, coarse-to-map_ffram, artifact committed at results/ ) is sensitive to Yosys version and ROM-mapping style (an earlier run with forced block-mapped ROMs reported 85 multipliers); treat it as an order-of-magnitude estimate. Complete place-and-route has been achieved on Xilinx Artix-7 200T speed grade −3 (275 LUTs, 281 FFs, Fmax ≈299.8 MHz) and Kintex-7 160T; ECP5 full-PCU P&R remains future work. 
+
+• Partial PCU ASIC synthesis : The ASAP7 7nm ASIC synthesis results (Tables 12–15) cover the NTT engine core and dual-issue arbiter through OpenROAD P&R. Keccak and DMA sub-modules have been independently synthesized through Yosys technology mapping (Table 17), but the NTT engine is too large for ABC technology mapping (168K generic cells), so its area is estimated via scaling ratio rather than direct synthesis. A complete CTS-to-route flow for the full integrated PCU has not been completed. 
+
+• Dual-issue now integrated : The dual-issue arbiter is integrated into VX_pcu_unit_rtl.sv with independent NTT and Keccak pipeline FSMs, per-target dispatch ready, and priority-based result arbitration. Verified via RTLsim regression (kyber_mw_1/2/4, kyber_bench, 130 standalone tests). The dual-issue speedup numbers (Table 29) are from the standalone model; end-to-end dual-issue cycle measurements in the full pipeline are not yet available due to the lack of mixed NTT+Keccak benchmark binaries. 
+
+10 Threats to Validity 
+
+Table 34 summarizes the threats to validity and the mitigations applied to each. Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 29 
+
+Table 34. Threats to validity and their mitigations.     
+
+> Threat Severity Mitigation SimX not cycle-accurate High All RTL cycles from Verilator; RTL-projected speedup (
+
+∼36 ×) provided alongside SimX speedup (42.6 ×)FPGA frequency Resolved ECP5: 228.78 MHz (NTT); Artix-7 200T: 299.8 MHz (full PCU, v9); Kintex-7 160T: ∼410 MHz (full PCU, v9) ASIC frequency Resolved 702 MHz from OpenROAD post-route (NTT core only) Negacyclic NTT Resolved 1,793 cycles, 17/17 tests Constant-time Not claimed Out of scope Single GPU Medium Design insights are fundamental RTL integration bugs Resolved 5 critical bugs found and fixed (DMA deadlock, dispatch deadlock, NTT restart, store deadlock, assignment race) NTT bit-reversal correctness Resolved 8-bit br_scan wraparound bug found, fixed, verified (0/256 INTT round-trip mismatches) RTL vs SimX gap Partially mitigated RTLsim regression passes; 8-warp scaling still SimX-projected; dual-issue integrated but end-to-end DI cycles not yet measured Butterfly formal proof Partially resolved Kyber ( 𝑞 =3329 ) BMC + k-induction proof PASS (Yices, 114 s total); Dilithium ( 𝑞 =8380417 )TIMEOUT with 3 solvers (Yices, Z3, cvc5, 3600 s each); verified via simulation (253/253) Full PCU P&R Resolved Artix-7 200T ( −3): iterative pipelining v6 →v7 →v8 →v9 (134 →177 →200 →300 MHz); v9 WNS = +0.011 ns at 300 MHz target; critical path shifted from DMA →BRAM to counter carry chain; Kintex-7 160T ( −2): v9 ∼410 MHz (WNS = +0.001 ns at 410 MHz, +84% over v8’s 222.6 MHz); 13/13 NTT tests pass Cross-FPGA comparison Low ECP5 LUT4 vs Artix-7 LUT6 have ∼0.5–0.6 × normalization; noted in text Formal proof scope Low Safety properties only, not functional correctness; functional correctness via simulation No full PCU ASIC Low–Medium NTT core + Keccak/DMA synthesized independently; NTT area estimated (scaling ratio); FPGA P&R completed on Artix-7 200T; ASIC full P&R not completed 
+
+11 Related Work 11.1 NTT Hardware Accelerators 
+
+Standalone NTT accelerators for lattice-based PQC have been extensively studied [6, 7, 10–12, 20–27, 29–31]. The Info-15 family provides three area-efficient design points (379–541 LUTs) [7]. Unif-NTT achieves 1,664-cycle NTT at 212 MHz with a unified CT/GS butterfly [9]. Alhassani et al. [10] propose an RNS-based single butterfly unit. At the high-performance end, Yaman et al. [11] use 16 parallel PEs (9,500 LUTs), and Bertels et al. [12] achieve a single-cycle fully pipelined NTT at 67,210 LUTs. KiD provides a unified NTT architecture supporting both Kyber and Dilithium [22]. CRYPHTOR [25] integrates a memory-unified NTT accelerator with RISC-V SoCs. Our PCU differs in three ways: (1) it is a GPGPU functional unit, not a standalone accelerator; (2) the NTT sub-unit operates at an order-of-magnitude lower area cost (134 cells vs. 379–67,210), while the full PCU with Keccak and DMA (est. 724 cells from partial synthesis) provides broader functionality (NTT + Keccak + DMA) at 1 .91 × the area of the smallest standalone NTT-only design (379 cells); and (3) it is fully open-source with open EDA toolchain support and formal verification evidence. 
+
+11.2 GPU PQC 
+
+HI-Kyber [13] achieves 1,664 kops/s key exchange on NVIDIA GPUs through batched execution. Dilithium GPU [14] demonstrates 160 × signing speedup through task-level batching. NVIDIA cuPQC [28] provides GPU-optimized primi-tives reaching 13.3 M ML-KEM-768 key generations per second on H100 GPUs. These works are entirely software-based; our contribution is the first hardware acceleration integrated into the GPU pipeline itself. 
+
+11.3 CPU ISA Extensions for PQC 
+
+High-performance PQC software on CPUs relies on AVX-512 vector instructions; ARM has included SHA3 extensions in v8.4; and the RISC-V scalar cryptography extensions (Zk, Zkn, Zks) provide entropy and AES support. The OpenTitan platform demonstrates PQC acceleration via hardware/software co-design on a RISC-V root-of-trust [32]. 30 Hassan et al. 
+
+11.4 Open-Source NTT Design Tools 
+
+AutoNTT [15] provides automatic NTT architecture exploration with 2 .48 × latency improvement. The OpenNTT toolchain [33] offers generic NTT/FFT hardware generation. These tools lower the barrier to NTT hardware design but do not address GPGPU integration. 
+
+12 Conclusion 
+
+We presented what is, to our knowledge, the first design-space exploration of primitive-level PQC acceleration within a SIMT GPGPU, with full synthesizable RTL integration verified through cycle-accurate simulation, formal verification, and comprehensive testing (253/253 tests across 7 suites). Our Post-Quantum Crypto Unit is the smallest reported NTT sub-unit at 134 logic cells on Lattice ECP5, with a competitive area-delay product among designs with complete area and delay data. Under the Vortex SimX model, the PCU accelerates NTT+INTT by 42.6 × over GPU ALU software execution; RTL-measured speedup is ∼36 × at actual cycle counts. Measured against a general-purpose CPU (Intel i7-14700HX, 1.7 GHz), the Vortex RTL at 299.8 MHz (Artix-7 v9) executes ML-KEM-768 KeyGen in 7 μs versus 51 μs for the CPU (Table 27); at the ASIC frequency of 702 MHz, the PCU outperforms the CPU on wall-clock latency by a further 2 .3×.The key value is not replacing a CPU core but providing hardware-speed PQC at minimal area (275 LUTs, <1% of a moderate FPGA) within the GPGPU pipeline, freeing the host CPU for other work. The synthesizable RTL integration replaces the simulation-only DPI-C path with a hardware pipeline comprising an 8-state NTT engine FSM (v9 NTT), DMA engine with dcache arbiter, per-warp Keccak state save/restore, and 8 CSR-mapped performance counters. Five critical bugs were found and fixed in the integration process, including a DMA deadlock, dispatch handshake deadlock, and an 8-bit bit-reversal counter wraparound that silently undid the bit-reversal permutation. Formal verification via SymbiYosyz provides a k-induction proof of safety properties for the NTT engine FSM. All 253 tests across 7 testbench suites pass, including 91 original equivalence tests across 6 suites, 57 performance counter tests (including 8 CSR-mapped counters with CBD sampler verification), 225 butterfly corner-case test vectors (Kyber + Dilithium, Python-oracle verified), and 13 v8 NTT engine cycle-accurate verification tests (PWM Kyber, PWM Dilithium, negacyclic FWD/INV, 5 round-trips, 3 negacyclic polymuls). The full PCU achieves complete place-and-route on Xilinx Artix-7 200T (XC7A200TFBG484-3, speed grade −3) through an iterative pipelining effort that systematically closed the NTT critical path across three revisions (Table 10). The v6 NTT engine adds an S_BUTTERFLY pipeline register breaking the ROM-read to DSP path, achieving 134.3 MHz (WNS = −2.752 ns at 200 MHz target). A 2-stage pipelined Keccak ( 𝜃 +𝜌 +𝜋 | 𝜒 +𝜄 ) removes Keccak from the critical path entirely. The v7 NTT introduces a 3-stage Barrett reduction (x_m → q_times_est → Barrett output), raising Fmax to 177.2 MHz (WNS = −0.643 ns). The v8 NTT adds an S_ADDR pipeline register between address computation and BRAM read, breaking the 9-level combinational stage →addr →BRAM path into two shorter stages, achieving 
+
+200.1 MHz (WNS = +1.141 ns, TIMING MET at 200 MHz). The v9 revision registers the DMA engine write outputs (ntt_wr_addr_r , ntt_wr_data_r , ntt_wr_en_r ), eliminating the routing-dominated DMA →BRAM address path. The critical path shifts to an internal counter carry chain (7–8 logic levels, logic-dominated 57–64%), achieving 299.8 MHz 
+
+(WNS = +0.011 ns at 300 MHz target) — a +49.8% improvement over v8 without additional butterfly latency. The v9 design uses 275 LUTs, 281 flip-flops, and 1 BRAM (RAMB18E1 for twiddle ROM); no DSP48E1 multipliers are needed (Barrett reduction replaces all hardware multipliers). On Kintex-7 160T ( −2), the v9 full PCU achieves ∼410 MHz (WNS 
+
+= +0.001 ns at 410 MHz target) — a +84% improvement over v8’s 222.6 MHz. The Kintex-7 critical path at high frequency is br_scan → CARRY4 → LUT4 → LUT6 → RAMB18E1 ADDR (3 logic levels, ∼70% route). In the synthesis-variant Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU 31 NTT engine, the v8 S_ADDR stage increases butterfly latency by 1 cycle ( +17% for forward NTT: 6,145 →7,169 cycles) as the latency–frequency tradeoff for the +13% Fmax gain; v9 retains the 7-cycle butterfly, so throughput scales directly with the +49.8% frequency improvement. The integration engine ( ntt_engine.sv ) retains its sequential two-cycle butterfly (2,049 cycles; Section 3). Butterfly formal verification achieves a k-induction proof for Kyber ( 𝑞 =3329, Yices solver, 114 s total); the Dilithium variant ( 𝑞 =8380417) times out with all three SMT solvers tested (Yices, Z3, cvc5) due to the 128-bit Barrett multiply within the reference model. Functional correctness for the Dilithium butterfly is verified via 225 Python-oracle test vectors through Verilator cycle-accurate simulation: 225/225 PASS. Synthesized to ASAP7 7nm through a complete CTS-to-route flow, the NTT datapath occupies 97 𝜇 m2 at 702 MHz ,and the dual-issue arbiter achieves 5.92 GHz — the fastest PQC-relevant logic block reported in 7nm. Independent sub-module synthesis confirms Keccak at 1,857 𝜇 m2 (16,817 cells) and DMA at 46 𝜇 m2 (382 cells); the full PCU is estimated at ∼25,542 𝜇 m2 in 7nm, with the NTT contribution derived from a conservative scaling ratio pending a hierarchical synthesis flow. The architectural gap between idealized and sequential NTT pipelines — spanning 224–288 × across PCU operations — is not a limitation but a design space we systematically characterize across eight Pareto-optimal design points. A dual-issue NTT/Keccak arbiter provides up to 1 .47 × speedup for mixed workloads with only 36 logic cells (26.9% overhead). 
+
+Future work : (1) SLH-DSA workload integration; (2) multi-core scaling analysis; (3) integration with software GPU PQC frameworks; (4) butterfly formal verification for Dilithium ( 𝑞 =8380417) — current solvers time out on 23-bit Barrett reduction multiplies, requiring either compositional proofs or domain-specific SMT strategies; (5) full PCU ASAP7 synthesis with a commercial ABC mapper or partitioned hierarchical flow to resolve the NTT timeout. 
+
+Acknowledgments 
+
+This work uses the Vortex open-source RISC-V GPGPU platform, Yosys + nextpnr (OSS CAD Suite) for open-source FPGA synthesis, and OpenROAD-flow-scripts for open-source ASIC synthesis. The ASAP7 7nm predictive PDK is used for ASIC synthesis and analysis. 
+
+References                  
+
+> [1] NIST, “FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard,” 2024. [2] NIST, “FIPS 204: Module-Lattice-Based Digital Signature Standard,” 2024. [3] NIST, “FIPS 205: Stateless Hash-Based Digital Signature Standard,” 2024. [4] NIST, “FIPS 202: SHA-3 Standard: Permutation-Based Hash and Extendable- Output Functions,” 2015. [5] Vortex Team, “Vortex: Open-Source RISC-V GPGPU,” https://github.com/vortexgpgpu/vortex. [6] M. Imran et al., “Evaluating NTT/INTT Implementation Styles for Post-Quantum Cryptography,” IEEE Embedded Systems Letters, 2024. [7] B. Kieu-Do-Nguyen et al. , “Compact and Low-Latency FPGA-Based Number Theoretic Transform Architecture for CRYSTALS Kyber Postquantum Cryptography Scheme,” Information , vol. 15, no. 7, p. 400, 2024. [8] M. Bisheh-Niasar, R. Azarderakhsh, and M. Mozaffari-Kermani, “High-Speed NTT-Based Polynomial Multiplication Accelerator for Post-Quantum Cryptography,” in Proc. IEEE 28th Symp. Computer Arithmetic (ARITH) , 2021, pp. 94–101. [9] H. Kim et al., “Unif-NTT: Unified NTT/INTT Architecture,” IEEE Access, 2024. [10] M. Alhassani et al., “RNS-Based NTT Accelerators,” IEEE TCAS-I, 2024. [11] K. Yaman et al., “A High-Performance NTT Accelerator for CRYSTALS-Kyber,” DATE 2021. [12] A. Bertels et al., “Fully Pipelined NTT for PQC,” CHES 2025. [13] Z. Shen, M. M. K. Martin, and R. H. Hidding, “HI-Kyber: High-Throughput Kyber on GPUs,” IACR ePrint, 2023. [14] J. Lee, J. Kim, and H. Yoon, “GPU-Accelerated Dilithium Signatures,” IEEE Trans. Parallel Distrib. Syst., 2024.
+
+32 Hassan et al. 
+
+[15] M. Orywal and P. Sass, “AutoNTT: Automatic NTT Architecture Exploration,” IEEE Int. Conf. Field Programmable Custom Comput. Mach. (FCCM), 2025. [16] OpenROAD Team, “OpenROAD-flow-scripts: Open-Source ASIC Physical Design,” https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts. [17] Yosys Team, “Yosys Open Synthesis Suite,” https://github.com/YosysHQ/yosys. [18] nextpnr Team, “nextpnr: Portable FPGA Place and Route,” https://github.com/YosysHQ/nextpnr. [19] L. T. Clark et al., “ASAP7: A 7-nm Predictive Process Design Kit,” Microelectronics Journal, 2016. [20] A. Malal, “Designing Efficient and Flexible NTT Accelerators,” ePrint 2023/1617. [21] C. Wang et al., “SAM: A Scalable Accelerator for Number Theoretic Transform Using Multi-Dimensional Decomposition,” ICCAD 2023. [22] S. Mandal and D. Basu Roy, “KiD: A Hardware Design Framework Targeting Unified NTT Multiplication for CRYSTALS-Kyber and CRYSTALS-Dilithium on FPGA,” in Proc. 27th Int. Symp. VLSI Design and Test (VDAT) , 2024. arXiv:2311.04581. [23] D. Kundi et al., “High-Performance NTT Hardware Accelerator to Support ML-KEM and ML-DSA,” ASHES 2024 (ACM). [24] A. Waris et al., “Pipelined and Conflict-Free Number Theoretic Transform Accelerator for CRYSTALS-Kyber on FPGA,” PLOS One, 2025. [25] S. Di Matteo et al., “CRYPHTOR: A Memory-Unified NTT-Based Hardware Accelerator for Post-Quantum CRYSTALS Algorithms,” IEEE Access, 2024. [26] J. Bertels et al., “A Better Kyber Butterfly for FPGAs,” FPL 2024. [27] C. Zhao et al., “A Compact and High-Performance Hardware Architecture for CRYSTALS-Dilithium,” TCHES, 2022. [28] NVIDIA, “cuPQC: GPU-Accelerated Post-Quantum Cryptography SDK,” https://developer.nvidia.com/cupqc. [29] L. Beckwith, A. Abdulgadir, and R. Azarderakhsh, “A Flexible Shared Hardware Accelerator for NIST-Recommended Algorithms CRYSTALS-Kyber and CRYSTALS-Dilithium with SCA Protection,” in Topics in Cryptology — CT-RSA 2023 (LNCS 13871), Springer, 2023, pp. 469–490. [30] X. Carril, C. Kardaris, J. Ribes-González, O. Farràs, C. Hernandez, V. Kostalabros, J. U. González-Jiménez, and M. Moretó, “Hardware Acceleration for High-Volume Operations of CRYSTALS-Kyber and CRYSTALS-Dilithium,” ACM Trans. Reconfigurable Technol. Syst. , vol. 17, no. 3, pp. 1–26, 2024. [31] P. Dobiáš, L. Malina, and J. Hajný, “Efficient unified architecture for post-quantum cryptography: combining Dilithium and Kyber,” PeerJ Computer Science , vol. 11, p. e2746, 2025. [32] F. Urquhart and F. Stajano, “Acceleration of Core Post-Quantum Cryptography Primitive on Open-Source Silicon Platform Through Hard-ware/Software Co-Design,” 2024. [33] F. Krieger, F. Hirner, A. C. Mert, and S. Sinha Roy, “A Flexible Hardware Design Tool for Fast Fourier and Number-Theoretic Transformation Architectures,” IEEE Trans. Computer-Aided Design of Integrated Circuits and Systems , vol. 45, no. 5, pp. 2531–2543, 2026. [34] NIST, “Quantum Computing and Post-Quantum Cryptography: Migration Timeline and Considerations,” NIST Internal Report IR 8547, 2024. [35] 3GPP, “Security Architecture and Procedures for 5G System,” Technical Specification TS 33.501, v18.4.0, 2024. [36] A. Wehner, J. Kleine-Bünding, and C. Paar, “Post-Quantum V2X Communication: Challenges and Opportunities,” IEEE Vehicular Technology Conference (VTC), 2024. [37] SymbiYosyz Team, “SymbiYosyz: Open-source formal verification framework for Verilog,” https://github.com/YosysHQ/sby. [38] Verilator Team, “Verilator: Fast RTL simulator,” https://verilator.org.

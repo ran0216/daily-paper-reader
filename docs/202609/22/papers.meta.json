@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-22",
+  "date": "2026-09-22",
+  "generated_at": "2026-09-22T22:12:21",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/22/2609.24288v1-circuit-architecture-training-co-design-with-regenerative-sa-similarity-sensing-for-aggressive-sar-skipping-in-analog-compute-in-memory",
+      "section": "quick",
+      "title_en": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "authors": "Yufei Liu, Shuang Liu, Junjie Wang",
+      "date": "2026-09-21",
+      "pdf": "https://arxiv.org/pdf/2609.24288v1",
+      "score": "7.0",
+      "evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "tldr": "模拟存内计算中，SAR ADC 的逐次比较开销限制了能效；本文提出电路-架构-训练协同设计，利用感放再生检测模拟输出相似性，从而跳过冗余 SAR 比较。方法在硬件感知训练中引入电路表征的 SA 扰动与前缀复用编码误差，实现激进比较跳过，并用 55nm CMOS 仿真验证检测器。基于 ISAAC 的 W4A4 CIM 上评估 WRN-28-10、ResNet20 与 DeiT，WRN-28-10 达 77.3% Top-1，较基线 78.4% 略降，但 SAR 比较减少 48.19%，参考 ADC 能耗降 27.18%。",
+      "tags": "query:chip-design",
+      "abstract_en": "This work presents a circuit-architecture-training co-design framework that exploits sense-amplifier (SA) regeneration to detect analog-output similarity and reduce SAR comparisons in compute-in-memory (CIM) systems. Hardware-aware training incorporates circuit-characterized SA disturbance and encoding errors caused by prefix reuse, enabling aggressive comparison skipping. The detector is characterized through 55-nm CMOS schematic simulations, with system-level evaluation on WRN-28-10, ResNet20, and DeiT using an ISAAC-based W4A4 CIM model. On WRN-28-10, the proposed approach achieves 77.3% Top-1 accuracy (W4A4 baseline: 78.4%) while reducing SAR comparisons by 48.19% across the evaluated layers. Energy-budget analysis estimates a 27.18% reduction in reference ADC energy after detector overhead, leaving 0.52 pJ per conversion to accommodate additional control and peripheral costs.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/22/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "section": "quick",
+      "title_en": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "authors": "Yi Sheng Chong, Rakshith Harish, Rajesh Chandrasekhara Panicker, Vishnu P. Nambiar, Anh Tuan Do",
+      "date": "2026-09-15",
+      "pdf": "https://arxiv.org/pdf/2609.16600v1",
+      "score": "6.0",
+      "evidence": "面向边缘AI的可配置MAC与动态截断CGRA加速器",
+      "tldr": "边缘设备需兼顾高效与灵活以处理动态实时负载，CGRA因接近通用处理器灵活性且能效接近专用加速器而受关注。但传统CGRA执行MAC需两个周期，神经网络推理与信号处理中大量MAC导致处理时间过长。本文提出PE内可配置MAC单元，复用同一乘法器与加法器，单周期完成ADD、MUL或MAC，并加入截断块动态调整读出精度。基于40nm CMOS实现，在0.6V、21MHz下达到420.6GOPS/W，能效较当前最优提升1.4倍。",
+      "tags": "query:chip-design",
+      "abstract_en": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/22/2609.22343v1-design-space-exploration-of-post-quantum-cryptography-acceleration-on-an-open-source-risc-v-gpgpu",
+      "section": "quick",
+      "title_en": "Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU",
+      "authors": "Hossam Hassan, Marc Xander Makkes, Chae Eun Lee, Hyungmin Yoon",
+      "date": "2026-09-16",
+      "pdf": "https://arxiv.org/pdf/2609.22343v1",
+      "score": "6.0",
+      "evidence": "集成于RISC-V GPGPU的硬件加速器设计，属数字集成电路设计空间探索",
+      "tldr": "后量子密码硬件加速已在中央处理器与现场可编程门阵列上得到研究，但作为高吞吐计算主力的通用图形处理器，仍缺少后量子密码功能单元的硬件集成。本文在开源Vortex RISC-V通用图形处理器上首次集成后量子密码单元，针对Kyber与Dilithium模数实现256点NTT。该设计仅用134个逻辑单元，比次小方案小2.8倍，并通过253项功能测试。仿真相对GPU算术逻辑单元加速42.6倍，7纳米下NTT数据通路面积96.53平方微米、频率702兆赫兹，为通用并行计算集成后量子密码加速奠定基础。",
+      "tags": "query:chip-design",
+      "abstract_en": "Post-quantum cryptography (PQC) acceleration has been studied for CPUs and FPGAs, yet GPGPUs - dominating high-throughput computing - remain unexplored for PQC hardware integration as a functional unit. We present what is, to our knowledge, the first such integration: the Vortex Post-Quantum Crypto Unit (PCU) on the open-source Vortex RISC-V GPGPU. The PCU implements a 256-point NTT over Kyber (q=3329) and Dilithium (q=8380417) moduli in 134 logic cells (73 LUT4 + 61 CCU2C) - the smallest reported NTT accelerator by logic-cell count, 2.8x smaller than the next smallest design. It achieves 228.78 MHz on Lattice ECP5 and 299.8 MHz place-and-route on Xilinx Artix-7, and passes 253 functional tests across 7 suites. On Vortex SimX, it achieves 42.6x acceleration over GPU ALU execution, projecting to roughly 36x speedup on RTL. Synthesized to ASAP7 7nm, the NTT datapath occupies 96.53 um^2 (post-route) at 702 MHz. This work establishes a foundation for integrating PQC hardware acceleration into general-purpose parallel computing.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

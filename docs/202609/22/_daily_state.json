@@ -1,0 +1,57 @@
+{
+  "date": "20260922",
+  "date_label": "",
+  "generated_at": "2026-09-22 22:12:19 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.24288v1",
+      "route": "202609/22/2609.24288v1-circuit-architecture-training-co-design-with-regenerative-sa-similarity-sensing-for-aggressive-sar-skipping-in-analog-compute-in-memory",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "first_seen_at": "2026-09-22 22:12:19 UTC",
+      "updated_at": "2026-09-22 22:12:19 UTC"
+    },
+    {
+      "paper_id": "2609.16600v1",
+      "route": "202609/22/2609.16600v1-a-420-gopsw-cgra-with-a-configurable-mac-and-dynamic-truncation",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘AI的可配置MAC与动态截断CGRA加速器",
+      "first_seen_at": "2026-09-22 22:12:19 UTC",
+      "updated_at": "2026-09-22 22:12:19 UTC"
+    },
+    {
+      "paper_id": "2609.22343v1",
+      "route": "202609/22/2609.22343v1-design-space-exploration-of-post-quantum-cryptography-acceleration-on-an-open-source-risc-v-gpgpu",
+      "title": "Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "集成于RISC-V GPGPU的硬件加速器设计，属数字集成电路设计空间探索",
+      "first_seen_at": "2026-09-22 22:12:19 UTC",
+      "updated_at": "2026-09-22 22:12:19 UTC"
+    }
+  ]
+}
