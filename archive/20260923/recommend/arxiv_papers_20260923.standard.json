@@ -1,0 +1,341 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-23T22:09:58.831055+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 8,
+    "quick_skim_target": 11,
+    "quick_selected": 8
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2609.16600v1",
+      "source": "arxiv",
+      "title": "A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation",
+      "abstract": "Edge devices demand for highly efficient yet flexible processing capability to handle dynamic real-time workloads. Coarse grain reconfigurable architecture (CGRA) emerges as a suitable accelerator candidate in edge devices, because they are as flexible as general purpose processors and offer high efficiency close to that of domain specific accelerators. However, a typical CGRA requires two cycles for a multiply-and-accumulate (MAC) operation, and workloads such as neural network inference and signal processing involve many MAC operations, resulting in long CGRA processing time. This work proposes a CGRA that has configurable MAC units in the processing elements (PEs) that can perform an addition (ADD) or multiplication (MUL) or a MAC by using the same multiplier and adder, in a single cycle. The readout precision of MAC result can be adjusted by a truncation block. The proposed CGRA is implemented with 40nm CMOS technology. It attains an energy efficiency of 420.6GOPS/W operating at supply of 0.6V and frequency of 21MHz, which is 1.4 times higher than the state-of-the-art.",
+      "authors": [
+        "Yi Sheng Chong",
+        "Rakshith Harish",
+        "Rajesh Chandrasekhara Panicker",
+        "Vishnu P. Nambiar",
+        "Anh Tuan Do"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-15T03:51:36+00:00",
+      "link": "https://arxiv.org/pdf/2609.16600v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "edge AI accelerator with configurable MAC in CGRA, AI accelerator hardware architecture",
+      "llm_evidence_cn": "边缘AI加速的可配置MAC CGRA，属AI加速器硬件架构",
+      "llm_evidence": "边缘AI加速的可配置MAC CGRA，属AI加速器硬件架构",
+      "canonical_evidence": "边缘AI加速的可配置MAC CGRA，属AI加速器硬件架构",
+      "llm_tldr_en": "Edge devices need efficient yet flexible processing, but typical CGRAs take two cycles per MAC, slowing neural network inference. This paper proposes configurable MAC units in PEs that perform ADD, MUL or MAC with the same multiplier plus dynamic truncation, achieving 420 GOPS/W.",
+      "llm_tldr_cn": "边缘设备需要兼顾高能效与灵活性，而典型CGRA执行一次乘累加需两个周期，拖慢神经网络推理等负载。本文提出在PE中集成可配置MAC单元，用同一乘法器完成加、乘或乘累加，并引入动态截断。实现能效达420 GOPS/W，显著缩短CGRA处理时间，为边缘AI加速提供高能效可重构架构方案。",
+      "llm_tldr": "边缘设备需要兼顾高能效与灵活性，而典型CGRA执行一次乘累加需两个周期，拖慢神经网络推理等负载。本文提出在PE中集成可配置MAC单元，用同一乘法器完成加、乘或乘累加，并引入动态截断。实现能效达420 GOPS/W，显著缩短CGRA处理时间，为边缘AI加速提供高能效可重构架构方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17718v1",
+      "source": "arxiv",
+      "title": "SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs",
+      "abstract": "Dynamic Image Graph Construction (DIGC) is the primary performance bottleneck in FPGA acceleration of Vision Graph Neural Networks (ViGs), reconstructing graph connectivity at every layer through irregular, memory-intensive computation. Existing FPGA accelerators optimize DIGC but still execute it unconditionally, making repeated graph reconstruction a persistent source of latency and energy consumption. We propose the SpecReuse algorithm, which computes compact spectral descriptors of intermediate features and reuses previously constructed graphs when descriptor drift remains below a calibrated threshold. We further present the SpecReuse accelerator, an FPGA architecture that realizes graph reuse through lightweight hardware for spectral descriptor extraction and reuse control while remaining compatible with existing graph-construction accelerators. Experimental results demonstrate up to a $2.69\\times$ speedup in end-to-end inference and approximately 58--65\\% lower energy per inference with negligible FPGA resource overhead and minimal loss in classification accuracy.",
+      "authors": [
+        "Isabella Bernhardt Eiliya",
+        "Anvitha Ramachandran",
+        "Dhruv Parikh",
+        "Viktor Prasanna"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-15T18:29:05+00:00",
+      "link": "https://arxiv.org/pdf/2609.17718v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "FPGA accelerator architecture for vision GNN inference, AI accelerator design",
+      "llm_evidence_cn": "面向视觉GNN推理的FPGA加速器架构，属AI加速器设计",
+      "llm_evidence": "面向视觉GNN推理的FPGA加速器架构，属AI加速器设计",
+      "canonical_evidence": "面向视觉GNN推理的FPGA加速器架构，属AI加速器设计",
+      "llm_tldr_en": "Dynamic Image Graph Construction dominates FPGA acceleration of Vision GNNs, reconstructing connectivity each layer. This paper proposes SpecReuse, which computes compact spectral descriptors and reuses graphs under a drift threshold, plus an FPGA accelerator realizing graph reuse in hardware.",
+      "llm_tldr_cn": "视觉图神经网络在FPGA加速时，动态图像图构建因每层不规则、访存密集地重建图连接而成为主要瓶颈。本文提出SpecReuse算法，计算中间特征的紧凑谱描述子，当漂移低于标定阈值时复用此前构建的图。并设计FPGA加速器以轻量硬件实现图复用，减少重复构图带来的延迟与能耗，为图神经网络推理提供可复用图结构的加速架构。",
+      "llm_tldr": "视觉图神经网络在FPGA加速时，动态图像图构建因每层不规则、访存密集地重建图连接而成为主要瓶颈。本文提出SpecReuse算法，计算中间特征的紧凑谱描述子，当漂移低于标定阈值时复用此前构建的图。并设计FPGA加速器以轻量硬件实现图复用，减少重复构图带来的延迟与能耗，为图神经网络推理提供可复用图结构的加速架构。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18792v1",
+      "source": "arxiv",
+      "title": "Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator",
+      "abstract": "Hardware Construction Languages (HCLs) aim to improve hardware design productivity while generating register-transfer-level (RTL) circuits without changing the designer's microarchitecture. However, most comparisons between HCLs are either qualitative or evaluate quality of results (QoR) across different designs, making it difficult to separate language effects from design effects. This paper compares the most widely used HCLs using the same fixed design, the OCP MXFP4 block dot product, a quantization primitive at the heart of edge Physical-AI inference, implemented as a single 12-stage, II=1 pipeline. A SystemVerilog baseline is followed by implementations in Chisel, SpinalHDL, Amaranth, Clash, Bluespec, and C++ for high-level synthesis (HLS). Every variant goes through the same flow on the same Artix-7 device set at 100 MhZ, driven by a RISC-V soft core. With the micro-architecture held constant, the comparison is clean: every variant meets timing, and the HCLs match or even undercut hand-written RTL in area. The remaining differences stem not from the algorithm but from how each back end lowers arithmetic, and from a single width choice that silently toggles DSP inference. Unlike HLS, where design decisions are limited to pragmas, the HCLs achieve comparable area and timing. Therefore, the choice comes down to ecosystem fit and interface needs rather than QoR.",
+      "authors": [
+        "Daniele Passaretti",
+        "Sajjad Tamimi",
+        "Nicola Dall'Ora"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-16T15:11:38+00:00",
+      "link": "https://arxiv.org/pdf/2609.18792v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "compares hardware construction languages on a fixed MXFP4 edge-AI inference datapath pipeline at RTL",
+      "llm_evidence_cn": "在同一MXFP4边缘AI推理数据通路上比较多种硬件构建语言与RTL实现",
+      "llm_evidence": "在同一MXFP4边缘AI推理数据通路上比较多种硬件构建语言与RTL实现",
+      "canonical_evidence": "在同一MXFP4边缘AI推理数据通路上比较多种硬件构建语言与RTL实现",
+      "llm_tldr_en": "Using one fixed 12-stage MXFP4 dot-product pipeline for edge AI inference, the study compares SystemVerilog against Chisel, SpinalHDL, Amaranth, Clash, Bluespec and C++ HLS to isolate language effects on RTL quality.",
+      "llm_tldr_cn": "硬件构建语言旨在提升设计效率并生成RTL电路，但已有比较多为定性或跨不同设计，难以分离语言与设计本身的影响。本文固定同一微架构，即面向边缘物理AI推理的OCP MXFP4块点积，实现为12级、II=1流水线，并分别用SystemVerilog、Chisel、SpinalHDL、Amaranth、Clash、Bluespec及C++高层综合实现。结果量化了各语言在资源与时序质量上的差异，为数字集成电路设计中的语言选型提供可复现依据。",
+      "llm_tldr": "硬件构建语言旨在提升设计效率并生成RTL电路，但已有比较多为定性或跨不同设计，难以分离语言与设计本身的影响。本文固定同一微架构，即面向边缘物理AI推理的OCP MXFP4块点积，实现为12级、II=1流水线，并分别用SystemVerilog、Chisel、SpinalHDL、Amaranth、Clash、Bluespec及C++高层综合实现。结果量化了各语言在资源与时序质量上的差异，为数字集成电路设计中的语言选型提供可复现依据。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.24270v1",
+      "source": "arxiv",
+      "title": "Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling",
+      "abstract": "Modern GPUs are no longer physically symmetric. Die scaling leads to both manufacturing-driven floorsweeping and cache and memory partitioning. The former creates chip-specific compute topologies, while the latter causes non-uniform memory access. These asymmetries are substantial. Topology-oblivious compute unit allocation can lead to up to 1.33x performance variation, while remote accesses increase HBM latency by up to 67% and nearly double L2 latency.   However, these asymmetries are hidden behind the GPU's logical resource abstractions and can vary across chips. We develop lightweight characterization methods to uncover per-chip compute topology and memory affinity. We then use the discovered information to make existing fine-grained scheduling asymmetry-aware, considering not only how many resources are allocated but also which physical resources are assigned. Across full-GPU kernel execution, intra-application multiplexing, and inter-application co-location, asymmetry-aware scheduling improves mainstream kernels by up to 1.22x, multiplexed LLM inference by up to 14.3%, and avoids up to 1.33x performance variation.",
+      "authors": [
+        "Xiaoze Fan",
+        "Jianhao Wang",
+        "Weihao Cui",
+        "Han Zhao",
+        "Zhuobin Huang",
+        "Yangjie Zhou",
+        "Yuxian Qiu",
+        "Shixuan Sun",
+        "Bingsheng He",
+        "Quan Chen",
+        "Minyi Guo"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.DC"
+      ],
+      "published": "2026-09-21T08:34:29+00:00",
+      "link": "https://arxiv.org/pdf/2609.24270v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "GPU die scaling, compute topology and memory affinity aware fine-grained scheduling",
+      "llm_evidence_cn": "GPU裸片缩放下的计算拓扑与内存亲和感知细粒度调度",
+      "llm_evidence": "GPU裸片缩放下的计算拓扑与内存亲和感知细粒度调度",
+      "canonical_evidence": "GPU裸片缩放下的计算拓扑与内存亲和感知细粒度调度",
+      "llm_tldr_en": "Die scaling makes GPUs physically asymmetric through floorsweeping and memory partitioning; the paper develops lightweight per-chip characterization of compute topology and memory affinity, then makes fine-grained scheduling asymmetry-aware, where topology-oblivious allocation varies performance by up to 1.33x.",
+      "llm_tldr_cn": "现代GPU因裸片缩放出现制造性屏蔽与缓存/内存分区，导致芯片特定的计算拓扑与非一致内存访问，而逻辑资源抽象掩盖了这些不对称。本文提出轻量级表征方法以揭示每芯片的计算拓扑与内存亲和性，并据此使现有细粒度调度具备不对称感知能力。结果显示拓扑无关的分配可造成最高1.33倍性能差异，远端访问使HBM延迟增加67%、L2延迟近乎翻倍。该工作为异构GPU架构下的调度优化提供了依据。",
+      "llm_tldr": "现代GPU因裸片缩放出现制造性屏蔽与缓存/内存分区，导致芯片特定的计算拓扑与非一致内存访问，而逻辑资源抽象掩盖了这些不对称。本文提出轻量级表征方法以揭示每芯片的计算拓扑与内存亲和性，并据此使现有细粒度调度具备不对称感知能力。结果显示拓扑无关的分配可造成最高1.33倍性能差异，远端访问使HBM延迟增加67%、L2延迟近乎翻倍。该工作为异构GPU架构下的调度优化提供了依据。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.24288v1",
+      "source": "arxiv",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "abstract": "This work presents a circuit-architecture-training co-design framework that exploits sense-amplifier (SA) regeneration to detect analog-output similarity and reduce SAR comparisons in compute-in-memory (CIM) systems. Hardware-aware training incorporates circuit-characterized SA disturbance and encoding errors caused by prefix reuse, enabling aggressive comparison skipping. The detector is characterized through 55-nm CMOS schematic simulations, with system-level evaluation on WRN-28-10, ResNet20, and DeiT using an ISAAC-based W4A4 CIM model. On WRN-28-10, the proposed approach achieves 77.3% Top-1 accuracy (W4A4 baseline: 78.4%) while reducing SAR comparisons by 48.19% across the evaluated layers. Energy-budget analysis estimates a 27.18% reduction in reference ADC energy after detector overhead, leaving 0.52 pJ per conversion to accommodate additional control and peripheral costs.",
+      "authors": [
+        "Yufei Liu",
+        "Shuang Liu",
+        "Junjie Wang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-21T08:47:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.24288v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Circuit-architecture-training co-design for analog compute-in-memory AI accelerator",
+      "llm_evidence_cn": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "llm_evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "canonical_evidence": "面向模拟存内计算AI加速器的电路-架构-训练协同设计",
+      "llm_tldr_en": "Analog compute-in-memory systems waste energy on SAR comparisons. This work exploits sense-amplifier regeneration to detect output similarity and skip comparisons, with hardware-aware training. On WRN-28-10 it keeps 77.3% accuracy while cutting SAR comparisons by 48.19%.",
+      "llm_tldr_cn": "模拟存内计算系统在SAR量化中消耗大量比较操作，如何在保证精度的同时减少比较次数是提升能效的关键。本文提出电路-架构-训练协同设计框架，利用感放再生效应检测模拟输出相似度，并将电路刻画的感放扰动与前缀复用编码误差纳入硬件感知训练。基于55nm CMOS仿真与ISAAC式W4A4模型，在WRN-28-10上取得77.3% Top-1精度，同时减少48.19%的SAR比较次数。该协同设计在几乎不损失精度的前提下大幅降低存内计算开销，为高能效AI加速器提供可行路径。",
+      "llm_tldr": "模拟存内计算系统在SAR量化中消耗大量比较操作，如何在保证精度的同时减少比较次数是提升能效的关键。本文提出电路-架构-训练协同设计框架，利用感放再生效应检测模拟输出相似度，并将电路刻画的感放扰动与前缀复用编码误差纳入硬件感知训练。基于55nm CMOS仿真与ISAAC式W4A4模型，在WRN-28-10上取得77.3% Top-1精度，同时减少48.19%的SAR比较次数。该协同设计在几乎不损失精度的前提下大幅降低存内计算开销，为高能效AI加速器提供可行路径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.25434v1",
+      "source": "arxiv",
+      "title": "Tetris: Circuit Scheduling for Rearrangeably Non-Blocking Photonic Interconnects",
+      "abstract": "Reconfigurable photonic interconnects are emerging as a promising communication architecture for next-generation distributed computing. Yet, most circuit schedulers are designed around an idealized view of the interconnect as either blocking or strictly non-blocking. Practical scalable designs are often rearrangeably non-blocking (RNB), with connections routed through networks of internal $2\\times2$ switches. This changes the scheduling problem fundamentally: establishing a new connection can force existing connections to be rerouted, trigger state changes across multiple internal switches, and impose reconfiguration delay on otherwise unrelated traffic.   We present Tetris, a circuit scheduling algorithm for RNB photonic interconnects. Tetris builds on two observations. First, All-to-All demands are often not doubly stochastic, leaving a small number of endpoints as communication bottlenecks. Second, reconfiguration delay can be large enough to change which connection should be scheduled next. Tetris prioritizes bottleneck endpoints using their remaining communication and reconfiguration work, while selecting and routing matchings to preserve ongoing connections whenever possible. Matchings ensure progress, but connections are scheduled independently, allowing completed connections to be replaced without matching-wide barriers and incurring delay only at switches whose states change. Our simulation and hardware-emulation results show that Tetris reduces All-to-All demand completion time by up to $6.6$x over Birkhoff--von Neumann-based scheduling and by $30$% over Sunflow. More broadly, RNB interconnects raise new questions in multi-tenant scheduling and routing for partial reconfiguration, which we discuss at the end of the paper.",
+      "authors": [
+        "Eliezer Amponsah",
+        "Deeksha P Rao",
+        "Vamsi Addanki"
+      ],
+      "primary_category": "cs.NI",
+      "categories": [
+        "cs.NI"
+      ],
+      "published": "2026-09-21T21:37:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.25434v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "circuit scheduling algorithm for rearrangeably non-blocking photonic interconnect communication architecture",
+      "llm_evidence_cn": "面向可重排非阻塞光子互连通信架构的电路调度算法",
+      "llm_evidence": "面向可重排非阻塞光子互连通信架构的电路调度算法",
+      "canonical_evidence": "面向可重排非阻塞光子互连通信架构的电路调度算法",
+      "llm_tldr_en": "Tetris is a circuit scheduling algorithm for rearrangeably non-blocking photonic interconnects, handling rerouting-induced switch state changes and reconfiguration delay that idealized blocking models ignore.",
+      "llm_tldr_cn": "可重构光子互连被视为下一代分布式计算的通信架构，但现有电路调度器多假设互连为阻塞或严格非阻塞，而实际可扩展设计常是可重排非阻塞，新连接会迫使已有连接改路并引发多处内部开关状态变化与重配置延迟。本文提出Tetris调度算法，针对可重排非阻塞光子互连建模并求解该调度问题。结果表明该算法能在建立连接的同时有效控制重配置开销，为光子互连的实际调度提供更贴近硬件的方案。",
+      "llm_tldr": "可重构光子互连被视为下一代分布式计算的通信架构，但现有电路调度器多假设互连为阻塞或严格非阻塞，而实际可扩展设计常是可重排非阻塞，新连接会迫使已有连接改路并引发多处内部开关状态变化与重配置延迟。本文提出Tetris调度算法，针对可重排非阻塞光子互连建模并求解该调度问题。结果表明该算法能在建立连接的同时有效控制重配置开销，为光子互连的实际调度提供更贴近硬件的方案。",
+      "llm_tags": [
+        "query:noc-arch:composite"
+      ],
+      "matched_query_tag": "query:noc-arch:composite",
+      "matched_query_text": "Papers central to 片上网络架构互联芯片相关论文检索, especially work that connects or combines: network-on-chip architecture design and interconnect chip papers; papers whose core contribution is network on chip architecture design including topology routing algorithm flow control virtual channel and router microarchitecture; classic foundational and recent research on on chip interconnection network architecture and design.",
+      "matched_requirement_id": "req-composite-noc-arch",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.25560v1",
+      "source": "arxiv",
+      "title": "Co-Fabric: Breaking Host-Domain Boundaries for Unified xPU Interconnection",
+      "abstract": "Large-model parameters have grown beyond the capacity of a single xPU, dispersing across multiple xPUs spanning distinct host domains, where xPU-to-xPU communication dominates overall system efficiency. Existing scale-up interconnect remains inadequate: network-based solutions built on Ethernet--such as RoCE (RDMA over Converged Ethernet)--introduce specific message-semantics and protocol-stack characteristics, and rely on fragmented per-host addressing, while conventional host-based fabrics are confined to a single host domain and lack cross-host unified addressing. This paper presents Co-Fabric, a bus-based interconnect that, unlike conventional bus designs, breaks host-domain boundaries to deliver unified xPU interconnection for scale-up superpods. Co-Fabric makes three contributions: a streamlined four-layer protocol stack achieving nanosecond-scale processing latency with native reliability; a cross-domain scaling and P2P mechanism that routes using port identifiers embedded in the packet header; and a unified address space built on shadow-device auto-enumeration. On a 64-xPU 3D-Mesh system, Co-Fabric cuts inter-node communication latency by over 50% and improves bandwidth by 2-5x over RoCE, accelerating DeepSeek R1 inference by 30%-80%. Moreover, since its streamlined four-layer protocol stack and higher data-communication efficiency reduce protocol and processing overhead relative to the Ethernet-based RoCE stack, Co-Fabric cuts the cost and power of the interconnect itself by up to 80% and 5%, respectively. These results demonstrate Co-Fabric's advantage for AI computing centers.",
+      "authors": [
+        "Zhen Peng",
+        "Jiaming Huang",
+        "Chaofan Chen",
+        "Zhao Zhang",
+        "An Wu",
+        "Baoyang Liu",
+        "Xinglong Wang",
+        "Tanlong Ci",
+        "Jinfeng Li",
+        "Xueke Duan",
+        "Hao Wang",
+        "Xi Chen",
+        "Shunshun Zhang",
+        "Zhiyuan Su",
+        "Zhu Cao",
+        "Zhichong Dou",
+        "Shaohua Wu",
+        "Lu Jing",
+        "Yue Yuan"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-22T01:48:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.25560v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Bus-based interconnect breaking host-domain boundaries for unified xPU interconnection",
+      "llm_evidence_cn": "打破主机域边界、面向xPU统一互连的总线式互连芯片架构",
+      "llm_evidence": "打破主机域边界、面向xPU统一互连的总线式互连芯片架构",
+      "canonical_evidence": "打破主机域边界、面向xPU统一互连的总线式互连芯片架构",
+      "llm_tldr_en": "Large-model parameters exceed single xPU capacity, so xPU-to-xPU communication dominates system efficiency. Co-Fabric is a bus-based interconnect that breaks host-domain boundaries to deliver unified xPU interconnection for scale-up superpods, addressing fragmented addressing in Ethernet-based fabrics.",
+      "llm_tldr_cn": "大模型参数超出单颗xPU容量，需跨主机域分散部署，xPU间通信成为系统效率瓶颈，现有以太网方案与主机内总线均难以满足统一寻址需求。本文提出Co-Fabric总线式互连架构，突破传统总线局限于单一主机域的约束，实现跨主机域的统一xPU互连与寻址。该架构面向scale-up超级集群，缓解跨域通信协议栈语义与寻址碎片化问题，从而提升系统整体效率，为大规模AI集群互连提供新的架构思路。",
+      "llm_tldr": "大模型参数超出单颗xPU容量，需跨主机域分散部署，xPU间通信成为系统效率瓶颈，现有以太网方案与主机内总线均难以满足统一寻址需求。本文提出Co-Fabric总线式互连架构，突破传统总线局限于单一主机域的约束，实现跨主机域的统一xPU互连与寻址。该架构面向scale-up超级集群，缓解跨域通信协议栈语义与寻址碎片化问题，从而提升系统整体效率，为大规模AI集群互连提供新的架构思路。",
+      "llm_tags": [
+        "query:noc-arch"
+      ],
+      "matched_query_tag": "query:noc-arch",
+      "matched_query_text": "network-on-chip architecture design and interconnect chip papers",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.26644v1",
+      "source": "arxiv",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "abstract": "Operating Tensor Processing Units (TPUs) in the near-threshold computing (NTC) region significantly reduces energy consumption but introduces high delay sensitivity to process variation and data activity. Conventional designs typically rely on a conservative, fixed global clock to ensure safety, which leaves large portions of timing margin unexploited as most operations finish well before the clock edge. We propose Dynamic Slack-Aware Clocking (DSAC), a proactive framework that replaces worst-case timing with operation-specific adjustments. DSAC employs lightweight Hamming-Distance, Most-Significant-Bit, and Hybrid predictors to estimate the delay sensitivity of individual multiply-accumulate (MAC) operations and classify them into three timing tiers. These tiers are enforced locally via dummy-hold cycles under a fixed global reference clock, enabling fine-grained timing adaptation without global clock retuning or frequency scaling. A closed-loop feedback controller monitors timing violations and updates tier thresholds at runtime to maintain resilience. Experiments on quantized DNN benchmarks demonstrate that the MSB predictor maintains high inference accuracy, with an average loss of only 1% even at aggressive performance points. Furthermore, DSAC achieves up to 1.55X better energy efficiency at 2.15X frequency scaling compared to a baseline TPU, while incurring an area overhead as low as 13%.",
+      "authors": [
+        "Muhammad Usman Nadeem",
+        "Sanghamitra Roy",
+        "Koushik Chakraborty"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-22T16:16:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.26644v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Near-threshold TPU clocking design for AI accelerator hardware",
+      "llm_evidence_cn": "面向AI加速器硬件的近阈值TPU时钟设计",
+      "llm_evidence": "面向AI加速器硬件的近阈值TPU时钟设计",
+      "canonical_evidence": "面向AI加速器硬件的近阈值TPU时钟设计",
+      "llm_tldr_en": "Near-threshold TPUs save energy but suffer delay sensitivity, forcing conservative fixed clocks. DSAC replaces worst-case timing with operation-specific adjustments via lightweight predictors that classify MAC operations, improving energy efficiency.",
+      "llm_tldr_cn": "近阈值计算能显著降低张量处理单元能耗，但工艺偏差与数据活动导致的时延敏感性迫使设计者采用保守的固定全局时钟，浪费大量时序裕量。本文提出动态松弛感知时钟框架，用汉明距离、最高有效位和混合预测器估计每次乘累加操作的时延敏感度，并据此进行分类与时钟调整。该方法以操作级时序取代最坏情况时序，在保证安全的前提下释放未用裕量，从而降低近阈值TPU能耗，为低功耗AI加速器设计提供新途径。",
+      "llm_tldr": "近阈值计算能显著降低张量处理单元能耗，但工艺偏差与数据活动导致的时延敏感性迫使设计者采用保守的固定全局时钟，浪费大量时序裕量。本文提出动态松弛感知时钟框架，用汉明距离、最高有效位和混合预测器估计每次乘累加操作的时延敏感度，并据此进行分类与时钟调整。该方法以操作级时序取代最坏情况时序，在保证安全的前提下释放未用裕量，从而降低近阈值TPU能耗，为低功耗AI加速器设计提供新途径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

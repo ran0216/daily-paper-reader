@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-22</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 3 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 8 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 22:12:19 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 22:12:54 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-22 日报速览 3 篇：模拟存内计算 SAR 跳过、CGRA 可配置 MAC 与动态截断、RISC-V GPGPU 后量子密码加速。</p>
-<p>最值得关注的是最高分 7.0 的 Circuit-Architecture-Training Co-Design 论文，用再生 SA 相似度感知做激进 SAR 跳过，以及后量子密码在开源 RISC-V GPGPU 上的设计空间探索。</p>
-<p>普通读者可先读 7.0 那篇把握模拟存内计算与训练协同思路，再按兴趣浏览另外两篇的架构与安全加速方向。</p>
+<p>2026-09-23 日报：8 篇论文全部速读，聚焦 CGRA 与加速器能效优化。最值得关注的是《A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation》和《Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator》，两篇均获 7.0 分。建议普通读者先看这两篇，了解低精度计算与可重构架构如何提升能效。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory">Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU">Design-Space Exploration of Post-Quantum Cryptography Acceleration on an Open-Source RISC-V GPGPU</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation">A 420 GOPS/W CGRA with a Configurable MAC and Dynamic Truncation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator">Quantifying the Effect of HCLs on a Fixed-Microarchitecture MXFP4 Accelerator</span></li><li><span class="dpr-home-dashboard-paper-title" title="SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs">SpecReuse: Spectral Graph Reuse for Efficient Vision GNN Inference on FPGAs</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>6</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>2</strong></span></div>
 </section>
 </div>
 
