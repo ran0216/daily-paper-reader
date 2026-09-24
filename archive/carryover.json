@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-23T22:09:58.832329+00:00",
-  "updated_date": "20260923",
+  "generated_at": "2026-09-24T22:27:50.399185+00:00",
+  "updated_date": "20260924",
   "carryover_days": 9,
   "tag_states": {
     "chip-design": {
@@ -9,7 +9,7 @@
       "items": []
     },
     "noc-arch": {
-      "updated_date": "20260923",
+      "updated_date": "20260924",
       "carryover_days": 9,
       "items": []
     }
