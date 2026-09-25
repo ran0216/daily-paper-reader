@@ -1,0 +1,875 @@
+Title: Tetris: Circuit Scheduling for Rearrangeably Non-Blocking Photonic Interconnects
+
+URL Source: https://arxiv.org/pdf/2609.25434v1
+
+Published Time: Wed, 23 Sep 2026 00:23:07 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Tetris: Circuit Scheduling for Rearrangeably Non-Blocking Photonic Interconnects 
+
+Eliezer Amponsah ∗
+
+Purdue University 
+
+Deeksha P Rao ∗
+
+Purdue University 
+
+Vamsi Addanki 
+
+Purdue University 
+
+Abstract 
+
+Reconfigurable photonic interconnects are emerging as a promising communication architecture for next-generation distributed computing. Yet, most circuit schedulers are de-signed around an idealized view of the interconnect as either blocking or strictly non-blocking. Practical scalable designs are often rearrangeably non-blocking (RNB), with connec-tions routed through networks of internal 2 ×2 switches. This changes the scheduling problem fundamentally: establishing a new connection can force existing connections to be rerouted, trigger state changes across multiple internal switches, and impose reconfiguration delay on otherwise unrelated traffic. We present Tetris , a circuit scheduling algorithm for RNB photonic interconnects. Tetris builds on two observations. First, All-to-All demands are often not doubly stochastic, leaving a small number of endpoints as communication bot-tlenecks. Second, reconfiguration delay can be large enough to change which connection should be scheduled next. Tetris 
+
+prioritizes bottleneck endpoints using their remaining com-munication and reconfiguration work, while selecting and routing matchings to preserve ongoing connections when-ever possible. Matchings ensure progress, but connections are scheduled independently, allowing completed connections to be replaced without matching-wide barriers and incurring delay only at switches whose states change. Our simulation and hardware-emulation results show that Tetris reduces All-to-All demand completion time by up to 6 .6x over Birkhoff– von Neumann-based scheduling and by 30% over Sunflow. More broadly, RNB interconnects raise new questions in multi-tenant scheduling and routing for partial reconfigura-tion, which we discuss at the end of the paper. 
+
+1 Introduction 
+
+The rapid growth of AI/ML and other communication-intensive workloads is placing unprecedented pressure on datacenter networks. As compute capacity continues to scale, communication is increasingly becoming the bottleneck. 
+
+> *Co-first authors with equal contribution.
+
+Conventional electrical packet-switched networks face growing challenges in bandwidth density, power consump-tion, and cabling complexity as clusters expand. Recent advances in silicon photonics [13, 31, 35, 43, 50, 54] have renewed interest in reconfigurable photonic interconnects for datacenters [2, 9, 21, 30, 33, 36, 37, 41, 46, 52, 56, 60]. By establishing high-bandwidth optical circuits directly between communicating endpoints, photonic interconnects offer an attractive path toward scalable, low-latency, and energy-efficient communication. This flexibility comes with a fundamental challenge: photonic interconnects must be explicitly reconfigured as communication demands change. Each reconfiguration incurs a non-negligible delay and can temporarily disrupt commu-nication. Application performance thus depends not only on which circuits are established, but also on when they are established, how long they remain active, and which parts of the interconnect must change to realize them. Circuit schedul-ing is consequently central to extracting the performance benefits of reconfigurable photonic interconnects. Existing circuit schedulers broadly fall into two categories: demand-oblivious [3, 5, 9, 46, 57] and demand-aware [4, 21, 22, 47]. Demand-oblivious schedulers cycle through predetermined configurations, simplifying control but sacrificing throughput when traffic deviates from that sequence [3, 5, 6, 9]. Demand-aware schedulers instead adapt the interconnect to the observed communication matrix [14, 21, 22, 40], typically by constructing a sequence of matchings and assigning each a duration. Demand-matrix decomposition is a central problem in demand-aware scheduling. Classical approaches in-clude Birkhoff–von Neumann (BvN) decomposition [12], maximum-weight matching [19, 28, 32], Eclipse [14], and numerous variants [4, 11, 40]. Much of the literature focuses on selecting, ordering, and timing these matchings to reduce completion time while amortizing reconfiguration delay. A key assumption behind nearly all of this work is that the underlying interconnect is either blocking (Blocking) or strictly non-blocking (SNB). In a Blocking intercon-1arXiv:2609.25434v1 [cs.NI] 21 Sep 2026 Existing circuits                          
+
+> i1o1
+> i2o2
+> i3o3
+> i4o4
+> A:i1→o2
+> B:i3→o3
+> admit Ci2→o4
+> After partial reconfiguration
+> i1o1
+> i2o2
+> i3o3
+> i4o4
+> Apreserved
+> Cnew
+> Brerouted Preserved circuit Rerouted circuit New circuit Switch state changed
+
+Figure 1: A new circuit can disrupt unrelated ongoing traffic in a rearrangeably non-blocking (RNB) interconnect. Initially, 
+
+A : i1 → o2 and B : i3 → o3 are active. Admitting the endpoint-disjoint connection C : i2 → o4 requires changing internal 2 ×2 switch states. A can retain its path, but B must be rerouted despite sharing no endpoint with C, incurring additional reconfiguration delay. nect, each reconfiguration interrupts all communication, forcing schedulers to organize decisions around globally synchronized pauses [14, 40]. At the other extreme, SNB schedulers assume that a new connection between idle endpoints can be established without disturbing existing circuits [27, 42, 59]. This makes partial reconfiguration straightforward: completed connections can be replaced while ongoing ones continue transmitting. Real scalable photonic interconnects do not fit either abstraction cleanly. Consider a Beneš interconnect: it can realize any input-output permutation, yet establishing a new circuit may require rerouting existing circuits through its internal 2 × 2 switches. As Figure 1 illustrates, even a new connection between otherwise idle endpoints can force an unrelated active circuit onto a different path, changing mul-tiple switch states and introducing additional reconfiguration delay. Such interconnects are rearrangeably non-blocking (RNB): they retain full permutation capability, but only by allowing existing routes to move. This makes circuit scheduling inherently dependent on interconnect routing. This distinction fundamentally changes the scheduling problem. Communication demand matrices in modern distributed workloads are rarely doubly stochastic and are often highly skewed: a small number of heavily loaded endpoints can determine completion time, while many other connections finish much earlier. These early completions create natural opportunities for partial reconfiguration by replacing completed connections while preserving ongoing ones. In an RNB interconnect, however, whether such an up-date is inexpensive depends on how both the existing and new connections are routed. A seemingly local change can disturb long-running traffic elsewhere in the interconnect. Existing schedulers largely ignore these routing dependencies, leaving a gap between the abstractions used by circuit schedulers and the behavior of practical scalable photonic interconnects. In this paper, we revisit circuit scheduling for rearrange-ably non-blocking photonic interconnects with Tetris , a scheduler that exploits two properties existing approaches largely overlook: communication demand is often skewed, leaving a few endpoints as completion-time bottlenecks, and reconfiguration delay can change which connection should be scheduled next. Tetris prioritizes endpoints based on their remaining communication and reconfiguration work, selects matchings that guarantee progress on these bottlenecks, and routes them to preserve ongoing connections whenever the interconnect permits. Crucially, matchings provide only the progress guarantee; individual connections are scheduled independently according to the physical paths and switch states they use. This allows Tetris to partially reconfigure the interconnect without imposing matching-wide barriers or unnecessarily interrupting unrelated traffic. Our evaluation results show that Tetris reduces All-to-All demand completion time in Mixture-of-Expert workloads by up to 30% compared with Sunflow [27] and Best First Fit (BFF) [42], and by up to 6× compared with BvN, while approaching the performance of an ideal SNB scheduler on realistic workloads. More broadly, RNB interconnects raise systems questions that idealized switching models largely hide, including multi-tenant interference and routing strategies for partial reconfiguration. We briefly discuss these directions at the end of the paper and their implications for future photonic interconnects and circuit schedulers. In summary, our key contributions are as follows:  
+
+> ■
+
+We identify a fundamental mismatch between existing circuit scheduling abstractions and practical rear-rangeably non-blocking photonic interconnects, where scheduling decisions are tightly shaped by internal routing and switch-state changes.  
+
+> ■
+
+We present Tetris , a greedy circuit scheduler for RNB interconnects that prioritizes bottleneck endpoints using 2their remaining communication and reconfiguration work. Tetris selects matchings that guarantee progress, routes them to preserve ongoing connections when-ever possible, and schedules individual connections independently to enable partial reconfiguration without matching-wide barriers.  
+
+> ■
+
+We evaluate Tetris using simulation and hardware emulation. Tetris reduces All-to-All demand completion time by up to 30% compared with Sunflow [27] and Best First Fit (BFF) [42], and by up to 6 × compared with BvN, while approaching the performance of an ideal SNB scheduler on realistic workloads. 
+
+2 Motivation 
+
+We motivate the need for circuit scheduling that explicitly accounts for rearrangeably non-blocking (RNB) photonic interconnects. We first describe the switch architecture and practical assumptions in this work (§2.1). We then show how skewed All-to-All demands create substantial idle periods under conventional matching-based schedulers (§2.2), motivating partial reconfiguration as a way to recover this lost capacity. We next explain why partial reconfiguration is fundamentally more challenging in RNB interconnects (§2.3), where establishing a new circuit can disrupt ongoing traffic through internal routing dependencies. These observations lead directly to the design goals of Tetris (§2.4). 
+
+2.1 Switch Architecture and Assumptions 
+
+The benefit of fine-grained partial reconfiguration depends on two hardware properties: reconfiguration delay and the ability to modify individual connections without disturbing others. Slow-reconfiguring optical switches, such as the MEMS-based switches in Google’s Jupiter network [47], operate on millisecond timescales. Their configurations are typically held for long periods, making frequent connection-level updates unattractive relative to communication time. Recent photonic switching technologies can reconfigure orders of magnitude faster, bringing circuit scheduling into a regime where individual reconfiguration decisions can directly affect demand completion time. We consider chip-to-chip photonic interconnects connect-ing a modest number of compute devices. Each chip has one outgoing transmit and one incoming receive link, each with bandwidth b. The interconnect consists of independently configurable 2 ×2 switches, each operating in a bar or cross 
+
+state under thermal or electrical control driven by external circuitry. An end-to-end circuit is established by configuring a sequence of switches along a path from a transmitter to a receiver; reconfiguring a connection therefore requires changing some subset of switches along that path. How these switches are interconnected determines both interconnect flexibility and hardware cost. Strictly non-blocking (SNB) architectures provide the strongest flexibility: any idle transmitter-receiver pair can be connected without disturbing existing circuits. At high radix, however, this flexibility requires more switching elements and often longer optical paths. Rearrangeably non-blocking (RNB) interconnects offer a more scalable alternative. They can realize any input-output permutation, but a new connection cannot always be established while keeping all existing circuits fixed [17, 55]; some active circuits may need to move to different internal paths, as illustrated in Figure 1. The Beneš interconnect is particularly attractive in this design space. An n×n Beneš interconnect realizes arbitrary permutations using only n · log 2 n − n/2 switching elements across 2 · log 2 n − 1 stages, reducing hardware complexity relative to several SNB alternatives. Its recursive construction, shown in Figure 2, builds larger interconnects from smaller Beneš networks and naturally scales to higher radix. Table 1 summarizes these trade-offs across representative switching topologies. We use Beneš as our representative RNB interconnect throughout this paper. 
+
+Figure 2: Recursive construction of an 8 ×8 Beneš. The scalability of RNB interconnects comes with an important scheduling consequence. Endpoint availability alone no longer determines whether a partial reconfiguration is possible. A new connection may require changing internal 2×2 switches already used by unrelated traffic, forcing those circuits to be rerouted or interrupted. Circuit scheduling must thus account not only for which transmitters and receivers are available, but also for the internal paths occupied by ongoing connections. We return to this interaction in §2.3. 
+
+■ Takeaway: Fast-reconfiguring photonic interconnects make fine-grained circuit scheduling practical, but scalable designs increasingly require circuit schedulers to reason about the interconnect architecture itself. 
+
+2.2 Challenges of Scheduling All-to-All Traffic 
+
+Circuit scheduling has traditionally been approached through demand-matrix decomposition, where the communication demand is decomposed into a sequence of permutations that are executed as matchings on the interconnect. Modern All-to-All workloads challenge several assumptions behind this approach. 
+
+Traffic matrices are rarely doubly stochastic: Figure 3 shows All-to-All traffic matrices from consecutive layers of Mixtral-8 × 22B. The demand is highly asymmetric: GPUs 30 1 2 3 4 5 6 7 Destination rank 01234567Source rank 
+
+> 0510 Tra ffi c (MB)
+
+(a) Layer 28 0 1 2 3 4 5 6 7 
+
+> Destination rank 01234567Source rank
+> 0510 Tra ffi c (MB)
+
+(b) Layer 29 0 1 2 3 4 5 6 7 Destination rank 01234567Source rank  
+
+> 0510 Tra ffi c (MB)
+
+(c) Layer 30 0 1 2 3 4 5 6 7 Destination rank 01234567Source rank  
+
+> 0510 Tra ffi c (MB)
+
+(d) Layer 31 0 1 2 3 4 5 6 7 Destination rank 01234567Source rank  
+
+> 0510 Tra ffi c (MB)
+
+(e) Layer 32 
+
+Figure 3: All-to-All traffic matrices from consecutive layers of a Mixtral-8x22B workload. The demand is rarely doubly stochastic and is often highly skewed, with a small number of receivers emerging as communication bottlenecks. send and receive different amounts of traffic, and a small number of receivers often emerge as clear communication bottlenecks. In contrast, a doubly stochastic demand matrix has equal row and column sums. Classical BvN decomposition relies on this structure. Applying BvN to an asymmetric demand matrix requires augmenting or normalizing the demand so that all transmitters and receivers have equal total load [38, 40, 51]. The additional entries do not correspond to useful communication and appear as idle capacity when the resulting permutations are executed on the interconnect. Although BvN provides a clean decomposition for doubly stochastic demand, real All-to-All traffic can produce schedules with significant unused capacity. 
+
+BvN requires excessive reconfigurations: BvN decompo-sition repeatedly extracts a permutation from the remaining demand and subtracts the largest duration supported by that permutation. This process can fragment the original demand across O(n2) matchings in the worst case. When each matching is separated by a reconfiguration barrier, a schedule with K matchings incurs roughly K reconfiguration events in addition to the transmission time. This overhead becomes increasingly important as reconfiguration delay grows. Figure 4a illustrates this effect: the demand in Figure 3c is spread across many short matchings, repeatedly interrupting transmission to reconfigure the interconnect. 
+
+Reducing reconfigurations creates scheduling bubbles: 
+
+An alternative is to construct fewer, longer-lived matchings. MaxWeight decomposition, for example, prioritizes high-demand connections and significantly reduces the number of reconfigurations compared with BvN. Fewer matchings, however, do not eliminate the asymmetry of the underlying traffic. Within each matching, connection durations can differ significantly, while a blocking scheduler cannot advance to the next matching until the longest connection completes. Connections that finish earlier leave their transmitters and receivers idle for the remainder of the matching. We refer to these intervals as scheduling bubbles . Figure 4b shows this behavior for the same Mixtral traffic matrix: MaxWeight avoids much of BvN’s reconfiguration overhead, but large portions of the interconnect remain idle while each matching waits for its bottleneck connection to finish. 
+
+■ Takeaway: Skewed All-to-All traffic creates a simple trade-off: many short matchings waste time on reconfigura-tion, while fewer long matchings leave ports idle waiting for bottleneck connections to finish. 
+
+2.3 Opportunities for Partial Reconfiguration 
+
+One way to fill the scheduling bubbles in Figure 4 is to avoid waiting for an entire matching to complete. As soon as a con-nection finishes, its now-idle transmitter and receiver can be reconfigured to serve remaining demand while longer-running connections continue transmitting. This partial reconfig-uration removes the matching-wide barrier and allows connections from different matchings to overlap in time. 
+
+Partial reconfiguration can reduce scheduling bubbles: 
+
+Schedulers such as Best First Fit (BFF) [42], Sunflow [27], and NEIP [59] exploit this opportunity by tracking when individual transmitters and receivers become available and immediately assigning them new connections. For the highly skewed traffic discussed in §2.2, this can recover capacity that would otherwise remain idle while waiting for the longest connection in a matching. Partial reconfiguration breaks the matching-wide barrier, allowing completed connections to be replaced while longer-running connections continue transmitting. 
+
+Bottleneck endpoints dictate completion time: Not all con-nections contribute equally to overall completion time. With one transmit and one receive link of bandwidth b per end-point, any schedule is lower bounded by the time required to drain the most heavily loaded transmitter or receiver: 
+
+Tmin = 1 
+
+> b
+
+max  max i∑ jDi j ,max j∑iDi j 
+
+, where Di j denotes the demand from source i to destination j. We refer to any end-point attaining this maximum as a bottleneck endpoint . Fig-ure 3 highlights such bottlenecks in red. No schedule can com-plete before the demand associated with its bottleneck end-point is drained. This makes bottleneck progress especially important for skewed All-to-All traffic: many connections may finish early, but delaying traffic through a bottleneck end-point directly increases demand completion time. A partial-reconfiguration scheduler should use newly available capacity while progressing these bottleneck endpoints continuously. 
+
+Partial reconfiguration can slow down unrelated traffic: 
+
+Existing partial-reconfiguration schedulers largely assume a 4Tx 0 Tx 1 Tx 2 Tx 3 Tx 4 Tx 5 Tx 6 Tx 7 
+
+> Source port 0.00 0.25 0.50 0.75 1.00 Time (ms) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 1.103 ms
+
+(a) BvN Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7   
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 765.4 μs
+
+(b) MaxWeight 
+
+Figure 4: BvN and MaxWeight, two widely studied circuit schedulers, both use blocking, per-matching reconfiguration barriers. (a) BvN incurs many reconfigurations and long idle periods when matchings are highly asymmetric, as is common for non-doubly-stochastic traffic (Figure 3). (b) MaxWeight re-duces reconfigurations, but short-lived connections still finish early, leaving parts of the interconnect idle until the bottleneck connection in each matching completes. strictly non-blocking (SNB) interconnect, where a new con-nection between idle endpoints can be established without dis-turbing ongoing circuits. This assumption breaks in an RNB interconnect. As discussed in §2.1, establishing a new connec-tion may require changing internal 2 ×2 switches already used by an active circuit, rerouting or interrupting otherwise unre-lated traffic, including traffic through a bottleneck endpoint. A second subtlety is that the global bottleneck endpoint in D need not be the bottleneck within every matching. Consider a naive policy that triggers partial reconfiguration whenever the global bottleneck finishes its current sub-flow. That decision may interrupt a different connection that is the local bottleneck of the current matching. The interrupted con-nection must then be re-established later, incurring another reconfiguration delay, even though the global bottleneck continues making progress. In an RNB interconnect, later routing choices can further restrict which residual demands can be partially reconfigured. An effective scheduler must account for both global bottleneck progress and the remaining work of connections affected by a routing change. Figure 5 illustrates both failure modes. When BFF and Sunflow are mapped onto an RNB interconnect, routing constraints interfere with their original scheduling policies. In this example, both perform worse than MaxWeight with blocking, per-matching reconfiguration barriers (Figure 4). BFF delays the global bottleneck endpoint, Rx 4, while Sunflow assumes an SNB-style free port and consequently pushes otherwise unrelated flows later under the RNB routing constraints. The benefit of partial reconfiguration therefore depends on which active connections must be disturbed and how much work remains on them. 
+
+■ Takeaway: Partial reconfiguration can fill the idle gaps left by matching-based schedules, but doing so effectively re-Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7  
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 837.8 μs
+
+(a) Best First Fit (RNB) Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7   
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 821.3 μs
+
+(b) Sunflow (RNB) 
+
+Figure 5: Best First Fit [42] and Sunflow [27] exploit partial reconfiguration but assume a strictly non-blocking intercon-nect. When mapped onto an RNB interconnect, both degrade for different reasons. The purple dashed line marks Rx 4, the bottleneck endpoint. BFF fails to prioritize it at approximately 
+
+T = 500 μs, increasing completion time, while Sunflow makes better bottleneck progress but delays otherwise unrelated con-nections through its routing choices. Effective partial reconfig-uration on RNB interconnects must account for both endpoint availability and occupied internal paths. 
+
+quires preserving bottleneck progress while accounting for routing dependencies of the underlying interconnect. 
+
+2.4 Lessons Learned and Design Goals 
+
+The observations above suggest that circuit scheduling on RNB interconnects must jointly reason about three factors: bottleneck progress, reconfiguration cost, and interconnect routing. Optimizing any one of these in isolation can delay demand completion. This leads to three questions that guide the design of Tetris .
+
+Q1 How should the scheduler prioritize bottleneck progress while accounting for remaining communication work and reconfiguration delay? 
+
+Q2 How should selected connections be routed to minimize disruption to ongoing circuits? 
+
+Q3 How can the scheduler allow connections to be partially reconfigured independently while guaranteeing progress on the remaining demand? 
+
+3 Tetris 
+
+Tetris takes a communication demand matrix and produces a circuit schedule for an RNB Beneš interconnect. As with conventional demand-aware schedulers, the schedule is com-puted from the demand matrix before communication begins. Unlike a decomposition that simply produces a sequence of matchings, Tetris also determines how selected connections are routed through the interconnect and when they can be established. At runtime, the interconnect executes this sched-ule using partial reconfiguration, establishing new circuits as previously scheduled connections complete. 5Algorithm 1: Tetris schedule construction   
+
+> Input: Demand matrix
+
+D, link bandwidth b, reconfiguration delay αr, Beneš interconnect G  
+
+> Output: Circuit schedule
+
+S 
+
+> 1ˆ
+
+D ← D/b   
+
+> 2R←ˆ
+
+D 
+
+> 3
+
+S ← empty schedule on G      
+
+> 4while R contains a positive entry do
+> 5M←SELECT MATCHING (G,R,αr,
+
+S)   
+
+> 6P←ROUTE (G,M,R,
+
+S, /0)      
+
+> 7foreach (u,v)∈M in selection order do
+> 8SCHEDULE (
+
+S,Puv ,u,v,Ruv ,αr)     
+
+> 9Ruv ←0
+> 10 return
+
+S
+
+Our design follows directly from the three questions in §2.4. Tetris repeatedly performs three steps: (1) select a matching that guarantees progress on the remaining demand while prioritizing bottleneck endpoints, (2) route the selected connections through the Beneš interconnect while accounting for paths and switch states already committed by the schedule, and (3) assign each routed connection an independent start time based on when its path can be established. The key distinction from conventional decomposition is that each matching is only a planning group , not an execution barrier. Connections selected in the same matching need not start or finish together, and connections from different matchings may overlap in time. For ease of reference, Table 2 summarizes the main notation used throughout this section. Let Duv denote the number of bytes transmitted from source u to destination v,and let b denote the bandwidth of each transmit and receive link. We express each demand in units of transmission time as ˆDuv = Duv /b, and maintain a residual transmission-time matrix R, initialized as R = ˆD. We denote the reconfiguration delay of an internal 2 × 2 switch by αr. The transmit and receive sides of a device are treated as distinct endpoints, even when they belong to the same physical device. Algorithm 1 summarizes the schedule construction. The schedule S records each selected connection, its Beneš path, and the switch reconfigurations required to establish it. In each iteration, Tetris selects a matching M from the residual demand, jointly routes its connections, and schedules each connection independently. Once a demand (u,v) is added to the schedule, its residual demand is removed from R.Figure 6 gives an overview of how the three design choices affect the resulting schedule. Without partial reconfiguration, short connections finish early but remain separated by matching-wide barriers (Figure 6a). Allowing partial reconfiguration without accounting for RNB routing introduces additional delays when newly established paths interfere with ongoing connections (Figure 6b). Removing degree coverage can postpone progress on endpoints with many remaining connections (Figure 6c). The complete 
+
+Tetris design combines all three mechanisms and achieves the shortest completion time (Figure 6d). 
+
+3.1 Bottleneck-Driven Matching Selection 
+
+The first step addresses Q1 : how should Tetris balance bottleneck progress against communication and reconfigu-ration cost? Neither demand size nor interconnect readiness alone is sufficient. Prioritizing only large demands can select connections that cannot be established until much later under the current schedule. Conversely, always selecting whichever connection can start earliest can repeatedly postpone heavily loaded endpoints and increase demand completion time. 
+
+Tetris separates these concerns: residual degree provides a progress guarantee, while cost estimates based on remaining endpoint work and interconnect readiness determine which feasible connections should make that progress. 
+
+Estimating the remaining endpoint work: For an endpoint e,let ER(e) denote the set of incident demands with positive residual transmission time. We define 
+
+> residual degree
+
+z }| {
+
+de = |ER(e)|, We = ∑
+
+> (u,v)∈ER(e)
+> transmission time
+
+z}|{ 
+
+Ruv + αr ·de
+
+| {z } 
+
+> reconfiguration allowance
+
+.
+
+(1) Here, de is the number of unscheduled connections incident on endpoint e, while We estimates its remaining communi-cation and reconfiguration work. The first term captures the total residual transmission time incident on e. The second assigns one reconfiguration allowance, αr, to each remaining connection. This is an endpoint-level estimate: the exact reconfiguration delay depends on the eventual routes and on which internal switch states can be reused. Let ae denote the completion time of the latest connection involving endpoint e already added to the schedule. We use ae + We as a baseline cost estimate for the endpoint’s completion time under the current scheduling decisions. It combines the work already committed to S with the work that remains, while ignoring additional waiting that may be introduced by future matching and routing decisions. The estimate is optimistic, but provides a consistent measure of the completion pressure associated with each endpoint. 
+
+Guaranteeing progress on the residual demand: The positive entries of R form a bipartite graph between transmit and receive endpoints. Since an endpoint can participate in at most one connection in a matching, the maximum residual degree lower bounds the number of additional matchings required to cover all remaining demands. Let δ = max e de
+
+and C = {e | de = δ}. The set C contains every endpoint with the current maximum residual degree. Tetris requires each planning matching to cover every endpoint in C. Once such a matching is selected, each maximum-degree endpoint loses one incident demand, reducing the maximum residual degree from δ to δ−1. 6Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7  
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 877.7 μs
+
+(a) Tetris w/o partial reconfig. Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7   
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 857.4 μs
+
+(b) Tetris w/o RNB routing Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7   
+
+> Source port 0200 400 600 800 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 937.8 μs
+
+(c) Tetris w/o degree coverage Tx 0Tx 1Tx 2Tx 3Tx 4Tx 5Tx 6Tx 7   
+
+> Source port 0200 400 600 Time ( μs) Reconfiguration delay = 10 μs
+> Rx 0
+> Rx 1
+> Rx 2
+> Rx 3
+> Rx 4
+> Rx 5
+> Rx 6
+> Rx 7
+> Completion time = 737 μs
+
+(d) Tetris 
+
+Figure 6: Impact of Tetris ’s three scheduling mechanisms on the same communication demand with αr = 10 μs. (a) Matching-wide execution barriers leave ports idle after individual connections finish. (b) Partial reconfiguration without RNB-aware routing introduces additional delays when new circuits interact with ongoing paths. (c) Without maximum-degree coverage, progress on the residual demand can be delayed. (d) Tetris combines degree coverage, bottleneck-driven matching selection, RNB-aware routing, and partial reconfigurations. Let ∆ denote the maximum endpoint degree before the first matching is selected. Since the maximum residual degree decreases by one in every iteration, Tetris constructs exactly 
+
+∆ planning matchings before all demands are assigned. These matchings provide the progress guarantee only; they do not become synchronized execution rounds. Figure 6c illustrates the effect of removing this constraint: connections continue to be scheduled, but progress on the residual demand can become poorly balanced and completion time increases. 
+
+Estimating the cost of candidate connections: Degree coverage identifies which endpoints must make progress, but not which incident connection should be chosen for each endpoint. Tetris uses the schedule constructed so far to distinguish among these choices. For every residual demand (u,v), Tetris performs a read-only path query to estimate when that connection could begin if considered independently. Let puv denote the resulting candi-date path and suv = START (S,puv ) its estimated start time. The query accounts for paths, switch states, and reconfiguration intervals already committed by S. Candidate connections are evaluated independently at this stage, so their estimated paths may conflict with one another and are not reserved. Joint rout-ing is performed only after the matching has been selected. For candidate connection (u,v), we define the cost estimate 
+
+cuv = suv −αr +max (Wu,Wv). (2) The estimate combines two effects. The term suv captures how soon the connection appears realizable given the paths and switch states already committed by the schedule, while max (Wu, Wv) captures the larger remaining workload of its two endpoints. We subtract αr to avoid counting the immediate reconfiguration allowance once through path readiness and again through Wu or Wv.The cost cuv is a greedy estimate of the consequence of selecting (u, v), not a prediction of its eventual endpoint completion time. It evaluates the connection against the schedule constructed so far, but does not account for conflicts with other connections selected in the same matching or for decisions made in later iterations. Future routing and match-ing choices can increase the actual completion time. Exact path compatibility is resolved after the matching is selected. 
+
+Selecting a feasible low-cost matching: The cost estimates above rank individual connections, but selecting connections independently can violate the progress guarantee. Tetris 
+
+instead identifies the lowest-cost candidate set that still contains a matching covering every endpoint with the current maximum residual degree. Algorithm 2 summa-rizes the matching selection procedure. We first define 
+
+B = max e(ae +We), the largest endpoint-level baseline cost under the schedule constructed so far. Starting from this baseline, we find the smallest threshold H ≥ B such that 
+
+A = {(u,v) | Ruv > 0, cuv ≤ H}, contains a matching that covers every endpoint in C, i.e., every endpoint with residual degree 
+
+δ. Intuitively, Tetris admits higher-cost connections only when they are needed to preserve the progress guarantee. Once the candidate set A is fixed, we consider its con-nections in decreasing order of max (Wu, Wv), prioritizing connections incident on endpoints with the most remaining work. We break ties by decreasing residual transmission time 
+
+Ruv , favoring longer connections when endpoint workloads are comparable. A connection is added only if the remaining candidates can still cover every unmatched endpoint in C.This prevents a locally attractive choice from blocking a required endpoint later in the matching. We find the threshold H using binary search over the candidate cost estimates. At each step, we test feasibility on the residual bipartite demand graph using alternating paths to determine whether every required endpoint can still be covered. This separates two objectives cleanly: maximum-degree coverage guarantees progress on the remaining demand, while endpoint-work and path-readiness estimates determine which connections provide that progress. 7Algorithm 2: SELECT MATCHING (G,R,αr,S)     
+
+> Input: Beneš interconnect G, residual transmission times R,reconfiguration delay αr, schedule
+
+S                                               
+
+> Output: Next planning matching M
+> 1E← { (u,v)|Ruv >0}
+> 2▷Residual degree and remaining endpoint work
+> 3Compute de=|ER(e)|and We=∑(u,v)∈ER(e)Ruv +αr·defor every endpoint e
+> 4▷Endpoints that must make progress
+> 5δ←max ede;C← { e|de=δ};B←max e(ae+We)
+> 6▷Estimate path-aware cost of each connection
+> 7foreach (u,v)∈Edo
+> 8puv ←EARLIEST PATH (G,u,v,
+
+S)   
+
+> 9suv ←START (
+
+S,puv )                                             
+
+> 10 cuv ←suv −αr+max (Wu,Wv)
+> 11 ▷Lowest-cost candidate set preserving progress
+> 12 Find the smallest H≥Bsuch that A={(u,v)∈E|cuv ≤H}
+> admits a matching covering C
+> 13 Order Aby decreasing max (Wu,Wv), then decreasing Ruv ,then increasing (u,v)
+> 14 M←/0
+> 15 foreach (u,v)∈A in order do
+> 16 if u,v are unused and M ∪{ (u,v)}can still be extended to cover C then
+> 17 Append (u,v)to M
+> 18 return M
+
+3.2 Routing Selected Connections 
+
+The second step addresses Q2 : how should the selected matching be routed without unnecessarily delaying ongoing connections? A Beneš interconnect can realize every matching, but the same matching can often be realized through multiple internal configurations. These choices matter because different routes can require different internal 2 × 2 switches to change state. Figure 6b illustrates the consequence: partial reconfiguration without RNB-aware routing introduces additional delays even when compatible transmit and receive endpoints are available. 
+
+Exploiting the recursive structure of Beneš routing: 
+
+As discussed in §2.1, a Beneš interconnect recursively decomposes into two smaller Beneš subnetworks. At each recursive level, every selected connection must be assigned to either the upper or lower child. Three constraints govern these assignments. The two ports connected to the same input-stage 2 × 2 switch must select opposite children; the two ports connected to the same output-stage switch must also select opposite children; and the source and destination of each selected connection must select the same child. These binary constraints form connected components. Each component admits two complementary legal orientations, corresponding to swapping its upper and lower assignments. 
+
+Routing to protect endpoints with high remaining work: Algorithm 3 summarizes our recursive routing procedure. For each legal orientation, Tetris evaluates how its boundary-switch decisions interact with the schedule already constructed. At the current recursive level, we combine the previously fixed ancestor traversals with the entry and exit switches implied by the orientation. This gives a partial path for each affected connection. Suppose the resulting partial path for a connection involving endpoint e can become available at time t. We estimate its endpoint cost as t − αr + We, using the same remaining-work estimate from §3.1. For orientation q, Tetris 
+
+collects these values across all affected endpoints in Vq
+
+and sorts them in decreasing order. We compare the two orientations lexicographically: first the largest endpoint cost, then the second largest, and so on. If both orientations produce the same endpoint-cost vector, Tetris prefers the orientation that changes fewer internal switch states. Once an orientation is fixed, the matching separates into upper and lower child matchings, and the procedure recurses. Routing proceeds from the root of the Beneš interconnect toward its recursive children, making one local decision at each level rather than enumerating all complete routing configurations. The remaining-work estimates We remain fixed while routing a selected matching, so every routing decision is evaluated against the same residual-demand state. 
+
+3.3 Scheduling with Partial Reconfigurations 
+
+The third step addresses Q3 : how can Tetris preserve the progress guarantee of matching decomposition while allowing partial reconfiguration? We assume a centralized controller that maintains the communication demand, computes the schedule, and controls the internal 2 × 2switches of the Beneš interconnect. Matchings are used only during schedule construction; once selected and routed, their connections execute independently as soon as their endpoints and routed paths become available. Runtime execution is event-driven rather than tied to precise absolute times. When a connection completes, its transmit and receive endpoints, switches, and links are released. Any subsequently scheduled connection whose dependencies are now satisfied becomes eligible to proceed. The start times computed during schedule construction capture these dependencies for scheduling decisions, while runtime execution follows actual connection-completion and switch-reconfiguration events. 
+
+Reconfiguring only switches whose states change: A routed connection traverses a sequence of internal 2 × 2 switches, but establishing a new circuit does not require reconfiguring the entire interconnect. If a switch is already in the required 
+
+bar or cross state, the new circuit can reuse that state once its lanes become available; only switches whose states change incur reconfiguration delay αr.To track these dependencies, S records, for each switch 
+
+s, its last planned state σs, the completion time Fs of its latest scheduled user, and the completion time Qs of the 8reconfiguration that established σs. For input lane i and output lane j, Is,i and Os, j denote their planned release times. For a traversal through (s,i, j), the switch-state readiness is 
+
+qs,i, j = Qs when σs = state (i, j); otherwise, qs,i, j = Fs + αr,since the controller must wait for the previous user to complete before reconfiguring the switch. A routed connection can proceed only after every traversal along its path is ready. For path p, Tetris estimates its earliest feasible start time as Start (S,p) = max (s,i, j)∈p{Is,i,Os, j,qs,i, j}.
+
+This is the earliest time at which every required input lane, output lane, and switch state along the path is available. The value is a planning estimate rather than a requirement for precisely timed execution; at runtime, the same dependency order is enforced by completion and reconfiguration events. 
+
+Matching boundaries do not become execution barriers: 
+
+Once routed, each connection is scheduled independently of the others in its planning matching. A connection can begin while connections from the same or earlier matchings continue elsewhere in the interconnect. When an ongoing connection completes, the controller can immediately trigger any newly enabled switch reconfigurations and establish the next circuit once its complete path is ready. For a connection 
+
+(u,v) with transmission time Ruv , Tetris records its routed path and the dependencies that must complete before that path can be established. At runtime, the controller configures only switches whose states must change, starts transmission once the path is ready, and releases the corresponding endpoints and switch lanes when the connection completes. Figure 6a illustrates the cost of retaining matching-wide barriers: endpoints remain idle after their individual connec-tions complete. Figure 6d shows the complete Tetris design, where degree coverage guarantees progress, bottleneck-aware matching selection prioritizes constrained endpoints, and RNB-aware routing enables partial reconfiguration while preserving ongoing circuits whenever possible. 
+
+■ Takeaway: Tetris selects matchings in a bottleneck-aware manner to decide which demands must make progress; routing and partial reconfiguration determine how that progress is realized without imposing matching-wide barriers. 
+
+4 Evaluation 
+
+We evaluate Tetris using simulation and hardware emulation, focusing on the completion time of All-to-All workloads. 
+
+4.1 Setup 
+
+Metric: Our primary metric is demand completion time, measured from the beginning of communication until the entire demand matrix has been served. This metric captures both transmission time and the delays introduced by interconnect reconfiguration. 
+
+Baselines: We compare Tetris against Birkhoff–von Neumann (BvN) decomposition [12, 40], MaxWeight decomposition as used in systems such as ProjecToR [22] and Helios [21], Best First Fit (BFF) [42], and Sunflow [27]. BvN and MaxWeight execute matchings with matching-wide reconfiguration bar-riers, while BFF and Sunflow exploit partial reconfiguration under a strictly non-blocking assumption. We also report the lower bound on demand completion time for each traffic matrix as an ideal reference point. For a fair comparison, we execute all schedules over the same Beneš interconnect and enforce the same RNB routing constraints. 
+
+Workloads: We evaluate using All-to-All communication traces collected from Mixture-of-Experts workloads running on an 8 ×RTX 6000 GPU server. We consider DeepSeek-MoE-16B, Mixtral-8 ×7B, and Mixtral-8 ×22B, using inputs from SPEED-Bench [1], MMLU [23, 24], and GSM8K [18]. For each workload, we record the communication demand generated by the MoE layers during each dispatch and com-bine phases, capturing the input-dependent and skewed traffic patterns discussed in §2.2. We additionally use synthetic demand matrices with controlled traffic skew to isolate how traffic asymmetry affects the different scheduling approaches. 
+
+System configurations: We vary the number of GPUs from 8 to 64, the per-port link bandwidth from 100 to 800 Gbps, and the switch reconfiguration delay αr from 10 ns to 10 ms, spanning different fast electro-optic and slower MEMS-based switching technologies. Unless stated otherwise, we use 800 Gbps per-port bandwidth and a 10 μs reconfiguration delay. These configurations let us evaluate Tetris across different system scales and identify the regimes in which fine-grained partial reconfiguration provides the largest benefit. 
+
+Simulation: We built a custom simulator that executes schedules over an RNB Beneš interconnect at the granularity of individual 2 × 2 switches. It tracks active paths, switch states, and transmit/receive endpoint availability. Blocking schedulers such as BvN and MaxWeight execute each match-ing as a synchronized round, while partial-reconfiguration schedulers allow completed connections to release their endpoints independently so that later connections can overlap with ongoing traffic. Every scheduled connection is explicitly routed through the Beneš interconnect, and the simulator applies reconfiguration delay αr whenever required by the schedule and finally reports demand completion time. 
+
+Hardware emulation: We view this work as an initial step to-ward a complete system. Building a complete reconfigurable photonic interconnect requires optical switching hardware, transceivers, and control infrastructure, making a full end-to-end implementation a costly undertaking for an academic re-search effort. Tetris focuses on the scheduling problem, while important systems challenges such as controller design and transceiver locking under rapid reconfiguration remain open. To capture realistic communication costs, we complement simulation with hardware emulation on our GPU server. For each demand in the MoE traces, we measure the corresponding one-hop GPU-to-GPU communication time on real hardware. We execute each schedule using these 9Mixtral-8x22B Mixtral-8x7B DeepSeek-MoE-16B          
+
+> 0500 1000 1500 2000 2500
+> Completion time ( μs)
+> Tetris BvN BFF RNB Sun fl ow RNB MaxWeight lower_bound SPEED-Bench-1 SPEED-Bench-2 SPEED-Bench-3 GSM8K MMLU
+
+(a) Completion time across workloads 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5  
+
+> Talgo /Tmin
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Cumulative probability
+> BFF RNB BvN MaxWeight Tetris Sun fl ow RNB lower_bound (ratio=1) 99th percentile
+
+(b) Normalized gap to optimal 
+
+Figure 7: Tetris ’s performance across different workloads (left), and the distribution of its normalized completion time relative to optimal across all evaluated workloads (right). measured transmission times and inject the reconfiguration delays incurred by the scheduler. This preserves measured GPU communication behavior while emulating the timing impact of photonic reconfiguration and scheduling decisions. 
+
+Due to space constraints, additional results appear in §A. 
+
+4.2 Results 
+
+Tetris significantly outperforms existing approaches: We first compare All-to-All demand, completion time across dif-ferent MoE models, prompt datasets, and layers. Figure 11 shows results for Mixtral-8 × 22B on the SPEED-Bench throughput 1K and 2K workloads, using 800Gbps link band-width and a reconfiguration delay of 10 μs . Across layers with different communication demands and message volumes, 
+
+Tetris consistently achieves lower completion time than all our baselines. We next evaluate whether these gains generalize beyond a single model and workload. Figure 7a compares 
+
+Tetris against the baselines across Mixtral-8 × 7B, Mixtral-8 × 22B, and DeepSeek-MoE-16B over different prompt datasets. Across these workloads, Tetris continues to outper-form the baseline schedulers and remains close to the lower bound on completion time. Specifically, we see that Tetris out-performs BvN and MaxWeight by 20% and 6% respectively, while outperforming BFF and Sunflow by 8% and 7% re-spectively. We omit the lower-bound bars from Figure 7a for visual clarity and quantify the gap separately. To measure this gap directly, we normalize the completion time of each sched-uler by the lower bound for the corresponding demand matrix. Figure 7b shows the resulting distribution across all evaluated matrices. Tetris remains consistently close to the lower bound, while the baseline approaches exhibit larger slowdowns. Together, these results show that the gains of Tetris are not tied to a particular model, layer, prompt dataset, or message size. Across the evaluated MoE communication workloads, 
+
+Tetris consistently reduces All-to-All completion time and remains close to optimal. 
+
+Tetris adapts to bandwidth and reconfiguration delay: 
+
+We next evaluate how the relative performance of Tetris 
+
+changes with link bandwidth and switch reconfiguration delay. Figure 8 varies bandwidth from 100 to 800 Gbps and reconfiguration delay from 10 ns to 10 ms for one complete inference pass of Mixtral-8 × 22B on SPEED-Bench throughput-1K. Each cell reports the ratio between the baseline completion time and that of Tetris ; values greater than 1 indicate that Tetris completes the demand faster. Figure 8a highlights the sensitivity of BvN to reconfigu-ration delay. When reconfiguration is nearly free (10–100ns), BvN and Tetris are within ≈ 1% of each other, with BvN occasionally completing slightly earlier. As αr increases, however, BvN’s large number of matching-wide reconfig-urations quickly dominates completion time. At 800 Gbps, 
+
+Tetris ’s speedup against BvN grows from 0 .99 at 10 ns to 2 .58 at 100 μs , 5 .55 at 1 ms, and 6 .60 at 10 ms. The effect also becomes stronger at higher bandwidth because transmission time shrinks while reconfiguration delay remains fixed. Figures 8b and 8c show a different trend for BFF and Sunflow. Both exploit partial reconfiguration, but do not account for the routing dependencies introduced by the RNB interconnect. Tetris is already about 1 .06–1 .07 × faster when reconfiguration is inexpensive, and its advantage grows as reconfiguration becomes more costly, reaching up to 1 .30 × for both approaches. This trend reflects the increasing cost of partial-reconfiguration decisions that disturb ongoing paths, and highlights key observation in Tetris 
+
+i.e., bottleneck-awareness is not simply the largest demand, but one that contributed to overall progress. MaxWeight exhibits the opposite sensitivity (Figure 8d. Because it uses matching-wide barriers but avoids the large number of reconfigurations incurred by BvN, its performance becomes increasingly competitive as αr grows. Tetris is up to 1.08 × faster at low and moderate reconfiguration delays by filling the idle gaps within MaxWeight matchings, while the two approaches converge as reconfiguration becomes very expensive. Across the full spectrum, Tetris outperforms BFF, Sunflow, and MaxWeight for nearly all configurations and loses only marginally to BvN when reconfiguration is effectively free. More importantly, no single scheduler performs well across all operating regimes: BvN is effective only when reconfig-uration is inexpensive, while blocking MaxWeight becomes competitive when reconfiguration dominates. By incorporat-ing both reconfiguration cost and RNB routing constraints 10 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps  
+
+> 0.99 0.99 0.99 1.02 1.25 2.85 5.75 0.99 0.99 1.00 1.04 1.49 3.80 6.20 0.99 0.99 1.00 1.10 1.91 4.77 6.46 0.99 0.99 1.01 1.15 2.27 5.26 6.56 0.99 0.99 1.01 1.20 2.58 5.55 6.60 246BvN / Tetris
+
+(a) BvN against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps   
+
+> 1.07 1.07 1.07 1.07 1.08 1.12 1.26 1.07 1.07 1.07 1.08 1.09 1.17 1.28 1.07 1.07 1.07 1.08 1.09 1.21 1.29 1.07 1.07 1.07 1.08 1.11 1.23 1.30 1.07 1.07 1.07 1.08 1.11 1.25 1.30 1.1 1.2 1.3 BFF RNB / Tetris
+
+(b) BFF against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps   
+
+> 1.06 1.06 1.06 1.06 1.07 1.12 1.26 1.06 1.06 1.05 1.06 1.07 1.15 1.28 1.06 1.06 1.06 1.07 1.08 1.20 1.30 1.06 1.06 1.06 1.07 1.10 1.23 1.30 1.06 1.06 1.06 1.07 1.11 1.25 1.30 1.1 1.2 1.3 Sun fl ow RNB / Tetris
+
+(c) Sunflow against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps  
+
+> 1.08 1.08 1.08 1.08 1.08 1.05 1.01 1.08 1.08 1.08 1.08 1.07 1.04 1.01 1.08 1.08 1.08 1.08 1.07 1.03 1.00 1.08 1.08 1.08 1.08 1.06 1.02 1.00 1.08 1.08 1.08 1.08 1.06 1.02 1.00
+> 1.025 1.050 1.075 MaxWeight / Tetris
+
+(d) MaxWeight against Tetris 
+
+Figure 8: Sensitivity of Tetris ’s advantage over each baseline to link bandwidth and reconfiguration delay for one complete inference pass of Mixtral-8x22B. 8 16 32 64 
+
+> Number of GPUs
+> 10 3
+> 10 4
+> Completion time ( μs)
+> Tetris BvN
+
+Figure 9: Tetris ’s completion time as the number of GPUs scales. Y-axis is log-scaled. into its scheduling decisions, Tetris remains competitive across the entire range of bandwidths and reconfiguration delays. 
+
+Tetris achieves consistent improvement across interconnect scale: We evaluate scaling using synthetic All-to-All demand matrices, since collecting real traces at larger scales would require increasingly costly GPU clusters. The generator preserves the skew and layer-to-layer variation observed in our MoE traces and uses the target model’s hidden-state dimension to keep message sizes realistic. Figure 9 compares 
+
+Tetris against BvN from 8 to 32 GPUs. The gap widens quickly with scale: BvN takes roughly 2 ×, 5 ×, and nearly 10 × longer at 8, 16, and 32 GPUs, respectively. The reason is that BvN fragments demand across more matchings as the interconnect grows, accumulating matching-wide recon-figuration delays. Tetris limits this overhead through degree coverage and partial reconfiguration, with completion time growing from only ≈ 400 μs at 8 GPUs to 1 .1 ms at 32 GPUs. 
+
+Tetris ’s performance gains persist under hardware emula-tion: We next evaluate whether the trends observed in sim-ulation persist when communication times are measured on real GPUs. Figure 10 reports the completion-time ratio be-tween each baseline and Tetris across reconfiguration delays from 10 ns to 10 ms for all three MoE models. The hardware results closely follow the simulation trends. BvN remains competitive when reconfiguration is nearly free, but degrades rapidly as αr increases: at 10 ms, BvN is 5 .34 ×, 6 .00 ×, and 5.63 × slower than Tetris across the three models (Figure 10a). BFF and Sunflow show smaller but consistent gaps. Tetris is already 1 .05–1 .10 × faster at low reconfiguration delays, and its advantage grows to as much as 1 .29 × as reconfiguration becomes more expensive (Figures 10b and 10c). MaxWeight exhibits the expected complementary behavior: Tetris provides up to a 1 .07 × improvement when reconfiguration is inexpen-sive, while the two approaches converge at larger reconfigura-tion delays as avoiding additional reconfigurations becomes increasingly important (Figure 10d). Figure 13 shows that direct GPU-to-GPU transmission times on hardware closely follow the classic α-β cost model [25], with an initial overhead for small messages, and linearly scaling as the message size grows. These results confirm that Tetris ’s gains Tetris preserves its advantage across models and reconfiguration regimes, while exhibiting the same trade-offs observed in simulation. 
+
+5 Discussion and Future Research Directions 
+
+Tetris is only a first step toward circuit scheduling that explic-itly accounts for rearrangeably non-blocking interconnects. Exposing routing dependencies to the scheduler opens several broader questions spanning multi-tenancy, routing, schedul-ing objectives, and interconnect design. We discuss these directions below. 
+
+Efficient algorithms for interconnect-aware scheduling: 
+
+Tetris shows the benefit of treating demand decomposition and interconnect routing as a joint scheduling problem. A matching that appears attractive at the demand level may be costly to realize once current switch states and occupied paths are considered. By selecting matchings together with re-alizable routes, Tetris avoids decompositions that later require disruptive remapping. The broader question is how to extend this idea beyond Beneš interconnects. Beneš routing admits a recursive treatment through local branch dependencies, while other RNB topologies expose different routing constraints. One possible abstraction is a conflict graph whose vertices represent candidate connections or paths and whose edges cap-ture incompatibility under the current interconnect state. Tetris 
+
+is only a first step: designing efficient joint decomposition and routing algorithms for broader classes of RNB interconnects, with low scheduling overhead, remains an open problem. 
+
+Alternative scheduling objectives: Partial reconfiguration in RNB interconnects also motivates objectives beyond demand completion time. One is to minimize how often internal 2 × 2 switches change state. Reusing bar / cross 
+
+configurations for longer periods can reduce control overhead and, for technologies such as MEMS, limit mechanical wear; prior work has considered related objectives for extending switch lifetime [11]. Another objective is to preserve routing flexibility across successive configurations by preferring 11 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay M1 M2 M3 Model  1.00 1.00 1.00 1.02 1.18 2.42 5.34 1.00 1.00 1.00 1.03 1.32 3.17 6.00 0.98 0.98 0.99 1.01 1.25 2.86 5.63 2.5 5.0 BvN / Tetris (a) BvN against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay M1 M2 M3 Model  1.10 1.10 1.10 1.10 1.11 1.14 1.26 1.09 1.09 1.09 1.09 1.09 1.16 1.28 1.07 1.07 1.07 1.06 1.07 1.12 1.25 1.1 1.2 BFF RNB / Tetris (b) BFF against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay M1 M2 M3 Model  1.09 1.09 1.09 1.08 1.09 1.13 1.25 1.08 1.08 1.08 1.08 1.09 1.15 1.29 1.05 1.05 1.05 1.06 1.06 1.10 1.22 1.1 1.2 Sun fl ow RNB / Tetris (c) Sunflow against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay M1 M2 M3 Model  1.03 1.03 1.03 1.03 1.02 1.02 1.01 1.04 1.04 1.04 1.04 1.04 1.02 1.01 1.07 1.07 1.07 1.07 1.07 1.05 1.01 1.025 1.050 MaxWeight / Tetris (d) MaxWeight against Tetris 
+
+Figure 10: [Hardware emulation] Sensitivity of Tetris ’s performance advantage over each baseline to link bandwidth and switch reconfiguration delay for one complete inference pass of Mixtral-8 ×22B (M1), Mixtral-8 ×7B (M2) and DeepSeek-MoE-16B (M3). matchings and routes that leave more future connections realizable without disturbing ongoing circuits. These objectives may trade off with minimum completion time, but can be preferable when switch lifetime, control overhead, or future reconfiguration flexibility matter operationally. Understanding how to jointly optimize these goals with completion time remains an open direction. 
+
+Partial reconfiguration for multi-tenant isolation: A par-ticularly interesting extension of Tetris is to use the internal routing structure of an RNB interconnect for multi-tenant iso-lation. The recursive structure of a Beneš interconnect natu-rally partitions it into smaller subnetworks, allowing different tenants to be constrained to disjoint sets of internal switches. If two tenants use non-overlapping switch regions, reconfigu-ration for one cannot alter the switch states used by the other’s active circuits. This provides isolation directly through physi-cal routing and can prevent changing demand from one tenant from disrupting another, which may be especially useful when latency-sensitive and throughput-oriented workloads share the same photonic interconnect. The main trade-off is reduced routing flexibility. Partitioning limits the paths available to each tenant and can leave capacity unused when demands are imbalanced. Open questions include how to allocate sub-networks across tenants, how to adapt these allocations as demand changes, and when to relax isolation to improve over-all performance. More broadly, the routing dependencies of RNB interconnects may serve not only as a scheduling con-straint, but also as a mechanism for multi-tenant isolation. 
+
+6 Related Work 
+
+Circuit scheduling for optical interconnects has been studied extensively, spanning both demand-aware [11, 14, 21, 27, 56] and demand-oblivious [3, 6, 45, 46, 57] designs, with growing interest in AI datacenters [2, 8, 15, 29, 33, 34, 48, 53]. Much of this literature assumes blocking execution, where each match-ing is separated by a matching-wide reconfiguration barrier. Early demand-aware approaches build on Birkhoff–von Neu-mann decomposition [12, 14, 40], while greedy MaxWeight decomposition has also been explored [7, 21, 22], including recently for electrical-optical hybrid networks targeting Mixture-of-Experts workloads [39]. Google’s Jupiter network uses optical switching with relatively infrequent reconfigu-ration based on traffic-engineering decisions [47], while TPU supercomputing systems continue to use optical switching for large-scale connectivity, including support for multi-tenancy and reallocation under failures [29, 61]. A separate line of work studies demand-oblivious interconnects, where a prede-termined sequence of matchings is executed periodically with-out adapting to instantaneous demand [3, 5, 6, 9, 44, 46]. More recent work explores demand-aware periodic switching [4]. For distributed training and inference workloads, several systems construct circuit schedules around collective commu-nication patterns [2, 8, 34, 48, 49, 60], while others optimize communication jointly with the overall workload [56, 58]. Most of these approaches still retain a matching-by-matching execution model. Partial reconfiguration has received comparatively less attention. Sunflow [27], Best Fit First (BFF) [42], and NEIP [59] allow individual connections to be reconfigured as endpoints become available, but assume a strictly non-blocking interconnect in which establishing a new connection does not disturb ongoing circuits. Tetris 
+
+targets a different regime: rearrangeably non-blocking (RNB) photonic interconnects, where partial reconfiguration depends on the internal routing of both existing and newly established circuits. Recent photonic interconnect designs increasingly explore RNB architectures because they can provide high-radix connectivity with lower switching complexity than strictly non-blocking alternatives [10, 15, 16, 20, 26]. Tetris 
+
+complements this hardware direction by revisiting circuit scheduling under the routing dependencies introduced by RNB interconnects. 
+
+7 Conclusion 
+
+We revisited circuit scheduling for rearrangeably non-blocking photonic interconnects, where partial reconfigura-tion depends on both communication demand and internal routing. We presented Tetris , which combines bottleneck-driven matching selection, interconnect-aware routing, and independent connection scheduling to exploit partial reconfiguration without matching-wide barriers. Our results show that accounting for RNB constraints can recover much of the performance otherwise lost under idealized scheduling abstractions. More broadly, we believe practical RNB inter-connects open a rich set of questions spanning scheduling, routing, controller overhead, and multi-tenant isolation. 12 References 
+
+[1] Talor Abramovich, Maor Ashkenazi, Izzy Putterman, Benjamin Chislett, Tiyasa Mitra, Bita Darvish Rouhani, Ran Zilberstein, and Yonatan Geifman. Speed-bench: A unified and diverse benchmark for speculative decoding, 2026. URL: https://arxiv .org/abs/2604 .09557 ,
+
+arXiv:2604 .09557 .[2] Vamsi Addanki. When light bends to the collective will: A theory and vision for adaptive photonic scale-up domains. In Proceedings of the 24th ACM Workshop on Hot Topics in Networks , HotNets ’25, page 326–334, New York, NY, USA, 2025. Association for Computing Machinery. doi:10 .1145/3772356 .3772395 .[3] Vamsi Addanki, Chen Avin, and Stefan Schmid. Mars: Near-optimal throughput with shallow buffers in reconfigurable datacenter networks. Proc. ACM Meas. Anal. Comput. Syst. , 7(1), March 2023. 
+
+doi:10 .1145/3579312 .[4] Vamsi Addanki, Deeksha P Rao, Goran Dario Knabe, Chen Avin, and Stefan Schmid. Vermilion: A traffic-aware reconfigurable optical interconnect with formal throughput guarantees. In 24th USENIX Symposium on Networked Systems Design and Implementation (NSDI 27) , Providence, RI, 2027. USENIX Association. URL: 
+
+https://www .usenix .org/conference/nsdi27/ presentation/addanki .[5] Daniel Amir, Nitika Saran, Tegan Wilson, Robert Kleinberg, Vishal Shrivastav, and Hakim Weatherspoon. Shale: A practical, scalable oblivious reconfigurable network. In Proceedings of the ACM SIGCOMM 2024 Conference , ACM SIGCOMM ’24, page 449–464, New York, NY, USA, 2024. Association for Computing Machinery. doi:10 .1145/3651890 .3672248 .[6] Daniel Amir, Tegan Wilson, Vishal Shrivastav, Hakim Weatherspoon, Robert Kleinberg, and Rachit Agarwal. Optimal oblivious reconfigurable networks. In Proceed-ings of the 54th Annual ACM SIGACT Symposium on Theory of Computing , STOC 2022, page 1339–1352, New York, NY, USA, 2022. Association for Computing Machinery. doi:10 .1145/3519935 .3520020 .[7] Eliezer Amponsah and Vamsi Addanki. Birkhoff decompositions and photonic interconnects wait! don’t forget the compute! In Proceedings of the Workshop on Hot Topics in Optical Technologies and Applications in Networking , HotOptics ’26, page 2135–2141, New York, NY, USA, 2026. Association for Computing Machinery. doi:10 .1145/3789240 .3822610 .[8] Rukshani Athapathu and George Porter. Reconfigura-bility within collective communication algorithms. In 
+
+Proceedings of the 2nd Workshop on Networks for AI Computing , NAIC ’25, page 43–49, New York, NY, USA, 2025. Association for Computing Machinery. 
+
+doi:10 .1145/3748273 .3749203 .[9] Hitesh Ballani, Paolo Costa, Raphael Behrendt, Daniel Cletheroe, Istvan Haller, Krzysztof Jozwik, Fotini Karinou, Sophie Lange, Kai Shi, Benn Thomsen, and Hugh Williams. Sirius: A flat datacenter network with nanosecond optical switching. In Proceedings of the Annual Conference of the ACM Special Interest Group on Data Communication on the Applications, Technologies, Architectures, and Protocols for Computer Communication , SIGCOMM ’20, page 782–797, New York, NY, USA, 2020. Association for Computing Machinery. doi:10 .1145/3387514 .3406221 .[10] S. J. Ben Yoo. Prospects and challenges of photonic switching in data centers and computing systems. 
+
+Journal of Lightwave Technology , 40(8):2214–2243, 2022. doi:10 .1109/JLT .2021 .3136570 .[11] Andrea Bianco, Paolo Giaccone, and Marco Ricca. Scheduling traffic for maximum switch lifetime in optical data center fabrics. Computer Networks , 105:75– 88, 2016. URL: https://www .sciencedirect .com/ science/article/pii/S1389128616301232 ,
+
+doi:10 .1016/j .comnet .2016 .05 .002 .[12] G BIRKHOFF. Tres observaciones sobre el al-gebra lineal. Univ. Nac. Tucuman, Ser. A , 5:147– 154, 1946. URL: https://cir .nii .ac .jp/crid/ 1570572699525842816 .[13] Wim Bogaerts, Daniel Pérez, José Capmany, David AB Miller, Joyce Poon, Dirk Englund, Francesco Morichetti, and Andrea Melloni. Programmable photonic circuits. 
+
+Nature , 586(7828):207–216, 2020. [14] Shaileshh Bojja Venkatakrishnan, Mohammad Alizadeh, and Pramod Viswanath. Costly Circuits, Submodular Schedules and Approximate Carathéodory Theorems. In Proceedings of the 2016 ACM SIGMETRICS Inter-national Conference on Measurement and Modeling of Computer Science , SIGMETRICS ’16, pages 75–88, New York, NY, USA, 2016. Association for Computing Machinery. doi:10 .1145/2896377 .2901479 .[15] L. Chen, E. Hall, L. Theogarajan, and J. Bowers. Photonic switching for data center applications. 
+
+IEEE Photonics Journal , 3(5):834–844, 2011. 
+
+doi:10 .1109/JPHOT .2011 .2166994 .[16] Tao CHU, Lei QIAO, Weijie TANG, Defeng GUO, and Weike WU. Fast, high-radix silicon photonic switches. In Optical Fiber Communication Conference ,page Th1J.4. Optica Publishing Group, 2018. URL: 13 https://opg .optica .org/abstract .cfm?URI= OFC-2018-Th1J .4, doi:10 .1364/OFC .2018 .Th1J .4.[17] Charles Clos. A study of non-blocking switching networks. Bell System Technical Journal , 32:406–424, 1953. URL: https://api .semanticscholar .org/ CorpusID:111089194 .[18] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. Training verifiers to solve math word problems. arXiv preprint arXiv:2110.14168 , 2021. [19] David F Crouse. On implementing 2D rectangu-lar assignment algorithms. IEEE Transactions on Aerospace and Electronic Systems , 52(4):1679–1696, 2016. doi:10 .1109/TAES .2016 .140952 .[20] Nicolas Dupuis and Benjamin G. Lee. Impact of topology on the scalability of mach–zehnder-based multistage silicon photonic switch networks. J. Lightwave Technol. , 36(3):763–772, Feb 2018. URL: 
+
+https://opg .optica .org/jlt/abstract .cfm?URI= jlt-36-3-763 .[21] Nathan Farrington, George Porter, Sivasankar Rad-hakrishnan, Hamid Hajabdolali Bazzaz, Vikram Subramanya, Yeshaiahu Fainman, George Papen, and Amin Vahdat. Helios: a hybrid electrical/optical switch architecture for modular data centers. SIGCOMM Comput. Commun. Rev. , 40(4):339–350, August 2010. 
+
+doi:10 .1145/1851275 .1851223 .[22] Monia Ghobadi, Ratul Mahajan, Amar Phanishayee, Nikhil Devanur, Janardhan Kulkarni, Gireeja Ranade, Pierre-Alexandre Blanche, Houman Rastegarfar, Madeleine Glick, and Daniel Kilper. Projector: Agile reconfigurable data center interconnect. In 
+
+Proceedings of the 2016 ACM SIGCOMM Conference ,SIGCOMM ’16, page 216–229, New York, NY, USA, 2016. Association for Computing Machinery. 
+
+doi:10 .1145/2934872 .2934911 .[23] Dan Hendrycks, Collin Burns, Steven Basart, Andrew Critch, Jerry Li, Dawn Song, and Jacob Steinhardt. Aligning ai with shared human values. Proceed-ings of the International Conference on Learning Representations (ICLR) , 2021. [24] Dan Hendrycks, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, and Jacob Steinhardt. Measuring massive multitask language understanding. 
+
+Proceedings of the International Conference on Learning Representations (ICLR) , 2021. [25] Roger W. Hockney. The communication chal-lenge for mpp: Intel paragon and meiko cs-2. Parallel Computing , 20(3):389–398, 1994. 
+
+doi:10 .1016/S0167-8191(06)80021-9 .[26] Yinpeng Hu, Yi Sun, Ye Lu, Huan Li, Liu Liu, Yaocheng Shi, and Daoxin Dai. Silicon photonic mems switches based on split waveguide cross-ings. Nature Communications , 16(1):331, 2025. 
+
+doi:10 .1038/s41467-024-55528-9 .[27] Xin Sunny Huang, Xiaoye Steven Sun, and T.S. Eugene Ng. Sunflow: Efficient optical circuit scheduling for coflows. In Proceedings of the 12th International on Conference on Emerging Networking EXperiments and Technologies , CoNEXT ’16, page 297–311, New York, NY, USA, 2016. Association for Computing Machinery. 
+
+doi:10 .1145/2999572 .2999592 .[28] R Jonker and A Volgenant. A shortest augmenting path algorithm for dense and sparse linear assign-ment problems. Computing , 38(4):325–340, 1987. 
+
+doi:10 .1007/BF02278710 .[29] Norm Jouppi, George Kurian, Sheng Li, Peter Ma, Rahul Nagarajan, Lifeng Nai, Nishant Patil, Suvinay Subramanian, Andy Swing, Brian Towles, Clifford Young, Xiang Zhou, Zongwei Zhou, and David A Patter-son. Tpu v4: An optically reconfigurable supercomputer for machine learning with hardware support for embed-dings. In Proceedings of the 50th Annual International Symposium on Computer Architecture , ISCA ’23, New York, NY, USA, 2023. Association for Computing Machinery. doi:10 .1145/3579371 .3589350 .[30] Mehrdad Khani, Manya Ghobadi, Mohammad Al-izadeh, Ziyi Zhu, Madeleine Glick, Keren Bergman, Amin Vahdat, Benjamin Klenk, and Eiman Ebrahimi. Sip-ml: high-bandwidth optical network intercon-nects for machine learning training. In Proceedings of the 2021 ACM SIGCOMM 2021 Conference ,SIGCOMM ’21, page 657–675, New York, NY, USA, 2021. Association for Computing Machinery. 
+
+doi:10 .1145/3452296 .3472900 .[31] Ryotaro Konoike, Keijiro Suzuki, and Kazuhiro Ikeda. Path-independent insertion-loss (piloss) 8 × 8 silicon photonics switch with <8 nsec switching time. In 
+
+2022 Optical Fiber Communications Conference and Exhibition (OFC) , pages 1–3, 2022. [32] Harold W Kuhn. The Hungarian method for the assignment problem. Naval research logistics quarterly ,2(1-2):83–97, 1955. [33] Abhishek Vijaya Kumar, Arjun Devraj, Darius Bunan-dar, and Rachee Singh. A case for server-scale photonic 14 connectivity. In Proceedings of the 23rd ACM Workshop on Hot Topics in Networks , HotNets ’24, page 290–299, New York, NY, USA, 2024. Association for Computing Machinery. doi:10 .1145/3696348 .3696856 .[34] Abhishek Vijaya Kumar, Arjun Devraj, and Rachee Singh. Pccl: Photonic circuit-switched collective communication for distributed ml, 2025. URL: https: //arxiv .org/abs/2509 .15450 , arXiv:2509 .15450 .[35] Benjamin G. Lee and Nicolas Dupuis. Silicon photonic switch fabrics: Technology and architecture. 
+
+Journal of Lightwave Technology , 37(1):6–20, 2019. 
+
+doi:10 .1109/JLT .2018 .2876828 .[36] Yiming Lei, Jialong Li, Zhengqing Liu, Raj Joshi, and Yiting Xia. SyncWise: Error-Aware time syn-chronization for reconfigurable data center networks. In 23rd USENIX Symposium on Networked Systems Design and Implementation (NSDI 26) , pages 951–967, Renton, WA, May 2026. USENIX Association. URL: 
+
+https://www .usenix .org/conference/nsdi26/ presentation/lei-syncwise .[37] Yiming Lei, Federico De Marchi, Jialong Li, Raj Joshi, Shu-Ting Wang, Xiaoqi Chen, Balakrishnan Chandrasekaran, and Yiting Xia. OpenOptics: Enabling open research and implementation of optical data center networks. In 23rd USENIX Symposium on Networked Systems Design and Implementation (NSDI 26) , pages 987–1004, Renton, WA, May 2026. USENIX Associ-ation. URL: https://www .usenix .org/conference/ nsdi26/presentation/lei-optical .[38] Yiran Lei, Dongjoo Lee, Liangyu Zhao, Daniar Kur-niawan, Chanmyeong Kim, Heetaek Jeong, Changsu Kim, Hyeonseong Choi, Liangcheng Yu, Arvind Krishnamurthy, Justine Sherry, and Eriko Nurvitadhi. FAST: An efficient scheduler for All-to-All GPU com-munication. In 23rd USENIX Symposium on Networked Systems Design and Implementation (NSDI 26) , pages 2515–2531, Renton, WA, May 2026. USENIX Associ-ation. URL: https://www .usenix .org/conference/ nsdi26/presentation/lei-yiran .[39] Xudong Liao, Yijun Sun, Han Tian, Xinchen Wan, Yilun Jin, Zilong Wang, Zhenghang Ren, Xinyang Huang, Wenxue Li, Kin Fai Tse, Zhizhen Zhong, Guyue Liu, Ying Zhang, Xiaofeng Ye, Yiming Zhang, and Kai Chen. Mixnet: A runtime reconfigurable optical-electrical fabric for distributed mixture-of-experts training. In Proceedings of the ACM SIGCOMM 2025 Conference , SIGCOMM ’25, page 554–574, New York, NY, USA, 2025. Association for Computing Machinery. 
+
+doi:10 .1145/3718958 .3750465 .[40] He Liu, Matthew K Mukerjee, Conglong Li, Nicolas Feltman, George Papen, Stefan Savage, Srinivasan Se-shan, Geoffrey M Voelker, David G Andersen, Michael Kaminsky, George Porter, and Alex C Snoeren. Schedul-ing techniques for hybrid circuit/packet networks. In 
+
+Proceedings of the 11th ACM Conference on Emerging Networking Experiments and Technologies , CoNEXT ’15, New York, NY, USA, 2015. Association for Com-puting Machinery. doi:10 .1145/2716281 .2836126 .[41] Hong Liu, Ryohei Urata, Kevin Yasumura, Xiang Zhou, Roy Bannon, Jill Berger, Pedram Dashti, Norm Jouppi, Cedric Lam, Sheng Li, Erji Mao, Daniel Nelson, George Papen, Mukarram Tariq, and Amin Vahdat. Lightwave fabrics: At-scale optical circuit switching for datacenter and machine learning systems. In 
+
+Proceedings of the ACM SIGCOMM 2023 Conference ,ACM SIGCOMM ’23, page 499–515, New York, NY, USA, 2023. Association for Computing Machinery. 
+
+doi:10 .1145/3603269 .3604836 .[42] Liang Liu, Long Gong, Sen Yang, Jun Xu, and Lance Fortnow. Best first fit (bff): An approach to partially reconfigurable hybrid circuit and packet switching. In 2018 IEEE 11th International Conference on Cloud Computing (CLOUD) , pages 426–433, 2018. 
+
+doi:10 .1109/CLOUD .2018 .00060 .[43] Liangjun Lu, Xiaorui Li, Wei Gao, Xin Li, Linjie Zhou, and Jianping Chen. Silicon non-blocking 4 × 4 optical switch chip integrated with both thermal and electro-optic tuners. IEEE Photonics Journal ,11(6):1–9, 2019. doi:10 .1109/JPHOT .2019 .2941960 .[44] William M. Mellette, Rajdeep Das, Yibo Guo, Rob McGuinness, Alex C. Snoeren, and George Porter. Expanding across time to deliver bandwidth efficiency and low latency. In 17th USENIX Symposium on Net-worked Systems Design and Implementation (NSDI 20) ,pages 1–18, Santa Clara, CA, February 2020. USENIX Association. URL: https://www .usenix .org/ conference/nsdi20/presentation/mellette .[45] William M. Mellette, Alex Forencich, Rukshani Athapathu, Alex C. Snoeren, George Papen, and George Porter. Realizing rotornet: Toward practical microsecond scale optical networking. In Proceedings of the ACM SIGCOMM 2024 Conference , ACM SIGCOMM ’24, page 392–414, New York, NY, USA, 2024. Association for Computing Machinery. 
+
+doi:10 .1145/3651890 .3672273 .[46] William M. Mellette, Rob McGuinness, Arjun Roy, Alex Forencich, George Papen, Alex C. Snoeren, and George Porter. Rotornet: A scalable, low-complexity, optical datacenter network. In Proceedings of the 
+
+15 Conference of the ACM Special Interest Group on Data Communication , SIGCOMM ’17, page 267–280, New York, NY, USA, 2017. Association for Computing Machinery. doi:10 .1145/3098822 .3098838 .[47] Leon Poutievski, Omid Mashayekhi, Joon Ong, Arjun Singh, Mukarram Tariq, Rui Wang, Jianan Zhang, Virginia Beauregard, Patrick Conner, Steve Gribble, Rishi Kapoor, Stephen Kratzer, Nanfang Li, Hong Liu, Karthik Nagaraj, Jason Ornstein, Samir Sawhney, Ryohei Urata, Lorenzo Vicisano, Kevin Yasumura, Shidong Zhang, Junlan Zhou, and Amin Vahdat. Jupiter evolving: transforming google’s datacenter network via optical circuit switches and software-defined networking. In Proceedings of the ACM SIGCOMM 2022 Conference , SIGCOMM ’22, page 66–85, New York, NY, USA, 2022. Association for Computing Machinery. doi:10 .1145/3544216 .3544265 .[48] Mahir Rahman, Samuel Joseph, Nihar Kodkani, Behnaz Arzani, and Vamsi Addanki. Harvest: Adaptive Pho-tonic Switching Schedules for Collective Communication in Scale-up Domains , page 1576–1600. Association for Computing Machinery, New York, NY, USA, 2026. URL: https://doi .org/10 .1145/3789240 .3829166 .[49] Sundararajan Renganathan and Nick McKeown. Chronos: Prescheduled circuit switching for llm training. In Proceedings of the 2nd Workshop on Networks for AI Computing , NAIC ’25, page 89–97, New York, NY, USA, 2025. Association for Computing Machinery. doi:10 .1145/3748273 .3749210 .[50] Chenchen Shou, Guyue Liu, Hao Nie, Huaiyu Meng, Yu Zhou, Yimin Jiang, Wenqing Lv, Yelong Xu, Yuan-wei Lu, Zhang Chen, Yanbo Yu, Yichen Shen, Yibo Zhu, and Daxin Jiang. Infinitehbd: Building datacenter-scale high-bandwidth domain for llm with optical circuit switching transceivers. In Proceedings of the ACM SIG-COMM 2025 Conference , SIGCOMM ’25, page 1–23, New York, NY, USA, 2025. Association for Computing Machinery. doi:10 .1145/3718958 .3750468 .[51] Richard Sinkhorn. A Relationship Between Arbitrary Positive Matrices and Doubly Stochastic Matrices. The Annals of Mathematical Statistics , 35(2):876–879, 1964. URL: http://www .jstor .org/stable/2238545 .[52] Ryohei Urata, Hong Liu, Kevin Yasumura, Erji Mao, Jill Berger, Xiang Zhou, Cedric Lam, Roy Bannon, Darren Hutchinson, Daniel Nelson, Leon Poutievski, Arjun Singh, Joon Ong, and Amin Vahdat. Mission apollo: Landing optical circuit switching at datacenter scale, 2022. URL: https://arxiv .org/abs/2208 .10041 ,
+
+arXiv:2208 .10041 .[53] Abhishek Vijaya Kumar, Eric Ding, Arjun Devraj, Darius Bunandar, and Rachee Singh. Reconfigurable torus fabrics for multi-tenant ml. In Proceedings of the 31st ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 , ASPLOS ’26, page 1547–1565, New York, NY, USA, 2026. Association for Computing Machinery. doi:10 .1145/3779212 .3790238 .[54] Mark Wade, Erik Anderson, Shahab Ardalan, Pavan Bhargava, Sidney Buchbinder, Michael L. Davenport, John Fini, Haiwei Lu, Chen Li, Roy Meade, Chandru Ramamurthy, Michael Rust, Forrest Sedgwick, Vladimir Stojanovic, Derek Van Orden, Chong Zhang, Chen Sun, Sergey Y. Shumarayev, Conor O’Keeffe, Tim T. Hoang, David Kehlet, Ravi V. Mahajan, Matthew T. Guzy, Allen Chan, and Tina Tran. Teraphy: Achiplet technology for low-power, high-bandwidth in-package optical i/o. IEEE Micro , 40(2):63–71, 2020. 
+
+doi:10 .1109/MM .2020 .2976067 .[55] Abraham Waksman. A permutation net-work. J. ACM , 15(1):159–163, January 1968. 
+
+doi:10 .1145/321439 .321449 .[56] Weiyang Wang, Moein Khazraee, Zhizhen Zhong, Manya Ghobadi, Zhihao Jia, Dheevatsa Mudigere, Ying Zhang, and Anthony Kewitsch. TopoOpt: Co-optimizing network topology and paralleliza-tion strategy for distributed training jobs. In 20th USENIX Symposium on Networked Systems Design and Implementation (NSDI 23) , pages 739–767, Boston, MA, April 2023. USENIX Association. URL: 
+
+https://www .usenix .org/conference/nsdi23/ presentation/wang-weiyang .[57] Tegan Wilson, Daniel Amir, Nitika Saran, Robert Kleinberg, Vishal Shrivastav, and Hakim Weath-erspoon. Breaking the vlb barrier for oblivious reconfigurable networks. In Proceedings of the 56th Annual ACM Symposium on Theory of Comput-ing , STOC 2024, page 1865–1876, New York, NY, USA, 2024. Association for Computing Machinery. 
+
+doi:10 .1145/3618260 .3649608 .[58] Zhenguo Wu, Benjamin Klenk, Larry Dennison, and Keren Bergman. Actina: Adapting circuit-switching techniques for ai networking architectures. In Pro-ceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis , SC ’25, page 1211–1222, New York, NY, USA, 2025. Association for Computing Machinery. 
+
+doi:10 .1145/3712285 .3759842 .[59] Shuai Zhang, Junyi Shao, Baojun Chen, Weiqiang Sun, and Weisheng Hu. Interruptible scheduling of 16 partially re-configurable optical switching in data center networks. Journal of Lightwave Technology , 42(7):2212– 2224, 2024. doi:10 .1109/JLT .2023 .3341042 .[60] Liangyu Zhao, Siddharth Pal, Tapan Chugh, Weiyang Wang, Jason Fantl, Prithwish Basu, Joud Khoury, and Arvind Krishnamurthy. Efficient Direct-Connect topologies for collective communications. In 22nd USENIX Symposium on Networked Systems Design and Implementation (NSDI 25) , pages 705–737, Philadel-phia, PA, April 2025. USENIX Association. URL: 
+
+https://www .usenix .org/conference/nsdi25/ presentation/zhao-liangyu .[61] Yazhou Zu, Alireza Ghaffarkhah, Hoang-Vu Dang, Brian Towles, Steven Hand, Safeen Huda, Adekunle Bello, Alexander Kolbasov, Arash Rezaei, Dayou Du, Steve Lacy, Hang Wang, Aaron Wisner, Chris Lewis, and Henri Bahini. Resiliency at scale: Managing Google’s TPUv4 machine learning supercomputer. In 
+
+21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24) , pages 761–774, Santa Clara, CA, April 2024. USENIX Association. URL: 
+
+https://www .usenix .org/conference/nsdi24/ presentation/zu .17 Topology Blocking 2×2 Switches Stages                   
+
+> Butterfly / Banyan / Omega Blocking n
+> 2·log 2nlog 2n
+> PILOSS SNB n2n
+> Double-Layer Net-work (DLN) SNB 54·n2−2·n2·log 2n−1Beneš RNB n·log 2n−n
+> 22·log 2n−1Spanke-Beneš RNB n·(n−1)
+> 2n
+
+Table 1: Comparison of representative n × n interconnects constructed from 2 × 2 switching elements. The Beneš in-terconnect provides rearrangeably non-blocking connectivity using O(nlog n) switching elements and O(log n) stages. 
+
+Algorithm 3: ROUTE (g,M,R,S,Π)
+
+Input: Beneš subnetwork g, matching M, residual matrix R,schedule S, ancestor traversals Π
+
+Output: Path Puv for every (u,v) ∈ M 
+
+> 1
+
+if M = /0 then  
+
+> 2
+
+return /0 
+
+> 3
+
+if g is a 2×2 switch then  
+
+> 4
+
+return required traversals joined with Π 
+
+> 5
+
+Build input-pair, output-pair, and connection branch constraints  
+
+> 6
+
+▷ Each component has two legal orientations  
+
+> 7
+
+foreach constraint component K do  
+
+> 8
+
+foreach legal orientation q ∈ { 0,1} do  
+
+> 9
+
+Vq ← /0; Xq ← /0 
+
+> 10
+
+▷ Evaluate one orientation  
+
+> 11
+
+foreach (u,v) ∈ M belonging to K do  
+
+> 12
+
+p ← traversals in Π and current boundaries under q 
+
+> 13
+
+t ← START (S,p) 
+
+> 14
+
+Append t −αr +Wu and t −αr +Wv to Vq 
+
+> 15
+
+Add switches in p requiring a state change to Xq 
+
+> 16
+
+Lq ← sort ↓(Vq) 
+
+> 17
+
+▷ Endpoint costs; switch changes break ties  
+
+> 18
+
+Jq ← (Lq,|Xq|) 
+
+> 19
+
+Choose q⋆ ← argmin lex  
+
+> q
+
+Jq 
+
+> 20
+
+Fix orientation q⋆ for component K 
+
+> 21
+
+Split M into upper and lower child matchings MU ,ML 
+
+> 22
+
+Extend Π with selected boundary traversals to obtain ΠU ,ΠL 
+
+> 23
+
+▷ Recurse after fixing the current level  
+
+> 24
+
+PU ← ROUTE (gU ,MU ,R,S,ΠU ) 
+
+> 25
+
+PL ← ROUTE (gL,ML,R,S,ΠL) 
+
+> 26
+
+return PU ∪PL
+
+A Additional Results 
+
+We report results omitted from §4 for space, alongside the interconnect comparison discussed in §2.1 (Table 1), the notation used throughout §3 (Table 2), and Tetris ’s internal routing procedure (Algorithm 3). Figure 11 covers an entire forward pass of Mixtral8x22B and plots per layer completion time. Throughout the run, Tetris consistently achieves lower completion time than existing approaches, and remain close to optimal. Figure 12 shows Tetris ’s performance gains over 
+
+Notation Description Interconnect types 
+
+SNB Strictly non-blocking RNB Rearrangably non-blocking 
+
+Demand and schedule 
+
+Duv Communication demand, in bytes, from transmitter 
+
+u to receiver vb Bandwidth of each transmit and receive link ˆDuv Transmission time of demand (u,v), ˆDuv = Duv /bRuv Residual transmission time of demand (u,v)
+
+αr Reconfiguration delay of an internal 2 ×2 switch 
+
+G Beneš interconnect 
+
+S Circuit schedule constructed so far 
+
+M Planning matching selected in one iteration 
+
+Matching selection 
+
+ER(e) Remaining demands incident on endpoint ede Residual degree of endpoint e, de = |ER(e)|
+
+We Estimated remaining communication and reconfigu-ration work of endpoint eae Completion time of the latest scheduled connection involving endpoint e
+
+δ Maximum residual endpoint degree, δ = max ede
+
+C Endpoints with maximum residual degree, C = {e |
+
+de = δ}
+
+Path and connection cost 
+
+puv Candidate path used to estimate the cost of connec-tion (u,v)
+
+suv Estimated earliest start time of candidate connection 
+
+(u,v)
+
+cuv Cost estimate used when selecting connection (u,v)
+
+Puv Routed path assigned to selected connection (u,v)
+
+Table 2: Notations used in §3. BvN, MaxWeight, BFF, and Sunflow for DeepSeek-MoE-16B and Mixtral-8 × 7B. The results are consistent with our observations in §4. Specifically, BvN remains competitive when reconfiguration is nearly free, but degrades rapidly as re-configuration delay and bandwidth increase, becoming up to 6.35 × and 6 .43 × slower than Tetris for DeepSeek-MoE-16B and Mixtral-8 × 7B, respectively. BFF and Sunflow exhibit smaller but consistent gaps that grow with reconfiguration delay, reaching up to 1 .32 × and 1 .30 ×. MaxWeight shows the complementary trend: Tetris provides a modest advantage when reconfiguration is inexpensive, while the two converge as reconfiguration becomes dominant. These results indicate that the trends observed for Mixtral-8 ×22B in §4 generalize across different MoE models. 18 0 5 10 15 20 25 30 35 40 45 50 55 
+
+Layer 
+
+2.0 2.2 2.4 2.6 2.8 3.0 3.2 
+
+> Completion time (ms)
+
+Tetris BvN Sun fl ow_RNB BFF_RNB MaxWeight (a) SPEED-Bench throughput-1K dataset 0 5 10 15 20 25 30 35 40 45 50 55 
+
+Layer 
+
+2.0 2.2 2.4 2.6 2.8 3.0 
+
+> Completion time (ms)
+
+Tetris BvN Sun fl ow_RNB BFF_RNB MaxWeight (b) SPEED-Bench throughput-2K dataset 
+
+Figure 11: Per-layer communication time for one inference pass of Mixtral-8 ×22B, comparing Tetris with BvN, MaxWeight, Sunflow, and BFF, at b = 800 Gbps and αr = 10 μs. 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+0.99 1.00 1.00 1.03 1.33 3.13 5.72 0.99 1.00 1.00 1.06 1.62 4.07 6.06 1.00 1.00 1.01 1.13 2.11 4.93 6.25 1.00 1.00 1.02 1.20 2.52 5.33 6.32 1.00 1.00 1.02 1.26 2.85 5.57 6.35 246BvN / Tetris 
+
+(a) BvN against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.03 1.03 1.03 1.03 1.05 1.11 1.27 1.03 1.03 1.03 1.03 1.05 1.15 1.30 1.03 1.03 1.03 1.03 1.07 1.21 1.31 1.03 1.03 1.03 1.03 1.08 1.24 1.32 1.03 1.03 1.03 1.03 1.08 1.26 1.32 
+
+1.1 1.2 1.3 BFF RNB / Tetris (b) BFF against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.01 1.01 1.02 1.02 1.04 1.09 1.25 1.01 1.01 1.02 1.02 1.04 1.13 1.28 1.01 1.01 1.02 1.03 1.05 1.20 1.30 1.01 1.01 1.02 1.03 1.06 1.22 1.30 1.01 1.02 1.02 1.03 1.07 1.24 1.30 
+
+1.1 1.2 1.3 Sun fl ow RNB / Tetris (c) Sunflow against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.04 1.04 1.04 1.04 1.04 1.02 1.01 1.04 1.04 1.04 1.04 1.03 1.02 1.00 1.04 1.04 1.04 1.04 1.03 1.01 1.00 1.04 1.04 1.04 1.04 1.03 1.01 1.00 1.04 1.04 1.04 1.04 1.03 1.01 1.00 
+
+1.01 1.02 1.03 MaxWeight / Tetris (d) MaxWeight against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+0.98 0.98 0.98 1.02 1.34 3.26 5.83 0.98 0.98 0.99 1.05 1.66 4.21 6.16 0.98 0.98 0.99 1.13 2.19 5.06 6.33 0.98 0.98 1.00 1.20 2.62 5.45 6.39 0.98 0.98 1.01 1.27 2.97 5.68 6.43 246BvN / Tetris 
+
+(e) BvN against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.08 1.08 1.08 1.08 1.10 1.17 1.27 1.08 1.08 1.08 1.08 1.11 1.20 1.29 1.08 1.08 1.08 1.08 1.12 1.23 1.30 1.08 1.08 1.08 1.08 1.15 1.25 1.30 1.08 1.08 1.08 1.09 1.16 1.26 1.30 1.1 1.2 1.3 BFF RNB / Tetris (f) BFF against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.08 1.08 1.08 1.08 1.09 1.16 1.27 1.08 1.08 1.08 1.08 1.09 1.19 1.28 1.08 1.08 1.08 1.08 1.12 1.23 1.29 1.08 1.08 1.08 1.09 1.14 1.25 1.30 1.08 1.08 1.08 1.10 1.15 1.26 1.30 1.1 1.2 Sun fl ow RNB / Tetris (g) Sunflow against Tetris 10ns 100ns 1us 10us 100us 1ms 10ms Recon fi guration delay 100 200 400 600 800 Bandwidth in Gbps 
+
+1.06 1.06 1.06 1.06 1.06 1.04 1.01 1.06 1.06 1.06 1.06 1.06 1.03 1.00 1.06 1.06 1.06 1.06 1.05 1.02 1.00 1.06 1.06 1.06 1.06 1.05 1.01 1.00 1.06 1.06 1.06 1.06 1.04 1.01 1.00 
+
+1.025 1.050 MaxWeight / Tetris (h) MaxWeight against Tetris 
+
+Figure 12: Sensitivity of Tetris ’s advantage over each baseline to link bandwidth and reconfiguration delay, for one complete inference pass of DeepSeek-MoE-16B (top row) and Mixtral-8 ×7B-Instruct (bottom row) on the SPEED-Bench throughput-1K dataset. The corresponding results for Mixtral-8 ×22B appear in Figure 8. 0.01 0.1 1Message size (MB) 0.00 0.05 0.10 
+
+> Completion time (ms)
+
+Measured 
+
+α-β model 
+
+(a) Up to 1 MB message sizes 1 10 Message size (MB) 0.0 2.5 5.0 
+
+> Completion time (ms)
+
+Measured 
+
+α-β model (b) 1 MB – 100 MB message sizes 0.01 0.1 1 10 100 Message size (MB) 0.0 2.5 5.0 
+
+> Completion time (ms)
+
+Measured 
+
+α-β model (c) Across all message sizes 
+
+Figure 13: GPU-to-GPU direct communication closely follows the α-β cost model [25]: message sizes beyond 1 MB scale near-linearly with the size of the transmission. We measure α ≈ 38 μs and 1
+
+β ≈ 86 Gbps on a 100 Gbps transceiver, making our cost estimates a good proxy for GPU-to-GPU transmission times in Tetris .19

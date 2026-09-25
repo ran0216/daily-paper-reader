@@ -1,0 +1,41 @@
+{
+  "date": "20260925",
+  "date_label": "",
+  "generated_at": "2026-09-25 22:04:37 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.26829v1",
+      "route": "202609/25/2609.26829v1-balancing-generality-and-specialization-a-survey-on-ai-datacenter-hardware-architecture",
+      "title": "Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "AI加速器架构与节点/机架/集群级互连综述",
+      "first_seen_at": "2026-09-25 22:04:37 UTC",
+      "updated_at": "2026-09-25 22:04:37 UTC"
+    },
+    {
+      "paper_id": "2609.25434v1",
+      "route": "202609/25/2609.25434v1-tetris-circuit-scheduling-for-rearrangeably-non-blocking-photonic-interconnects",
+      "title": "Tetris: Circuit Scheduling for Rearrangeably Non-Blocking Photonic Interconnects",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向光子互连的电路调度，属互连通信架构",
+      "first_seen_at": "2026-09-25 22:04:37 UTC",
+      "updated_at": "2026-09-25 22:04:37 UTC"
+    }
+  ]
+}

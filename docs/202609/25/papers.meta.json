@@ -1,0 +1,39 @@
+{
+  "label": "2026-09-25",
+  "date": "2026-09-25",
+  "generated_at": "2026-09-25T22:04:39",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "202609/25/2609.26829v1-balancing-generality-and-specialization-a-survey-on-ai-datacenter-hardware-architecture",
+      "section": "quick",
+      "title_en": "Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture",
+      "authors": "Yufeng Gu, Jiazhen Wang, Reetuparna Das",
+      "date": "2026-09-21",
+      "pdf": "https://arxiv.org/pdf/2609.26829v1",
+      "score": "7.0",
+      "evidence": "AI加速器架构与节点/机架/集群级互连综述",
+      "tldr": "AI工作负载激增推动AI数据中心投资。本综述将工业AI加速器归为四类架构，比较计算与存储组织，并分析节点、机架、集群级互连对集合通信的支持，追溯加速器代际演进。分析将算术吞吐提升与精度、数据交付、执行协调、通信、供电和冷却的变革相关联。最后探讨工作负载多样性、数据移动、基础设施约束和模型演进带来的设计挑战，揭示通用性与专用性权衡从单加速器扩展至数据中心级系统。",
+      "tags": "query:chip-design",
+      "abstract_en": "Rapidly growing AI workloads are driving large investments in AI datacenters. This survey classifies industrial AI accelerators into four architectural categories and compares their compute and memory organizations. It examines how node-, rack-, and pod-scale interconnects support collective communication, and traces architectural evolution across accelerator generations. The analysis connects advances in arithmetic throughput with changes in precision, data delivery, execution coordination, communication, power delivery, and cooling. It also discusses future design challenges arising from workload diversity, data movement, infrastructure constraints, and model evolution, showing how the trade-off between generality and specialization extends from individual accelerators to datacenter-scale systems. GitHub: github.com/Yufeng98/AI-datacenter",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202609/25/2609.25434v1-tetris-circuit-scheduling-for-rearrangeably-non-blocking-photonic-interconnects",
+      "section": "quick",
+      "title_en": "Tetris: Circuit Scheduling for Rearrangeably Non-Blocking Photonic Interconnects",
+      "authors": "Eliezer Amponsah, Deeksha P Rao, Vamsi Addanki",
+      "date": "2026-09-21",
+      "pdf": "https://arxiv.org/pdf/2609.25434v1",
+      "score": "6.0",
+      "evidence": "面向光子互连的电路调度，属互连通信架构",
+      "tldr": "可重构光子互连是下一代分布式计算的重要通信架构，但多数电路调度器假设互连为阻塞或严格无阻塞。实际可扩展设计常为可重排无阻塞（RNB），内部由2×2开关路由，新建连接可能迫使已有连接重路由并产生重配置延迟。Tetris针对RNB光子互连提出电路调度算法，优先调度瓶颈端点，选择路由匹配以尽量保持进行中的连接，并独立调度连接以避免匹配级屏障。仿真表明，Tetris将All-to-All需求完成时间最多降低至Birkhoff-von Neumann调度的6.6倍，比Sunflow降低30%，为RNB互连调度提供了高效方案。",
+      "tags": "query:noc-arch",
+      "abstract_en": "Reconfigurable photonic interconnects are emerging as a promising communication architecture for next-generation distributed computing. Yet, most circuit schedulers are designed around an idealized view of the interconnect as either blocking or strictly non-blocking. Practical scalable designs are often rearrangeably non-blocking (RNB), with connections routed through networks of internal $2\\times2$ switches. This changes the scheduling problem fundamentally: establishing a new connection can force existing connections to be rerouted, trigger state changes across multiple internal switches, and impose reconfiguration delay on otherwise unrelated traffic.   We present Tetris, a circuit scheduling algorithm for RNB photonic interconnects. Tetris builds on two observations. First, All-to-All demands are often not doubly stochastic, leaving a small number of endpoints as communication bottlenecks. Second, reconfiguration delay can be large enough to change which connection should be scheduled next. Tetris prioritizes bottleneck endpoints using their remaining communication and reconfiguration work, while selecting and routing matchings to preserve ongoing connections whenever possible. Matchings ensure progress, but connections are scheduled independently, allowing completed connections to be replaced without matching-wide barriers and incurring delay only at switches whose states change. Our simulation and hardware-emulation results show that Tetris reduces All-to-All demand completion time by up to $6.6$x over Birkhoff--von Neumann-based scheduling and by $30$% over Sunflow. More broadly, RNB interconnects raise new questions in multi-tenant scheduling and routing for partial reconfiguration, which we discuss at the end of the paper.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}
