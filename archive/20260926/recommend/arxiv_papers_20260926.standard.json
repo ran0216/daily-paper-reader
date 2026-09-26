@@ -1,0 +1,202 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-26T22:13:46.038271+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 4,
+    "quick_skim_target": 11,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2609.26829v1",
+      "source": "arxiv",
+      "title": "Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture",
+      "abstract": "Rapidly growing AI workloads are driving large investments in AI datacenters. This survey classifies industrial AI accelerators into four architectural categories and compares their compute and memory organizations. It examines how node-, rack-, and pod-scale interconnects support collective communication, and traces architectural evolution across accelerator generations. The analysis connects advances in arithmetic throughput with changes in precision, data delivery, execution coordination, communication, power delivery, and cooling. It also discusses future design challenges arising from workload diversity, data movement, infrastructure constraints, and model evolution, showing how the trade-off between generality and specialization extends from individual accelerators to datacenter-scale systems. GitHub: github.com/Yufeng98/AI-datacenter",
+      "authors": [
+        "Yufeng Gu",
+        "Jiazhen Wang",
+        "Reetuparna Das"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-21T05:07:14+00:00",
+      "link": "https://arxiv.org/pdf/2609.26829v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "AI accelerator hardware architecture and interconnect survey",
+      "llm_evidence_cn": "AI加速器硬件架构与互连综述",
+      "llm_evidence": "AI加速器硬件架构与互连综述",
+      "canonical_evidence": "AI加速器硬件架构与互连综述",
+      "llm_tldr_en": "This survey classifies industrial AI accelerators into four architectural categories, comparing compute and memory organization and node-, rack-, and pod-scale interconnects while tracing evolution and generality-specialization trade-offs.",
+      "llm_tldr_cn": "面对AI工作负载快速增长与数据中心大规模投入，现有研究缺乏对加速器架构与互连演进的系统梳理。本文综述将工业界AI加速器划分为四类架构，比较其计算与存储组织，并分析节点、机架、集群级互连如何支撑集合通信。分析还追踪各代加速器在算力、精度、数据供给、执行协调与通信上的协同演进。该工作揭示了通用性与专用性之间的权衡，并指出数据搬运与基础设施约束等未来设计挑战。",
+      "llm_tldr": "面对AI工作负载快速增长与数据中心大规模投入，现有研究缺乏对加速器架构与互连演进的系统梳理。本文综述将工业界AI加速器划分为四类架构，比较其计算与存储组织，并分析节点、机架、集群级互连如何支撑集合通信。分析还追踪各代加速器在算力、精度、数据供给、执行协调与通信上的协同演进。该工作揭示了通用性与专用性之间的权衡，并指出数据搬运与基础设施约束等未来设计挑战。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.24288v1",
+      "source": "arxiv",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "abstract": "This work presents a circuit-architecture-training co-design framework that exploits sense-amplifier (SA) regeneration to detect analog-output similarity and reduce SAR comparisons in compute-in-memory (CIM) systems. Hardware-aware training incorporates circuit-characterized SA disturbance and encoding errors caused by prefix reuse, enabling aggressive comparison skipping. The detector is characterized through 55-nm CMOS schematic simulations, with system-level evaluation on WRN-28-10, ResNet20, and DeiT using an ISAAC-based W4A4 CIM model. On WRN-28-10, the proposed approach achieves 77.3% Top-1 accuracy (W4A4 baseline: 78.4%) while reducing SAR comparisons by 48.19% across the evaluated layers. Energy-budget analysis estimates a 27.18% reduction in reference ADC energy after detector overhead, leaving 0.52 pJ per conversion to accommodate additional control and peripheral costs.",
+      "authors": [
+        "Yufei Liu",
+        "Shuang Liu",
+        "Junjie Wang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-21T08:47:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.24288v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "analog compute-in-memory AI accelerator with hardware-aware training",
+      "llm_evidence_cn": "面向AI加速器的模拟存内计算协同设计",
+      "llm_evidence": "面向AI加速器的模拟存内计算协同设计",
+      "canonical_evidence": "面向AI加速器的模拟存内计算协同设计",
+      "llm_tldr_en": "Analog compute-in-memory suffers costly SAR comparisons. This work proposes a circuit-architecture-training co-design exploiting sense-amplifier regeneration to detect analog similarity and skip redundant SAR comparisons, with hardware-aware training modeling circuit disturbance. On WRN-28-10 it keeps 77.3 percent Top-1 accuracy while cutting SAR comparisons by 48 percent.",
+      "llm_tldr_cn": "模拟存内计算中逐次逼近寄存器比较开销巨大，制约能效提升。本文提出电路-架构-训练协同设计框架，利用感测放大器再生特性检测模拟输出相似度以跳过冗余SAR比较，并在硬件感知训练中建模电路扰动与编码误差。在WRN-28-10等模型上达到77.3%的Top-1精度，同时减少约48%的SAR比较，为CIM加速器的高能效设计提供了新思路。",
+      "llm_tldr": "模拟存内计算中逐次逼近寄存器比较开销巨大，制约能效提升。本文提出电路-架构-训练协同设计框架，利用感测放大器再生特性检测模拟输出相似度以跳过冗余SAR比较，并在硬件感知训练中建模电路扰动与编码误差。在WRN-28-10等模型上达到77.3%的Top-1精度，同时减少约48%的SAR比较，为CIM加速器的高能效设计提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.27453v1",
+      "source": "arxiv",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "abstract": "Large language model (LLM) inference transfers model weights and activations for every generated token, making memory traffic and its energy cost part of the decode path. BitNet b1.58 represents its low-bit weights by ternary values and uses integer activations. However, this arithmetic does not match conventional int8 or floating-point general matrix multiplication, and existing BitNet accelerators implement it in specialized datapaths. We instead map this operation to a CPU-Grounded Linear Array (CGLA), a programmable ASIC with explicit direct memory access, local memories, and reusable compiler-visible integer lanes. The mapping adds OP_SMA4 as a reusable signed-int4 multiply-accumulate instruction rather than a BitNet-only datapath. Each ternary weight occupies one signed 4-bit lane. Each int8 activation is split into two signed-int4 fragments and reconstructed by shift-and-add. Frequency scaling of the 145 MHz FPGA measurement to an 840 MHz 28 nm CGLA achieved 0.390 ns per signed-int4 product. We showed that CGLA-offloaded BitNet C++ execution measures 2.52 tokens/s.",
+      "authors": [
+        "Takuto Ando",
+        "Yasuhiko Nakashima"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-23T07:19:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.27453v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Programmable ASIC accelerator mapping BitNet LLM inference with reusable int4 MAC instructions",
+      "llm_evidence_cn": "可编程ASIC加速器，用可复用int4乘累加指令映射BitNet大模型推理",
+      "llm_evidence": "可编程ASIC加速器，用可复用int4乘累加指令映射BitNet大模型推理",
+      "canonical_evidence": "可编程ASIC加速器，用可复用int4乘累加指令映射BitNet大模型推理",
+      "llm_tldr_en": "LLM decode is limited by weight and activation memory traffic, and BitNet ternary arithmetic mismatches standard int8 GEMM. This work maps BitNet onto a CPU-Grounded Linear Array programmable ASIC by adding a reusable signed-int4 multiply-accumulate instruction, and evaluates the inference cost.",
+      "llm_tldr_cn": "大语言模型推理每生成一个token都要搬运权重与激活，内存流量及其能耗成为解码路径瓶颈，而BitNet的三元权重与常规int8或浮点矩阵乘不匹配。本文不走专用数据通路，而是把该运算映射到可编程ASIC即CPU-Grounded Linear Array，通过新增可复用的有符号int4乘累加指令OP_SMA4实现。评估表明该映射能复用编译器可见的整数通道完成低比特推理。其意义在于以通用可编程结构支持低比特大模型推理，避免为单一模型定制数据通路。",
+      "llm_tldr": "大语言模型推理每生成一个token都要搬运权重与激活，内存流量及其能耗成为解码路径瓶颈，而BitNet的三元权重与常规int8或浮点矩阵乘不匹配。本文不走专用数据通路，而是把该运算映射到可编程ASIC即CPU-Grounded Linear Array，通过新增可复用的有符号int4乘累加指令OP_SMA4实现。评估表明该映射能复用编译器可见的整数通道完成低比特推理。其意义在于以通用可编程结构支持低比特大模型推理，避免为单一模型定制数据通路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.26644v1",
+      "source": "arxiv",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "abstract": "Operating Tensor Processing Units (TPUs) in the near-threshold computing (NTC) region significantly reduces energy consumption but introduces high delay sensitivity to process variation and data activity. Conventional designs typically rely on a conservative, fixed global clock to ensure safety, which leaves large portions of timing margin unexploited as most operations finish well before the clock edge. We propose Dynamic Slack-Aware Clocking (DSAC), a proactive framework that replaces worst-case timing with operation-specific adjustments. DSAC employs lightweight Hamming-Distance, Most-Significant-Bit, and Hybrid predictors to estimate the delay sensitivity of individual multiply-accumulate (MAC) operations and classify them into three timing tiers. These tiers are enforced locally via dummy-hold cycles under a fixed global reference clock, enabling fine-grained timing adaptation without global clock retuning or frequency scaling. A closed-loop feedback controller monitors timing violations and updates tier thresholds at runtime to maintain resilience. Experiments on quantized DNN benchmarks demonstrate that the MSB predictor maintains high inference accuracy, with an average loss of only 1% even at aggressive performance points. Furthermore, DSAC achieves up to 1.55X better energy efficiency at 2.15X frequency scaling compared to a baseline TPU, while incurring an area overhead as low as 13%.",
+      "authors": [
+        "Muhammad Usman Nadeem",
+        "Sanghamitra Roy",
+        "Koushik Chakraborty"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-22T16:16:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.26644v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "near-threshold TPU clocking for AI accelerator energy efficiency",
+      "llm_evidence_cn": "面向TPU的AI加速器近阈值时钟设计",
+      "llm_evidence": "面向TPU的AI加速器近阈值时钟设计",
+      "canonical_evidence": "面向TPU的AI加速器近阈值时钟设计",
+      "llm_tldr_en": "Near-threshold TPUs save energy but are delay-sensitive to variation and data activity, and fixed global clocks waste timing margin. This paper proposes Dynamic Slack-Aware Clocking using Hamming-Distance, MSB and Hybrid predictors to estimate per-MAC delay sensitivity and adjust timing operation-specifically, improving near-threshold TPU efficiency.",
+      "llm_tldr_cn": "近阈值计算可显著降低张量处理单元能耗，但工艺偏差与数据活动带来高延迟敏感性，传统固定全局时钟过于保守、浪费时序余量。本文提出动态松弛感知时钟DSAC框架，用汉明距离、最高有效位与混合预测器估计单个乘累加操作的延迟敏感性并分级调整时序。该方法以操作级时序替代最坏情况设计，提升了近阈值TPU的能效，为AI加速器的低功耗时钟设计提供参考。",
+      "llm_tldr": "近阈值计算可显著降低张量处理单元能耗，但工艺偏差与数据活动带来高延迟敏感性，传统固定全局时钟过于保守、浪费时序余量。本文提出动态松弛感知时钟DSAC框架，用汉明距离、最高有效位与混合预测器估计单个乘累加操作的延迟敏感性并分级调整时序。该方法以操作级时序替代最坏情况设计，提升了近阈值TPU的能效，为AI加速器的低功耗时钟设计提供参考。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.29219v1",
+      "source": "arxiv",
+      "title": "Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures",
+      "abstract": "Modern AI and HPC accelerators increasingly expose dataflow features: software-visible mechanisms for data movement and overlap, such as inter-core communication through the on-chip network and intra-core asynchronous pipelining. These features shift scheduling responsibility from hardware to the compiler, and because placement, movement, and synchronization become software-visible, they also make the performance of static schedules predictable. Yet high performance on such hardware still relies on vendor-engineered kernel libraries or profile-based auto-tuning, whose embedded expert knowledge transfers poorly across architectures and algorithms.   We present Loom, a tuning-free symbolic compiler framework for tile-based SPMD programs on spatial dataflow architectures. The central idea is to treat tile-based SPMD compilation as a hardware-explicit static optimization problem. Loom enumerates discrete spatial-mapping and communication candidates while keeping value parameters, such as tiling factors and pipeline knobs, symbolic within each candidate.   From an explicit hardware description, it derives symbolic legality constraints and latency expressions, formulates one CP-SAT problem per schedule candidate, and jointly solves inter-core dataflow, intra-core asynchronous scheduling, and block sizes at compile time.   On two Tenstorrent generations, Wormhole and Blackhole, Loom matches or exceeds the vendor-optimized TTNN library on GEMM, Flash Attention, and Flash Decode, out of the box and without per-shape profiling or profile-based platform-specific schedule tuning. These results suggest that hardware-derived symbolic compilation provides a retargetable alternative to profiling-based tuning for spatial dataflow architectures while remaining interpretable by keeping optimization decisions traceable to source-level symbols.",
+      "authors": [
+        "Heru Wang",
+        "Wei Li",
+        "Zhenyu Bai",
+        "Tulika Mitra"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL"
+      ],
+      "published": "2026-09-24T08:27:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.29219v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "tuning-free compilation for AI dataflow accelerators with on-chip network",
+      "llm_evidence_cn": "面向含片上网络AI数据流加速器的免调优编译",
+      "llm_evidence": "面向含片上网络AI数据流加速器的免调优编译",
+      "canonical_evidence": "面向含片上网络AI数据流加速器的免调优编译",
+      "llm_tldr_en": "AI and HPC accelerators expose dataflow features such as inter-core communication over the on-chip network, yet high performance still depends on vendor libraries or profiling; this paper presents Loom, a tuning-free symbolic compiler for tile programs on such architectures.",
+      "llm_tldr_cn": "现代AI与HPC加速器暴露数据流特性，如通过片上网络进行核间通信与核内异步流水，使调度从硬件转移到编译器，但高性能仍依赖厂商内核库或基于profile的自动调优，其经验难以跨架构迁移。本文提出Loom，一个面向分块SPM程序的免调优符号编译器框架，将调度表示为可解符号。该方法可在数据流架构上无需profile即生成可预测的高性能静态调度，为片上网络通信与AI加速器编译提供通用方案。",
+      "llm_tldr": "现代AI与HPC加速器暴露数据流特性，如通过片上网络进行核间通信与核内异步流水，使调度从硬件转移到编译器，但高性能仍依赖厂商内核库或基于profile的自动调优，其经验难以跨架构迁移。本文提出Loom，一个面向分块SPM程序的免调优符号编译器框架，将调度表示为可解符号。该方法可在数据流架构上无需profile即生成可预测的高性能静态调度，为片上网络通信与AI加速器编译提供通用方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

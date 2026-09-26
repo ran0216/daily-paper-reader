@@ -1,0 +1,89 @@
+{
+  "date": "20260926",
+  "date_label": "",
+  "generated_at": "2026-09-26 22:16:11 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.26829v1",
+      "route": "202609/26/2609.26829v1-balancing-generality-and-specialization-a-survey-on-ai-datacenter-hardware-architecture",
+      "title": "Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "AI加速器硬件架构与互连综述",
+      "first_seen_at": "2026-09-26 22:16:11 UTC",
+      "updated_at": "2026-09-26 22:16:11 UTC"
+    },
+    {
+      "paper_id": "2609.24288v1",
+      "route": "202609/26/2609.24288v1-circuit-architecture-training-co-design-with-regenerative-sa-similarity-sensing-for-aggressive-sar-skipping-in-analog-compute-in-memory",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向AI加速器的模拟存内计算协同设计",
+      "first_seen_at": "2026-09-26 22:16:11 UTC",
+      "updated_at": "2026-09-26 22:16:11 UTC"
+    },
+    {
+      "paper_id": "2609.26644v1",
+      "route": "202609/26/2609.26644v1-dynamic-slack-aware-clocking-for-near-threshold-tensor-processing-units-tpus",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向TPU的AI加速器近阈值时钟设计",
+      "first_seen_at": "2026-09-26 22:16:11 UTC",
+      "updated_at": "2026-09-26 22:16:11 UTC"
+    },
+    {
+      "paper_id": "2609.27453v1",
+      "route": "202609/26/2609.27453v1-implementation-and-evaluation-of-bitnet-inference-on-a-cgla-by-signed-int4-instructions",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "可编程ASIC加速器，用可复用int4乘累加指令映射BitNet大模型推理",
+      "first_seen_at": "2026-09-26 22:16:11 UTC",
+      "updated_at": "2026-09-26 22:16:11 UTC"
+    },
+    {
+      "paper_id": "2609.29219v1",
+      "route": "202609/26/2609.29219v1-schedules-are-solvable-symbols-tuning-free-compilation-of-tile-programs-on-dataflow-architectures",
+      "title": "Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向含片上网络AI数据流加速器的免调优编译",
+      "first_seen_at": "2026-09-26 22:16:11 UTC",
+      "updated_at": "2026-09-26 22:16:11 UTC"
+    }
+  ]
+}
