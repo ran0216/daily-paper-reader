@@ -1,0 +1,476 @@
+Title: PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation
+
+URL Source: https://arxiv.org/pdf/2609.34351v1
+
+Published Time: Tue, 29 Sep 2026 03:23:11 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation ∗
+
+# Yingjie Qi †
+
+Beihang University Beijing, China 
+
+# Cenlin Duan †
+
+Beihang University Beijing, China 
+
+# Yiou Wang 
+
+Beihang University Beijing, China 
+
+# Yikun Wang 
+
+Beihang University Beijing, China 
+
+# Xiaolin He 
+
+Beihang University Beijing, China 
+
+# Weisheng Zhao 
+
+Beihang University Beijing, China 
+
+# Jianlei Yang 
+
+Beihang University Beijing, China 
+
+## Abstract 
+
+Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integra-tion of computational logic directly within memory arrays. How-ever, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compila-tion framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently rep-resenting both diverse DNN workloads and digital CIM architec-tures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM ar-chitectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to 4 × improve-ment in macro utilization and 3 .2× speedup, effectively bridging the gap between modern DNN operators and CIM architectures. 
+
+## CCS Concepts 
+
+• Hardware → Static memory ; • Software and its engineering 
+
+→ Compilers ; • Computer systems organization → Neural networks .
+
+## Keywords 
+
+Compute-in-Memory, Deep Neural Networks, Polyhedral Model, Compilation, Data Reuse 
+
+ACM Reference Format: 
+
+Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, and Jianlei Yang. 2026. PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation. In IEEE/ACM International   
+
+> ∗This work was supported by the National Natural Science Foundation of China (Grant No. 62572036). The corresponding author is Jianlei Yang (jianlei@buaa.edu.cn).
+> †Both authors contributed equally to this research.
+> This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+> ICCAD ’26, San Jose, CA, USA
+> © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2873-0/2026/11 https://doi.org/10.1145/3831252.3834213
+
+Conference on Computer-Aided Design (ICCAD ’26), November 08–12, 2026, San Jose, CA, USA. ACM, New York, NY, USA, 9 pages. https://doi.org/10. 1145/3831252.3834213 
+
+## 1 Introduction 
+
+The continuous scaling of deep neural networks (DNNs) has made data movement between memory and compute the primary per-formance bottleneck in conventional architectures. To address this ‘Memory Wall’ challenge, Compute-in-Memory (CIM) architec-tures have emerged as a promising paradigm by performing matrix-vector multiplication (MVM) operations directly inside the memory array. Most early CIM designs are analog CIM [1–3], which perform multiply-accumulate (MAC) operations in the voltage or current domain to achieve high efficiency through device-level parallelism. However, their reliance on analog-to-digital converters (ADCs) and sensitivity to analog non-idealities constrain both the number of simultaneously activated rows and columns and the overall preci-sion of the computation. In contrast, digital CIM [4–7] performs the entire computation in the digital domain, integrating MAC logic directly into the memory array. This approach eliminates analog non-idealities and ADC overhead, offering more robust computa-tion and higher parallelism that make it well-suited for accelerating modern DNN workloads. However, as the field of DNNs evolves towards more efficient architectures [8–11], mapping modern DNN operators to rigid CIM array structures becomes increasingly challenging. The structural constraints of a digital CIM array require each row to be activated atomically. Every memory cell along the row performs its multi-plication in parallel, and the resulting partial products accumulate down each column. The image-to-column (im2col) method, adopted by most CIM designs, aligns with this structure by unrolling weight filters into array columns and broadcasting input activations along rows. While effective for mapping standard convolutions, this ap-proach ties array utilization directly to the number of filters that share the same input activations. When this number falls below the array column count, the unused columns still activate under the rigid CIM structure but produce no useful output, leading to severe underutilization. This presents significant limitations for efficiently supporting emerging operators on CIM, such as depthwise and grouped convolutions. Fig. 1 illustrates this mapping challenge with a minimal example, a one-dimensional convolution (Conv1D) operator containing a single filter. With only one filter to map per input, im2col can only meaningfully utilize one column while still activating the entire arXiv:2609.34351v1 [cs.AR] 28 Sep 2026 ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, and Jianlei Yang Im2col PolyCIM                    
+
+> Mapping
+> CIM Macros
+> Input Broadcast Output Accumulation 𝑘 𝑗
+> # MVM-based operators for jin [0,4):
+> for kin [0,3):
+> O[j] += I[j+k] * W[k]
+> 𝒌 𝒋
+> Output Reuse
+> 4tiles
+> ❶❷❸❹❶❷
+> 2tiles
+> Input Reuse Output Reuse
+> ❶❷❶❷
+> Axis-aligned Iteration Transformed Iteration tile tile
+> Severe under-utilization!
+> 𝒌 𝒋 #
+> Input Weight Statement instance
+> Loopnest Description Iteration Space
+> Mapping No Reuse
+> tile tile tile tile
+> Exposed non-axial reuse Axis-aligned reuse only
+
+Figure 1: Differences between im2col and PolyCIM mapping on CIM, illustrated using an example of a Conv1D operator. 
+
+array. The fundamental problem is that the CIM array only supports data reuse that runs along its rows or columns. Since mappings such as im2col apply a fixed and operator-independent transfor-mation, they can expose only those reuse patterns that already align with these two directions. However, for modern DNN opera-tors, iterations accessing the same data element form hyperplane structures that often lie along non-axial directions in the iteration space, leaving these reuse opportunities beyond the reach of such mappings. Since DNN operand accesses are affine functions of loop indices, these hyperplanes can be systematically realigned with the array axes through affine transformations automatically derived for each operator, converting hidden reuse patterns into exploitable parallelism. Despite recent efforts in improving CIM utilization, existing approaches lack the mathematical framework to systematically expose and exploit these non-axial reuse patterns. Specialized so-lutions [12, 13] rely on manual pattern identification and transfor-mation, while compilation and dataflow optimization frameworks for CIM accelerators [14–20] remain confined to axis-aligned trans-formations. To bridge this gap, we propose PolyCIM, a polyhedral-based compilation framework for digital CIM architectures. Given a DNN operator, PolyCIM automatically derives an affine trans-formation that exposes the non-axial reuse and aligns it with the array axes, which yields substantial gains in macro utilization and performance for emerging operators that im2col-like mappings cannot handle efficiently. The contributions of this paper can be summarized as follows: 
+
+• We formulate the exposure of non-axial data reuse in CIM as a polyhedral transformation problem, expanding the class of reuse patterns that CIM hardware can exploit beyond what conventional mappings can capture. 
+
+• We propose PolyCIM, a polyhedral-based compilation frame-work that automatically transforms DNN operators into high-utilization CIM mappings through data reuse exposure, computation mapping, and data movement optimization. 
+
+• Extensive evaluation demonstrates that compared to conven-tional mapping methods, PolyCIM achieves up to 4 × macro utilization improvement and 3 .2× speedup across diverse DNN workloads and CIM configurations. 
+
+## 2 Background 2.1 DNN Mappings on CIM Architectures 
+
+Mapping DNN workloads to CIM architectures requires transform-ing DNN operators into MVM operations that align with the CIM structural constraints. To support the increasing diversity of DNN operators, dedicated compilation frameworks such as OCC [14], PIMCOMP [15], and CIMFlow [16] aim to achieve better flexibility through multi-level intermediate representation (IR) transforma-tions. Meanwhile, frameworks such as TC-CIM [17] and Han et al. [18] employ polyhedral techniques for loop optimization and operator detection. Their compilation flows lower the identified computations to fixed matrix multiplication primitives, whose array mappings are also aligned with the hardware axes. Most of these frameworks rely on the im2col transformation, which reshapes the operands of a convolution so that the CIM array can execute it as a dense MVM operation. Each output filter is unrolled into a dedicated column of the array, and the input activations are reorganized into a sequence of sliding windows, where each window holds the input values that a filter consumes at one output position. A single cycle of the array then broadcasts one window across all rows and produces one output per active column, yielding every output channel for that position in parallel. However, this fixed layout ties array utilization directly to the number of filters that share the same input window, leaving many columns idle whenever that number is small. A few specialized methods have attempted to improve CIM uti-lization by targeting specific non-axial reuse patterns. The Shifted and Duplicated Kernel (SDK) family of approaches [12, 13] exploits the sliding-window reuse of 2D convolutions by loading several overlapping input windows into the rows of the array and placing shifted copies of the same filter in neighboring columns, so that each column computes a different output position while drawing from a shared pool of input activations. This technique noticeably im-proves utilization for standard 2D convolutions. However, its trans-formation space is manually designed around the sliding-window pattern of a single operator class, and the shift-and-duplicate lay-out does not generalize to operators whose reuse geometry differs. Moreover, SDK was developed for analog RRAM-based CIM and relies on spare array capacity to place shifted copies of a kernel. The limited array dimensions of digital SRAM CIM constrain such du-plication, making the resulting mapping equivalent to im2col when the array cannot accommodate additional shifted kernel copies. Despite these efforts, no existing framework offers a principled and generalizable way to expose the non-axial reuse patterns found in modern DNN operators. This gap motivates the polyhedral-based PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+approach of PolyCIM, whose underlying model we introduce in the next subsection. 
+
+## 2.2 Polyhedral Model 
+
+The polyhedral model is a mathematical framework for analyzing and transforming loop-nested programs with affine loop bounds and array accesses [21]. By representing a loop nest as an inte-ger polyhedron, it turns dependence analysis and loop transfor-mations into exact algebraic operations, with the legality of each transformation provable directly from the polyhedral form. In this framework, an iteration vector i𝑆 = [𝑖 1, . . . , 𝑖 𝑛 ] represents one ex-ecution instance of a statement 𝑆 , composed of all enclosing loop indices. The iteration domain D = {i𝑆 | 𝑞 (i𝑆 ) ≤ 0} collects all valid iteration vectors as the integer points inside a polyhedron, where 𝑞 is an affine function encoding loop bounds. Memory ac-cesses from within the loop nest are described by access relations 
+
+A𝑀 = {i𝑆 → 𝑀 [j] | 𝑞 (i𝑆 , j) = 0}, which map each iteration to the element it touches in operand array 𝑀 . When the array indices are affine functions of the loop variables, each relation A𝑀 is fully specified by an access matrix A𝑀 and a constant offset c𝑀 via the linear formula 
+
+j = A𝑀 i𝑆 + c𝑀 , (1) where A𝑀 has one row per array dimension expressing its linear dependence on the loop indices. Two iterations i1 and i2 then access the same element of 𝑀 exactly when A𝑀 (i1 − i2) = 0, so the set of iterations sharing any fixed element forms an affine subspace of the iteration domain whose direction vectors lie in the null space of A𝑀 .These affine subspaces are the reuse hyperplanes that polyhedral compilation can expose. Program transformations in the polyhedral model are expressed as schedules S = {i𝑆 → t | 𝑞 (i𝑆 , t) = 0}, which assign an execution timestamp t to each iteration. The iteration domain and access rela-tions fix what each statement reads and writes, while the schedule is free to reshape the execution order into any form that respects the data dependences. This separation allows the compiler to search over a rich space of schedules while reusing a single dependence analysis. A schedule can equivalently be written as an affine map 
+
+t = Ti 𝑆 + c, (2) where the schedule matrix T has one row per time dimension spec-ifying how iterations are ordered along it, and c is a constant offset. Classical loop transformations then correspond to particular choices of T, including a permutation matrix for interchange, a unimodular matrix for skewing or reversal, and a division into outer and inner bands for tiling. Composition under matrix multiplication lets these primitives be combined into richer reshapings of the iteration space, provided the resulting schedule respects the data dependences cap-tured in the polyhedral representation. For CIM architectures, these transformation capabilities enable the alignment of complex data reuse patterns with the rigid structure of memory arrays. A sin-gle affine schedule can rotate the iteration basis so that the reuse hyperplanes of an operand become coordinate directions, turning reuse that conventional axis-aligned approaches cannot see into parallelism that the hardware can directly exploit. for         
+
+> for for
+> Mac ro Mac ro Mac ro Mac ro Mac ro Mac ro Mac ro Mac ro Macro Macro Macro Macro I_Reg O_Reg Local Memory Global Memory CIM Units
+> Hardware Configuration Workload Description
+> ❶Data Reuse Exposure
+> ❷Computation Mapping
+> ❸Data Movement Opt.
+> Polyhedral Abstraction
+
+൏ 𝒟 , 𝒜ଵ , 𝒜ଶ , … ൐  
+
+> PolyCIM Optimization Pipeline
+> Non-exploitable Reuse Aligned Reuse
+> Regs Macro
+> Optimized Mapping & Schedule
+
+Figure 2: Overview of the PolyCIM framework. 
+
+## 3 PolyCIM Framework 3.1 Framework Overview 
+
+PolyCIM is a compilation framework that transforms DNN oper-ators into optimized mappings for CIM accelerators. It leverages the insight that data reuse in DNNs naturally forms hyperplane structures in the iteration space, often along oblique directions that conventional axis-aligned methods cannot exploit. As illus-trated in Fig. 2, the framework takes an operator description and a hardware configuration as input and constructs a common polyhe-dral representation, which is then refined through three successive stages before being lowered to executable code: data reuse exposure, computation mapping, and data movement optimization. 
+
+Data reuse exposure starts from the raw iteration space and its access relations and identifies the directions along which operands are reused. Because these directions often lie oblique to the coordi-nate axes, PolyCIM first applies pre-tiling to decompose iteration axes into finer sub-coordinates, then performs affine scheduling to rotate the iteration basis so that reuse aligns with the new axes. The result is a scheduled iteration space in which each axis car-ries the reuse of a specific operand. Given this reuse-aligned space, 
+
+computation mapping places iterations onto the macro grid in two phases. A virtual mapping first coalesces scattered reuse into unified row, column, and macro dimensions as if the macro were unbounded, after which a physical mapping fits these dimensions within the actual macro bounds through a post-tiling schedule. The inner levels of this loop nest map directly onto macro positions, while the outer levels drive inter-macro parallelism. Finally, data movement optimization resolves how operands flow through the memory hierarchy. PolyCIM selects a buffering level for each operand and reorders the loop nest so that accesses remain contigu-ous and redundant transfers between on-chip memory and macro-local registers are minimized. The resulting schedule is handed to code generation, which emits the executable CIM program. ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, and Jianlei Yang 𝑘 𝑗 𝑖                        
+
+> 𝑘 𝑖
+> 𝑗௜ 𝑗௢ ൌ 0𝑘 𝑖
+> 𝑗௜ 𝑗௢ ൌ 1
+> 𝑝 𝑗௜ 𝑗௢ ൌ 0
+> 𝑖
+> 𝑗௜ 𝑗௢ ൌ 1𝑝
+> 𝑖
+> 𝑖 ,𝑗 ,𝑘 →𝑖 ,𝑗௢ ,𝑗௜ ,𝑘
+> 𝑗௢ ൌ 𝑗 /4 𝑎𝑛𝑑 𝑗௜ ൌ 𝑗 %4 ሽ𝑖 ,𝑗௢ ,𝑗௜ ,𝑘 →𝑖 ,𝑗௢ ,𝑗௜ , p
+> 𝑝 ൌ 𝑗௜ ൅ 𝑘ሽ
+
+Pre-tiling schedule Affine schedule             
+
+> (a) (b) (c)
+> for iin [0,2):
+> for jin [0,8):
+> for kin [0,3): O[i,j] += I[j+k]*W[i,k]
+
+Figure 3: Example of data reuse exposure with a Conv1D operator. Same-colored iteration points access the same input data. 
+
+## 3.2 PolyCIM Abstractions 
+
+PolyCIM employs unified polyhedral abstractions to model both DNN operators and CIM architectures within the same mathemati-cal framework. PolyCIM primarily targets MVM-based operators, such as convolution and fully connected layers, that dominate DNN computation. It represents each operator as a quadruple ⟨D , A𝐼 ,
+
+A𝑊 , A𝑂 ⟩, where D represents the iteration space and A𝐼 /𝑊 /𝑂 
+
+capture memory access relations for inputs, weights, and outputs respectively. This abstraction can represent diverse DNN operators including standard, depthwise (DWConv), grouped (GConv), and dilated (DILConv) convolutions. To illustrate these abstractions, we use the one-dimensional convolution (Conv1D) depicted in Fig. 3 as a running example throughout the methodology: an operator with two output channels, eight output positions per channel, and a kernel of width three. Its iteration space and access relations are given by 
+
+D = {( 𝑖, 𝑗, 𝑘 ) | 0 ≤ 𝑖 < 2 ∧ 0 ≤ 𝑗 < 8 ∧ 0 ≤ 𝑘 < 3},
+
+A𝐼 = {( 𝑖, 𝑗, 𝑘 ) → 𝐼 [ 𝑗 + 𝑘 ]} ,
+
+A𝑊 = {( 𝑖, 𝑗, 𝑘 ) → 𝑊 [𝑖, 𝑘 ]} ,
+
+A𝑂 = {( 𝑖, 𝑗, 𝑘 ) → 𝑂 [𝑖, 𝑗 ]} .
+
+(3) For hardware abstractions, PolyCIM models a representative CIM architecture consisting of CIM units, auxiliary compute units, and supporting memory hierarchies. As shown in Fig. 2, each CIM unit is composed of multiple macros with flexible inter-macro par-allelization, unlike the rigid data reuse constraints within each macro. Similar to the operator abstraction, a CIM unit is modeled as 
+
+⟨D CIM , Ain_reg , Amem , Aout_reg ⟩, where DCIM indexes the computa-tion space (𝑖 𝑚 , 𝑖 𝑟 , 𝑖 𝑐 ) across macros, rows, and columns. These three access relations encode the structural constraints that give each macro its rigidity. Input broadcasting appears in Ain_reg , which indexes only (𝑖 𝑚 , 𝑖 𝑟 ) so that every column in a row reads the same register. Output accumulation appears symmetrically in Aout_reg ,which indexes only (𝑖 𝑚 , 𝑖 𝑐 ) so that every row in a column writes to the same register. The local memory relation Amem , however, retains the full (𝑖 𝑚 , 𝑖 𝑟 , 𝑖 𝑐 ) triple and maps each position to its own memory location. This unified abstraction across software and hard-ware enables systematic transformation between operator iteration spaces and CIM computation spaces while preserving data depen-dencies and hardware constraints. 
+
+## 3.3 Data Reuse Exposure 
+
+For modern DNN operators, the fundamental challenge in CIM mapping is that their data reuse patterns often lie along oblique Affine schedule Computation Mapping         
+
+> (a)
+> 𝑗 𝑝
+> 𝑖
+> Original Iteration space (b)
+> 𝑞௜ 𝑝௜
+> 𝑝௢ ൌ  0 𝑝௢ ൌ  1 𝑝௢ ൌ  2 𝑝௢ ൌ  3
+> 𝑝௜ ൌ 0𝑝௜ ൌ 1𝑝௜ ൌ 2𝑝௜ ൌ 3
+> Invalid Computation Inefficient Computation
+
+Figure 4: Example of the iteration space of a 1D convolution scheduled without pre-tiling. 
+
+directions in the iteration space, which are invisible to conventional axis-aligned approaches. PolyCIM exposes these hidden opportu-nities through a two-phase transformation strategy: pre-tiling to control iteration space expansion, followed by affine scheduling to realign reuse patterns with CIM array structure. Fig. 3 demonstrates this process on our Conv1D running example. We formulate the optimization objective for a given operator as maximizing average macro utilization: util = MACs 
+
+𝑃 MAC × cycles , (4) where MACs denotes total multiply-accumulate operations of the operator, 𝑃 MAC = 𝑅 × 𝐶 represents concurrent MAC operations per macro (with 𝑅 rows and 𝐶 columns that can be activated simul-taneously), and cycles indicates required execution cycles. Maxi-mizing utilization equivalently minimizes execution cycles for a given operator and hardware configuration. We now detail each transformation phase below. 
+
+3.3.1 Pre-Tiling Schedule. While affine transformations effectively expose data reuse, they may also significantly expand the iteration space bounding box, introducing invalid iteration points that re-sult in wasted CIM computation cycles. Pre-tiling addresses this by strategically decomposing iteration dimensions before transfor-mation, containing the expansion within manageable bounds. As shown in Fig. 4, directly applying affine scheduling to the Conv1D example without pre-tiling expands the iteration space from its original 2 × 8 × 3 to 2 × 8 × 10, resulting in numerous underutilized or invalid CIM operations after computation mapping. We now formalize the pre-tiling schedule and describe the heuristics that prune its candidate space. PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+Schedule Construction . For each iteration axis 𝑘 with length 
+
+𝑠 𝑘 , pre-tiling decomposes 𝑖 𝑘 into a sequence of sub-coordinates whose sizes form a factorization of 𝑠 𝑘 . For 𝑠 𝑘 > 1, the set of valid factorizations for axis 𝑘 is 
+
+F𝑘 = {( 𝑝 1, . . . , 𝑝 ℓ ) | 𝑝 1, . . . , 𝑝 ℓ ∈ Z>1, 𝑝 1 · · · 𝑝 ℓ = 𝑠 𝑘 }, (5) and for a unit-length axis, we define F𝑘 = {( 1)} . The full space of pre-tiling candidates across all 𝑛 axes is the Cartesian product 
+
+F = F1 × · · · × F 𝑛 . (6) Given a factorization (𝑝 1, . . . , 𝑝 ℓ ) ∈ F 𝑘 , the pre-tiling schedule replaces 𝑖 𝑘 with ℓ sub-coordinates (𝑖 (1) 
+
+> 𝑘
+
+, . . . , 𝑖 (ℓ ) 
+
+> 𝑘
+
+) related by the mixed-radix decomposition 
+
+𝑖 𝑘 =
+
+> ℓ
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑖 ( 𝑗 )
+
+> 𝑘 ℓ
+
+Ö 
+
+> 𝑗 ′=𝑗 +1
+
+𝑝 𝑗 ′ , 0 ≤ 𝑖 ( 𝑗 ) 
+
+> 𝑘
+
+< 𝑝 𝑗 . (7) Applying this decomposition across all axes yields the pre-tiling schedule SPre , which PolyCIM applies to the operator before affine scheduling. 
+
+Pruning Heuristics . The candidate space F grows combina-torially with the number of axes and their factorization counts, so the pre-tiling search applies two complementary pruning heuris-tics: axis exclusion and symmetry-based deduplication. Axes that do not participate in affine transformations are excluded from the search, since their tile sizes cannot affect the subsequent schedul-ing outcome. The symmetry heuristic targets convolutions with symmetric spatial dimensions, such as 2D or 3D convolutions with equal heights and widths. For such operators, tile-size assignments that differ only by permuting symmetric axes yield identical down-stream utilization, so only one representative from each equivalence class is retained. With these restrictions in place, PolyCIM evaluates the remaining candidates and selects one that minimizes iteration space expansion during affine scheduling while preserving reuse opportunities. 
+
+3.3.2 Affine Schedule. Following pre-tiling, PolyCIM applies affine transformations to expose non-axial data reuse patterns. While affine transformations can theoretically expose any linear reuse pattern, finding those that maximize CIM utilization requires explor-ing an enormous search space. PolyCIM addresses this challenge by reformulating transformation discovery as a basis search problem. Specifically, we identify basis vectors parallel to data reuse hyper-planes, then transform the iteration space based on these bases such that reuse occurs along the new coordinate axes. 
+
+Reuse Hyperplanes . Iterations that access the same data ele-ment naturally form hyperplane structures within the iteration space. Consider an array 𝑀 with access relation A𝑀 = {i →
+
+𝑀 [Ai + b]} , where A ∈ Z𝑚 ×𝑛 maps 𝑛 -dimensional iteration vectors to 𝑚 -dimensional array indices. The set of iterations accessing the same element forms a hyperplane: 
+
+H = {i ∈ D | Ai = c}, (8) where c is a constant vector and A defines the hyperplane ori-entation. These hyperplanes represent reuse opportunities, since iterations on the same hyperplane share data. Our goal is to find transformations that align these hyperplanes with CIM macro di-mensions. 
+
+Basis Vector Constraints . Since standard basis vectors often cut across reuse hyperplanes, which prevents efficient data reuse, we construct new bases that align with these hyperplanes while satisfying the following two constraints: 
+
+❶ Direction Constraint . The reuse direction constraint refers to the requirement that basis vectors must lie parallel to reuse hyper-planes to ensure iterations along these directions access the same data. Specifically, for an 𝑛 -dimensional iteration space D and an 
+
+𝑚 -dimensional array 𝑀 , iteration vectors in the direction of basis 
+
+b = [𝑏 1, . . . , 𝑏 𝑛 ]𝑇 can reuse the same element of 𝑀 only if Ab = 0.
+
+❷ Degree Constraint . When the reuse hyperplane spans multiple dimensions, multiple bases may satisfy the direction constraint, and we need an additional criterion to select the one exposing the most reuse. Given such a basis b, the direction constraint guarantees that stepping by b from any iteration lands on another iteration accessing the same element. The set of iterations reachable this way from a starting point i is the reuse set 
+
+R ( i, b) = {i + 𝑘 b | 𝑘 ∈ Z, i + 𝑘 b ∈ D} . (9) A basis is only useful if it exposes substantive reuse, so we require at least one starting point i ∈ D from which |R ( i, b)| ≥ 𝑟 + 1, meaning that at least 𝑟 consecutive reuse steps along b stay within the domain. For a rectangular D with axis sizes m = [𝑚 1, . . . , 𝑚 𝑛 ],this condition is equivalent to 
+
+−m < 𝑟 · b < m, (10) since each component 𝑏 𝑖 must leave enough room along axis 𝑖 
+
+for 𝑟 consecutive reuse steps. We adopt this as the reuse degree constraint. 
+
+Basis Construction . We aim to select a set of basis vectors that maximizes reuse while satisfying both constraints. We set 𝑟 = 1as the minimum degree threshold, guaranteeing at least one reuse step between two distinct iterations along each basis vector. For each operand array 𝑀 ∈ { 𝐼,𝑊 , 𝑂 }, we construct a candidate basis set 
+
+B𝑀 = {b | A𝑀 b = 0 ∧ − m < b < m}. (11) We employ the Integer Set Library (ISL) to efficiently compute these sets. From B𝐼 ∪ B 𝑊 ∪ B 𝑂 , we must select 𝑛 linearly independent vectors that span the iteration space, drawing at least one from B𝐼 
+
+and at least one from B𝑂 so that both input and output reuse are exposed. Since multiple valid combinations may exist, we evaluate each through the subsequent optimization stages and retain the combination with the highest average macro utilization. 
+
+Coordinate Transformation . Having selected 𝑛 linearly in-dependent basis vectors, we construct the transformation matrix 
+
+B = [b1, . . . , b𝑛 ] and compute its inverse P = B−1 to obtain the coordinate transformation. The nonsingularity of B implies that 
+
+P is injective over D, so the resulting schedule changes only the order in which products are accumulated for each output element. Since P may contain fractional entries, we scale each row by the least common multiple (LCM) of its denominators to ensure integer coefficients, preserving transformation semantics while enabling efficient implementation. Finally, the resulting affine scheduling can be represented as 
+
+SAff = {j → Pj | j ∈ Z𝑛 , P ∈ Z𝑛 ×𝑛 }, (12) ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, and Jianlei Yang Input Weight Statement instance                                      
+
+> 𝑖 ,𝑗 ௢,𝑗 ௜,𝑝 →𝑗 ௢,𝑝 ,𝑞
+> 𝑞 ൌ 4∗ 𝑖 ൅ 𝑗 ௜ሽ
+> 𝑝 ௜
+> 𝑞 ௜
+> 𝑗 ௢
+> 𝑝 ௜
+> 𝑞 ௜
+> 𝑗 ௢
+> 𝑝 ௜
+> 𝑞 ௜
+> 𝑗 ௢
+> 𝑝 ௜
+> 𝑞 ௜
+> 𝑗 ௢
+> 𝑝 ௢ ൌ 1𝑝 ௢ ൌ 0
+> 𝑞 ௢ൌ0𝑞 ௢ൌ1
+> 𝑗 ௢,𝑝 ,𝑞 →𝑗 ௢,𝑝 ௢,𝑞 ௢,𝑝 ௜,𝑞 ௜
+> 𝑞 ௢ൌ𝑞 /4 , 𝑞 ௜ൌ 𝑞 %4,
+> 𝑝 ௢ൌ𝑝 /3 , 𝑝 ௜ൌ 𝑝 %3 ሽ𝑞 ௜→ 𝑐 ௜
+> 𝑝 ௜→ 𝑟 ௜
+> Bind Post-tiling schedule Coalescing schedule
+> 𝑝 𝑞
+> 𝑗 ௢
+> 𝑝 𝑗 ௜
+> 𝑗 ௢ൌ0
+> 𝑖
+> 𝑗 ௜
+> 𝑗 ௢ൌ1
+> 𝑝
+> 𝑖
+> (a)
+> macro 𝑇 ଴𝑇 ଵmacro 𝑇 ଶ𝑇 ଷ
+> macro 𝑇 ସ𝑇 ହmacro 𝑇 ଺𝑇 ଻
+> (b) (d) (c)
+
+Figure 5: Example of computation mapping. 
+
+which realigns the iteration space such that data reuse occurs along the new coordinate axes, making reuse patterns directly exploitable by CIM macros. 
+
+## 3.4 Computation Mapping 
+
+After exposing data reuse along iteration space bases, PolyCIM must map the transformed computation onto the CIM architecture while respecting both the rigid constraints within each macro and the flexible parallelization opportunities across multiple macros. Following affine scheduling, each iteration axis is labeled by the operand whose reuse it carries. An input-reuse axis has its basis in B𝐼 , so that iterations along it access the same input element. 
+
+Output-reuse and weight-reuse axes are defined analogously via B𝑂 
+
+and B𝑊 , while an axis whose basis lies in none of these sets is a 
+
+non-reuse axis that iterates over distinct elements of every operand. PolyCIM employs a hierarchical mapping strategy that first coa-lesces scattered reuse dimensions into unified axes matching macro structure, tiles them to fit physical macro dimensions, and finally distributes the remaining iterations across multiple macros to fur-ther exploit available parallelism. Fig. 5 illustrates the macro-level mapping process, showing how a transformed Conv1D operator maps to CIM macros through coalescing, tiling, and binding. 
+
+3.4.1 CIM Macro Mapping. While affine transformation exposes data reuse along basis directions, the resulting iteration space rarely aligns with CIM macro constraints. Specifically, data reuse may span multiple dimensions, whereas macros require exactly two: one for row-wise input broadcasting and one for column-wise output accumulation. PolyCIM bridges this gap in two stages: a virtual mapping stage that uses a coalescing schedule to merge scattered reuse into unified dimensions as if the macro were unbounded, followed by a physical mapping stage that uses a post-tiling schedule to fit these dimensions within the physical macro bounds. 
+
+Coalescing Schedule . Multiple axes reusing the same data must be merged into single dimensions matching macro structure. For input-reuse axes {𝑖 in 1 , ..., 𝑖 in  
+
+> 𝑝
+
+} with sizes {𝑠 in 1 , ..., 𝑠 in  
+
+> 𝑝
+
+} and output-reuse axes {𝑖 out 1 , ..., 𝑖 out  
+
+> 𝑞
+
+} with sizes {𝑠 out 1 , ..., 𝑠 out  
+
+> 𝑞
+
+}, the coalescing schedule creates unified dimensions 
+
+SCoal = {( 𝑖 1, ..., 𝑖 𝑛 ) → ( 𝑡 1, ..., 𝑡 𝑘 , 𝑟, 𝑐 )} , (13) where {𝑡 1, ..., 𝑡 𝑘 } are the non-reuse axes and the coalesced coordi-nates are given by the mixed-radix linearization 
+
+𝑟 =
+
+> 𝑞
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑖 out 
+
+> 𝑗 𝑞
+
+Ö 
+
+> 𝑗 ′=𝑗 +1
+
+𝑠 out   
+
+> 𝑗 ′
+
+, 𝑐 =
+
+> 𝑝
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑖 in 
+
+> 𝑗 𝑝
+
+Ö 
+
+> 𝑗 ′=𝑗 +1
+
+𝑠 in   
+
+> 𝑗 ′
+
+. (14) For the example in Fig. 5(b), axes 𝑖 and 𝑗 𝑖 are coalesced into 𝑞 for input reuse, while 𝑝 requires no coalescing as it already forms a single output-reuse axis. 
+
+Post-Tiling Schedule . Since physical macros have finite dimen-sions 𝑅 × 𝐶 , iterations exceeding these bounds must be tiled by the post-tiling schedule: 
+
+SP_tile = {( 𝑡 1, ..., 𝑡 𝑘 , 𝑟, 𝑐 ) → ( 𝑡 1, ..., 𝑡 𝑘 , 𝑟 𝑜 , 𝑐 𝑜 , 𝑟 𝑖 , 𝑐 𝑖 )} , (15) where (𝑟 𝑖 , 𝑐 𝑖 ) = (𝑟 mod 𝑅, 𝑐 mod 𝐶 ) map directly to macro rows and columns, while (𝑟 𝑜 , 𝑐 𝑜 ) = (⌊ 𝑟 /𝑅 ⌋, ⌊𝑐 /𝐶 ⌋) form outer loops over macro-sized computation blocks. Fig. 5(c)-(d) shows the final map-ping for our Conv1D example, with 𝑝 𝑖 and 𝑞 𝑖 bound to 𝑟 𝑖 and 𝑐 𝑖 ,respectively. With data reuse now aligned to macro structure, re-maining iterations can be distributed temporally or across multiple macros. 
+
+3.4.2 Multi-macro Mapping. While single macro mapping max-imizes local utilization, modern CIM architectures often contain multiple macros to accommodate more complex workloads. How-ever, the selection of parallelization strategies is not always straight-forward, as different choices may lead to vastly different data move-ment costs. PolyCIM employs a priority-based distribution strategy that maps outer loops across macros based on their reuse patterns. It first maps output-reuse axes across macros, since partial sums typically have larger bit-widths than inputs, making their move-ment and storage particularly costly. The strategy then maps the 
+
+input-reuse axes, allowing multiple macros to share the same input broadcasts to reduce data movement across the memory hierar-chy. Non-reuse axes are mapped subsequently to provide additional parallelism without data dependencies. Finally, weight-reuse axes enable weight replication and are considered only when sufficient storage capacity is available across macros. The mapping iteratively assigns axes to the macro dimension in the above order, splitting axes when they exceed the available macro count. 
+
+## 3.5 Data Movement Optimization 
+
+The polyhedral transformations that expose reuse opportunities fundamentally alter memory access patterns, creating a mismatch between original tensor layouts and the transformed iteration space. PolyCIM addresses this through two complementary optimizations: layout transformation that ensures contiguous memory access, and data movement scheduling that minimizes transfers across the memory hierarchy. 
+
+3.5.1 Iteration-Space-Aligned Layout. After transformation, the original data layout (e.g., channel-first or channel-last ordering for convolutions) no longer provides contiguous access, resulting in scattered memory requests that underutilize bandwidth. We in-troduce an iteration-space-aligned layout that reorganizes data to PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+match the transformed access order. For an array 𝑇 with a trans-formed access relation A𝑇 , we construct 𝑇 align such that consecutive iterations access consecutive memory locations: 
+
+𝑇 align [𝑖 𝑝 1 , . . . , 𝑖 𝑝 𝑘 ] = 𝑇 [A 𝑇 (𝑖 1, . . . , 𝑖 𝑛 )] , (16) where {𝑖 𝑝 1 , . . . , 𝑖 𝑝 𝑘 } form a basis for the accessed subspace of 𝑇 .This layout transformation is performed offline for all operands before computation begins. PolyCIM automatically generates the transformation code based on the specific polyhedral schedules applied, ensuring data is properly reorganized without manual intervention. 
+
+3.5.2 Data Movement Scheduling. Beyond layout transformation, PolyCIM optimizes when and where data moves through the mem-ory hierarchy by jointly determining loop ordering and buffering points. Specifically, the optimization decides which permutation of loops minimizes transfers and at which loop level each operand should be fetched into buffers. We formulate this as an integer optimization problem with two sets of decision variables. A permutation matrix X ∈ { 0, 1}𝑚 ×𝑚 
+
+represents loop reordering, where 𝑋 𝑖,𝑗 = 1 means that original axis 𝑗 moves to new position 𝑖 . For each operand, a vector L ∈{0, 1}𝑚 marks the buffering point, with 𝐿 𝑖 = 1 indicating loop levels that iterate against cached data and 𝐿 𝑖 = 0 indicating outer levels traversed before the data is cached. The formulation leverages the insight that both buffer usage and transfer counts factor as products over the loop nest: the buffer size is the product of operand sizes along axes inside the buffering boundary, while the transfer count is the product of loop bounds along axes outside it. We apply log-linearization to both quantities, which turns the multiplicative buffer-size and transfer-count expressions into sums. For instance, data movement volume for a single operand, which equals buffer size times transfer count, can be formulated as log 𝑉 = log (𝐵 · 𝑇 ) = log 𝐵 + log 𝑇 
+
+=∑︁ 
+
+> 𝑖,𝑗
+
+𝑋 𝑖,𝑗 · ( 𝐿 𝑖 log 𝐴 𝑗 + ( 1 − 𝐿 𝑖 ) log 𝑆 𝑗 ), (17) where 𝐴 𝑗 represents the memory footprint and 𝑆 𝑗 the loop bound for axis 𝑗 . The solver minimizes the sum of log-transformed data-movement volumes across all operands and memory levels while respecting capacity constraints. Despite its non-linear appearance, the formulation has only binary variables and a typically small problem size, allowing it to be solved efficiently using modern mixed-integer optimization solvers. 
+
+## 4 Evaluation 4.1 Experimental Setup 
+
+We implement PolyCIM in Python using ISL for polyhedral op-timization and the Gurobi solver for mixed-integer optimization. While PolyCIM is architecture-agnostic and can target various CIM backends, we validate our approach by generating domain-specific language IRs for the CIMFlow [16] framework, a CIM compilation and simulation infrastructure with complete instruction set archi-tecture support. We conduct experiments on an 8-macro CIM ar-chitecture with two representative SRAM-based digital CIM macro designs, with the concurrently activated rows and columns ( 𝑃 MAC )being 32 × 64 [5] and 64 × 64 [4]. We evaluate PolyCIM against 
+
+Table 1: Operators used in performance evaluation. Name Type Size From                                                                   
+
+> C1 DWConv
+> 𝑐 =32 , 𝑘 ℎ=𝑘 𝑤 =3EfficientNet-B0 [8] C2 𝑐 =240 , 𝑘 ℎ=𝑘 𝑤 =5EfficientNet-B0 C3 𝑐 =192 , 𝑘 ℎ=𝑘 𝑤 =7ConvNeXt-Tiny [22] C4 𝑐 =1024 , 𝑘 ℎ=𝑘 𝑤 =13 RepLKNet-31B [23] C5 𝑐 =32 , 𝑘 ℎ=1, 𝑘 𝑤 =11 InceptionNeXt [24] C6 GConv 𝑐 =128 , 𝑘 =3, 𝑔 =32 ResNeXt-50 [9] C7 DILConv 𝑐 =128 , 𝑘 =3, 𝑑 =2ESPNetv2 [10] C8 3DConv 𝑘 ℎ=𝑘 𝑤 =𝑘 𝑧 =3MobileStereoNet [11]
+
+the im2col-based mapping in CIMFlow, as specialized methods like SDK do not support our benchmark operators. As detailed in Tab. 1, our experiments are conducted with operators from various DNNs, which cover different types and sizes to ensure comprehensive evaluation. To evaluate the end-to-end performance benefits, we also perform experiments on three complete DNN models with modern operators, including ConvNeXt-Tiny (CT), EfficientNet-B0 (EF), and MobileNetV2 (MN). We measure both macro utilization and execution speedup through cycle-accurate simulation. 
+
+## 4.2 Performance Results 
+
+4.2.1 Operator-Level Evaluation. Fig. 6(a) shows the speedup and macro utilization achieved by PolyCIM compared to the im2col-based mapping approach, where PolyCIM consistently outperforms the baseline across all the evaluated convolution operators. PolyCIM achieves speedups ranging from 1 .9× to 8 .2×, with an average speedup of 4 .9×. The results also show that the rigid im2col map-ping achieves particularly poor utilization (often below 10%) for operators with non-standard reuse patterns, while PolyCIM obtains up to 75% utilization through affine transformations to improve data reuse. On the 32 × 64 configuration, PolyCIM utilization scales cleanly with kernel size across the depthwise operators, rising from 28% at 𝑘 =3 (C1) to 75% at 𝑘 =13 (C4), as larger kernels offer more non-axial reuse for the affine transformation to expose. The same consistency carries over to the 64 × 64 configuration, where PolyCIM still improves on the im2col baseline for every operator and delivers the single highest speedup of 8 .2× on C2. The ab-solute utilization ceilings fall slightly on this larger macro, most visibly for C4 which drops from 75% to 66%, likely because the additional rows are harder to fill productively once the operator dimensions no longer evenly divide them. Grouped convolution (C6) and 3D convolution (C8) see smaller relative gains of roughly 2×. For these operators, the broadcast alignment used by im2col already fits the reuse pattern reasonably well, so there is less idle capacity for PolyCIM to reclaim. This demonstrates that expos-ing non-axial reuse opportunities through affine scheduling can effectively address the CIM utilization bottleneck. 
+
+4.2.2 Model-Level Evaluation. Fig. 6(b) illustrates the end-to-end speedup and average macro utilization improvement across three modern DNN models. PolyCIM achieves an average speedup of 2.1× across all three models, with the primary acceleration stem-ming from optimized DWConv operations. ConvNeXt-Tiny exhibits ICCAD ’26, November 08–12, 2026, San Jose, CA, USA Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, and Jianlei Yang Utilization (im2col) Speedup Utilization (PolyCIM) (a) Operator Level C1 C2 C3 C4 C5 C6 C7 C8 100 75 50 25 0Macro Utilization / %  𝑷𝐌𝐀𝐂 : 32 ×64 86420Speedup C1 C2 C3 C4 C5 C6 C7 C8  
+
+> 𝑷𝐌𝐀𝐂 :64 ×64
+> 100 75 50 25 0Macro Utilization / %  10 7.5 52.5 0Speedup
+
+(b) Model Level CT EF MN 43210Speedup     
+
+> 𝑷𝐌𝐀𝐂 :32 ×64
+> 100 75 50 25 0Macro Utilization / % CT EF MN
+> 𝑷𝐌𝐀𝐂 :64 ×64
+> 100 75 50 25 0Macro Utilization / %  43210Speedup
+
+Figure 6: Performance comparison across different operators and models. Latency Utilization 0 2 4 6 8 10 12 0 5 10 15 20 25 30 
+
+Macro Utilization / % Normalized Latency 
+
+> w/o Data Mov. Opt. w/o Coalescing w/o Pretiling w/o Affine Full PolyCIM ①②③④⑤
+
+Figure 7: Performance impact of each optimization technique on the C1 operator. 
+
+the highest speedup at 3 .2×, due to its larger proportion of DW-Conv computations. The utilization improvements further highlight the effectiveness of our approach. On the 32 × 64 configuration, compared to the 20% ∼ 40% macro utilization of im2col mapping, PolyCIM reaches 84% ∼ 89% utilization across all DNN models. These model-level utilization figures exceed the per-operator num-bers above because full networks still contain many standard con-volution layers that im2col maps efficiently, and averaging those well-supported layers in with the emerging operators raises the overall utilization. These results demonstrate that the evolution of DNN architectures toward efficient operators like DWConv has inadvertently created a fundamental mismatch with the structural constraints of CIM accelerators, which PolyCIM resolves through systematic polyhedral optimization. 
+
+## 4.3 Ablation Study 
+
+To quantify the contribution of each optimization component, we conduct an ablation study with the C1 operator by selectively disabling individual techniques. We evaluate the following four key components: pre-tiling, affine scheduling, coalescing, and data movement optimization. Fig. 7 reveals the performance impact of each technique. Without affine scheduling, latency degrades by 9.7× as non-axial reuse patterns remain hidden, validating our core insight that these patterns are fundamental to modern operator efficiency. Affine scheduling is the central step of the pipeline, as it is the only component that actually exposes new reuse, while the remaining optimizations refine the already-transformed iteration space. Disabling pre-tiling causes a 6 .2× slowdown due to uncon-trolled iteration space expansion after affine transformation. The coalescing schedule proves essential for utilization, as its removal drops macro utilization from 28% to below 10% since scattered reuse dimensions often lead to underutilization. Data movement optimiza-tion contributes a 1 .4× speedup by ensuring contiguous memory access after transformation. These results demonstrate that while polyhedral transformation exposes reuse opportunities, realizing performance gains requires the complete optimization pipeline to handle the cascading effects of iteration space transformation. 
+
+## 5 Conclusion 
+
+In this paper, we propose PolyCIM, a polyhedral-based compilation framework that addresses the fundamental mismatch between mod-ern DNN operators and digital CIM architectures. We identify that data reuse in DNNs forms hyperplane structures along non-axial directions, and demonstrate how polyhedral transformations can systematically expose these hidden reuse opportunities. Through a unified polyhedral abstraction and a targeted optimization pipeline, PolyCIM can represent diverse DNN workloads and align data reuse opportunities with the rigid constraints of CIM array struc-tures. Our extensive evaluation demonstrates the effectiveness of PolyCIM across diverse DNN workloads, achieving up to 4 × macro utilization improvement and 3 .2× speedup. 
+
+## References     
+
+> [1] Ali Shafiee, Anirban Nag, Naveen Muralimanohar, Rajeev Balasubramonian, John Paul Strachan, Miao Hu, R. Stanley Williams, and Vivek Srikumar. 2016. ISAAC: A Convolutional Neural Network Accelerator with In-Situ Analog Arith-metic in Crossbars. In Proceedings of the 43rd International Symposium on Com-puter Architecture (ISCA) . 14–26. [2] Aayush Ankit, Izzat El Hajj, Sai Rahul Chalamalasetti, Geoffrey Ndu, Martin Foltin, R. Stanley Williams, Paolo Faraboschi, Wen-mei W. Hwu, John Paul Strachan, Kaushik Roy, and Dejan S. Milojicic. 2019. PUMA: A Programmable Ultra-efficient Memristor-based Accelerator for Machine Learning Inference. In Proceedings of the 24th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS) . 715–731. [3] Avishek Biswas and Anantha P. Chandrakasan. 2018. Conv-RAM: An Energy-Efficient SRAM with Embedded Convolution Computation for Low-Power CNN-Based Machine Learning Applications. In Proceedings of the IEEE International Solid-State Circuits Conference (ISSCC) . 488–490. [4] Yu-Der Chih, Po-Hao Lee, Hidehiro Fujiwara, Yi-Chun Shih, Chia-Fu Lee, Rawan Naous, Yu-Lin Chen, Chieh-Pu Lo, Cheng-Han Lu, Haruki Mori, Wei-Chang Zhao, Dar Sun, Mahmut E. Sinangil, Yen-Huei Chen, Tan-Li Chou, Kerem Akarvardar, Hung-Jen Liao, Yih Wang, Meng-Fan Chang, and Tsung-Yung Jonathan Chang. 2021. An 89TOPS/W and 16.3TOPS/mm 2All-Digital SRAM-Based Full-Precision
+
+PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation ICCAD ’26, November 08–12, 2026, San Jose, CA, USA 
+
+Compute-In Memory Macro in 22nm for Machine-Learning Edge Applications. In Proceedings of the IEEE International Solid-State Circuits Conference (ISSCC) ,Vol. 64. 252–254. [5] Bonan Yan, Jeng-Long Hsu, Pang-Cheng Yu, Chia-Chi Lee, Yaojun Zhang, Wen-shuo Yue, Guoqiang Mei, Yuchao Yang, Yue Yang, Hai Li, Yiran Chen, and Ru Huang. 2022. A 1.041-Mb/mm 2 27.38-TOPS/W Signed-INT8 Dynamic-Logic-Based ADC-less SRAM Compute-in-Memory Macro in 28nm with Reconfigurable Bitwise Operation for AI and Embedded Applications. In Proceedings of the IEEE International Solid-State Circuits Conference (ISSCC) , Vol. 65. 188–190. [6] Cenlin Duan, Jianlei Yang, Xiaolin He, Yingjie Qi, Yikun Wang, Yiou Wang, Ziyan He, Bonan Yan, Xueyan Wang, Xiaotao Jia, Weitao Pan, and Weisheng Zhao. 2024. DDC-PIM: Efficient Algorithm/Architecture Co-Design for Doubling Data Capacity of SRAM-Based Processing-in-Memory. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 43, 3 (2024), 906–918. [7] Cenlin Duan, Jianlei Yang, Yiou Wang, Yikun Wang, Yingjie Qi, Xiaolin He, Bonan Yan, Xueyan Wang, Xiaotao Jia, and Weisheng Zhao. 2024. Towards Efficient SRAM-PIM Architecture Design by Exploiting Unstructured Bit-level Sparsity. In Proceedings of the 61st ACM/IEEE Design Automation Conference (DAC) . 1–6. [8] Mingxing Tan and Quoc V. Le. 2019. EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks. In Proceedings of the 36th International Conference on Machine Learning (ICML) , Vol. 97. 6105–6114. [9] Saining Xie, Ross Girshick, Piotr Dollár, Zhuowen Tu, and Kaiming He. 2017. Aggregated Residual Transformations for Deep Neural Networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) . 1492– 1500. [10] Sachin Mehta, Mohammad Rastegari, Linda Shapiro, and Hannaneh Hajishirzi. 2019. ESPNetv2: A Light-Weight, Power Efficient, and General Purpose Convolu-tional Neural Network. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 9190–9200. [11] Faranak Shamsafar, Samuel Woerz, Rafia Rahim, and Andreas Zell. 2022. Mo-bileStereoNet: Towards Lightweight Deep Networks for Stereo Matching. In 
+
+Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) . 2417–2426. [12] Yuhang Zhang, Guanghui He, Guoxing Wang, and Yongfu Li. 2021. Efficient and Robust RRAM-based Convolutional Weight Mapping with Shifted and Duplicated Kernel. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 40, 2 (2021), 287–300. [13] Johnny Rhe, Sungmin Moon, and Jong Hwan Ko. 2022. VW-SDK: Efficient Con-volutional Weight Mapping Using Variable Windows for Processing-In-Memory Architectures. In Proceedings of the Design, Automation & Test in Europe Conference & Exhibition (DATE) . 214–219. [14] Adam Siemieniuk, Lorenzo Chelini, Asif Ali Khan, Jeronimo Castrillon, Andi Drebes, Henk Corporaal, Tobias Grosser, and Martin Kong. 2022. OCC: An Automated End-to-End Machine Learning Optimizing Compiler for Computing-In-Memory. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 41, 6 (2022), 1674–1686. [15] Xiaotian Sun, Xinyu Wang, Wanqian Li, Lei Wang, Yinhe Han, and Xiaoming Chen. 2023. PIMCOMP: A Universal Compilation Framework for Crossbar-Based PIM DNN Accelerators. In Proceedings of the 60th ACM/IEEE Design Automation Conference (DAC) . 1–6. [16] Yingjie Qi, Jianlei Yang, Yiou Wang, Yikun Wang, Dayu Wang, Ling Tang, Cenlin Duan, Xiaolin He, and Weisheng Zhao. 2025. CIMFlow: An Integrated Framework for Systematic Design and Evaluation of Digital CIM Architectures. In Proceedings of the 62nd ACM/IEEE Design Automation Conference (DAC) . 1–6. [17] Andi Drebes, Lorenzo Chelini, Oleksandr Zinenko, Albert Cohen, Henk Corpo-raal, Tobias Grosser, Kanishkan Vadivel, and Nicolas Vasilache. 2020. TC-CIM: Empowering Tensor Comprehensions for Computing-In-Memory. In Proceed-ings of the 10th International Workshop on Polyhedral Compilation Techniques (IMPACT) . 12 pages. [18] Jianhui Han, Xiang Fei, Zhaolin Li, and Youhui Zhang. 2022. Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators. ACM Journal on Emerging Technologies in Computing Systems 18, 1, Article 15 (2022), 23 pages. [19] Yingjie Qi, Jianlei Yang, Rubing Yang, Cenlin Duan, Xiaolin He, Ziyan He, Weitao Pan, and Weisheng Zhao. 2026. CIMinus: Empowering Sparse DNN Workloads Modeling and Exploration on SRAM-Based CIM Architectures. IEEE Transactions on Computers 75, 1 (2026), 380–394. [20] Xiaolin He, Cenlin Duan, Yingjie Qi, Xiao May, and Jianlei Yang. 2026. MIREDO: MIP-Driven Resource-Efficient Dataflow Optimization for Computing-in-Memory Accelerator. In Proceedings of the 31st Asia and South Pacific Design Automation Conference (ASP-DAC) . 1188–1194. [21] Uday Bondhugula, Albert Hartono, J. Ramanujam, and P. Sadayappan. 2008. A Practical Automatic Polyhedral Parallelizer and Locality Optimizer. In Proceedings of the ACM SIGPLAN 2008 Conference on Programming Language Design and Implementation (PLDI) . 101–113. [22] Zhuang Liu, Hanzi Mao, Chao-Yuan Wu, Christoph Feichtenhofer, Trevor Darrell, and Saining Xie. 2022. A ConvNet for the 2020s. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 11976–11986. [23] Xiaohan Ding, Xiangyu Zhang, Jungong Han, and Guiguang Ding. 2022. Scaling Up Your Kernels to 31x31: Revisiting Large Kernel Design in CNNs. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) .11963–11975. [24] Weihao Yu, Pan Zhou, Shuicheng Yan, and Xinchao Wang. 2024. InceptionNeXt: When Inception Meets ConvNeXt. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . 5672–5683.

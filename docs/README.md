@@ -51,14 +51,14 @@
       <span class="dpr-home-dashboard-kicker">2026-09-29</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 13 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 00:04:50 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 22:43:36 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读1篇、速读8篇，重点锁定AI数据中心硬件架构如何平衡通用性与专用化（8.0分）。最值得看的是存内计算与低比特推理方向：再生SA相似度感知的SAR跳过、CGLA上的BitNet Signed-Int4推理，都在压低模拟/低精度计算成本。普通读者可先读那篇8分综述建立全局观，再挑存内计算或BitNet速读了解省算力路线。</p>
+<p>2026-09-29 日报：13 篇论文中精读 2 篇、速读 11 篇，聚焦边缘 GenAI 芯片与 AI 数据中心硬件架构。最值得看的是 9.0 分的 MEGATRON——28nm 模拟 PCM 存内计算 SoC，实现 57.5 TOPS/W 能效和 1.52 Mparam/mm² 密度，以及 8.0 分的数据中心硬件架构综述，帮你权衡通用性与专用化。普通读者可先从这两篇入手，再按兴趣浏览存内计算、BitNet 推理等速读方向。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">2 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture">Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$">MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$</span></li><li><span class="dpr-home-dashboard-paper-title" title="Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture">Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">8 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory">Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions">Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling">Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory">Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions">Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions</span></li><li><span class="dpr-home-dashboard-paper-title" title="The Power of Indirection: Scaling Switches Beyond Silicon Boundaries">The Power of Indirection: Scaling Switches Beyond Silicon Boundaries</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>7</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>9</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>2</strong></span></div>
 </section>
 </div>
 

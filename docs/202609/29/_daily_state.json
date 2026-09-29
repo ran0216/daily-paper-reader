@@ -1,10 +1,26 @@
 {
   "date": "20260929",
   "date_label": "",
-  "generated_at": "2026-09-29 00:04:50 UTC",
+  "generated_at": "2026-09-29 22:43:36 UTC",
   "recommend_exists": true,
-  "run_count": 1,
+  "run_count": 2,
   "papers": [
+    {
+      "paper_id": "2609.35254v1",
+      "route": "202609/29/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "28nm边缘GenAI片上系统，含RISC-V神经处理单元与存内计算",
+      "first_seen_at": "2026-09-29 22:43:36 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
     {
       "paper_id": "2609.26829v1",
       "route": "202609/29/2609.26829v1-balancing-generality-and-specialization-a-survey-on-ai-datacenter-hardware-architecture",
@@ -17,9 +33,9 @@
         }
       ],
       "score": 8.0,
-      "evidence": "AI加速器架构综述、节点机架集群级互连",
+      "evidence": "AI加速器硬件架构综述，涉及节点/机架级互连",
       "first_seen_at": "2026-09-29 00:04:50 UTC",
-      "updated_at": "2026-09-29 00:04:50 UTC"
+      "updated_at": "2026-09-29 22:43:36 UTC"
     },
     {
       "paper_id": "2609.24288v1",
@@ -33,9 +49,9 @@
         }
       ],
       "score": 7.0,
-      "evidence": "面向模拟存内计算AI加速器的电路-架构协同设计",
+      "evidence": "面向模拟存内计算 AI 加速器的电路-架构-训练协同设计",
       "first_seen_at": "2026-09-29 00:04:50 UTC",
-      "updated_at": "2026-09-29 00:04:50 UTC"
+      "updated_at": "2026-09-29 22:43:36 UTC"
     },
     {
       "paper_id": "2609.27453v1",
@@ -49,9 +65,89 @@
         }
       ],
       "score": 7.0,
-      "evidence": "AI加速器ASIC、低比特LLM推理、signed-int4指令",
+      "evidence": "将低位宽大模型推理映射到可编程ASIC阵列的加速器设计",
       "first_seen_at": "2026-09-29 00:04:50 UTC",
-      "updated_at": "2026-09-29 00:04:50 UTC"
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
+    {
+      "paper_id": "2609.31092v1",
+      "route": "202609/29/2609.31092v1-the-power-of-indirection-scaling-switches-beyond-silicon-boundaries",
+      "title": "The Power of Indirection: Scaling Switches Beyond Silicon Boundaries",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "采用电路交换间接层的多 ASIC 交换架构，面向可扩展互连芯片",
+      "first_seen_at": "2026-09-29 22:43:36 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
+    {
+      "paper_id": "2609.34351v1",
+      "route": "202609/29/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向数字存内计算 DNN 加速器的编译与数据复用优化",
+      "first_seen_at": "2026-09-29 22:43:36 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
+    {
+      "paper_id": "2609.34612v1",
+      "route": "202609/29/2609.34612v1-spimoe-exploiting-hybrid-sparsity-for-reasoning-moe-inference-on-heterogeneous-pim-architectures",
+      "title": "SPIMOE: Exploiting Hybrid Sparsity for Reasoning MoE Inference on Heterogeneous PIM Architectures",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向MoE推理的异构存内计算AI加速器协同设计",
+      "first_seen_at": "2026-09-29 22:43:36 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
+    {
+      "paper_id": "2609.26644v1",
+      "route": "202609/29/2609.26644v1-dynamic-slack-aware-clocking-for-near-threshold-tensor-processing-units-tpus",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "TPU人工智能加速器硬件时钟设计",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
+    },
+    {
+      "paper_id": "2609.30960v1",
+      "route": "202609/29/2609.30960v1-packet-islip",
+      "title": "Packet iSlip",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "采用虚拟输出队列的交叉开关架构与面向分组的互连调度器",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 22:43:36 UTC"
     },
     {
       "paper_id": "2609.24270v1",
@@ -86,22 +182,6 @@
       "updated_at": "2026-09-29 00:04:50 UTC"
     },
     {
-      "paper_id": "2609.26644v1",
-      "route": "202609/29/2609.26644v1-dynamic-slack-aware-clocking-for-near-threshold-tensor-processing-units-tpus",
-      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
-      "section": "quick",
-      "tags": [
-        {
-          "kind": "query",
-          "label": "chip-design"
-        }
-      ],
-      "score": 6.0,
-      "evidence": "近阈值张量处理单元时钟，AI加速器硬件",
-      "first_seen_at": "2026-09-29 00:04:50 UTC",
-      "updated_at": "2026-09-29 00:04:50 UTC"
-    },
-    {
       "paper_id": "2609.29219v1",
       "route": "202609/29/2609.29219v1-schedules-are-solvable-symbols-tuning-free-compilation-of-tile-programs-on-dataflow-architectures",
       "title": "Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures",
@@ -130,22 +210,6 @@
       ],
       "score": 6.0,
       "evidence": "面向加速器架构的编译器与硬件协同设计",
-      "first_seen_at": "2026-09-29 00:04:50 UTC",
-      "updated_at": "2026-09-29 00:04:50 UTC"
-    },
-    {
-      "paper_id": "2609.30960v1",
-      "route": "202609/29/2609.30960v1-packet-islip",
-      "title": "Packet iSlip",
-      "section": "quick",
-      "tags": [
-        {
-          "kind": "query",
-          "label": "noc-arch"
-        }
-      ],
-      "score": 6.0,
-      "evidence": "含虚拟输出队列与iSlip调度的交叉开关，属互连网络与路由器微架构核心主题",
       "first_seen_at": "2026-09-29 00:04:50 UTC",
       "updated_at": "2026-09-29 00:04:50 UTC"
     }

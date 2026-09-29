@@ -1,0 +1,580 @@
+Title: The Power of Indirection: Scaling Switches Beyond Silicon Boundaries
+
+URL Source: https://arxiv.org/pdf/2609.31092v1
+
+Published Time: Mon, 28 Sep 2026 01:09:34 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# The Power of Indirection: Scaling Switches Beyond Silicon Boundaries 
+
+# Lukas Röllin 
+
+# ETH Zürich 
+
+# Sushovan Das 
+
+# ETH Zürich 
+
+# Paolo Costa 
+
+# Microsoft Research 
+
+# Laurent Vanbever 
+
+# ETH Zürich 
+
+# Abstract 
+
+The slowdown of Moore’s law and the area limit of mono-lithic integration have made chiplet-based designs inevitable across many domains, including network ASICs. However, combining multiple network ASICs together poses a funda-mental challenge: maintaining sufficient inter-ASIC band-width to match the performance of an idealistic single-ASIC design. Providing full bandwidth is prohibitively expensive as it requires valuable forwarding capacity, while reducing inter-ASIC bandwidth creates severe performance bottlenecks. We propose a novel multi-ASIC switch architecture that introduces a circuit-switched indirection layer in front of the ASICs. This layer flexibly remaps ingress ports across ASICs, localizing traffic and minimizing inter-ASIC communication based on observed patterns. Our system, Fastroute , combines packet and circuit switching to deliver performance compa-rable to a single-ASIC switch while reducing inter-ASIC bandwidth requirements. This frees up capacity for external network interfaces, allowing Fastroute to outperform tradi-tional non-oversubscribed multi-ASIC designs. Our hardware prototype demonstrates the system’s functional feasibility by evaluating it on an LLM training workload. By reducing bandwidth and power overhead, Fastroute 
+
+bridges the gap between silicon fabrication limits and soar-ing application demands. It provides an efficient transition to multi-ASIC switches, enabling bandwidth and radix demand to be met without waiting for the next ASIC generation. 
+
+# 1 Introduction 
+
+Network ASICs, like other high-performance computing chips, have been increasingly constrained by the slowdown of Moore’s law, approaching the limits of monolithic inte-gration [42, 43]. While historically higher switch throughput was achieved by moving to a smaller technology node and scaling die size, both avenues are slowly (but surely) coming to an end. In particular, the end of Dennard scaling has caused transistor performance scaling to saturate [8, 37], and pushed   
+
+> ASIC SerDes SerDes Single-ASIC SerDes SerDes SerDes SerDes ASIC Tomahawk 6 SerDes SerDes SerDes SerDes A1 A2 A3 A4 Multi-ASIC Design
+
+Figure 1: To keep up with bandwidth demands and to avoid silicon limitations, switches need to be split up. the die size to reach the “reticle limit”—the maximum size of a single chip that can be fabricated [5,21]. Because of this, the pace at which switch throughput doubles has been slowing down. As an illustration, Broadcom released a new Toma-hawk series every two years up to Tomahawk 4 [15], while the following two generations each took three years [10]. And yet, hyperscale data centers and emerging workloads, such as AI training and inference or high-performance com-puting (HPC), are driving unprecedented demand. Not just for higher network bandwidth but also pushing the limits of scale, connecting more servers than ever [1, 3, 44]. To keep up with the demand, device manufacturers have been increasingly moving towards “chiplet-based” architec-tures [9]. Such architectures spread the switch ingress ports across several ASICs that are then connected through an inter-nal fabric. By combining multiple ASICs this way, manufac-turers can build switches whose performance vastly exceeds that of single ASIC switches—both in capacity and number of ports (radix)—without waiting for the next generation (Fig. 2). Broadcom’s Tomahawk 6 (Fig. 1) is an example of such an architecture in which the Serializers/Deserializers (SerDes) have been turned into IO chiplets that sit next to the forward-ing ASIC, freeing up valuable silicon area [42]. Juniper’s Express 5 [63] is another example of an architecture that goes one step further by splitting the forwarding ASIC itself (in addition to the SerDes), as shown in Fig. 1. One of the key challenges in building multi-ASIC switches that offer higher throughput than single-ASIC designs is corre-spondingly scaling the inter-ASIC bandwidth. Architects face 1arXiv:2609.31092v1 [cs.NI] 25 Sep 2026 a clear trade-off between non-blocking behavior and usable bandwidth. Providing non-blocking inter-ASIC bandwidth in a Clos-like internal topology ( State-of-the-Art ) requires scaling up fabric links, thereby diverting scarce ASIC for-warding capacity toward internal interconnects. The upside is non-blocking behavior, but it comes at the cost of reduced us-able bandwidth, especially at low ASIC counts (2 – 5), where creating proper Clos topologies is not always possible. This is highlighted in Fig. 2, which shows the total usable bandwidth achieved by combining multiple ASICs in the State-of-the-Art 
+
+way. Oversubscribing inter-ASIC bandwidth can partly miti-gate this, but at the cost of worst-case performance, as certain traffic patterns cause congestion at the inter-ASIC links. Our simulations show that even reasonable oversubscriptions can cause workloads to experience throughput reductions of up to 4× and 9 × increases in tail flow completion time (FCT). We propose a new approach that enables multi-ASIC switches with performance that closely matches that of an ideal single-ASIC even when oversubscribing the inter-ASIC bandwidth. Our key insight is to introduce a circuit-switched indirection layer that dynamically remaps switch ingress ports across ASICs based on observed traffic, thereby minimizing inter-ASIC traffic. It outperforms traditional non-blocking multi-ASIC designs ( State-of-the-Art ) by using the available ASIC forwarding capacity more efficiently, extracting around 30 % more bandwidth and radix from the same ASICs (Fig. 2). In addition to improving performance, reducing the inter-ASIC bandwidth also improves energy efficiency. We present Fastroute , a complete system that realizes a circuit-switched indirection layer inside a multi-ASIC switch. Our analysis shows that this indirection layer reduces inter-ASIC traffic while requiring minimal ASIC changes (§ 3.1). To keep up with dynamic traffic patterns, the indirection layer is rapidly reconfigured. Operating within a single device en-ables fast, integrated electrical/optical circuit switches with nanosecond/microsecond reconfiguration downtime, enabling rapid reconfigurations without disrupting traffic. This fast re-configuration layer requires algorithms that run in the order of microseconds while still providing good traffic localization. We achieve this by mapping only the ingress port between ASICs and leaving the egress port fixed . This enables a novel heuristic that achieves near-optimal traffic localization (within 0.5 %) while meeting the stricter runtime targets. Our evaluation demonstrates that Fastroute delivers per-formance within 1 % of an ideal, non-manufacturable (due to size constraints) single-ASIC switch, while cutting inter-ASIC bandwidth by up to half. This lower bandwidth require-ment allows our design to outperform traditional non-blocking multi-ASIC designs while achieving hundreds of watts of power savings per switch (§ 6.5), thanks to the indirection layer itself incurring negligible overhead ( < 0.5 %) in both chip area and power. We show that Fastroute can handle di-verse application scenarios (from structured ML patterns to bursty DCN workloads), thanks to its fast control plane. Our    
+
+> +33% +30% +66% +60%
+> Fastroute State-of-the-Art
+> Bandwidth increase over Generation 1
+> +0% +100% +200% +300% ~3 years 1×
+> 2×
+> 3×
+> Generation 1
+> (e.g. , Tomahawk 6)
+> 1×
+> 2×
+> 3×
+> Generation 2
+> (e.g. , Tomahawk 7)
+
+Figure 2: Fastroute increases achievable bandwidth between generations by enabling more efficient multi-ASIC designs. hardware prototype running a PyTorch [46] LLM workload achieves 3 × higher token throughput than traditional designs. The largest benefits of Fastroute arise in the 2 – 4 ASIC regime, where it delivers near single-ASIC performance while substantially reducing interconnect bandwidth and power overhead. In this regime, the higher possible radix of Fastroute 
+
+increases the maximum number of hosts in a 2-layer Fat-Tree network by 30 – 78 % and in a 3-layer Fat-Tree network by 49 – 138 % compared to the State-of-the-Art , enabling consid-erably larger deployments. This represents the relevant ASIC counts for extending switch bandwidth before packaging com-plexity and cost make larger designs increasingly unattractive. As demonstrated by NVIDIA shifting from a planned 4-ASIC chip to a simpler 2-ASIC design [45]. Importantly, Fastroute provides not only a one-time benefit but smooths the transition between any successive ASIC gen-erations, creating more efficient options. As demand grows, a switch designer can first migrate from a single ASIC to an ef-ficient multi-ASIC design using Fastroute , and later adopt the next ASIC generation when it becomes available. The same approach can then be repeated for the new ASIC (Fig. 2). Overall, our contributions are as follows: • Enabling high-performance multi-ASIC switch designs with a limited inter-ASIC bandwidth requirement. • Designing a feasible data plane and lightweight control plane to enable dynamic port-to-ASIC mapping (§ 3). • Developing an optimal algorithm to minimize inter-ASIC traffic, along with an efficient heuristic (§ 4). • Showing near single-ASIC performance under diverse DCN and HPC/ML workloads with 2-ASIC and n-ASIC switches (§ 5 and § 6). • Validating our approach by benchmarking a PyTorch LLM workload on our hardware prototype (§ 5 and § 6). 
+
+# 2 Motivation 
+
+The increased bandwidth demands from emerging applica-tions, such as AI training, have put pressure on network switches to increase both bandwidth and radix (number of ports) to accommodate ever-larger-scale GPU server deploy-ments [20, 52]. This is due to different factors: First, high 2Chiplet Interconnect Network Interfaces Ingress Egress Lookup Tables Buffer Packet Switch ASIC n-ASIC Switch     
+
+> A1A2An−1An
+> Physical Ports Fabric Fabric
+
+. . . . . . Figure 3: Chiplet-based n-ASIC packet switch setup. bandwidth is necessary due to higher demand per host, with GPUs easily saturating 800G links and beyond. Second, due to the scale of the deployments, involving hundreds of thousands of GPUs, the switch radix has become increasingly impor-tant. Low-radix switches complicate network architecture by requiring more layers to interconnect all hosts. Multi-plane network topologies, such as Rail-only [59] and P-FatTree [40], aim to alleviate this problem but incur additional complexity due to host-level load balancing. But access to high-radix switches even simplifies multi-plane network designs by re-ducing the number of layers or increasing the scale. 
+
+Transition to Multiple ASICs. Achieving both higher band-width per port and higher radix simultaneously is challenging in a single ASIC due to limited I/O bandwidth and area con-straints. To keep up with today’s demand, a shift towards multi-ASIC designs is required; an example of a multi-ASIC network switch is shown in Fig. 3; it consists of n packet-switch ASICs ( A1 · · · An), each similar to a single-ASIC packet switch, with the addition of a chiplet interconnect. With it, the packet-switch ASICs are connected to the fabric ASICs, which route traffic between them, typically via cell switch-ing [65]. For 2 ASICs, the chiplet interconnects can be directly connected, with no fabric required. 
+
+The Need for Inter-ASIC Bandwidth. Multi-ASIC designs come with a set of challenges. Primarily, providing sufficient bandwidth between network chiplets is crucial to maintain performance comparable to that of a single ASIC. The rea-son is simple: a packet that arrives at one ASIC might be destined to a port connected to another ASIC and therefore needs to cross the chiplet interconnect. Now, if there is not enough bandwidth between the ASICs to accommodate all such packets, then the packets might need to be buffered or even dropped (leading to a reduction in throughput of up to 4×; § 6.2). In the worst case, each ASIC must provide as much bandwidth to other ASICs as it provides to the outside network interfaces to maintain full bisection bandwidth, since every packet could need to be sent to a different ASIC. 
+
+Bandwidth Creates Overhead. Providing non-blocking be-havior increases the needed chiplet interconnect and fabric capacity. This increases not only power (by hundreds of watts per switch;§ 6.5) but also uses up more of the ASIC’s forward-ing capacity, reducing the available bandwidth for external network interfaces. In addition, it reduces the available space at the chip’s edge that could be used for I/O to other com-ponents, such as off-chip High Bandwidth Memory (HBM) packet buffers. Meanwhile, the internal buffers must handle additional traffic from both the network interfaces and the chiplet interconnect, since packets that traverse the chiplet interconnect are written to a packet buffer, not once but twice, unless complex buffering logic is added to mitigate this issue. 
+
+In Pursuit of the Root Cause. The root cause for perfor-mance degradation in oversubscribed multi-ASIC switches is that packets arrive at the wrong ASIC and must cross the inter-ASIC boundary, overwhelming inter-ASIC links. Therefore, closing the performance gap requires taking action as early as possible: traffic must be localized within a single ASIC whenever feasible. Achieving such localization requires an indirection layer between the physical switch ports and the packet-switch ASICs, which can dynamically remap ingress ports to ASICs based on observed traffic patterns. A naïve realization of this indirection layer would be to move the fab-ric layer (shown in Fig. 3) between the ports and the ASICs. However, this approach merely shifts the problem rather than solving it. To make correct forwarding decisions, the indi-rection layer performs per-packet processing such as longest-prefix lookups, reintroducing the same bandwidth, power and design complexity that we aim to avoid. We propose implementing the indirection layer using a circuit switch instead, which is much simpler and, unlike a packet-switching fabric, is agnostic to individual packets while still enabling dynamic remapping. This poses new chal-lenges, such as obtaining the traffic information essential to computing a new configuration. This new configuration should be accurate enough to localize most traffic under the same ASIC, while being applied before the traffic informa-tion becomes outdated. Additional logic is needed to han-dle the transient traffic during the downtime associated with the circuit-switch reconfiguration. Our design (§ 3 and § 4) addresses these challenges, and the evaluation (§ 6) demon-strates close to single-ASIC performance with low overhead. 
+
+# 3 Fastroute 
+
+We discuss the Fastroute architecture with its data plane (§ 3.1) and control plane (§ 3.2). The primary component of the data plane is the circuit-switched indirection layer; with the control plane being responsible for dynamically updating the circuit reconfiguration based on the traffic. Fig. 4 shows the system overview, with the abstraction of circuit-switched indirection layer and a simplified reconfiguration example. 
+
+# 3.1 Data Plane 
+
+The Fastroute data plane consists of a circuit-switched indi-rection layer between switch ingress ports and ASICs, which enables flexible ingress port-to-ASIC mapping. Fig. 4 shows 3Traffic Matrix Port ASIC 1234A B     
+
+> 0010 10 10 10 00
+> Assignment Problem Port ASIC
+> 1234AB
+> Circuit Config. ASIC A
+> ·Port 3
+> ·Port 4
+> ASIC B
+> ·Port 1
+> ·Port 2
+
+Data Plane (before reconfig.) Control Plane Data Plane (after reconfig.) 
+
+> ASIC AASIC BCircuit Switch ASIC AASIC BCircuit Switch
+
+↑ ↓ ↑ ↓←→↑ ↓ ↑ ↓←→
+
+> 1’ 12’ 23’ 34’ 4
+
+↑ ↓ ↑ ↓←→↑ ↓ ↑ ↓←→
+
+> 1’ 12’ 23’ 34’ 4
+
+Figure 4: The Fastroute data plane adds a circuit-switched indirection layer enabling ingress port-to-ASIC mapping. The control plane computes circuit configurations based on historical traffic, minimizing inter-ASIC bandwidth. the data plane for a 4-port two-ASIC packet switch (ASICs A and B) with a circuit switch in between. The two packet-switch ASICs (A and B) have an internal layout as shown in Fig. 3, which is inspired by an existing Cisco ASIC [16]. Each ASIC contains both an ingress and an egress packet pro-cessing pipeline with shared lookup tables. Hence, Fastroute 
+
+leaves the core packet-switch design largely unchanged, re-quiring minor adjustments to add the indirection layer. The egress scheduler, packet buffer, forwarding tables and similar components do not require any modifications beyond those required for traditional multi-ASIC designs. 
+
+Flexible Port Assignment. Let’s look at the red and dark blue flows. They arrive at ports 1 and 2; are destined to ports 3 and 4, respectively. For the initial circuit-switch configuration (left side in Fig. 4), ingress ports 1 and 2 are mapped to internal ports 1’ and 2’. As a result, both the flows will enter ASIC A, and then need to traverse the inter-ASIC link to ASIC B. For the final circuit-switch configuration (right side in Fig. 4), the ingress ports 1 and 2 are now mapped to internal ports 3’ and 4’ respectively. By doing so, the flows do not need to traverse the inter-ASIC link and can be localized within ASIC B. Such flexible ingress port-to-ASIC mapping can significantly reduce the inter-ASIC traffic volume. In Fig. 4, we consider one big circuit switch spanning all packet-switch ports for simplicity. But in practice, it might need to be split into multiple smaller ones, which Fastroute can easily accommodate with little performance degradation (§ 6.3). 
+
+Keeping the Egress Fixed. A key insight of Fastroute is only having a flexible ingress switch port-to-ASIC mapping, while keeping the egress ports fixed. Such a design choice provides many benefits: 1) If the egress were flexible, packets would need to follow the egress to wherever it is connected at the moment, creating the issue of packets moving between ASICs multiple times, in addition to the complex logic re-quired to keep track of the egress. Fixing the egress simplifies the hardware: packets always leave through the same egress without additional bookkeeping, just as in traditional forward-ing. 2) It also avoids state migration: e.g., per-flow counters or scheduling state can be maintained at the fixed egress, rather than being shuffled across ASICs whenever an ingress is re-assigned. 3) Finally, fixing egress ports shrinks the search space for the control plane algorithm, making the problem tractable (§ 4) and allowing for a heuristic running in the order of microseconds (§ 6.4). Note that we can keep the egress fixed as Fastroute operates inside a single device. Whereas, previous optical edge works [18, 58] operate at network scale, forcing ingress and egress to be coupled. Separating the two there is complicated: transceivers usually require bidirectional connectivity to establish links (more differences in § 4.4). 
+
+Realizing the Indirection Layer. The indirection layer is not explicitly tied to any specific circuit switch technology. We discuss two potential realizations with design trade-offs. 
+
+Electrical Indirection Layer. Electrical circuit switches (ECS) can be added to the SerDes chiplets as shown in Fig. 5a. The reconfiguration downtime is of the order of nanoseconds [14, 51], while none of the SerDes connections need to be re-established, which is a primary advantage. The ECS is after the long-reach SerDes (connecting to the outside) and so the signal is already decoded when it reaches the circuit switch. It is also before the interconnect (connecting SerDes chiplet to the ASIC), where the bits are encoded again. 
+
+Optical Indirection Layer. The indirection layer could be im-plemented using a silicon photonics optical circuit switch (OCS) [27, 28, 50, 62], as shown in Fig. 5b. This will be a perfect fit for co-packaged optics-based packet switches. The primary benefit here is lower power consumption and high bandwidth that an OCS can provide, but the reconfiguration delay will be of the order of a few microseconds. Lightmat-ter’s emerging package technology [34] already includes the necessary OCS, showing the feasibility of the design. 
+
+# 3.2 Control Plane 
+
+Unlike the traditional control plane in network switches, which governs network-wide routing and forwarding poli-cies, the Fastroute control plane is a device-local controller associated with the circuit-switched indirection layer. When multiple circuit switches are used, each controller operates independently and is responsible for managing its own cir-cuit switch reconfiguration. We first explain the step-by-step 4ASIC SerDes Chiplet Ports Forw. Pipelines Interconnect Interconnect ECS LR SerDes 
+
+> (a) Electrical Indirection
+> ASIC Optical Engine Ports Forw. Pipelines Interconnect Interconnect OCS Optical TX/RX
+> (b) Optical Indirection
+
+Figure 5: Fastroute can leverage different circuit switching technologies to realize the indirection layer. workflow for computing the new circuit configuration, with more details about the algorithm in § 4. Next, we discuss how traffic should be handled during reconfiguration events. 
+
+Workflow. The workflow of the Fastroute control plane has three steps. The controller 1) first records the statistics about ingress port-to-ASIC traffic volumes, 2) computes suitable ingress port-to-ASIC mapping, and 3) finally updates the circuit switch configuration. See Fig. 4 (middle one). 
+
+1. Collect Statistics. To adapt the configuration, the control plane collects the port-level traffic statistics and records the traffic volume between ingress ports to different ASICs. This scales with Θ(pn ), where p is the number of switch ports and n is the number of ASICs; thus manageable to perform directly on the hardware. It is comparable to having port coun-ters inside the network device, which is a ubiquitous feature. One way to implement this functionality is a small SRAM module that is shared by all ASICs, where the values are directly written to or updated frequently. The circuit switch controller can then read this data from the memory to compute the mapping. Even for a big switch with 512 ports, 8 ASICs and 32-bit integer entries (4 bytes), the memory consump-tion would be only 512 × 8 × 4 bytes = 16 KB at < 1 GB /s
+
+bandwidth ( ≈ 1000 × below on-chip SRAM). 
+
+2. Compute Ingress Port-to-ASIC Mapping. After recording the traffic, the controller computes a suitable ingress port-to-ASIC mapping that reduces the inter-ASIC traffic. A detailed discussion of the algorithm can be found in § 4. 
+
+3. Reconfiguring the Circuit Switch. After computing the suit-able mapping, it is applied to the circuit switch. Note that, only the ports with a new ASIC assignment need to be recon-figured. The rest do not incur any downtime. 
+
+Handling the Transient. During the circuit-switch reconfig-uration, packets continue to arrive from outside; additional measures are required to handle them. We discuss those based on the circuit-switching technology used. 
+
+Electrical Indirection Layer. While electrical circuit switches are very fast at reconfiguring, there is still a short downtime that might cause packet loss. The benefit of electrical circuit switches is that reconfiguration downtime can be masked by adding packet buffers, whereas in optical circuit switches it cannot due to the lack of “optical memory”. So, in the elec-trical circuit-switch case, the controller can just reconfigure without dropping any packets if the reconfiguration is faster than the time it takes for those buffers to fill up. Due to the fast reconfiguration, packet reordering might occur. This can be easily avoided by marking the last packet before reconfig-uration. The egress ASIC then just needs to prioritize packets from the old ingress until the marked packet arrives. 
+
+Optical Indirection Layer. Even though silicon photonics OCS are much faster than 3D-MEMS based OCS, they still have a reconfiguration downtime of the order of microsec-onds [27, 28, 50, 60, 62]. To ensure lossless transient recon-figuration, the controller first sends a PAUSE frame to the neighboring switch. During reconfiguration, the other device requires enough space to buffer the packets. For example, at 800 Gbps link speed, buffering packets for 1 microsecond requires only 100 KB of buffer space, while recent switch ASICs have 50 − 165 MB of packet buffer [23, 29, 41]. Af-ter the PAUSE frame, the OCS is reconfigured, followed by a CONTINUE frame to the neighboring device to resume packet flow. This mechanism is already present in Ethernet flow control [19]. The downtime during reconfiguration cre-ates barriers, allowing in-flight packets to be drained before new ones arrive, effectively eliminating packet reordering. 
+
+# 4 Control Algorithm Design 
+
+The primary objective of the control algorithm is to find the optimal ingress port-to-ASIC mapping that minimizes the inter-ASIC traffic volume. Hence, the algorithm seeks to lo-calize traffic within each ASIC as much as possible. To this end, we rely on the port-to-ASIC traffic matrix ( T M ), which records the traffic volume between ingress ports and ASICs. 
+
+# 4.1 Problem Formulation 
+
+Given a multi-ASIC switch with p ports and n ASICs, and the port-to-ASIC traffic matrix ( T M ), we define a linear cost func-tion Λ representing the total inter-ASIC traffic as a function of the ingress port-to-ASIC mapping Φ (Eq. (1)). 
+
+Λ(Φ; T M ) = 
+
+> p
+
+# ∑
+
+> i=1
+> n
+
+# ∑
+
+> j=1
+
+Φi j · T M i j = inter-ASIC traffic ,
+
+with: Φi j =
+
+(
+
+0, if port i is assigned to ASIC j,
+
+1, otherwise .
+
+(1) The optimization objective is to find the port-to-ASIC map-ping Φ∗ that minimizes the cost function subject to the con-straint that each ASIC accommodates pn ports (Eq. (2)). min  
+
+> Φ
+
+Λ(Φ; T M ) s.t. 
+
+> p
+
+# ∑
+
+> i=1
+
+Φi j = pn , ∀ j ∈ { 1, . . . , n} (2) Note that, expressing costs in terms of port-to-ASIC traffic matrix, we pre-aggregate the underlying port-to-port traffic. Next, we discuss the optimal algorithm and heuristic in detail. 54.2 Optimal Port-to-ASIC Mapping 
+
+At first glance, the port-to-ASIC mapping resembles a bal-anced graph partitioning problem: ports are modeled as ver-tices, edges represent traffic between ports, and the goal is to partition the graph into n balanced groups (ASICs) while minimizing the weight of inter-group edges. However, this is known to be NP-hard, since the cost of assigning any given port depends on the placement of all other ports. As discussed in § 3.1, Fastroute indirection layer only al-lows ingress port-to-ASIC mapping, while the egress ports remain static. Such a design choice substantially reduces the combinatorial complexity of the problem and enables a transformation into a linear assignment problem [33]: ports correspond to jobs, ASICs correspond to workers, and each edge weight represents the induced inter-ASIC traffic for that assignment. The optimization goal is therefore to find a minimum-cost assignment that minimizes the total inter-ASIC traffic. Since each ASIC must accommodate exactly 
+
+p/n ingress ports (where p is the total number of switch ports), we reduce the problem to a one-to-one bipartite matching by replicating each ASIC node p/n times. The Hungarian algo-rithm then yields an optimal solution in polynomial time, with a worst-case complexity of Θ(p3).
+
+# 4.3 Efficient Heuristic Design 
+
+Greedy Heuristic. To speed up the algorithm’s runtime, we design a greedy heuristic (Listing 1). It assigns ingress ports to ASICs by prioritizing mappings that maximize net gain ,which represents the “benefit” of assigning port i to ASIC j
+
+i.e., the difference between localized and non-localized traffic. It computes the net gain for every ingress port-ASIC pair (line 3-6), sorts all entries in descending order (line 8), and iterates once over them, assigning ports if not already been assigned and the ASIC still has capacity (line 8-11). 
+
+Accuracy. For two ASICs, the greedy heuristic is provably optimal. Since each port can only be mapped to one of the two ASICs, ordering assignments by net gain always yields the minimum inter-ASIC traffic. For more than 2 ASICs, the heuristic is not optimal, since the above argument no longer holds. However, our evaluation of 1k random traffic matrices shows that the heuristic is within 0 .5 % of the optimal solution, even in n-ASIC scenarios. 
+
+Time Complexity. Given the switch consists of p ports and 
+
+n ASICs, the heuristic runs in Θ(pn log (pn )) time: comput-ing the net gain for all p × n pairs has a time complexity of 
+
+Θ(pn ), sorting the list dominates with Θ(pn log (pn )) , and the final assignment pass takes Θ(pn ) steps. This is a significant improvement over the Θ(p3) complexity of the optimal al-gorithm, as the number of ASICs tends to be much smaller than the number of ports. Runtime analysis for both optimal algorithm and greedy heuristic (§ 6.4) shows that the heuristic scales almost linearly with number of switch ports. Listing 1: Pseudocode of the greedy heuristic.               
+
+> 1def greedy_asic_mapping(TM):
+> 2# compute net gain for each port-to-ASIC mapping
+> 3for i in ports:
+> 4row_sum = sum(TM[i,:])
+> 5for j in asic:
+> 6net_gain[i,j] = TM[i,j] - (row_sum - TM[i,j])
+> 78# sort (port, ASIC) pairs by net gain, largest first
+> 9for port, asic in argsort(net_gain):
+> 10 # assign if port is unassigned
+> 11 if not_mapped(port):
+> 12 # and if the ASIC has unassigned ports
+> 13 if free_slots(asic):
+> 14 mapping.assign(port, asic)
+> 15 16 return mapping
+
+# 4.4 Difference from Optical Edge 
+
+While similar in spirit, Fastroute fundamentally differs from reconfigurable optical edge proposals, such as RDC [58] and OSSV [18], in three key aspects. 
+
+Context. RDC and OSSV operate at datacenter scale, plac-ing optical circuit switches between servers and top-of-rack (ToR) switches to improve traffic locality across the network. In contrast, Fastroute operates entirely within a single multi-ASIC packet switch, localizing traffic across ports and ASICs within a single device. This change in scope fundamentally alters both the control problem and the space of feasible so-lutions. This new context, for example, enables separating a port’s ingress and egress, assigning them independently of each other. This opens up new algorithmic options beyond the traditional optical edge work, where the two are coupled. 
+
+Algorithmic Design. Prior optical-edge approaches solve a variant of the Balanced Graph Partitioning problem that is NP-hard, requiring heavyweight heuristics over large in-puts (hosts and ToRs). In contrast, our problem formulation of Fastroute deliberately keeps the egress static and allows flexibility only at the ingress. Such a design choice makes the problem tractable with cubic worst-case complexity. Finally, our efficient heuristic further reduces the complexity. 
+
+Performance and Practicality. To our knowledge, Fastroute 
+
+is the first to propose fast integrated-circuit-switches inside a single switch package, enabling microsecond control loops and necessitating faster algorithms. Our efficient heuristic executes in the order of microseconds (§ 6.4), whereas run-ning the RDC/OSSV algorithm with the same input size and CPU yields runtimes three orders of magnitude higher (§ A.1). As Fastroute operates in a single switch, it can be deployed directly in today’s data centers without any changes to exist-ing infrastructure, in contrast to optical edge proposals that require deploying optical circuit switches first. 65 Implementation 
+
+We extensively evaluate Fastroute using both packet-level simulation and a hardware prototype. First, we briefly discuss the simulation setup along with different switch architectures. Next, we discuss the prototype implementation details. 
+
+# 5.1 Packet Level Simulation 
+
+For the packet-level simulation, we leverage the Netbench simulator [30, 31], which includes congestion control and queueing mechanisms. We extend the simulator by imple-menting multi-ASIC switch architectures without and with an additional circuit-switch layer. Specifically, we evaluate the performance of four switch architectures (Fig. 6). The default parameters, if applicable for the architecture, are shown in Table 1. The individual Packet Switch ASICs for all three multi-ASIC architectures have the same capacity .1. State-of-the-Art : A traditional multi-ASIC packet switch design, using multiple ASICs and a fully provisioned non-blocking inter-ASIC fabric ( not oversubscribed). 2. Oversubscribed : This architecture, unlike the State-of-the-Art , uses oversubscribed inter-ASIC links, providing more of the available Packet Switch ASIC bandwidth to the outside, but risking inter-ASIC congestion in the fabric. 3. Fastroute : Our proposed architecture, just like Oversub-scribed , includes an oversubscribed inter-ASIC fabric, but in addition has a circuit switch indirection layer. The cir-cuit switch has a 1 μs reconfiguration downtime (silicon photonics OCS), a delay of 10 μs to compute the new map-ping (§ 6.4) and a 100 μs reconfiguration interval (Table 1). 4. Ideal : A packet switch composed of one big ASIC, that provides the theoretical performance upper bound.  
+
+> Ideal
+> Fabric
+> State-of-the-Art
+> . . . Fabric
+> Fastroute
+> . . . Fabric
+> Oversubscribed
+> . . . Packet Switch ASIC Circuit Switch
+
+Figure 6: Switch architectures used in the simulation. For the 2-ASIC case, no fabric is necessary. Table 1: Default values used in the simulation.                 
+
+> Parameters Default Values Reconfiguration Downtime (OCS) 1μs
+> Reconfiguration Computation Delay 10 μs
+> Reconfiguration Interval 100 μs
+> Inter-ASIC Delay 10 ns
+> Inter-ASIC Buffer 0.3MB /100 Gbps 11Buffer space per 100 Gbps in Tomahawk 5 chips Tofino (ASIC A) Tofino (ASIC B) Tofino (Circuit Switch) 15
+
+... ...  
+
+> 26
+
+... ...  
+
+> 37
+
+... ...  
+
+> 48
+
+... ... Hosts 
+
+Figure 7: Hardware prototype of Fastroute using pro-grammable switches and 8 hosts (100 Gbps each). 
+
+Network Topology. The default network topology is a two-stage fat-tree with 2048 hosts. The Ideal switch has 64 ports with 800 Gbps link speed (51.2 Tbps per switch). The switches use ECMP to load-balance across available paths. The hosts use the DCTCP [3] congestion control algorithm. 
+
+Host Count. To ensure a fair comparison, the number of hosts must remain constant across all architectures. Changing the host count alters the generated traffic trace, preventing an accurate apples-to-apples comparison of the traffic patterns. We accomplish a constant host count by dividing each switch’s capacity among a fixed number of ports. The experiment in § A.2 presents the evaluation with a variable host count instead. Compared to our evaluation in § 6.2 of the same trace, the improvement of Fastroute over the State-of-the-Art is even better. This is because Fastroute 
+
+improves not only bandwidth but also the radix compared to the State-of-the-Art .
+
+Metrics. We report the mean throughput normalized to the throughput of the Ideal architecture, to show average perfor-mance (higher is better). To also include tail-end performance, we show the 99 th percentile flow completion time (lower is better). For some experiments, we show the time series of the aggregate inter-ASIC bandwidth (the sum of all traffic sent to another ASIC) or other related values. 
+
+# 5.2 Hardware Prototype 
+
+The hardware prototype is built with P4-capable switches (Tofino 1), which enable us to record the required TM statis-tics and emulate the circuit-switch layer. Note that pro-grammable switches are not necessary for Fastroute and are only used in this case to collect the needed statistics. As shown in Fig. 7, the prototype consists of a) 8 hosts, with a 100 Gbps interface each, and b) 2 Tofinos, one acting as the two-ASIC (ASIC A and ASIC B) packet switch and another emulating the circuit switch. The ASICs are connected via two 100 Gbps interfaces, resulting in a 2:1 oversubscription. The statistics are collected in the dataplane and read out from the control plane. The new mapping is then computed using the heuristic explained in § 4.3. The ingress port-to-ASIC mapping is applied by the Tofino acting as the circuit switch and is updated every 500 μs . The Tofinos, acting as the two-ASIC packet switch, have no additional logic implemented; they simply forward traffic based on the destination IP. 7Shuffle Stride ML 050 100 Thrp. [%]  Mean Throughput State-of-the-Art Oversubscribed Fastroute Ideal Shuffle Stride ML 012FCT [ms]  99 th Perc. FCT 
+
+Figure 8: Fastroute is able to adapt to different traffic patterns, providing near ideal performance. 
+
+# 6 Evaluation 
+
+Our evaluation addresses the central research question: Can a multi-ASIC switch with reduced inter-ASIC bandwidth deliver performance close to that of a single-ASIC switch? 
+
+We answer this through extensive evaluation with packet-level simulations and a hardware prototype. We begin with application-oriented patterns e.g. , Shuffle, Stride, and All-Reduce, followed by trace-driven datacenter traffic. Using those scenarios, we validate that Fastroute works for an arbi-trary number of ASICs and tolerates multiple smaller inde-pendent circuit switches. We then analyze sensitivity to key parameters (traffic stability, buffer size, reconfiguration over-head), benchmark the control plane and evaluate the power savings enabled by Fastroute . Here are the key findings: 1. Under application-oriented traffic patterns (§ 6.1) and re-alistic datacenter traces (§ 6.2), Fastroute sustains perfor-mance within ≈ 1 % of an ideal single-ASIC switch, for 2-ASICs and n-ASICs (§ 6.3) and outperforms both Over-subscribed and State-of-the-Art architectures. 2. On a hardware prototype, Fastroute achieves a 3 × higher throughput than a Oversubscribed multi-ASIC switch un-der a LLM workloads (§ 6.1). 3. Fastroute reduces the overall power consumption by hun-dreds of watts compared to a traditional design (§ 6.5). 
+
+# 6.1 Application Oriented Traffic 
+
+We evaluate the performance of Fastroute under well-known application-oriented traffic patterns, emulating the behavior of HPC/ML applications. We consider widely-used traffic pat-terns such as Shuffle, Stride and Ring All-Reduce described below. In this section, we consider 2 ASICs with an oversub-scription ratio of 2:1. For the n-ASIC scenario, see § 6.3. 1. Shuffle: Each host i communicates with k other hosts, each with a different constant offset. 
+
+i → (i + j · s) mod H j ∈ { 1, . . . , k}
+
+2. Stride: Each host i communicates only with one other host that has a constant offset s.
+
+i → (i + s) mod H
+
+3. Ring All-Reduce: Each host i communicates with its two neighbors in a ring, until all values are aggregated. 
+
+i → (i + 1) mod H, (i − 1) mod H → i   
+
+> LLM Training 02,000 4,000 6,000 Tokens per Second State-of-the-Art Oversubscribed Fastroute Ideal
+
+Figure 9: The hardware prototype validates that Fastroute 
+
+performs well in real-world scenarios.          
+
+> 00.511.522.53050 100 Time [s] Inter-ASIC Link Util. [%] State-of-the-Art Oversubscribed Fastroute Ideal
+
+Figure 10: The inter-ASIC link utilization for Fastroute is re-duced to almost zero, adapting to new traffic almost instantly. 
+
+Shuffle and Stride. Shuffle and Stride are two traffic patterns prevalent in HPC workloads where a host communicates with other hosts at constant offsets. Fig. 8 shows the throughput and 99 th percentile FCT performance of different switch ar-chitectures for these patterns. We observe that while Fastroute 
+
+can adapt to traffic patterns, the Oversubscribed and State-of-the-Art switch architectures suffer significant performance degradation. Fastroute automatically remaps ingress ports to ASICs, minimizing inter-ASIC traffic and achieving near-single-ASIC performance even under oversubscription. 
+
+Ring All-Reduce. The Ring All-Reduce pattern is the heart of today’s ML training workloads; known for high predictabil-ity and low entropy. To emulate ML traffic patterns, we ran-domly split up all hosts into groups of 16, with each group forming a logical ring, and repeat this every 0 .5 ms . Fig. 8 shows the throughput and 99 th percentile FCT performance of different switch architectures for the ML Ring All-Reduce pattern. We show that Fastroute sustains performance within 
+
+< 0.5 % of the Ideal , while both the State-of-the-Art and Over-subscribed suffer from reduced throughput and higher FCT. 
+
+Testbed Evaluation: LLM Training. To practically evalu-ate Fastroute , we run an LLM training job on our hardware testbed described in § 5.2. We use PyTorch FSDP to fine-tune the 3-billion-parameter Llama 3.2 model on 8 RTX 4000 Ada GPUs. Each GPU is attached to the network via a dedicated 100G ConnectX-6 interface. To create inter-ASIC traffic, we assign ranks such that the next rank ID is always on the other ASIC. To compare the different topologies, we adjust the num-ber of inter-ASIC links and their corresponding speeds on the hardware prototype accordingly. We run the LLM training job for a few iterations to capture multiple collective operations. Fig. 9 shows the average training throughput (tokens/sec) dur-ing the run. The performance of Fastroute closely matches that of the Ideal architecture, validating our simulation re-sults. Compared to the State-of-the-Art and Oversubscribed 
+
+architectures, Fastroute has a 3 × higher token throughput. 820 40 60 80 100 050 100 Load [%] Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 20 40 60 80 100 012Load [%] FCT [ms]  99 th Perc. FCT (Web) 20 40 60 80 100 050 100 Load [%] Thrp. [%]  Mean Throughput (Hadoop) 20 40 60 80 100 01Load [%] FCT [ms]  99 th Perc. FCT (Hadoop) 
+
+Figure 11: For network load above 60 %, the limited inter-ASIC bandwidth becomes the bottleneck. Fig. 10 shows the inter-ASIC link utilization measured in 10 ms intervals during the LLM training. We can clearly see that the indirection layer of Fastroute is working as intended, since the link utilization is almost zero while the performance is on par with the Ideal architecture. The indirection layer is updated every 500 μs and does not cause any noticeable reordering issues. For the Oversubscribed and State-of-the-Art architectures, the low link utilization might look a bit surprising, as it does not appear congested. Looking at shorter timescales ( < 1 ms ) reveals microbursts that fully utilize the inter-ASIC links for a short time before congestion control drastically reduces the sending rate. This results in the lower-than-expected average utilization at the millisecond timescale, with congestion only visible at the microsecond timescale. 
+
+# 6.2 Datacenter Traffic 
+
+We generate flow-level Web and Hadoop traffic traces having inter-rack volume, inter-arrival time, and flow size distribution obtained from the Facebook datacenter [48]. For both traffic scenarios, the flows are mostly inter-rack and small in size. For the Web trace, the inter-rack traffic is 82 % with flow sizes mostly below 10 KB . For the Hadoop trace, the inter-rack traffic is 86 %; apart from small flows, it also includes a small number of large intra-rack flows. We scale up the flow inter-arrival time to generate different network loads. In this section, we consider 2 ASICs with an oversubscription ratio of 2:1. For the evaluation of the n-ASIC scenario, see § 6.3. 
+
+Impact of Network Load. Fig. 11 shows the mean through-put and 99 th percentile FCTs of the various architectures across different network loads for Web and Hadoop traces. In both scenarios, we observe that the Oversubscribed architec-ture is not able to handle loads above 60 % due to congestion at the inter-ASIC link; performance degrades significantly at higher loads, e.g., the throughput is reduced by more than half. The State-of-the-Art does not suffer from congestion at the inter-ASIC link, but is limited by the reduction in usable capacity as more of it is allocated to the inter-ASIC links.         
+
+> 050 100 050 100 Intra-Rack [%] Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 050 100 012Intra-Rack [%] FCT [ms]  99 th Perc. FCT (Web)
+
+Figure 12: For high intra-rack traffic, the switch is underuti-lized due to the uplink ports being idle.     
+
+> 1.21.41.61.82050 100 Inter-ASIC oversub Thrp. [%]  Mean Throughput (Web) 2-ASIC 4-ASIC 6-ASIC 8-ASIC 1.21.41.61.8201Inter-ASIC oversub FCT [ms]  99 th Perc. FCT (Web)
+
+Figure 13: Decreasing the oversubscription restores the single-ASIC-like performance of Fastroute .
+
+Fastroute , on the other hand, closely matches the performance of the Ideal architecture, across the whole load range. There is a small throughput penalty for Fastroute , i.e., around 1 % compared to the Ideal , primarily due to circuit reconfiguration downtime and increased latency when traversing inter-ASIC links. For the rest of the evaluation, we use a high network load (80 %) sufficient to create an inter-ASIC bottleneck. 
+
+Impact of Intra-Rack Traffic. Measurements from Meta’s datacenters show that both scenarios are dominated by inter-rack traffic, with intra-rack traffic around 18 % for Web and 14 % for Hadoop [48]. In this experiment, we synthesize traf-fic traces with varying intra-rack traffic fractions and observe their performance impact. Fig. 12 shows the mean through-put and 99 th percentile FCTs of different switch architectures for Web traffic across different intra-rack traffic fractions. As observed, the Oversubscribed architecture performs worse at low intra-rack traffic; i.e., the inter-ASIC links are not a bottleneck when intra-rack traffic is higher. The underlying reason is that the ToR uplinks towards the spine layer are un-derutilized in those scenarios. However, the performance gap between Fastroute and Ideal is small even at very low intra-rack traffic, demonstrating the design’s efficacy. The State-of-the-Art struggles across the entire range equally, since the non-oversubscribed inter-ASIC link makes it independent of traffic patterns but reduces overall available capacity. 
+
+# 6.3 Fastroute with n-ASICs 
+
+Increasing the number of ASICs might be unavoidable to meet performance targets, where Fastroute can reduce the overhead associated with multi-ASIC designs. While the indirection layer’s efficiency is reduced, Fastroute still performs better than the State-of-the-Art .
+
+Oversubscription Ratio. With more ASICs, it becomes harder for the circuit switch to localize traffic. In the worst-92 4 6 8050 100 No. ASIC Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 2 4 6 8012No. ASIC FCT [ms]  99 th Perc. FCT (Web) 
+
+Figure 14: Scaling to more than 2-ASICs is possible while keeping single-ASIC-like performance.           
+
+> 2468050 100 No. ASIC Thrp. [%]  Mean Throughput (ML) State-of-the-Art Oversubscribed Fastroute Ideal 2468012No. ASIC FCT [ms]  99 th Perc. FCT (ML)
+
+Figure 15: Fastroute can be scaled to more ASICs, at the cost of less oversubscription. case scenario, an equal number of packets per port needs to be forwarded to each ASIC. Due to the circuit-switched be-haviour, traffic can only be redirected on a per-port basis, not per packet. This means per port, we can only pick one ASIC to redirect traffic to, with everything else needing to cross between ASICs. Hence, we can reduce the inter-ASIC band-width by at most 1 − ( 1#ASIC ). Fig. 13 experimentally confirms this, where we observe that a higher number of ASICs needs a lower oversubscription to achieve high performance. For the following experiments, we adapt the inter-ASIC oversub-scription according to the formula. 
+
+DCN Traffic. Fig. 14 shows the mean throughput and tail FCT for the Web traffic traces for different numbers of ASICs. We see that by adapting the inter-ASIC oversubscription, single-ASIC-like performance can be maintained even with 8 ASICs. There Fastroute is within 2 % of the throughput of the Ideal architecture and within 1 % of the tail FCT. Note that as the inter-ASIC oversubscription decreases with more ASICs (Fig. 13), both the State-of-the-Art and Oversubscribed 
+
+architectures also approach single-ASIC performance. 
+
+ML Traffic. Fig. 15 shows the mean throughput and tail FCT for ML traffic, where Fastroute ’s performance is close to that of a single ASIC. Overall, Fastroute still works even at 8 ASICs across a diverse set of traffic scenarios, e.g., Web (small flows, high entropy) and ML Ring All-Reduce (large flows, low entropy). The gap compared to more traditional designs narrows, indicating that Fastroute is highly effective for the 2 – 4 ASIC range. Since integrating even 4 large-scale ASICs into a single package is a significant hurdle [45], we believe that Fastroute can cover the most relevant use cases. 
+
+Number of Circuit Switches. With more ASICs and higher port counts, the question of building a super-high-radix circuit switch arises. The natural solution is to split the monolithic circuit switch into multiple smaller radix circuit switches       
+
+> Web ML 050 100 Thrp. [%]  Mean Throughput 1-CS 2-CS 4-CS 8-CS Web ML 01FCT [ms]  99 th Perc. FCT
+
+Figure 16: Fastroute works even with reduced flexibility of multiple independent circuit switches.             
+
+> 0200 400 600 800 050 100 Traffic Phase Interval [ μs] Thrp. [%]  Mean Throughput (Fast) State-of-the-Art Oversubscribed Fastroute Ideal 0200 400 600 800 01Traffic Phase Interval [ μs] FCT [ms]  99 th Perc. FCT (Fast)
+
+Figure 17: Fastroute remains robust as long as the reconfigu-ration is 3–4 × faster than large traffic matrix changes. running in parallel; of course, this reduces flexibility. Fig. 16 shows the mean throughput and 99 th percentile FCT for both the ML and Web traffic traces while using 8-ASICs. We see that the performance delta between the number of independent circuit switches is < 1 %. Fastroute , therefore, operates well even with reduced reconfiguration flexibility by splitting the monolithic circuit switch into multiple smaller ones. 
+
+# 6.4 Sensitivity Analysis 
+
+We analyze the Fastroute performance sensitivity to several parameters, e.g., traffic stability, buffer size, and reconfigura-tion overhead; also benchmark the control-plane efficiency. 
+
+Impact of Traffic Stability. To evaluate the robustness of 
+
+Fastroute w.r.t. the traffic stability, we synthesize a traffic sce-nario ( Fast ) that presents the worst-case scenario, consisting of two periodic phases, i.e., a) fully inter-rack in the first phase, and b) fully intra-rack in the second phase. We adjust the inter-val between these two phases to vary traffic stability. Fig. 17 shows the mean throughput and 99 th FCTs of different switch architectures across a range of traffic phase-switching inter-vals, while keeping the Fastroute circuit reconfiguration in-terval as 100 μs . The insight is that Fastroute closely matches the performance of the Ideal if it can adapt at least 4 × faster than the rate of worst-case traffic variability. We also observe that, when the traffic phase-switching interval is faster than 200 μs (i.e., within 2 × of the reconfiguration interval), the performance of Fastroute starts degrading gradually, but still outperforms both the Oversubscribed and State-of-the-Art 
+
+architectures over the whole range. The effectiveness of Fas-troute depends on the relative frequency of reconfiguration vs. traffic variability. Luckily, DCN workloads are reasonably stable over short time scales [7, 48], making Fastroute per-form well in practice (§ 6.2). We show this in our evaluation, which includes highly bursty traffic across a wide range of workloads, including Web/Hadoop and ML. 10 0 20 40 60 80 050 100 Buffer Size [MB] Thrp. [%]  Mean Throughput (Hadoop) State-of-the-Art Oversubscribed Fastroute Ideal 0 20 40 60 80 01Buffer Size [MB] FCT [ms]  99 th Perc. FCT (Hadoop) 
+
+Figure 18: Smaller buffers slightly improve the Oversub-scribed architecture performance due to less buffer buildup.       
+
+> 010 20 050 100 Reconf. Overhead [%] Thrp. [%]  Mean Throughput (Hadoop) Fastroute Ideal 010 20 01Reconf. Overhead [%] FCT [ms]  99 th Perc. FCT (Hadoop)
+
+Figure 19: If the reconfiguration overhead is high, then too much bandwidth is lost during the downtime. 
+
+Impact of Inter-ASIC Buffer Size. Fig. 18 shows the mean throughput and 99 th percentile FCTs for Hadoop traffic, while varying the buffer size of the inter-ASIC links. As observed, 
+
+Fastroute and State-of-the-Art performance are mostly agnos-tic to buffer size, whereas the Oversubscribed architecture is impacted as the buffer builds up due to high inter-ASIC congestion. A smaller buffer size slightly improves the mean throughput but comes at the expense of a higher tail FCT. Dropping packets for longer flows degrades performance by forcing the congestion control algorithm to reduce the sending rate, thereby increasing tail latency. 
+
+Impact of Reconfiguration Overhead. Fig. 19 profiles the mean throughput and 99 th percentile FCT performance of Fas-troute w.r.t. the “reconfiguration overhead” defined as the ratio of circuit switch downtime and the reconfiguration interval. For example, if the downtime is 1 μs and the reconfiguration interval is 100 μs (Table 1), the overhead is 1 %; leading up to 1 % bandwidth wastage on average. In this experiment, we tune this overhead by only varying the reconfiguration downtime. As observed, the performance degrades at higher reconfiguration overhead. However, the performance impact is negligible when the overhead is around 1 %. Given more stable traffic [7, 48], this overhead is further reduced. 
+
+Control Plane Efficiency. Fig. 20 shows the runtime of the 
+
+Fastroute control plane while varying the number of ports and ASICs. We consider both the optimal matching algo-rithm (§ 4.2) and the heuristic (§ 4.3), abbreviated as Heur. 
+
+N. The experiments run single-threaded on one CPU core (AMD Zen 3) and are averaged over 1k iterations. As ex-pected, the optimal algorithm scales poorly, reaching 3 .5 ms 
+
+for 512 ports and 8 ASICs. In contrast, the heuristic scales almost linearly. For 512 ports, the 2-ASIC and 8-ASIC cases require only 28 μs and 127 μs respectively. For more than 2 ASICs, the heuristic is not strictly optimal, but only incurs          
+
+> 100 200 300 400 500 0500 1000 # Packet Switch Ports Runtime [ μs]  248Heur. 2 Heur. 4 Heur. 8
+
+Figure 20: The heuristic is much faster for high port counts. 
+
+< 1 % additional inter-ASIC traffic on average across 1k ran-dom traffic matrices. Runtime can be reduced further through port bundling or hardware acceleration (§ A.1). 
+
+# 6.5 Power and Overhead Analysis 
+
+We estimate the total power savings from Fastroute and show the negligible overhead of adding a circuit-switched indirec-tion layer. Table 2 shows the power savings of Fastroute 
+
+compared to the non-oversubscribed n-ASIC switch. The sav-ings are due to bandwidth reductions from inter-ASIC links, the fabric, and buffers, as discussed below. 
+
+Baseline ASIC Chip. For this evaluation, we consider the most cutting-edge baseline chip ( ≈ Tomahawk 6; 102.4 Tbps) as the ASIC building block to create the n-ASIC switches (Fig. 3). We assume each Tomahawk 6 ASIC consumes ≈
+
+750 W [42] and occupies ≈ 800 mm 2 [63]. 
+
+Inter-ASIC Throughput Reduction Factor. Fastroute re-duces the required inter-ASIC throughput by a factor of 1#ASIC 
+
+without sacrificing performance (§ 6). We define the inter-ASIC throughput reduction factor as α = T hroughput  
+
+> #ASIC
+
+, which is used to compute the following power savings. 
+
+Power Savings from Inter-ASIC Links. To estimate the power required to transmit data between ASICs, we use the energy per bit value from a UCIe-compliant interface fabri-cated in 3 nm [35]. This interface consumes 0 .6 pJ /bit and results in a power reduction of α · 0.6 pJ /bit ≈ 41 W for the 2-ASIC case and ≈ 33 W for the 8-ASIC case. 
+
+Power Savings from Fabric. For more than two ASICs, a fabric is needed to interconnect them. By reducing the inter-ASIC bandwidth, we can also reduce the fabric bandwidth. We estimate that fabric chips consume ≈ 70 % of the power of a packet switch ASIC, based on the power consumption break-down of a multi-ASIC chassis switch [22]. This results in 5.13 pJ /bit and provides savings of α · 5.13 pJ /bit ≈ 300 W
+
+for the 4-ASIC case and ≈ 280 W for the 8-ASIC case. 
+
+Power Savings From Buffer. Due to localized traffic, pack-ets might need to be buffered only at a single ASIC rather than at two. Buffering twice can be avoided, but requires com-plex buffering logic instead. Examining similar-sized SRAM modules, as found in network ASIC buffers, reveals an energy consumption of ≈ 2 pJ /bit for one read access followed by one write access [13] when scaled to modern process nodes. This results in savings of around α · 2 pJ /bit ≈ 137 W for the 2-ASIC case and ≈ 109 W for the 8-ASIC case. 11 Table 2: Fastroute saves hundreds of watts per device.                                  
+
+> Number of ASIC 2468
+> Throughput [Tbps] 136.5 234.1 335.1 436.9 Inter-ASIC Link Saving [ W]41.0 35.1 33.5 32.8 Fabric Saving [ W]0300.2 286.5 280.2 Buffer Saving [ W]136.5 117.0 111.7 109.2 Indirection Layer Overhead [ W]-4.8 -8.2 -11.7 -15.3 Total Savings [ W]172.7 444.1 420.0 406.9
+
+Overhead from Indirection Layer. For this, we consider an electrical circuit-switch (§ 3.1), which can be implemented without relying on future co-packaged optics switches en-abling OCS indirection layers. Here we consider the specific electrical crossbar switch [11], implemented in a 40 nm tech-nology. We can approximate the power/area consumption of the design with a newer 5 nm technology. Looking at his-torical data from TSMC technology nodes, the performance per watt has increased by ≈ 3× from 40 nm to 5 nm technol-ogy, while the area was reduced by ≈ 6× [17, 49, 57]. The electrical crossbar switch has a capacity of 30 Tbps while consuming 0 .95 W and occupying 0 .6 mm 2. This results in an overhead of 0 .035 pJ /bit and an area of 0 .02 mm 2/T bps . For the throughput of the baseline chip (102.4 Tbps) this results in 3 .6W of excess power and 2 .4 mm 2 of excess area, which is < 0.5 % of the power and area w.r.t. the baseline chip. 
+
+Overall Power Savings. Finally, we get total power savings of 173 W for the 2-ASIC case and 407 W for the 8-ASIC case (Table 2). Note that the peak power savings occur at 4 ASICs, due to large savings from both fabric and inter-ASIC links, while still allowing decent oversubscription. With more ASICs, the efficiency of the indirection layer reduces. 
+
+Discussion. Since Fastroute frees up capacity from the inter-ASIC links, it achieves a higher total throughput (Table 2) while maintaining 102 .4 T bps per ASIC. This is because more of the throughput can be directed towards the physi-cal ports rather than to the fabric (Fig. 3). Achieving the same total throughput with a traditional n-ASIC switch without oversubscription requires ASICs with more than 102 .4 T bps 
+
+throughput, which might not be realizable today. Even if such larger ASICs could be manufactured, Fastroute still has an edge by saving hundreds of watts of power per switch. The total power draw of such switches is shown in § A.6. 
+
+# 7 Related Work 
+
+Circuit Switching in Datacenters. Circuit switches have been widely explored in datacenters to enable reconfigurable topologies. Most proposals employ OCS [6, 26, 38, 39, 47, 56, 61, 64, 66], while Larry [14] and Shoal [51] use ECS. An-other line of work leverages reconfiguration to improve traffic locality: RDC [58] dynamically assigns frequently communi-cating hosts to the same ToR switch, and OSSV [18] extends this idea to jointly minimize traffic skewness and inter-rack volume. Fastroute differs from those approaches in three im-portant aspects. First, the context of running within a single network switch; second, making the problem tractable by allowing flexibility only at the ingress; and third, designing an efficient heuristic having three orders of magnitude faster runtime (§ A.1). Splitting ingress and egress is enabled by the context of a single network switch and enables new algorithms to be used, distinguishing this work from other algorithmic proposals for circuit switching in datacenters. More details can be found in § 4.4. 
+
+Scaling Packet Switches. The end of Dennard scaling has exposed fundamental challenges in scaling packet switches. Prior work has explored several directions, e.g., improving packet parser [36], combining cell and packet switching [65], and introducing multiple parallel dataplanes [25]. Addition-ally, [32] uses wafer-scale packaging technology and fiber ribbons to increase the bandwidth of network switches. Their approach targets a different class of devices, such as Cer-bras [12], stitching together a chip that is an order of magni-tude larger. Our work takes a complementary path, enabling packet switching to scale more efficiently to multiple ASICs. 
+
+# 8 Future Research Directions 
+
+The flexibility of the indirection layer opens up opportuni-ties beyond reducing inter-ASIC bandwidth. First, it could be leveraged for energy proportionality. By dynamically lo-calizing traffic to a subset of ASICs, unused portions of the switch could be powered down at low load, improving energy efficiency without compromising performance. Second, the same flexibility enables heterogeneous chiplets with specialized capabilities, e.g., a chiplet optimized for com-plex protocol handling. Ports could be dynamically reassigned to chiplets without manual recabling. This reduces the cost of adding the functionality to every chiplet while still supporting diverse use cases. Finally, the indirection layer could enhance hardware resiliency. For an ASIC-side port failure, traffic can be rapidly remapped to spare healthy ASIC-ports, improving fault tolerance without manual intervention. 
+
+# 9 Conclusion 
+
+Multi-ASIC switches are the inevitable path forward as single-ASIC switch designs reach their physical and economic limits. We present Fastroute , a practical enabler of high-performance yet feasible multi-ASIC switch design. By leveraging fast circuit switches, Fastroute remaps ingress ports to ASICs to minimize inter-ASIC traffic. Our evaluation shows that 
+
+Fastroute delivers performance within 1 % of a single-ASIC switch across a diverse set of traffic workloads, outperforming a traditional non-blocking design while enabling hundreds of watts of power savings. 12 References 
+
+[1] Martín Abadi, Paul Barham, Jianmin Chen, Zhifeng Chen, Andy Davis, Jeffrey Dean, Matthieu Devin, Sanjay Ghemawat, Geoffrey Irving, Michael Isard, Manjunath Kudlur, Josh Lev-enberg, Rajat Monga, Sherry Moore, Derek G Murray, Benoit Steiner, Paul Tucker, Vijay Vasudevan, Pete Warden, Martin Wicke, Yuan Yu, and Xiaoqiang Zheng. TensorFlow: A System for Large-Scale Machine Learning. In 12th USENIX Sympo-sium on Operating Systems Design and Implementation OSDI 16 , pages 265–283, Savannah, GA, USA, 2016. USENIX As-sociation. [2] Maher Abdelrasoul, Ahmed Sayed Shaban, and Hala Abdel-Kader. FPGA Based Hardware Accelerator for Sorting Data. In 
+
+2021 9th International Japan-Africa Conference on Electron-ics, Communications, and Computations (JAC-ECC) , pages 57–60, Virtual, December 2021. IEEE. [3] Mohammad Alizadeh, Albert Greenberg, David A. Maltz, Jiten-dra Padhye, Parveen Patel, Balaji Prabhakar, Sudipta Sengupta, and Murari Sridharan. Data center TCP (DCTCP). In Proceed-ings of the ACM SIGCOMM 2010 Conference , SIGCOMM ’10, pages 63–74, New York, NY, USA, August 2010. Association for Computing Machinery. [4] Luca G. Amaru, Maurizio Martina, and Guido Masera. High Speed Architectures for Finding the First two Maximum/Mini-mum Values. IEEE Transactions on Very Large Scale Integra-tion (VLSI) Systems , 20(12):2342–2346, December 2012. [5] Brian Bailey. Designs Beyond The Reticle Limit. 
+
+https://semiengineering.com/designs-beyond-the-reticle-limit/ , November 2020. [6] Hitesh Ballani, Paolo Costa, Raphael Behrendt, Daniel Cletheroe, Istvan Haller, Krzysztof Jozwik, Fotini Karinou, Sophie Lange, Kai Shi, Benn Thomsen, and Hugh Williams. Sirius: A Flat Datacenter Network with Nanosecond Optical Switching. In Proceedings of the Annual Conference of the ACM Special Interest Group on Data Communication on the Applications, Technologies, Architectures, and Protocols for Computer Communication , pages 782–797, Virtual Event USA, July 2020. ACM. [7] Theophilus Benson, Ashok Anand, Aditya Akella, and Ming Zhang. MicroTE: Fine grained traffic engineering for data centers. In Proceedings of the Seventh COnference on Emerg-ing Networking EXperiments and Technologies , pages 1–12, Tokyo Japan, December 2011. ACM. [8] Mark Bohr. The evolution of scaling from the homogeneous era to the heterogeneous era. In 2011 International Electron Devices Meeting , pages 1.1.1–1.1.6, Washington, D.C, USA, December 2011. IEEE. [9] Shekhar Borkar. Thousand Core ChipsA Technology Perspec-tive. In 2007 44th ACM/IEEE Design Automation Conference ,pages 746–749, San Diego, CA, USA, June 2007. Association for Computing Machinery. [10] Broadcom. News Releases. https://www.broadcom.com/ company/news/releases , 2026. [11] Cagla Cakir, Ron Ho, Jon Lexau, and Ken Mai. Modeling and Design of High-Radix On-Chip Crossbar Switches. In 
+
+Proceedings of the 9th International Symposium on Networks-on-Chip , pages 1–8, Vancouver BC Canada, September 2015. ACM. [12] Cerebras. Cerebras. https://www.cerebras.ai , January 2026. [13] Mu-Tien Chang, Paul Rosenfeld, Shih-Lien Lu, and Bruce Ja-cob. Technology comparison for large last-level caches (L3Cs): Low-leakage SRAM, low write-energy STT-RAM, and refresh-optimized eDRAM. In 2013 IEEE 19th International Sympo-sium on High Performance Computer Architecture (HPCA) ,pages 143–154, Shenzhen, China, February 2013. IEEE. [14] Andromachi Chatzieleftheriou, Sergey Legtchenko, Hugh Williams, and Antony Rowstron. Larry: Practical Network Reconfigurability in the Data Center. In 15th USENIX Sym-posium on Networked Systems Design and Implementation (NSDI 18) , pages 141–156, Renton, WA, USA, 2018. USENIX Association. [15] Arne Verheyde Broadcom’s Tomahawk 4 chips offer supe-rior throughput. Broadcom Ships First 25.6Tbps Switch on 7nm. https://www.tomshardware.com/news/broadcom-ships-first-256tbps-switch-on-7nm , December 2019. [16] Cisco. Cisco Catalyst 9500 Series Architecture White Paper. https://www.cisco.com/c/en/us/products/ collateral/switches/catalyst-9500-series-switches/nb-06-cat9500-architecture-cte-en.html ,September 2026. [17] Annie Dang. TSMC turns on the "volume" for its 28nm pro-cess. https://www.manmonthly.com.au/tsmc-turns-on-the-volume-for-its-28nm-process/ , October 2011. [18] Sushovan Das, Arlei Silva, and T. S. Eugene Ng. Rearchi-tecting Datacenter Networks: A New Paradigm with Optical Core and Optical Edge. In IEEE INFOCOM 2024 - IEEE Conference on Computer Communications , pages 1371–1380, Vancouver BC Canada, May 2024. IEEE. [19] Claudio DeSanti. 802.1Qbb – Priority-based Flow Control |. 
+
+https://1.ieee802.org/dcb/802-1qbb/ , 2011. [20] AleksandarK Discuss. Microsoft Unveils World’s Biggest AI Datacenter, Housing Hundreds of Thousands of GPUs. 
+
+https://www.techpowerup.com/341139/microsoft-unveils-worlds-biggest-ai-datacenter-housing-hundreds-of-thousands-of-gpus , January 2026. [21] Hadi Esmaeilzadeh, Emily Blem, Renee St. Amant, Karthikeyan Sankaralingam, and Doug Burger. Dark silicon and the end of multicore scaling. SIGARCH Comput. Archit. News , 39(3):365–376, June 2011. [22] Nicolas Fevrier. PTX10000 Power Optimization. 
+
+https://community.juniper.net/blogs/nicolas-fevrier/2023/08/29/ptx10000-power-optimization ,August 2023. [23] FS. N9600-64OD, 64-Port Ethernet HPC/AI Data Center Switch, 64 x 800Gb OSFP, PicOS®, Broadcom Tomahawk 5 Chip, Front-to-Back Airflow - FS.com Europe. https://www. fs.com/eu-en/products/250955.html , January 2026. [24] Albert Greenberg, James R. Hamilton, Navendu Jain, Srikanth Kandula, Changhoon Kim, Parantap Lahiri, David A. Maltz, 
+
+13 Parveen Patel, and Sudipta Sengupta. VL2: A scalable and flexible data center network. SIGCOMM Comput. Commun. Rev. , 39(4):51–62, August 2009. [25] Yibo Guo, William M. Mellette, Alex C. Snoeren, and George Porter. Scaling beyond packet switch limits with multiple dataplanes. In Proceedings of the 18th International Confer-ence on Emerging Networking EXperiments and Technologies ,CoNEXT ’22, pages 214–231, New York, NY, USA, November 2022. Association for Computing Machinery. [26] Navid Hamedazimi, Zafar Qazi, Himanshu Gupta, Vyas Sekar, Samir R. Das, Jon P. Longtin, Himanshu Shah, and Ashish Tanwer. FireFly: A reconfigurable wireless data center fabric using free-space optics. In Proceedings of the 2014 ACM Conference on SIGCOMM , pages 319–330, Chicago Illinois USA, August 2014. ACM. [27] Sangyoon Han, Tae Joon Seok, Niels Quack, Byung-Wook Yoo, and Ming C. Wu. Large-scale silicon photonic switches with movable directional couplers. Optica , 2(4):370–375, April 2015. [28] Kazuhiro Ikeda, Keijiro Suzuki, Ryotaro Konoike, Shu Namiki, and Hitoshi Kawashima. Large-scale silicon photonics switch based on 45-nm CMOS technology. Optics Communications ,466:125677, July 2020. [29] Intel. Intel® Tofino™ Reihe – Programmierbare Ethernet-Switch ASICs. https://www.intel.com/content/www/ de/de/products/details/ethernet/programmable-ethernet-switch/tofino-series.html , January 2026. [30] Simon Kassing, Asaf Valadarsky, Gal Shahaf, Michael Schapira, and Ankit Singla. Beyond fat-trees without antennae, mirrors, and disco-balls. In Proceedings of the Conference of the ACM Special Interest Group on Data Communication ,SIGCOMM ’17, pages 281–294, New York, NY, USA, August 2017. Association for Computing Machinery. [31] Simon Arnold Kassing. Netbench. https://github.com/ ndal-eth/netbench , August 2025. [32] Isaac Keslassy, https://orcid.org/0000-0001-6103-6910, View Profile, Bill Lin, https://orcid.org/0000-0003-0965-7247, and View Profile. Petabit Router-in-a-Package: Rethinking Internet Routers in the Age of In-Packaged Optics and Heterogeneous Integration. In Proceedings of the 24th ACM Workshop on Hot Topics in Networks , ACM Conferences, pages 245–253. As-sociation for Computing Machinery, College Park, MD, USA, November 2025. [33] Harold W. Kuhn. The Hungarian Method for the Assignment Problem. In Michael Jünger, Thomas M. Liebling, Denis Nad-def, George L. Nemhauser, William R. Pulleyblank, Gerhard Reinelt, Giovanni Rinaldi, and Laurence A. Wolsey, editors, 
+
+50 Years of Integer Programming 1958-2008: From the Early Years to the State-of-the-Art , pages 29–47. Springer, Berlin, Heidelberg, 2010. [34] Lightmatter. Passage M-Series Photonic Superchip. https: //lightmatter.co/products/m1000/ , January 2026. [35] Mu-Shan Lin, Chien-Chun Tsai, Shenggao Li, Wei-Chih Chen, Wen-Hung Huang, Yu-Chi Chen, Yu-Jie Huang, Alan Drake, Chin-Hua Wen, Paul Ranucci, Hsin-Hung Kuo, Aidong Yin, Shu-Chun Yang, Farsheed Mahmoudi, Han-Tzung Ke, Chao-Chieh Li, Nai-Chen Cheng, Jimmy Wang, Kevin Lin, Harry Liao, Jie-Ren Huang, Meng-Hsuan Wu, Kenny Cheng-Hsiang Hsieh, Nicholas Amatruda, William Polanco, David King, Todd Basso, and Anwar Kashem. 36.1 A 32Gb/s 10.5Tb/s/mm 0.6pJ/b UCIe-Compliant Low-Latency Interface in 3nm Fea-turing Matched-Delay for Dynamic Clock Gating. In 2025 IEEE International Solid-State Circuits Conference (ISSCC) ,volume 68, pages 586–588, San Francisco, CA, USA, February 2025. IEEE. [36] Huan Liu, Zhiliang Qiu, Weitao Pan, Jiajun Li, and Jinjian Huang. HyperParser: A High-Performance Parser Architecture for Next Generation Programmable Switch and SmartNIC. In 
+
+Proceedings of the 5th Asia-Pacific Workshop on Networking ,APNet ’21, pages 50–56, New York, NY, USA, February 2022. Association for Computing Machinery. [37] Igor L. Markov. Limits on fundamental limits to computation. 
+
+Nature , 512(7513):147–154, August 2014. [38] William M. Mellette, Alex Forencich, Rukshani Athapathu, Alex C. Snoeren, George Papen, and George Porter. Real-izing RotorNet: Toward Practical Microsecond Scale Optical Networking. In Proceedings of the ACM SIGCOMM 2024 Con-ference , ACM SIGCOMM ’24, pages 392–414, New York, NY, USA, August 2024. Association for Computing Machinery. [39] William M. Mellette, Rob McGuinness, Arjun Roy, Alex Foren-cich, George Papen, Alex C. Snoeren, and George Porter. Rotor-Net: A Scalable, Low-complexity, Optical Datacenter Network. In Proceedings of the Conference of the ACM Special Inter-est Group on Data Communication , SIGCOMM ’17, pages 267–280, New York, NY, USA, August 2017. Association for Computing Machinery. [40] William M. Mellette, Alex C. Snoeren, and George Porter. P-FatTree: A multi-channel datacenter network topology. In 
+
+Proceedings of the 15th ACM Workshop on Hot Topics in Net-works , pages 78–84, Atlanta GA USA, November 2016. ACM. [41] Rui Miao, Hongyi Zeng, Changhoon Kim, Jeongkeun Lee, and Minlan Yu. SilkRoad: Making Stateful Layer-4 Load Balanc-ing Fast and Cheap Using Switching ASICs. In Proceedings of the Conference of the ACM Special Interest Group on Data Communication , SIGCOMM ’17, pages 15–28, New York, NY, USA, August 2017. Association for Computing Machinery. [42] Michael. Tomahawk 6: The industry’s first 100-terabit switch chip. https://gazettabyte.com/tomahawk-6-the-industrys-first-100-terabit-switch-chip/ ,June 2025. [43] Samuel K. Moore. Another Step Toward the End of Moore’s Law - IEEE Spectrum. https://spectrum.ieee.org/ another-step-toward-the-end-of-moores-law , May 2019. [44] Deepak Narayanan, Mohammad Shoeybi, Jared Casper, Patrick LeGresley, Mostofa Patwary, Vijay Korthikanti, Dmitri Vain-brand, Prethvi Kashinkunti, Julie Bernauer, Bryan Catanzaro, Amar Phanishayee, and Matei Zaharia. Efficient large-scale language model training on GPU clusters using megatron-LM. In Proceedings of the International Conference for High Per-formance Computing, Networking, Storage and Analysis , SC 
+
+14 ’21, pages 1–15, New York, NY, USA, November 2021. Asso-ciation for Computing Machinery. [45] NVIDIA’s Rubin Ultra reportedly sticking to adual-die design instead of a four-die plan. https: //www.tweaktown.com/news/110819/nvidias-rubin-ultra-reportedly-sticking-to-a-dual-die-design-instead-of-a-four-die-plan/index.html , April 2026. [46] Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas Köpf, Edward Yang, Zach DeVito, Martin Raison, Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith Chintala. PyTorch: An imperative style, high-performance deep learning library. In Proceedings of the 33rd International Conference on Neural Information Processing Systems , number 721, pages 8026–8037. Curran Associates Inc., Red Hook, NY, USA, December 2019. [47] Leon Poutievski, Omid Mashayekhi, Joon Ong, Arjun Singh, Mukarram Tariq, Rui Wang, Jianan Zhang, Virginia Beaure-gard, Patrick Conner, Steve Gribble, Rishi Kapoor, Stephen Kratzer, Nanfang Li, Hong Liu, Karthik Nagaraj, Jason Orn-stein, Samir Sawhney, Ryohei Urata, Lorenzo Vicisano, Kevin Yasumura, Shidong Zhang, Junlan Zhou, and Amin Vahdat. Jupiter evolving: Transforming google’s datacenter network via optical circuit switches and software-defined networking. In Proceedings of the ACM SIGCOMM 2022 Conference , SIG-COMM ’22, pages 66–85, New York, NY, USA, August 2022. Association for Computing Machinery. [48] Arjun Roy, Hongyi Zeng, Jasmeet Bagga, George Porter, and Alex C. Snoeren. Inside the Social Network’s (Datacenter) Network. In Proceedings of the 2015 ACM Conference on Special Interest Group on Data Communication , pages 123– 137, London United Kingdom, August 2015. ACM. [49] David Schor. TSMC N3, And Challenges Ahead. 
+
+https://fuse.wikichip.org/news/7375/tsmc-n3-and-challenges-ahead/ , May 2023. [50] Tae Joon Seok, Niels Quack, Sangyoon Han, Richard S. Muller, and Ming C. Wu. Large-scale broadband digital silicon pho-tonic switches with vertical adiabatic couplers. Optica , 3(1):64– 70, January 2016. [51] Vishal Shrivastav, Asaf Valadarsky, Hitesh Ballani, Paolo Costa, Ki Suh Lee, Han Wang, Rachit Agarwal, and Hakim Weath-erspoon. Shoal: A Network Architecture for Disaggregated Racks. In 16th USENIX Symposium on Networked Systems De-sign and Implementation (NSDI 19) , pages 255–270, Boston, MA, USA, 2019. USENIX Association. [52] Min Si, Pavan Balaji, Yongzhou Chen, Ching-Hsiang Chu, Adi Gangidi, Saif Hasan, Subodh Iyengar, Dan Johnson, Bingzhe Liu, Regina Ren, Deep Shah, Ashmitha Jeevaraj Shetty, Greg Steinbrecher, Yulun Wang, Bruce Wu, Xinfeng Xie, Jingyi Yang, Mingran Yang, Kenny Yu, Minlan Yu, Cen Zhao, Wes Bland, Denis Boyda, Suman Gumudavelli, Prashanth Kannan, Cristian Lumezanu, Rui Miao, Zhe Qu, Venkat Ramesh, Maxim Samoylov, Jan Seidel, Srikanth Sundaresan, Feng Tian, Qiye Tan, Shuqiang Zhang, Yimeng Zhao, Shengbao Zheng, Art Zhu, and Hongyi Zeng. Collective Communication for 100k+ GPUs, January 2026. [53] Arjun Singh, Joon Ong, Amit Agarwal, Glen Anderson, Ashby Armistead, Roy Bannon, Seb Boving, Gaurav Desai, Bob Fel-derman, Paulie Germano, Anand Kanagala, Jeff Provost, Jason Simmons, Eiichi Tanda, Jim Wanderer, Urs Hölzle, Stephen Stuart, and Amin Vahdat. Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google’s Datacenter Network. SIGCOMM Comput. Commun. Rev. , 45(4):183–197, August 2015. [54] Wei Song, Dirk Koch, Mikel Luján, and Jim Garside. Parallel Hardware Merge Sorter. In 2016 IEEE 24th Annual Interna-tional Symposium on Field-Programmable Custom Computing Machines (FCCM) , pages 95–102, Washington, D.C, USA, May 2016. IEEE. [55] Ivan Tsmots, Vasyl Rabyk, Oleksa Skorokhoda, and Volodymyr Antoniv. FPGA implementation of vertically parallel minimum and maximum values determination in array of numbers. In 
+
+2017 14th International Conference The Experience of De-signing and Application of CAD Systems in Microelectronics (CADSM) , pages 234–236, Polyana-Svalyava, Ukraine, Febru-ary 2017. IEEE. [56] Ryohei Urata, Hong Liu, Kevin Yasumura, Erji Mao, Jill Berger, Xiang Zhou, Cedric Lam, Roy Bannon, Darren Hutchinson, Daniel Nelson, Leon Poutievski, Arjun Singh, Joon Ong, and Amin Vahdat. Apollo: Large-Scale Deploy-ment of Optical Circuit Switching for Datacenter Networking. In 2023 Optical Fiber Communications Conference and Exhi-bition (OFC) , pages 1–3, San Diego, CA, USA, March 2023. Optica Publishing Group. [57] Team VLSI. TSMC 7nm, 16nm and 28nm Technology node comparisons. https://teamvlsi.com/2021/09/tsmc-7nm-16nm-and-28nm-technology-node-comparisons. html , September 2021. [58] Weitao Wang, Dingming Wu, Sushovan Das, Afsaneh Rahbar, Ang Chen, and T. S. Eugene Ng. RDC: Energy-Efficient Data Center Network Congestion Relief with Topological Recon-figurability at the Edge. In 19th USENIX Symposium on Net-worked Systems Design and Implementation (NSDI 22) , pages 1267–1288, Renton, WA, USA, 2022. USENIX Association. [59] Weiyang Wang, Manya Ghobadi, Kayvon Shakeri, Ying Zhang, and Naader Hasani. Rail-only: A Low-Cost High-Performance Network for Training LLMs with Trillion Parameters, July 2024. [60] Weiyang Wang, Moein Khazraee, Zhizhen Zhong, Manya Ghobadi, Zhihao Jia, Dheevatsa Mudigere, Ying Zhang, and Anthony Kewitsch. TopoOpt: Co-optimizing Network Topol-ogy and Parallelization Strategy for Distributed Training Jobs, September 2022. [61] Weiyang Wang, Moein Khazraee, Zhizhen Zhong, Manya Ghobadi, Zhihao Jia, Dheevatsa Mudigere, Ying Zhang, and Anthony Kewitsch. TopoOpt: Co-optimizing Network Topol-ogy and Parallelization Strategy for Distributed Training Jobs. In 20th USENIX Symposium on Networked Systems Design and Implementation (NSDI 23) , pages 739–767, Boston, MA, USA, 2023. USENIX Association. [62] Ming C. Wu, Tae Joon Seok, Sangyoon Han, and Niels Quack. Large-scale silicon photonic switches. In 2016 21st OptoElec-tronics and Communications Conference (OECC) Held Jointly 
+
+15 with 2016 International Conference on Photonics in Switching (PS) , pages 1–3, Niigata, Japan, July 2016. IEEE. [63] Sharada Yeluri. Chiplets - The Inevitable Transition. https: //community.juniper.net/blogs/sharada-yeluri/ 2023/10/13/chiplets-the-inevitable-transition ,October 2023. [64] Xia Zhou, Zengbin Zhang, Yibo Zhu, Yubo Li, Saipriya Ku-mar, Amin Vahdat, Ben Y. Zhao, and Haitao Zheng. Mirror mirror on the ceiling: Flexible wireless links for data centers. In Proceedings of the ACM SIGCOMM 2012 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication , pages 443–454, Helsinki Finland, August 2012. ACM. [65] Noa Zilberman, Gabi Bracha, and Golan Schzukin. Stardust: Divide and Conquer in the Data Center Network. In 16th USENIX Symposium on Networked Systems Design and Im-plementation (NSDI 19) , pages 141–160, Boston, MA, USA, 2019. USENIX Association. [66] Yazhou Zu, Alireza Ghaffarkhah, Hoang-Vu Dang, Brian Towles, Steven Hand, Safeen Huda, Adekunle Bello, Alexander Kolbasov, Arash Rezaei, Dayou Du, Steve Lacy, Hang Wang, Aaron Wisner, Chris Lewis, and Henri Bahini. Resiliency at Scale: Managing {Google’s} {TPUv4} Machine Learning Supercomputer. In 21st USENIX Symposium on Networked Systems Design and Implementation (NSDI 24) , pages 761– 774, Santa Clara, CA, USA, 2024. USENIX Association. 
+
+16 050 100            
+
+> (a) Mean Throughput (ML) Oversubscribed 1-Port 2-Port 4-Port Ideal 99 99 .5100 Thrp. [%] 2:1 4:1 8:1 16:1 32:1 020 40 60 Inter ASIC Oversub.
+> (b) 99 th Perc. FCT (ML) 2:1 012FCT [ms]
+
+Figure 21: Fastroute works even with bundled ports, the per-formance degrades gracefully, and is still better than the Over-subscribed architecture.         
+
+> 100 200 300 400 500 10 1
+> 10 3
+> 10 5
+> # Packet Switch Ports Runtime [ μs] RDC 2 RDC 4 RDC 8 Heur. 2 Heur. 4 Heur. 8
+
+Figure 22: Our heuristic is around 3 orders of magnitude faster than the RDC heuristic at the same input size. 
+
+# A Appendix A.1 Control Plane Efficiency Contd. 
+
+The runtime of Fastroute control algorithm can be reduced further through port bundling and hardware acceleration. Ad-ditionally, we compare the runtime of our heuristic with that of the RDC algorithm. 
+
+Bundling Ports. A straightforward way to reduce algorithm runtime is to bundle multiple physical ports into a single “log-ical” port. In this case, reconfiguration operates at the group level rather than per port, reducing the effective problem size. The optimal matching algorithm scales with p3, so bundling four ports into one lowers the runtime by up to 64 ×.Fig. 21 shows the mean throughput and 99 th percentile FCTs for different inter-ASIC oversubscription ratios. At 2:1 oversubscription, bundling four ports results in < 1 % performance loss compared to the Ideal baseline. However, at higher oversubscription ratios, the loss of reconfiguration flexibility becomes more significant, as traffic localization becomes increasingly critical. 
+
+Specialized Hardware. Looking forward, specialized hard-ware can further accelerate the control plane. Key operations in both the Hungarian algorithm (e.g., row minima) and the heuristic (e.g., sorting) are inherently parallelizable. Imple-mentations on FPGAs or dedicated accelerators [2, 4, 54, 55] can exploit this parallelism to further reduce computation time, making the control plane even more practical at scale.             
+
+> 20 40 60 80 100 050 100 Load [%] Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 20 40 60 80 100 012Load [%] FCT [ms]  99 th Perc. FCT (Web)
+
+Figure 23: Adjusting the host count based on the radix of each architecture hurts the performance of the State-of-the-Art architecture. 
+
+RDC Algorithm Is Not Fast Enough. We compare the run-time of our heuristic to the bipartite graph partitioning heuris-tic used in the RDC paper [58]. Fig. 22 shows the runtime for both algorithms for different numbers of ASICs, with the number of ports per device on the x-axis. We show that the RDC algorithm is around three orders of magnitude slower than our heuristic for the same number of ASICs and switch ports. This increased algorithm runtime would seriously limit how often a reconfiguration can be performed. 
+
+# A.2 Adapting the Number of Hosts 
+
+Variation in the radix each architecture achieves would lead to differing topologies even within the same experiment, sig-nificantly altering traffic patterns. This matters especially for structured traffic like Shuffle and Stride, which have a fixed offset at which hosts communicate. This create a problem as two communicating hosts might be connected to the same Top-of-Rack (ToR) switch in one architecture, but are separated across different switches in another. To avoid this problem, we keep the radix fixed for each architecture in our evaluation, as this maintains the same topology and, therefore, the same traffic pattern across architectures. We do this by dividing the total usable capacity by the constant radix to obtain the speed of each switch port. In this experiment, we evaluate what would happen if we didn’t keep the host count the same over all architectures. We use it to compare the performance to the constant host count evaluation setup we use for the other experiments. The data in Fig. 23 shows that, compared to the main evaluation (§ 6.2), the performance of the State-of-the-Art is worse when we adapt the host count. Meaning that our main evaluation, which keeps the number of hosts fixed, is actually favorable to the State-of-the-Art . The reason is that the number of hosts in a 2-stage Fat Tree topology scales quadratically with the radix, and the State-of-the-Art has a smaller radix compared to the other architectures. Since we have to keep the host count fixed to maintain consistent traffic patterns, this consequently also neutralizes the radix advantage that Fastroute has over the State-of-the-Art .17 20 40 60 80 100 050 100 Load [%] Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 20 40 60 80 100 012Load [%] FCT [ms]  99 th Perc. FCT (Web) 
+
+Figure 24: Fastroute still works well even with an asymmetric topology due to failed links.                      
+
+> 20 40 60 80 100 050 100 Skewness [%] Thrp. [%]  Mean Throughput (Web) State-of-the-Art Oversubscribed Fastroute Ideal 20 40 60 80 100 0246810 Skewness [%] FCT [ms]  99 th Perc. FCT (Web) 20 40 60 80 100 050 100 Skewness [%] Thrp. [%]  Mean Throughput (Hadoop) 20 40 60 80 100 02468Skewness [%] FCT [ms]  99 th Perc. FCT (Hadoop)
+
+Figure 25: The inter-ASIC bottleneck becomes even more pronounced for traffic with higher skewness. 
+
+# A.3 Link Failures 
+
+Link failures can alter routing choices and induce traffic pat-terns that differ from normal operation. To evaluate the robust-ness of Fastroute against failure, we randomly disable 64 out of 4096 links. Fig. 24 shows the resulting FCTs under differ-ent traffic loads. As expected, the reduced network capacity slightly increases FCTs for both Fastroute and the ideal mono-lithic single-ASIC switch. However, Fastroute still closely matches the performance of Ideal , since both are equally af-fected by bandwidth loss. The same is also true for the Over-subscribed and State-of-the-Art multi-ASIC designs, which remain largely unaffected. 
+
+# A.4 Impact of Traffic Skewness 
+
+Fig. 25 shows the mean throughput and 99 th percentile FCTs of different switch architectures for Web and Hadoop traffic scenarios, respectively, across different levels of skewness at 80 % network load. As observed in § 6.2.1, the Oversub-scribed architecture already suffers at high network load; while the throughput does not change significantly with higher traffic skewness, the 99 th percentile FCT slightly increases. The same is true for the State-of-the-Art , which performs better than the Oversubscribed architecture but still strug-gles over the whole range of traffic skewness. Fastroute , in contrast, can closely match the Ideal single-ASIC switch per-formance across different traffic skewness by reconfiguring the port-to-ASIC mapping.           
+
+> 1:1 3:1 7:1 15:1 050 100 Oversubscription Thrp. [%]  Mean Throughput (Hadoop) State-of-the-Art Oversubscribed Fastroute Ideal 1:1 3:1 7:1 15:1 010 20 Oversubscription FCT [ms]  99 th Perc. FCT (Hadoop)
+
+(a) 2-Stage Network Topology        
+
+> 1:1 3:1 7:1 15:1 050 100 Oversubscription Thrp. [%]  Mean Throughput (Hadoop) 1:1 3:1 7:1 15:1 020 40 60 Oversubscription FCT [ms]  99 th Perc. FCT (Hadoop)
+
+(b) 3-Stage Network Topology 
+
+Figure 26: Inter-ASIC bandwidth isn’t always the bottleneck, but minimal changes like the number of stages impact the performance if Fastroute is not leveraged. 
+
+# A.5 Impact of Network Oversubscription 
+
+Bandwidth oversubscription at the network core is a common cost-saving practice in modern datacenter networks [14,24,48, 53]. Fig. 26 plots the mean throughput performance of switch architectures at different core oversubscription ratios (OS), considering two-stage and three-stage topologies, respectively. As we observe, for traditional DCN traffic, the performance issue with the Oversubscribed architecture is not prevalent in a two-stage oversubscribed topology (Fig. 26a), which is mainly because the pattern created by this topology does not stress the inter-ASIC bandwidth. Note that this is not the case for other application-oriented traffic scenarios with more reg-ular patterns, as shown in § 6.1. However, for a three-stage oversubscribed topology, the Oversubscribed switch architec-ture faces significant performance degradation even at higher oversubscription ratios (Fig. 26b). The primary reason is the high volume of inter-ASIC traffic at the middle stage (aggre-gation layer). On the other hand, the performance of Fastroute 
+
+is unaffected w.r.t. the Ideal across different oversubscribed scenarios for both two-stage and three-stage topologies, as it actively minimizes the inter-ASIC traffic volume. While the 
+
+State-of-the-Art architecture remains largely unaffected by different oversubscription ratios, aside from slightly higher FCT at high oversubscription, it struggles to keep up across the whole range. Showcasing again that the State-of-the-Art 
+
+architecture, by being a non-blocking design, is unaffected by traffic patterns, but struggles due to not providing as much outside bandwidth as the oversubscribed designs. 
+
+# A.6 Non-Oversubscribed Switch Power 
+
+The formula shown in Eq. (3) models the total power con-sumption of a non-oversubscribed n-ASIC switch, and is com-18 Table 3: More than 4 ASICs are impractical due to the devices’ total power consumption, even with larger savings.                     
+
+> Number of ASIC 2468
+> Throughput [Tbps] 136.5 234.1 335.1 436.9 Total Savings for Fastroute [W]172.7 444.1 420.0 406.9 Switch w/o Oversubscription [ W]1354 3523 5044 6575
+
+posed of the components established in § 6.5. The energy for the packet-switch ASIC is calculated as 750 W /102 .4 T bps =
+
+7.32 pJ /bit based on the numbers assumed for our baseline chip. The individual components are in order: the energy per bit from the inter-ASIC links, fabric chips, buffers, and the packet-switch ASIC. Since there is no oversubscription, all components are multiplied by the switch’s total throughput. Power = Throughput · (0.6 pJ /bit + 5.13 pJ /bit 
+
++ 2 pJ /bit + 7.32 pJ /bit ) (3) 19
