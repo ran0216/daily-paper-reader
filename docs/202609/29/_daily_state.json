@@ -1,0 +1,153 @@
+{
+  "date": "20260929",
+  "date_label": "",
+  "generated_at": "2026-09-29 00:04:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.26829v1",
+      "route": "202609/29/2609.26829v1-balancing-generality-and-specialization-a-survey-on-ai-datacenter-hardware-architecture",
+      "title": "Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "AI加速器架构综述、节点机架集群级互连",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.24288v1",
+      "route": "202609/29/2609.24288v1-circuit-architecture-training-co-design-with-regenerative-sa-similarity-sensing-for-aggressive-sar-skipping-in-analog-compute-in-memory",
+      "title": "Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向模拟存内计算AI加速器的电路-架构协同设计",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.27453v1",
+      "route": "202609/29/2609.27453v1-implementation-and-evaluation-of-bitnet-inference-on-a-cgla-by-signed-int4-instructions",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "AI加速器ASIC、低比特LLM推理、signed-int4指令",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.24270v1",
+      "route": "202609/29/2609.24270v1-dissecting-how-die-scaling-breaks-gpu-fine-grained-scheduling",
+      "title": "Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "GPU计算拓扑与内存亲和性、细粒度调度",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.25949v1",
+      "route": "202609/29/2609.25949v1-flux-optimal-scheduling-of-optical-circuit-switches-for-llm-training",
+      "title": "Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向LLM训练互连的光电路交换调度",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.26644v1",
+      "route": "202609/29/2609.26644v1-dynamic-slack-aware-clocking-for-near-threshold-tensor-processing-units-tpus",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "近阈值张量处理单元时钟，AI加速器硬件",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.29219v1",
+      "route": "202609/29/2609.29219v1-schedules-are-solvable-symbols-tuning-free-compilation-of-tile-programs-on-dataflow-architectures",
+      "title": "Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "数据流AI加速器中的片上网络通信与调度",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.30099v1",
+      "route": "202609/29/2609.30099v1-compiler-and-hardware-co-design-for-accelerator-architectures",
+      "title": "Compiler and Hardware Co-Design for Accelerator Architectures",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向加速器架构的编译器与硬件协同设计",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    },
+    {
+      "paper_id": "2609.30960v1",
+      "route": "202609/29/2609.30960v1-packet-islip",
+      "title": "Packet iSlip",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "noc-arch"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "含虚拟输出队列与iSlip调度的交叉开关，属互连网络与路由器微架构核心主题",
+      "first_seen_at": "2026-09-29 00:04:50 UTC",
+      "updated_at": "2026-09-29 00:04:50 UTC"
+    }
+  ]
+}

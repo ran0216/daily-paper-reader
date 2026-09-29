@@ -1,0 +1,294 @@
+Title: Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training
+
+URL Source: https://arxiv.org/pdf/2609.25949v1
+
+Published Time: Wed, 23 Sep 2026 00:58:22 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training 
+
+# Arno Troch 
+
+IDLab, University of Antwerp - imec Antwerp, Belgium arno.troch@uantwerpen.be 
+
+# Seyyidahmed Lahmer 
+
+imec Leuven, Belgium seyyidahmed.lahmer@imec.be 
+
+# Abubakr Nada 
+
+imec Leuven, Belgium abubakr.nada@imec.be 
+
+# Jeroen Famaey 
+
+IDLab, University of Antwerp - imec Antwerp, Belgium jeroen.famaey@uantwerpen.be 
+
+# Michael Peeters 
+
+imec Leuven, Belgium michael.peeters@imec.be 
+
+## Abstract 
+
+Optical Circuit Switching (OCS) offers high bandwidth den-sity and energy efficiency for LLM training, but incurs a non-negligible reconfiguration delay. Prior work typically schedules optical circuit switches independently of compute, using aggregate traffic demand to determine which circuits to provision and when. We argue that this separation creates a fundamental inefficiency: reconfigurations that ignore the compute timeline can stall communication, resulting in low circuit utilization and large buffer requirements. In this paper, we present Flux, a scheduler that optimally schedules optical circuit switches based on the structure of the entire workload. Flux remains effective across a wide range of switching speeds by reusing circuits and amortizing reconfiguration delay behind compute and communication. We show that Flux reduces training iteration time by up to 10 × and peak NIC buffer requirements by more than three orders of magnitude compared to traditional periodic sched-ulers. 
+
+## 1 Introduction 
+
+Large Language Model (LLM) training runs at massive scale. Modern training systems rely on hundreds of thousands of accelerators with frequent bandwidth-intensive collective communication [6, 22]. As models grow, these communica-tion operations have become a primary bottleneck. Tradi-tional electrical packet-switched networks are approaching fundamental limits in bandwidth density and power effi-ciency [8]. Optical Circuit Switching (OCS) offers determin-istic, high-bandwidth connections without queuing delays or congestion [1, 16, 21]. Unlike packet switching, where indi-vidual packets are multiplexed across electrical switches, an optical circuit switch establishes direct optical paths between endpoints for the duration of a data transfer, without per-packet buffering or arbitration. However, OCS introduces a non-negligible reconfiguration overhead when changing the network topology, so reconfigurations need to be intelli-gently scheduled. To manage this overhead, prior work typically treats cir-cuit scheduling as a purely networking problem. Approaches ranging from one-shot static topologies to periodic recon-figuration derive their schedules from an aggregate traffic matrix [4, 13, 15, 20, 24, 30, 33]. We argue that this assump-tion is a poor fit for modern LLM training workloads. A traffic matrix sums communication volume over a time win-dow. Therefore, it discards the strict execution order of the training loop. LLM training, by contrast, is highly structured and deterministic, since communication operations occur at precise moments and depend on the completion of preceding compute and communication steps [14]. Furthermore, separating communication scheduling from compute creates an inefficiency. Schedulers that rely on traf-fic matrices cannot capture compute-communication over-lap, which means that the network may be performing large transfers while accelerators sit idle waiting for data. Produc-ing data without first confirming that the required circuit is available also increases end-host buffer requirements. This points to a gap: minimizing network completion time in iso-lation does not necessarily minimize the end-to-end iteration time of the training workload. Unlike existing demand-aware approaches, which typi-cally generate a schedule from the aggregate traffic volume a specific workload produces, we argue that circuit scheduling must directly account for the temporal structure of the entire workload. By taking into account the temporal dependencies of the workload, we can more effectively reuse circuits and hide reconfiguration latency behind compute phases. To demonstrate this, we introduce Flux, a framework that formalizes workload-aware circuit scheduling as a Mixed In-teger Linear Program (MILP) that consolidates compute and communication into a single circuit schedule. We show that Flux reduces training iteration time and buffer requirements by producing schedules that naturally lead to circuit reuse, 
+
+> 1arXiv:2609.25949v1 [cs.NI] 22 Sep 2026
+
+Arno Troch, Seyyidahmed Lahmer, Abubakr Nada, Jeroen Famaey, and Michael Peeters (a) Workload graph (b) Topology                      
+
+> Forward pass: sequential Backward pass: different execution orders Aggregate traffic matrix flattens time: no knowledge of compute, no communication order TP 1TP 2TP 3
+> TP 6TP 5TP 4
+> DP 1DP 2DP 3
+> (c) Aggregate traffic matrix
+> Compute can hide reconfiguration
+> delay and/or communication. BvN decomposition: sequence of permutation matchings
+> 1234567812345678
+> +
+> 12345678 12345678
+> (d) Resulting schedules
+> OCS 1
+> GPU 1GPU 2GPU 8
+
+... Naturally prefers sequential TP → DP when all communication is assumed ready.                                      
+
+> 1234567812345678
+> Reconfiguration delay ( τ) DP comms DP xCompute TP comms TP xWasted time
+> Flux : workload-coupled schedule (ours)
+> TP 1TP 2TP 4DP 1
+> TP 3TP 5TP 6DP 3
+> DP 2
+> Time
+> BvN : aggregate traffic matrix, periodically rotating
+> TP 1TP 2TP 4
+> DP 1DP 2
+> TP 3TP 5TP 6DP 3
+> RotorNet : demand-oblivious, periodically rotating
+> TP 1TP 1TP 2TP 2TP 3TP 3TP 4TP 4TP 5TP 5TP 6TP 6
+> DP 1DP 1DP 2DP 2DP 3DP 3
+
+Figure 1: Depiction of how Flux differs from existing circuit scheduling approaches. (a) an example training step (TP + DP) as a graph of compute and communication steps with dependencies (b) the network topology with 1 OCS switch and 8 GPUs; (c) an aggregate traffic matrix of the workload that records total communication volume but discards the graph ordering; (d) three circuit schedules for this workload. RotorNet [19] and BvN-based schedules [7, 29] reconfigure on a fixed period regardless of the workload’s state, stalling compute and communication when the active circuit is wrong. Flux derives its schedule from the graph, reusing circuits and amortizing reconfiguration behind compute instead. 
+
+compute-communication overlap, and amortization of the reconfiguration delay. We make the following contributions: (1) We show why aggregate traffic matrix scheduling is a poor fit for the deterministic, dependency-structured na-ture of LLM training. (2) We formalize the circuit scheduling problem as a MILP and introduce Flux, a workload-aware circuit scheduler that takes into account reconfiguration delay, compute-communication dependencies, and switch assignment. (3) We evaluate Flux against traditional periodic schedulers and find that it consistently reduces iteration time across a range of reconfiguration delays, while significantly reducing the Network Interface Card (NIC) buffer re-quirements. The remainder of the paper is organized as follows: Sec-tion 2 motivates workload-aware scheduling, Section 3 presents the MILP formulation, Section 4 reports the evaluation, Sec-tion 5 contrasts with related work, and Section 6 concludes and discusses avenues for future work. 
+
+## 2 Beyond Aggregate Traffic Matrices 
+
+OCS introduces a non-negligible reconfiguration delay, which makes deciding which topologies to transition to and when non-trivial. A natural approach to managing this overhead has been to offload scheduling to controllers that monitor demand, or to rely on periodic reconfigurations. In most cases, these systems build their topologies around an ag-gregate traffic matrix: a matrix where entry (𝑖, 𝑗 ) gives the total traffic volume sent from source 𝑖 to destination 𝑗 over a time window). This creates a fundamental limitation: A traffic matrix flattens time. It views the workload as a bulk data transfer problem rather than a sequence of pipelined transfers. This means that while the total communication vol-ume is satisfied, the temporal structure of the LLM training iteration is completely lost. Prior work often attempts to alleviate this gap through intelligent matrix decomposition. For example, a common strategy is to isolate large flows for dedicated optical circuits, while allowing smaller latency-sensitive flows to bypass the reconfiguration penalty via multi-hop routing or even a sep-arate packet-switched network [15]. Alternative approaches heavily rely on Birkhoff-von Neumann (BvN) decomposi-tion [7, 29] to partition the demand matrix into a convex combination of permutation matrices [4, 13, 15, 20, 24, 30, 33]. However, these techniques still operate on a flattened, aggre-gate view of demand: partitioning or decomposing the traffic matrix changes how demand is expressed. None of them re-cover the execution order of the underlying workload, which is especially important for LLM training. We illustrate this disconnect in Figure 1. Consider a train-ing step distributed across eight Graphics Processing Units (GPUs) using a mix of data parallelism (DP) [23] and tensor parallelism (TP) [26]. The workload can be represented as a Directed Acyclic Graph (DAG), where the vertices represent compute and communication operations, and edges indicate dependencies. As illustrated, the corresponding traffic matrix 
+
+2Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training 
+
+simply records the total traffic volume exchanged, but not the order in which traffic becomes available. In the example workload graph, the DP communication operations become available only in the backward pass, while several TP ex-changes and computations have to be executed beforehand. Therefore, scheduling these communication operations out of order would stall the entire workload. This highlights a critical flaw: optimizing for aggregate demand can actively harm the application’s progress. Furthermore, this time-agnostic view also eliminates op-portunities for compute-communication overlap. Modern distributed training heavily relies on this overlap to amor-tize network costs. As shown in the example schedules on the right hand side of Figure 1, a workload-aware scheduler such as Flux is capable of actively aligning circuit reconfig-urations and communication with ongoing compute phases. If we isolate the network schedule from the compute de-pendencies, we lose the ability to effectively pipeline these operations. The same figure further illustrates how RotorNet [19] and a BvN-based schedule [15] lead to substantial inefficien-cies. RotorNet is demand-oblivious because it rotates through a fixed set of circuits with a fixed reconfiguration period. The BvN-based schedule is demand-aware since it rotates through a fixed set of circuits (one per permutation matrix), but with varying reconfiguration periods based on the weight of each permutation matrix. These schedules trigger unnec-essary circuit reconfigurations, since they cannot anticipate the workload’s state. Flux, by contrast, reduces the total reconfiguration cost by reusing circuits and amortizing the reconfiguration delay behind compute. This exposes a major difference in perspective. Rather than simply satisfying the communication demand, we must schedule that same communication demand to finish exactly when the compute needs it. This change in perspective is the main motivation for Flux, and suggests a need to revisit how to schedule circuits for LLM training. 
+
+## 3 Circuit Scheduling as an Optimization Problem 
+
+In this section, we formalize workload-aware circuit sched-uling as a MILP. The formulation takes two inputs: a system of 𝑛 accelerators interconnected through an OCS network and a workload (a specific LLM training iteration). 
+
+System model. We consider a set 𝑁 = {1, . . . , 𝑛 } of 𝑛 ac-celerators (e.g., GPUs) interconnected through a set 𝑆 =
+
+{1, . . . , 𝑠 } of 𝑠 identical optical circuit switches. Each acceler-ator has exactly one physical link to each of the 𝑠 switches, so it can maintain up to 𝑠 simultaneous bidirectional circuits to other accelerators. Each switch is modeled as an optical 𝑛 ×𝑛 
+
+Table 1: Notation used throughout the problem formu-lation. Symbol Definition 
+
+𝐺 = (𝑉 , 𝐸 ) Workload graph 
+
+𝑁 = {1, . . . , 𝑛 } Accelerators 
+
+𝑆 = {1, . . . , 𝑠 } Switches 
+
+(𝑠 𝑣 , 𝑑 𝑣 ) src, dst pair of 𝑣 ∈ 𝑉 
+
+C𝑣 Direct children of 𝑣 ∈ 𝑉 
+
+D𝑣 Descendants of 𝑣 ∈ 𝑉 
+
+A𝑣 Ancestors of 𝑣 ∈ 𝑉 
+
+P𝑣 Direct parents of 𝑣 ∈ 𝑉 𝑝 𝑣 Transmission time of 𝑣 ∈ 𝑉 𝑐 𝑢,𝑣 Compute time between 𝑢 and 𝑣 𝜏 Reconfiguration delay crossbar: at any point in time, it can realize a set of simulta-neous point-to-point circuits, with the only restriction being that no two circuits may share an endpoint at that switch. Setting up or changing a circuit takes a reconfiguration delay 
+
+𝜏 > 0 s. 
+
+Workload model. As mentioned in Section 2, a distributed LLM training iteration has a highly temporal structure con-sisting of compute and communication operations and their dependencies. Let 𝐺 be a DAG 𝐺 = (𝑉 , 𝐸 ) where each ver-tex 𝑣 ∈ 𝑉 is an atomic point-to-point send between two accelerators and each edge (𝑢, 𝑣 ) ∈ 𝐸 encodes a dependency: 
+
+𝑢 must fully complete before 𝑣 can begin. To encode the compute operations from the workload in the graph, each edge (𝑢, 𝑣 ) ∈ 𝐸 additionally carries a non-negative weight 
+
+𝑐 𝑢,𝑣 ≥ 0, which represents the amount of compute time that must elapse between two send tasks 𝑢, 𝑣 ∈ 𝑉 . Each send task 
+
+𝑣 ∈ 𝑉 has a fixed source-destination pair (𝑠 𝑣 , 𝑑 𝑣 ) ∈ 𝑁 × 𝑁 ,and a transmission time 𝑝 𝑣 > 0 that captures how long the corresponding send occupies the fabric (e.g., message size divided by link capacity). 
+
+## 3.1 Objective and Constraints 
+
+Given a workload graph and a system, we make two decisions per send task: at what time it starts, and on which switch it is executed. We introduce a continuous decision variable 
+
+𝑡 𝑣 ≥ 0 for the start time of each task 𝑣 ∈ 𝑉 .
+
+Objective function. The objective function minimizes the total completion time of the workload graph: min max   
+
+> 𝑣 ∈𝑉
+
+(𝑡 𝑣 + 𝑝 𝑣 ) . (1) 
+
+Switch assignment. To capture on which switch a certain send task 𝑣 will be executed, we introduce a binary deci-sion variable 𝑥 𝑣,𝑠 ∈ { 0, 1}, which equals 1 if and only if 𝑣 
+
+> 3Arno Troch, Seyyidahmed Lahmer, Abubakr Nada, Jeroen Famaey, and Michael Peeters
+
+is assigned to switch 𝑠 ∈ 𝑆 . Evidently, every task must be assigned to exactly one switch: ∑︁  
+
+> 𝑠 ∈𝑆
+
+𝑥 𝑣,𝑠 = 1 ∀𝑣 ∈ 𝑉 . (2) 
+
+DAG dependencies. The structure of the workload graph di-rectly constrains the start times. If task 𝑢 is a direct parent of task 𝑣 , then 𝑣 cannot start before 𝑢 has finished transmitting and any intermediate compute has completed: 
+
+𝑡 𝑣 ≥ 𝑡 𝑢 + 𝑝 𝑢 + 𝑐 𝑢,𝑣 ∀( 𝑢, 𝑣 ) ∈ 𝐸. (3) These constraints fix the execution order of every pair of tasks with a direct edge in the graph, independently of which switch they are assigned to. The remaining constraints capture the interactions be-tween send tasks 𝑢, 𝑣 that are sent on the same switch. More specifically, these constraints capture the physical limita-tions of circuit switching related to reconfiguration. When two tasks 𝑢, 𝑣 share an endpoint (i.e., they share a source or destination) and are scheduled on the same switch, there should be a reconfiguration delay 𝜏 between them. Before formally defining this behavior in constraints, we first define a helper set of potentially conflicting pairs that collects all pairs of distinct tasks with at least one endpoint in common: 
+
+K = (𝑢, 𝑣 ) 𝑢, 𝑣 ∈ 𝑉 , 𝑢 ≠ 𝑣, 𝑠 𝑢 =𝑠 𝑣 ∨ 𝑑 𝑢 =𝑑 𝑣 ∨ 𝑠 𝑢 =𝑑 𝑣 ∨ 𝑑 𝑢 =𝑠 𝑣 .
+
+For any such pair of tasks, a reconfiguration may be neces-sary if the tasks were to be scheduled on the same switch. We define the reconfiguration penalty incurred when task 𝑣 
+
+executes after task 𝑢 on the same switch: 
+
+𝑅 𝑢,𝑣 =
+
+(
+
+0, if (𝑠 𝑢 , 𝑑 𝑢 ) = (𝑠 𝑣 , 𝑑 𝑣 ),𝜏, otherwise. If the later task reuses the exact same circuit, there is no need for circuit reconfiguration. Otherwise, the switch must be reconfigured and the start time of the later task is delayed by 𝜏 .Whether the relative execution order (i.e., 𝑢 before 𝑣 or 𝑣 
+
+before 𝑢 ) of a conflicting pair (𝑢, 𝑣 ) is already known depends on the DAG. We write 𝑢 ≺𝐺 𝑣 (precedence ) if and only if 𝑣 
+
+is a descendant of 𝑢 in 𝐺 , in which case 𝑢 always executes before 𝑣 . Similarly, we write 𝑢 ∥𝐺 𝑣 (incomparability ) if and only if neither task is an ancestor or descendant of the other, in which case their relative execution order becomes a scheduling decision. Based on this distinction, we partition the conflicting pairs into two disjoint sets: 
+
+K ≺ = (𝑢, 𝑣 ) ∈ K 𝑢 ≺𝐺 𝑣 ,
+
+K ∥ = {𝑢, 𝑣 } (𝑢, 𝑣 ) ∈ K , 𝑢 ∥𝐺 𝑣 .
+
+Fixed-order reconfiguration. For pairs in K ≺ , the order is known, but the precedence constraints from Equation (3) do not yet account for the reconfiguration delay that arises when both tasks are placed on the same switch without reusing the same circuit. For every such pair and every switch, we add: 
+
+∀( 𝑢, 𝑣 ) ∈ K ≺, ∀𝑠 ∈ 𝑆 :
+
+𝑡 𝑣 ≥ 𝑡 𝑢 + 𝑝 𝑢 + 𝑅 𝑢,𝑣 − 𝑀  2 − 𝑥 𝑢,𝑠 − 𝑥 𝑣,𝑠 
+
+ . (4) In this set of constraints, we use the Big-M method [3], where we choose a sufficiently large constant 𝑀 to deactivate con-ditional constraints, allowing us to write the constraints linearly. When 𝑢 and 𝑣 are placed on different switches, at least one of 𝑥 𝑢,𝑠 , 𝑥 𝑣,𝑠 equals 0 and the subtracted Big-M term deactivates the constraint. When both tasks share switch 𝑠 ,the constraint enforces the reconfiguration overhead 𝑅 𝑢,𝑣 .Practically speaking, we set the value of 𝑀 to be the equiva-lent of scheduling all compute and communication tasks in sequence and reconfiguring between each task: 
+
+𝑀 = |𝑉 | · 𝜏 +∑︁  
+
+> 𝑣 ∈𝑉
+
+𝑝 𝑣 +∑︁ 
+
+> (𝑢,𝑣 ) ∈ 𝐸
+
+𝑐 𝑢,𝑣 .
+
+Free-order reconfiguration. For incomparable pairs in K ∥ ,the scheduler must also decide their relative execution order. If 𝑢 and 𝑣 are placed on the same switch, then either 𝑢 fin-ishes (plus any required reconfiguration) before 𝑣 starts, or vice versa. To express this linearly, we introduce, for each unordered pair {𝑢, 𝑣 } ∈ K ∥ , a binary sequencing variable 
+
+𝑦 𝑢,𝑣 ∈ { 0, 1} that equals 1 if task 𝑢 is scheduled before task 𝑣 ,and 0 otherwise. For every pair and every switch, we impose: 
+
+∀{ 𝑢, 𝑣 } ∈ K ∥ , ∀𝑠 ∈ 𝑆 :
+
+𝑡 𝑣 ≥ 𝑡 𝑢 + 𝑝 𝑢 + 𝑅 𝑢,𝑣 − 𝑀  3 − 𝑥 𝑢,𝑠 − 𝑥 𝑣,𝑠 − 𝑦 𝑢,𝑣 
+
+
+
+𝑡 𝑢 ≥ 𝑡 𝑣 + 𝑝 𝑣 + 𝑅 𝑣,𝑢 − 𝑀  2 − 𝑥 𝑢,𝑠 − 𝑥 𝑣,𝑠 + 𝑦 𝑢,𝑣 
+
+ .
+
+(5) Whenever 𝑢 and 𝑣 are not both assigned to switch 𝑠 , both inequalities are deactivated since tasks on different switches never interfere. When 𝑥 𝑢,𝑠 = 𝑥 𝑣,𝑠 = 1, then 𝑦 𝑢,𝑣 controls which of the two constraints is activated. 
+
+## 4 Evaluation 
+
+We empirically evaluate whether workload-aware circuit sched-uling translates into end-to-end improvements under real-istic training traces. In particular, we ask three questions: (1) how do different reconfiguration delays impact schedul-ing? (2) does workload awareness alleviate NIC buffering pressure? and (3) does minimizing the number of reconfigu-rations translate to performance improvements? To answer these questions, we create Flux, an implemen-tation of the MILP from Section 3 in Gurobi [11] and use it to compute optimal schedules under our model. We then replay these schedules in a discrete-event network simulator 
+
+> 4Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training
+
+and compare Flux against RotorNet [19] and a BvN-based demand-aware scheduler. Our results show that Flux consis-tently achieves the lowest iteration time across the evaluated reconfiguration delays, while significantly reducing peak NIC buffer demand by more than three orders of magnitude relative to the other schedulers. 
+
+## 4.1 Simulation Setup 
+
+We evaluate Flux using discrete-event network simulations built on an adapted version of ASTRA-sim [32]. We integrate an internal OCS simulator with a modified version of ASTRA-sim to enable circuit switching control. This OCS simulator takes as input, for each switch, a sequence of circuit states and the times at which the switch transitions between. For each workload and hardware configuration, we first solve the MILP from Section 3 with Gurobi to obtain a schedule, then convert it into this input format and simulate it. 
+
+Generating workload traces. We generate LLM training traces using an in-house workload execution trace generator. This tool generates Chakra [27] traces, a graph-based repre-sentation of AI/ML workloads, for a given model and system configuration, which we then feed to ASTRA-sim. For our evaluation, we use traces based on the Llama 3 8B model [9]. 
+
+Hardware and network topology. We model a system setup with 8 GPUs and 𝑠 = 2 optical circuit switches, following the same network topology as illustrated in Figure 1. Each GPU has one 800 Gbps bidirectional link to each switch, for two links per GPU in total. For the compute, we model an Nvidia A100 GPU using the hierarchical roofline model from Kelis [10]. Each GPU is equipped with a NIC with two links, one to each OCSs. We assume that each NIC has an unlim-ited amount of on-chip memory to store generated packets, allowing us to measure the effect of the circuit schedule on buffer requirements. 
+
+Circuit schedulers. We compare Flux against RotorNet [19] and a BvN-based schedule. We implement RotorNet in two variants: a single-hop variant ( RotorNet-Direct ) and a vari-ant using Valiant Load Balancing (VLB). Both variants use a 90 % duty cycle, meaning that slot length increases with reconfiguration delay. For the BvN-based scheduler, we con-struct a traffic matrix from the workload and decompose it into permutation matrices with corresponding weights. We then use the permutation matrices as circuit configurations and their weights to determine slot lengths. Unlike RotorNet, the slot lengths in the BvN-based schedule are independent of the reconfiguration delay. 
+
+## 4.2 Performance Results 
+
+Figure 2 shows the end-to-end training iteration time, peak on-chip NIC memory usage, and number of reconfigurations                   
+
+> 10 2
+> 10 3
+> 10 4
+> 10 5
+> Iteration time (ms)
+> 8 Layers 16 Layers
+> 10 2
+> 10 3
+> 10 4
+> 10 5
+> 10 6
+> 10 7
+> Peak on-chip memory (KB)
+> 1𝜇 s10 𝜇 s100 𝜇 s1ms
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+> 10 5
+> 10 6
+> Reconfiguration delay Number of reconfigurations
+> 1𝜇 s10 𝜇 s100 𝜇 s1ms
+> Reconfiguration delay RotorNet RotorNet-Direct BvN Flux
+
+Figure 2: End-to-end training iteration time (top) and peak on-chip NIC memory usage (middle), and number of reconfigurations (bottom) across different reconfig-uration delays for Llama 3 8B, 8/16 layers, TP4 ×DP2, 8 GPUs, 2 OCSs. 
+
+for 8 and 16 layers of Llama 3 8B trained on 8 GPUs, with reconfiguration delays ranging from 1 μs to 1 ms. The iteration time shows that RotorNet performs well at small reconfiguration delays, where its time slots are smaller and require less waiting for the right circuit. However, the iteration time grows with increasing reconfiguration delay. At higher delays, the demand-aware BvN schedule performs better due to its constant slot lengths. Nevertheless, Flux con-sistently achieves the lowest iteration time, since it schedules circuits together with the workload, allowing communica-tion and reconfiguration to be overlapped with compute. A major improvement of Flux is in peak on-chip NIC memory demand. RotorNet and BvN are unaware of the temporal structure of the workload, so communication tasks may become available while there is no suitable circuit to use. These tasks accumulate in the NIC packet buffers, resulting in high peak memory usage. In contrast, Flux schedules cir-cuits based on the entire workload structure, keeping buffer requirements low. 
+
+> 5Arno Troch, Seyyidahmed Lahmer, Abubakr Nada, Jeroen Famaey, and Michael Peeters
+
+Finally, the number of reconfigurations performed in each experiment provides an interesting insight: a system that re-configures less often does not necessarily perform better. At low reconfiguration delays, RotorNet performs substantially more reconfigurations than BvN and Flux, yet achieves com-petitive iteration times. Similarly, BvN consistently performs fewer reconfigurations than Flux, but has longer iteration times and substantially higher memory usage. Therefore, what matters is not how often the network reconfigures, but whether a reconfiguration enables useful circuits. 
+
+## 4.3 Discussion 
+
+Our experimental results demonstrate the effectiveness of 
+
+workload-aware circuit scheduling and Flux for LLM train-ing. By considering the temporal structure of the work-load, Flux can overlap communication and reconfiguration with compute, while minimizing buffer requirements. We observe that Flux can be effectively used across a wide va-riety of OCS switching technologies, from slower Micro Electro-Mechanical Systems (MEMS)-based switches with millisecond switching [28] to silicon photonics-based cir-cuit switches with micro- or nanosecond reconfiguration delay [31]. Flux currently relies on exact MILP solving, and solve time grows exponentially in the worst case with the number of binary variables. Since the number of communication tasks to schedule grows with world size (i.e., number of accelera-tors) and Transformer layer count, Flux is currently limited to small-scale training jobs. Scaling to larger deployments will require the design of efficient heuristics or relaxations in place of exact MILP solving, which we leave as an important avenue for future work. Another unresolved question is how Flux can accommo-date mixture-of-experts (MoE) models. MoE models generate non-deterministic and data-dependent communication pat-terns by routing tokens to different experts [5, 25]. Flux assumes perfect knowledge of communication types and sizes: a realistic assumption for all types of parallelism used in LLM training and inference, with the exception of expert parallelism (EP). This is an important topic for future work. 
+
+## 5 Related Work 
+
+Circuit switching strategies have been widely studied, whether for general datacenter use [1, 2, 4, 15, 17–20] or for dis-tributed training workloads [12, 13, 16, 21, 24, 30, 33]. How-ever, many of these approaches do not exploit the determin-istic and temporal nature of LLM training, the interaction between compute and communication, and the cost of recon-figuration. 
+
+Workload-aware circuit scheduling. Existing circuit scheduling approaches typically rely on deriving a schedule from an aggregate traffic demand matrix, obtained by sum-ming or averaging communication volume over some time window (e.g., a training iteration) [4, 13, 15, 20, 24, 30, 33]. For LLM training, where compute and communication oper-ations have a specific execution order, aggregating demand over time discards this ordering. Additionally, most of this work treats scheduling as a purely networking problem, de-coupled from compute, missing opportunities to overlap communication with compute. In contrast, Flux schedules circuit reconfigurations and communication while explicitly taking into account when compute occurs. 
+
+Complexity of reconfiguration. Circuit reconfigura-tion induces a non-negligible reconfiguration delay, and its cost varies substantially across switching technologies, from nanoseconds [2] to milliseconds [28]. A large fraction of existing work does not consider this delay as an explicit parameter of the scheduling problem, instead assuming it to be negligible or fixing it to a value tied to a particular hardware platform. Treating reconfiguration delay as a fixed constant rather than a first-class parameter of the problem obscures the trade-off between the benefit of adapting the topology and the overhead incurred by doing so. Since Flux takes the reconfiguration delay as a parameter and is aware of the workload structure, it naturally creates opportunities for circuit reuse and amortizing the reconfiguration cost. 
+
+## 6 Conclusion and Future Work 
+
+In this paper, we make the case for workload-aware circuit scheduling for LLM training. We argue that existing demand-aware traffic matrix-based reconfiguration schemes are not suitable for these highly coupled and structured workloads, and that it is important to consider the reconfiguration delay of the system, the temporal dependencies of the workload, and the compute when scheduling the communication. To show this, we presented Flux, a framework that formalizes 
+
+workload-aware circuit scheduling , and showed that it natu-rally leads to circuit reuse, amortization of reconfiguration and communication costs, and significantly lower NIC buffer requirements. In future work, our objective will be to turn Flux from a powerful formalization into a tool that can be used to schedule large and realistic problem sizes. This encompasses the design of intelligent heuristics, support for MoE models, and an extensive evaluation campaign. 
+
+## References     
+
+> [1] Vamsi Addanki, Chen Avin, and Stefan Schmid. 2023. Mars: Near-Optimal Throughput with Shallow Buffers in Reconfigurable Datacen-ter Networks. Proc. ACM Meas. Anal. Comput. Syst. 7, 1 (March 2023), 2:1–2:43. doi: 10.1145/3579312. [2] Hitesh Ballani, Paolo Costa, Raphael Behrendt, Daniel Cletheroe, Istvan Haller, Krzysztof Jozwik, Fotini Karinou, Sophie Lange, Kai 6
+
+Flux: Optimal Scheduling of Optical Circuit Switches for LLM Training 
+
+Shi, Benn Thomsen, and Hugh Williams. 2020. Sirius: A Flat Dat-acenter Network with Nanosecond Optical Switching. In Proceed-ings of the ACM SIGCOMM 2020 Conference (SIGCOMM ’20) . Associa-tion for Computing Machinery, New York, NY, USA, 782–797. doi: 10.1145/3387514.3406221. [3] Mokhtar S. Bazaraa, John J. Jarvis, and J. J. Jarvis. 1977. Linear Pro-gramming and Network Flows . Wiley, New York. [4] Nathan Farrington, George Porter, Sivasankar Radhakrishnan, Hamid Hajabdolali Bazzaz, Vikram Subramanya, Yeshaiahu Fainman, George Papen, and Amin Vahdat. 2010. Helios: A Hybrid Electri-cal/Optical Switch Architecture for Modular Data Centers. In Proceed-ings of the ACM SIGCOMM 2010 Conference (SIGCOMM ’10) . Associa-tion for Computing Machinery, New York, NY, USA, 339–350. doi: 10.1145/1851182.1851223. [5] William Fedus, Barret Zoph, and Noam Shazeer. 2022. Switch Trans-formers: Scaling to Trillion Parameter Models with Simple and Effi-cient Sparsity. The Journal of Machine Learning Research 23, 1 (Jan. 2022), 120:5232–120:5270. https://dl.acm.org/doi/10.5555/3586589. 3586709 [6] Adithya Gangidi, Rui Miao, Shengbao Zheng, Sai Jayesh Bondu, Guilherme Goes, Hany Morsy, Rohit Puri, Mohammad Riftadi, Ashmitha Jeevaraj Shetty, Jingyi Yang, Shuqiang Zhang, Mikel Jimenez Fernandez, Shashidhar Gandham, and Hongyi Zeng. 2024. RDMA over Ethernet for Distributed Training at Meta Scale. In Proceedings of the ACM SIGCOMM 2024 Conference . ACM, Sydney NSW Australia, 57–70. doi: 10.1145/3651890.3672233. [7] Garrett Birkhoff. 1946. Tres Observaciones Sobre El Algebra Lineal. 
+
+Univ. Nac. Tucuman, Ser. A 5 (1946), 147–154. [8] Amir Gholami, Zhewei Yao, Sehoon Kim, Coleman Hooper, Michael W. Mahoney, and Kurt Keutzer. 2024. AI and Memory Wall. IEEE Micro 
+
+44, 3 (May 2024), 33–39. doi: 10.1109/MM.2024.3373763. [9] Aaron Grattafiori et al. 2024. The Llama 3 Herd of Models. arXiv:2407.21783 [cs] [10] Wenzhe Guo, Joyjit Kundu, Uras Tos, Weijiang Kong, Giuliano Sisto, Timon Evenblij, and Manu Perumkunnil. 2025. Keeping up with Large Language Models: A Holistic Methodology of Compute, Mem-ory, Communication, and Cost Modeling. In 2025 IEEE International Symposium on Workload Characterization (IISWC) . 116–126. doi: 10.1109/IISWC66894.2025.00019. [11] Gurobi Optimization, LLC. 2026. Gurobi Optimizer. https://www. gurobi.com. Version 13.0.2. [12] Norm Jouppi, George Kurian, Sheng Li, Peter Ma, Rahul Nagarajan, Lifeng Nai, Nishant Patil, Suvinay Subramanian, Andy Swing, Brian Towles, Clifford Young, Xiang Zhou, Zongwei Zhou, and David A Patterson. 2023. TPU v4: An Optically Reconfigurable Supercomputer for Machine Learning with Hardware Support for Embeddings. In Pro-ceedings of the 50th Annual International Symposium on Computer Ar-chitecture . ACM, Orlando FL USA, 1–14. doi: 10.1145/3579371.3589350. [13] Mehrdad Khani, Manya Ghobadi, Mohammad Alizadeh, Ziyi Zhu, Madeleine Glick, Keren Bergman, Amin Vahdat, Benjamin Klenk, and Eiman Ebrahimi. 2021. SiP-ML: High-Bandwidth Optical Net-work Interconnects for Machine Learning Training. In Proceedings of the 2021 ACM SIGCOMM 2021 Conference (SIGCOMM ’21) . Associa-tion for Computing Machinery, New York, NY, USA, 657–675. doi: 10.1145/3452296.3472900. [14] Wenxue Li, Xiangzhou Liu, Yuxuan Li, Yilun Jin, Han Tian, Zhizhen Zhong, Guyue Liu, Ying Zhang, and Kai Chen. 2024. Understanding Communication Characteristics of Distributed Training. In Proceed-ings of the 8th Asia-Pacific Workshop on Networking (APNet ’24) . As-sociation for Computing Machinery, New York, NY, USA, 1–8. doi: 10.1145/3663408.3663409. [15] He Liu, Matthew K. Mukerjee, Conglong Li, Nicolas Feltman, George Papen, Stefan Savage, Srinivasan Seshan, Geoffrey M. Voelker, David G. Andersen, Michael Kaminsky, George Porter, and Alex C. Snoeren. 2015. Scheduling Techniques for Hybrid Circuit/Packet Networks. In 
+
+Proceedings of the 11th ACM Conference on Emerging Networking Ex-periments and Technologies (CoNEXT ’15) . Association for Computing Machinery, New York, NY, USA, 1–13. doi: 10.1145/2716281.2836126. [16] Hong Liu, Ryohei Urata, Kevin Yasumura, Xiang Zhou, Roy Bannon, Jill Berger, Pedram Dashti, Norm Jouppi, Cedric Lam, Sheng Li, Erji Mao, Daniel Nelson, George Papen, Mukarram Tariq, and Amin Vah-dat. 2023. Lightwave Fabrics: At-Scale Optical Circuit Switching for Datacenter and Machine Learning Systems. In Proceedings of the ACM SIGCOMM 2023 Conference . ACM, New York NY USA, 499–515. doi: 10.1145/3603269.3604836. [17] William M. Mellette, Rajdeep Das, Yibo Guo, Rob McGuinness, Alex C. Snoeren, and George Porter. 2020. Expanding across Time to Deliver Bandwidth Efficiency and Low Latency. In 17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20) . 1–18. https://www.usenix.org/conference/nsdi20/presentation/mellette [18] William M. Mellette, Alex Forencich, Rukshani Athapathu, Alex C. Snoeren, George Papen, and George Porter. 2024. Realizing Rotor-Net: Toward Practical Microsecond Scale Optical Networking. In Pro-ceedings of the ACM SIGCOMM 2024 Conference . ACM, Sydney NSW Australia, 392–414. doi: 10.1145/3651890.3672273. [19] William M. Mellette, Rob McGuinness, Arjun Roy, Alex Forencich, George Papen, Alex C. Snoeren, and George Porter. 2017. Rotor-Net: A Scalable, Low-complexity, Optical Datacenter Network. In 
+
+Proceedings of the Conference of the ACM Special Interest Group on Data Communication . ACM, Los Angeles CA USA, 267–280. doi: 10.1145/3098822.3098838. [20] George Porter, Richard Strong, Nathan Farrington, Alex Forencich, Pang Chen-Sun, Tajana Rosing, Yeshaiahu Fainman, George Papen, and Amin Vahdat. 2013. Integrating Microsecond Circuit Switching into the Data Center. In Proceedings of the ACM SIGCOMM 2013 Con-ference on SIGCOMM (SIGCOMM ’13) . Association for Computing Ma-chinery, New York, NY, USA, 447–458. doi: 10.1145/2486001.2486007. [21] Leon Poutievski, Omid Mashayekhi, Joon Ong, Arjun Singh, Mukar-ram Tariq, Rui Wang, Jianan Zhang, Virginia Beauregard, Patrick Con-ner, Steve Gribble, Rishi Kapoor, Stephen Kratzer, Nanfang Li, Hong Liu, Karthik Nagaraj, Jason Ornstein, Samir Sawhney, Ryohei Urata, Lorenzo Vicisano, Kevin Yasumura, Shidong Zhang, Junlan Zhou, and Amin Vahdat. 2022. Jupiter Evolving: Transforming Google’s Data-center Network via Optical Circuit Switches and Software-Defined Networking. In Proceedings of the ACM SIGCOMM 2022 Conference (SIGCOMM ’22) . Association for Computing Machinery, New York, NY, USA, 66–85. doi: 10.1145/3544216.3544265. [22] Kun Qian, Yongqing Xi, Jiamin Cao, Jiaqi Gao, Yichi Xu, Yu Guan, Binzhang Fu, Xuemei Shi, Fangbo Zhu, Rui Miao, Chao Wang, Peng Wang, Pengcheng Zhang, Xianlong Zeng, Eddie Ruan, Zhiping Yao, Ennan Zhai, and Dennis Cai. 2024. Alibaba HPN: A Data Center Network for Large Language Model Training. In Proceedings of the ACM SIGCOMM 2024 Conference . ACM, Sydney NSW Australia, 691– 706. doi: 10.1145/3651890.3672265. [23] Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. 2020. ZeRO: Memory Optimizations toward Training Trillion Param-eter Models. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC ’20) .IEEE Press, Atlanta, Georgia, 1–16. https://dl.acm.org/doi/10.5555/ 3433701.3433727 [24] Sundararajan Renganathan and Nick McKeown. 2025. Chronos: Prescheduled Circuit Switching for LLM Training. In Proceedings of 
+
+7Arno Troch, Seyyidahmed Lahmer, Abubakr Nada, Jeroen Famaey, and Michael Peeters 
+
+the 2nd Workshop on Networks for AI Computing (NAIC ’25) . Associ-ation for Computing Machinery, New York, NY, USA, 89–97. doi: 10.1145/3748273.3749210. [25] Noam Shazeer, *Azalia Mirhoseini, *Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. 2017. Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer. In In-ternational Conference on Learning Representations . https://openreview. net/forum?id=B1ckMDqlg [26] Mohammad Shoeybi, Mostofa Patwary, Raul Puri, Patrick LeGresley, Jared Casper, and Bryan Catanzaro. 2020. Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism. arXiv:1909.08053 [cs] [27] Srinivas Sridharan, Taekyung Heo, Louis Feng, Zhaodong Wang, Matt Bergeron, Wenyin Fu, Shengbao Zheng, Brian Coutinho, Saeed Rashidi, Changhai Man, and Tushar Krishna. 2023. Chakra: Advancing Perfor-mance Benchmarking and Co-design Using Standardized Execution Traces. arXiv:2305.14516 [cs.LG] [28] Ryohei Urata, Hong Liu, Kevin Yasumura, Erji Mao, Jill Berger, Xiang Zhou, Cedric Lam, Roy Bannon, Darren Hutchinson, Daniel Nelson, Leon Poutievski, Arjun Singh, Joon Ong, and Amin Vahdat. 2022. Mission Apollo: Landing Optical Circuit Switching at Datacenter Scale. arXiv:2208.10041 [cs.NI] [29] John Von Neumann. 1953. A Certain Zero-Sum Two-Person Game Equivalent to the Optimal Assignment Problem. Contributions to the Theory of Games II; Annals of Mathematics Studies 28 (1953), 5–12. [30] Weiyang Wang, Moein Khazraee, Zhizhen Zhong, Manya Ghobadi, Zhihao Jia, Dheevatsa Mudigere, Ying Zhang, and Anthony Kewitsch. 2023. TopoOpt: Co-optimizing Network Topology and Paralleliza-tion Strategy for Distributed Training Jobs. In 20th USENIX Sympo-sium on Networked Systems Design and Implementation (NSDI 23) . 739– 767. https://www.usenix.org/conference/nsdi23/presentation/wang-weiyang [31] Yuyang Wang, Songli Wang, Robert Parsons, Swarnava Sanyal, Vig-nesh Gopal, Asher Novick, Anthony Rizzo, Michal Lipson, Alexander L. Gaeta, and Keren Bergman. [n. d.]. Co-Designed Silicon Photonics Chip I/O for Energy-Efficient Petascale Connectivity. 15, 8 ([n. d.]), 1581–1591. doi: 10.1109/TCPMT.2024.3492189. [32] William Won, Taekyung Heo, Saeed Rashidi, Srinivas Sridharan, Sudar-shan Srinivasan, and Tushar Krishna. 2023. ASTRA-sim2.0: Modeling Hierarchical Networks and Disaggregated Systems for Large-model Training at Scale. In 2023 IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS) . 283–294. doi: 10.1109/IS-PASS57527.2023.00035. [33] Zhenguo Wu, Benjamin Klenk, Larry Dennison, and Keren Bergman. 2025. ACTINA: Adapting Circuit-Switching Techniques for AI Net-working Architectures. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis .ACM, St. Louis MO USA, 1211–1222. doi: 10.1145/3712285.3759842. 8

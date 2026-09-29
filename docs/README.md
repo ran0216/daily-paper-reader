@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-27</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-29</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 9 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>6</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-27 21:50:17 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-29 00:04:50 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天速读6篇、精读0篇，重点浏览了模拟存内计算、AI数据中心硬件和数据流编译方向。</p>
-<p>最值得看的是模拟存内计算中“电路-架构-训练协同+激进SAR跳过”与AI数据中心硬件“通用性vs专用化”综述，均为7.0/10。</p>
-<p>建议普通读者先速读这两篇，抓住能效与精度权衡、通用性与专用化取舍，再决定是否深入。</p>
+<p>今日精读1篇、速读8篇，重点锁定AI数据中心硬件架构如何平衡通用性与专用化（8.0分）。最值得看的是存内计算与低比特推理方向：再生SA相似度感知的SAR跳过、CGLA上的BitNet Signed-Int4推理，都在压低模拟/低精度计算成本。普通读者可先读那篇8分综述建立全局观，再挑存内计算或BitNet速读了解省算力路线。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">1 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture">Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory">Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture">Balancing Generality and Specialization: A Survey on AI Datacenter Hardware Architecture</span></li><li><span class="dpr-home-dashboard-paper-title" title="Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures">Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory">Circuit-Architecture-Training Co-Design with Regenerative-SA Similarity Sensing for Aggressive SAR Skipping in Analog Compute-in-Memory</span></li><li><span class="dpr-home-dashboard-paper-title" title="Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions">Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling">Dissecting How Die Scaling Breaks GPU Fine-grained Scheduling</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>6</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>7</strong></span><span class="dpr-home-dashboard-tag">noc-arch <strong>1</strong></span></div>
 </section>
 </div>
 
