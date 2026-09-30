@@ -1,0 +1,992 @@
+Title: PipeDRAM: A Data-Transposition-Free In-DRAM Architecture with Hardware/Software Pipelining
+
+URL Source: https://arxiv.org/pdf/2609.30998v1
+
+Published Time: Mon, 28 Sep 2026 00:47:16 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# PipeDRAM : A Data-Transposition-Free In-DRAM Architecture with Hardware/Software Pipelining 
+
+Geraldo F. Oliveira † Ataberk Olgun ‡⋆ Ismail Emir Yüksel ‡⋆ F. Nisa Bostancı ‡⋆
+
+Pedro H. E. Becker † Mohammad Sadrosadati ‡⋆ Saugata Ghose ⋆ Juan Gómez-Luna ⋆ Onur Mutlu ‡⋆ 
+
+> †
+
+Huawei Research, Zürich ‡ ETH Zürich ⋆ SAFARI Research Group 
+
+Processing-using-DRAM (PUD) architectures exploit the ana-log operational properties of DRAM to perform bulk bitwise Boolean and arithmetic operations inside memory arrays by or-ganizing data in a vertical layout, where operand bits are stacked along DRAM columns. However, modern computing systems na-tively employ a horizontal data layout that preserves the cache line abstraction, leverages spatial locality in row buffers, and enables high memory throughput. This fundamental mismatch forces existing PUD architectures to frequently perform data lay-out transformations between horizontal and vertical formats, in-curring significant performance, energy, and system integration overheads. Our goal is to eliminate data transposition overheads in PUD systems at low cost. To this end, we propose PipeDRAM, a PUD architecture that eliminates the need for runtime data layout transformation, enabling PUD operations directly over horizontally laid-out data. PipeDRAM ’s key ideas are to (i) deter-ministically reorganize bits inside each memory request to enable a PUD-friendly data placement within a DRAM array in a hori-zontal data layout, and (ii) employ a pipeline-based execution model that overlaps bit-dependent and bit-independent in-DRAM operations to exploit bit-level parallelism across the memory ar-ray. We compare PipeDRAM to different computing platforms. PipeDRAM provides (i) 11.8 ×, 11.8 ×, and 80.4 × higher perfor-mance and (ii) 25.4 ×, 3.0 ×, and 38.0 × lower energy consumption than three state-of-the-art PUD systems. PipeDRAM incurs low area cost on top of a DRAM chip (1.86%) and CPU die (0.05%). To enable further research on PUD systems, we open-source PipeDRAM at https://github.com/CMU-SAFARI/PipeDRAM .
+
+## 1. Introduction 
+
+Processing-in-memory (PIM) [1–15] is a paradigm that allevi-ates the ever-growing cost of moving data between computing (e.g., CPU, GPU) and memory (e.g., DRAM) elements. In PIM ar-chitectures, computation is done by adding logic near memory arrays, i.e., processing-near-memory (PNM) [9, 10, 16–48, 48– 183], or by using the analog properties of the memory arrays, i.e., processing-using-memory (PUM) [15,69,109,134,184–295]). Many prior works [15, 69, 185–191, 194, 198–201, 203, 204, 210, 213–217, 220, 225, 233–237, 239, 260, 261, 266, 290–295] demon-strate the feasibility of processing-using-DRAM (PUD), which uses DRAM cells to implement ( i) simple PUD primitives , such as in-DRAM row copy [188, 194, 200, 214, 237] and Boolean/ma-jority [185–187, 191, 201, 202, 236] logic, and ( ii ) complex PUD operations , such as arithmetic [190, 216, 217, 225, 234, 235, 292] and lookup table (LUT)-based [203, 204, 233, 258, 295–297] op-erations, implemented by composing PUD primitives. PUD architectures commonly employ a bit-serial single-instruction multiple-data (SIMD) execution model to implement arithmetic and logic operations inside DRAM arrays. To enable efficient carry propagation and bitwise computation, such architectures organize data in a vertical layout: for an input array with M
+
+data elements, each of which with N bits, this layout spans M
+
+columns and N rows, where each DRAM row corresponds to a single bit-position of all M data elements. Multiple inputs arrays are placed in different DRAM rows and aligned within the same DRAM column. The vertical data layout mitigates two key issues that arise when performing arithmetic PUD operations under the con-ventional horizontal data organization that modern computing systems natively employ to enable high memory throughput. First, conventional DRAM interleaving schemes distribute the bits of an N -bit data word evenly across the DRAM hierar-chy [298–302] (i.e., rank → chip → bank → subarray → mat), scattering the operand bits that must interact during in-DRAM execution. Since PUD computation is driven by the sense am-plifiers of a DRAM mat [15, 185, 188, 194, 200, 201, 236, 237, 303] (the basic building block of PUD computation), this distribu-tion creates a data locality problem, where the bits of a given PUD operand are spread across the DRAM hierarchy rather than being centralized within a single DRAM mat. The vertical layout resolves this by confining all N bits of each data word to a single DRAM column, thereby localizing the full operand within one mat. Second, PUD computation is inherently row-wise , where sense amplifiers operate across all columns of an activated DRAM row, and no native interconnect exists to prop-agate data column-wise across rows [225]. As a result, PUD operations that require intermediate values to propagate across bit-positions (e.g., carry propagation in a bit-serial adder) can-not be performed under a horizontal data layout without costly hardware modifications to the DRAM array [225, 235], where the N bits of an operand reside in N different columns. The vertical layout resolves this by enabling carry propagation via in-DRAM row copy operations [188]: Ci+1  
+
+> in
+
+← Ciout simply translates to copying row i to row i + 1 .However, the vertical data layout is fundamentally incompat-ible with the horizontal data organization that modern mem-ory systems rely on, introducing three major limitations. First, PUD architectures incur costly runtime data layout conver-sion overheads [225]. Our evaluation results (§5) show that, on average, data layout conversion reduces performance and 1arXiv:2609.30998v1 [cs.AR] 25 Sep 2026 energy efficiency by 3.9 × and 3.7 ×, respectively, relative to an idealized PUD system with no transposition requirements. Second, data layout transformation amplifies data movement and interferes with the cache hierarchy . For example, prior works [225, 235, 292] store vertically laid-out data as object slices spanning multiple cache lines, such that accessing or evicting a single data element triggers writeback of an entire slice. This amplifies cache line traffic, increases writeback pres-sure, and entangles PUD execution with CPU cache hierarchy behavior. Third, vertical-layout PUD architectures introduce a 
+
+dual data-layout view of memory , where an application needs to distinguish between horizontally and vertically organized objects and coordinate data layout transformations. Our goal in this work is to eliminate the need for runtime data layout transformation while preserving PUD execution compatibility with conventional horizontally-organized mem-ory systems. To this end, we propose PipeDRAM , a PUD archi-tecture that enables bit-serial PUD execution directly over hor-izontally laid-out data. The key ideas of PipeDRAM are twofold. First, PipeDRAM leverages a mat-aware bit mapping (MABM) mechanism that deterministically reorganizes bits within each cache line to enable a horizontal, yet PUD-friendly, data layout within DRAM without incurring data transposition overheads. Placed at the memory controller, MABM applies a determin-istic bit-level permutation to each cache line on writes (and its inverse on reads), such that ( i) each data word is confined within a single DRAM chip, and ( ii ) its N bits are horizon-tally distributed evenly across the mats of that chip, with each mat holding one bit-position within a single DRAM row. This directly addresses the data locality problem by keeping the operand data inside a single subarray (multiple mats). MABM introduces no memory throughput loss or data format con-version overhead. Second, PipeDRAM combines fine-grained DRAM row access [304–312] with a hardware/software pipeline 
+
+to exploit bit-level parallelism [292] in PUD execution. Since MABM assigns each bit-position to a dedicated DRAM mat, carry values must propagate mat-to-mat rather than row-to-row. PipeDRAM enables this via the inter-mat interconnect of MIMDRAM [235], a fine-grained PUD architecture that al-lows individual DRAM mats to be activated independently and provides low-cost data movement across mats. The ability to individually activate mats and move data be-tween them opens a new opportunity: to turn each DRAM mat into a pipeline stage , where each stage processes a dis-tinct bit-position of the same PUD operation. Such pipelin-ing is possible because the PUD primitives of a PUD opera-tion naturally partition into bit-dependent primitives (those on the carry-dependency chain) and bit-independent primitives (those that can execute before or after dependency resolu-tion). Hence, while bit-dependent PUD primitives advance in dependency order with carry values flowing mat-to-mat, bit-independent PUD primitives from successive bit-positions can overlap across stages, keeping multiple mats busy simultane-ously. To orchestrate this pipeline without costly runtime hard-ware, PipeDRAM statically assigns PUD primitives to pipeline stages using a classical modulo scheduling algorithm [313–315], which computes a fixed, repeating schedule offline. To keep the pipeline busy, PipeDRAM introduces a hierarchical in-DRAM data copy scheme that prevents latency-critical carry propa-gation from stalling pipeline stages. Beyond performance, 
+
+PipeDRAM eliminates the dual data-layout view of memory entirely by operating natively over horizontally laid-out data. Since data does not need to be reorganized into a vertical for-mat, applications require no explicit data-format management, and no coordination of layout transformations, addressing the the dual data-layout view of memory limitation we described. We compare the benefits of PipeDRAM to different state-of-the-art processor-centric (CPU, GPU) and memory-centric ar-chitectures (SIMDRAM [225], MIMDRAM [235], Proteus [292]). Using a single DRAM rank, PipeDRAM provides ( i) 11.8 ×,11.8 ×, and 80.4 × higher performance, ( ii ) 25.4 ×, 3.0 ×, and 38.0 × lower energy consumption than SIMDRAM, MIMDRAM, and Proteus ; and ( iii ) 356 × and 11.7 × higher energy efficiency than a CPU and GPU, respectively, on average across twelve real-world applications. PipeDRAM incurs low area cost on top of a DRAM chip (1.86%) and CPU die (0.05%). We make the following key contributions: • We propose PipeDRAM , a new PUD architecture that enables in-DRAM computation directly over horizontally laid-out data, eliminating runtime data layout transformation and removing the need for two physical data layouts. To our knowledge, PipeDRAM is the first architecture to support pipeline bit-serial PUD execution without requiring vertical data organization. • PipeDRAM deploys a new pipeline-based execution model, which decomposes PUD operations into bit-dependent and bit-independent primitives and exploits fine-grained DRAM to overlap their execution. This execution model leverages the distributed placement of operand bits across multiple DRAM mats to enable steady-state pipelined computation over horizontally laid out data. • PipeDRAM introduces two novel components. First, 
+
+PipeDRAM ’s MABM mechanism deterministically reorga-nizes bits within each memory request to enable PUD-friendly data placement. Second, PipeDRAM ’s hierarchical in-DRAM data copy scheme decouples carry-dependent com-munication from computation, removing data communica-tion from the critical path of PUD execution. • We extensively evaluate PipeDRAM for twelve real-world applications, showing that PipeDRAM outperforms state-of-the-art PUD frameworks and processor-centric designs while incurring low area cost to the system. • We open-source PipeDRAM at https://github.com/ CMU-SAFARI/PipeDRAM .
+
+## 2. Background 
+
+We first briefly explain the architecture of a typical DRAM chip. Next, we describe prior DRAM enhancements and PUD works that PipeDRAM builds on. 22.1. DRAM Organization & Operation 
+
+DRAM Organization. Fig. 1 shows the hierarchy of a DRAM system. A DRAM module (Fig. 1a) has several (e.g., 8–16) DRAM chips. A DRAM rank is a group of DRAM chips that operate in lockstep (not shown). A DRAM chip (Fig. 1b) has multiple banks (e.g., 8–16). A DRAM bank (Fig. 1c) has ( i) mul-tiple (e.g., 64–128) 2D arrays of DRAM cells known as DRAM subarrays [316–318]; ( ii ) a global row decoder and a global ad-dress latch that select a row of cells in a subarray through global wordlines ; ( iii ) column select logic (CSL) that selects portions (e.g., 64-bit) of the row; and ( iv ) a global sense amplifier that transfers the selected fraction of the data from the row through 
+
+global bitlines . Each subarray contains multiples (e.g., 16–32) 
+
+DRAM mats (Fig. 1d), each of which with ( i) multiple rows (e.g., 512–1024) and columns (e.g., 2–8 kB [319–321]) of DRAM cells, (ii ) a local row decoder that activates a local wordline , ( iii ) a 
+
+local row buffer containing a row of sense amplifiers (SAs; 1 in Fig. 1d) to latch data from an activated row, and ( iv ) helper flip-flops (HFFs) that drive a portion (e.g., 4-bit) of the data in the local row buffer to the global bitlines. A DRAM cell ( 2 ) consists of a cell capacitor and an access transistor , which connects the cell capacitor with a local bitline shared by all cells in the same column. Modern DRAM employs an open bitline architecture [223, 322, 323], fitting only enough SAs in one local row buffer to latch half a row of cells ( 3 ). (a) DRAM Module           
+
+> chip chip chip ...
+> (b) DRAM Chip
+> global bitline
+> (c) DRAM Bank
+> global wordline
+> global sense amp. …
+> subarray N-1
+> mat
+> 0
+> mat
+> M-2
+> mat
+> M-1
+> …
+> subarray 0
+> mat
+> 0
+> mat
+> M-2
+> mat
+> M-1
+> CSL CSL
+> I/O bus
+> CSL
+> global row decoder bank bank bank bank I/O logic bank bank bank bank
+> cmd/addr data HFF
+> ... SA SA SA
+> ... SA SA SA
+> cell transistor access capacitor
+> (d) DRAM Mat
+> bitline cell
+> ... ... ... ... local row decoder
+> local row buffer local local
+> ... ... open bitline arch. wordline  23
+> bitline bitline
+> 1
+
+Figure 1: DRAM organization. Adapted from [204, 235]. 
+
+DRAM Operation & Data Organization. The memory con-troller issues three commands to service a DRAM request. The first command, ACTIVATE (ACT ), connects each DRAM cell in a row to its local bitline, and each cell’s transistor shares its charge with the bitline to shift the bitline voltage higher (or lower) if the cell stores a ‘1’ (‘0’). The local sense amplifier amplifies the shift to CMOS-readable values (simultaneously restoring charge to the DRAM cell). The latency from the start of activation until charge restoration is called tRAS . The sec-ond command, READ (RD ), returns a cache line of data from the local sense amplifier. The third command, PRECHARGE (PRE ), disconnects DRAM cells from the bitlines, and returns the bit-lines to their reference voltage. The precharge latency is called 
+
+tRP . A DRAM data transfer proceeds in three steps, which Fig. 2 illustrates. First, the memory controller drives 64 DQ (data) signals, transferring one 64-bit of data per double data rate (DDR) interface cycle (i.e., a data beat ) over an 8-beat burst to supply an entire 64 B cache line. Second, each ×16 DRAM chip receives 16 bits per beat and accumulates 128 bits in its prefetch buffer (Fig. 2) during the burst. Third, the 128 bits buffered in each DRAM chip are written into the DRAM mats. 64                  
+
+> A[0]
+> B3 B2 B1 B0 A[2]
+> B11 B10 B9 B8
+> A[14] B59 B58 B57 B56
+> A[15] B63 B62 B61 B60
+> A[3]
+> B15 B14 B13 B12
+> A[1]
+> B7 B6 B5 B4 …
+> beat 0 beat 1 beat 7 64 B cache line
+> memory controller DQ signals
+> beats 2 to 6
+> 16 chip 0 …mat0 mat1 mat30 mat31 444
+> B07:4 B03:0 B577:4 B573:0
+> 4prefetch buffer chip 1 …mat0 mat1 mat30 mat31 444
+> B27:4 B23:0 B597:4 B593:0
+> 4prefetch buffer chip 2 …mat0 mat1 mat30 mat31 444
+> B47:4 B43:0 B617:4 B613:0
+> 4prefetch buffer chip 3 …mat0 mat1 mat30 mat31 444
+> B67:4 B63:0 B637:4 B633:0
+> 4prefetch buffer 16 16 16
+> 128 b 128 b 128 b 128 b 64 b beat 4 B scalar
+
+Figure 2: Example cache line placement. “B” denotes byte. Bj:i
+
+denotes bits {bit j , . . . , bit i}, where i < j .
+
+2.2. Processing-Using-DRAM 
+
+In-DRAM Row Copy. RowClone [188] enables copying a row A to a row B in the same subarray by issuing two con-secutive ACT commands to these two rows, followed by a PRE 
+
+command. This command sequence is called AAP . LISA [223] enables the execution of in-DRAM row copy operations across DRAM rows in different subarrays of a DRAM bank by con-necting local row buffers of neighbor subarrays using isola-tion transistors, providing high-throughput inter-subarray data copy . To do so, LISA exposes a new command to the memory controller called LISA-RISC (rapid inter-subarray bulk data copying), which moves an entire DRAM row between neigh-boring DRAM subarrays with a latency of 3×tRAS +2 ×tRP +2 × tRBM .1 FIGARO [324] allows copying one column from the local row buffer of one subarray to the local row buffer of another subarray within the same bank using a new DRAM command called RELOC .
+
+In-DRAM Bitwise Operations. Ambit [185, 201] shows that a simultaneous triple row activation (TRA) can perform in-DRAM bitwise AND/OR/MAJ operations. Upon sensing the perturbation of the three simultaneously activated rows, the sense amplifier amplifies the local bitline voltage to VDD or 0 if at least two of the capacitors of the three DRAM cells are charged or discharged, respectively. As such, a TRA results in a Boolean majority operation (MAJ). Ambit implements TRA using a custom row decoder, and introduces a new com-mand called AP that issues a TRA followed by a PRE . Since TRA operations are destructive, Ambit divides DRAM rows into three groups: ( i) the D-group, which contains regular data rows; ( ii ) the C-group, which consists of two rows ( C0 
+
+and C1 ) with all-‘0’ and all-‘1’ values; and ( iii ) the B-group, which contains six rows designated for computation (four reg-ular rows, T0 , T1 , T2 , T3 ; and two rows, DCC0 and DCC1 , of dual-contact cells for enabling the NOT operation). Ambit im-plements an in-DRAM NOT operation by simply forwarding the complement of the sensed value as part of the activation process (bitline in Fig. 1) to a special DRAM row in the subar-ray that consists of DRAM cells with two access transistors, 
+
+> 1
+
+The row buffer movement (RBM) command asserts the isolation transistors between neighboring DRAM subarrays, which takes. tRBM ns. 
+
+3called dual-contact cells (DCCs). Each access transistor is con-nected to one side of the sense amplifier and is controlled by a separate wordline ( d-wordline or n-wordline ). By activating either the d-wordline or the n-wordline , the row of DCCs can provide the true or negated value stored in the row’s cells, re-spectively. SIMDRAM [225] builds on Ambit to implement and expose high-level instructions executed in DRAM ( μPrograms ). A μProgram consists of a sequence of PUD primitives , i.e., AAP s(row copies) and AP s ( M AJ ), that are generated offline, and ex-posed to the programmer as bbop instructions. To implement carry propagation, SIMDRAM (as well as other PUD architec-tures [215, 216, 234, 235, 292, 295, 325, 326]) employs a vertical 
+
+data layout, where all bits of a data word (e.g., a 32-bit integer) are stored in a single DRAM column (or bitline), and executes each in-DRAM operation bit-serially (i.e., one row at a time) in a SIMD manner. Proteus [292] further extends SIMDRAM’s bit-serial execution model by implementing bit-parallel in-DRAM operations, i.e., variants of SIMDRAM’s μPrograms that lever-age carry-lookahead logic to decouple the calculation of the carry bits and arithmetic logic. Fig. 3 illustrates the execution of a 2-bit in-DRAM bit-serial addition, which computes Cout ,i = MAJ( Ai, B i, C in ,i ) and 
+
+Si = MAJ( Ai, C out ,i , MAJ( Ai, B i, C in ,i )) using a sequence of AAP (row copy) and AP (MAJ) primitives within a single DRAM subarray. The inputs A and B are stored using a verti-cal data layout. Each number at the top of Fig. 3a indicates the execution of a PUD primitive. We make two observations. First, data copy dominates computation due to the destructive nature of TRA. Copy operations are required either to preserve input operands (e.g., 0 , 1 , 2 , 7 , 9 , 10 , 14 ) or to preserve inter-mediate values consumed by multiple TRA operations (e.g., 3 , 6 , 14 ). Second, the data-dependency graph (DDG) (Fig. 3b) of the PUD operation reveals available bit-level parallelism within the operation, since ( i) several PUD primitives are indepen-dent of carry propagation (e.g., initialization operations 0 , 1 , 9 , 10 ) and ( ii ) others become independent once the carry resolves (e.g., 8 , 12 , 13 ). The PUD substrate can exploit this bit-level parallelism to reduce overall latency by enabling the concurrent execution of independent PUD primitives within a DRAM subarray or bank. Since sense amplifiers are the pri-mary computation drivers of in-DRAM operations, achieving such parallelism requires mechanisms that allow subsets of sense amplifiers to operate independently rather than in a fully lockstep manner (e.g., via fine-grained DRAM [304–312] or subarray-level parallelism (SALP) [292, 316, 318]). 
+
+Fine-Grained In-DRAM Computing. MIMDRAM [235] in-troduces the ability to allocate only the required resources for a given PUD operation via fine-grained DRAM access and activation [304–312]. Concretely, MIMDRAM modifies ( i) the DRAM subarray circuitry with mat isolation transistors , row de-coder latches , and a mat selector logic to allow individual DRAM mats to be activated during a PUD operation; and ( ii ) the global and local sense amplification logic within a DRAM bank and DRAM mat to implement low-cost inter-/intra-mat intercon-nects , respectively, to allow portions of an activated DRAM S0 S1 S2 A0 A1 B0 B1 C0 C1 T0 T1 T2 T3 DCC0 DCC0 DCC1 DCC1                               
+
+> majority
+> (AP )
+> src copy
+> (AAP )
+> dst one zero undefined D-group rows
+> C-group rows
+> B-group rows
+> S0 Cout 0Cout 1S1 S2
+> 12345678910 11 12 13 14 15 16 17 03214 15 16 17
+> S2 S1 S0
+> 01910 6711 812
+> true dependency inter-bit independency anti-dependency inter-bit dependency
+> (a) (b)
+> vertical data layout  L1 L2 L3 L4 L5 L6 L7
+> 13 45
+
+Figure 3: 2-bit PUD addition with vertical data layout. (a) Step-by-step PUD primitive execution. (b) Corresponding DDG. 
+
+row to be moved across mats (via a new DRAM command called GB_MOV ) and within a mat (via a new DRAM command called LC_MOV ). After row activation, moving (#HFFs)-bits inter-/intra-mat takes tRELOC ns. MIMDRAM provides hardware and software support to map, schedule, and orchestrate the execution of data-independent PUD operations across different DRAM mats within a DRAM subarray, in a multiple-instruction multiple-data (MIMD) manner. 
+
+The PUD Landscape. Prior PUD substrates [225,235,292] dif-fer along the axes summarized in Table 1. ( i) Parallelism mode 
+
+is the type of concurrency a substrate exploits within a DRAM subarray: data-level (one PUD operation across many data-independent elements), instruction-level (multiple indepen-dent PUD operations at once), or bit-level (the bit-independent PUD primitives of one PUD operation). ( ii ) Execution mode is how that concurrency is realized, as SIMD , MIMD , or pipelined 
+
+execution. (iii ) Computing granularity is the smallest unit a substrate can activate, either fine-grained over an individ-ual DRAM mat (512 columns) or coarse-grained over the full row (65,536 columns). ( iv ) Peak SIMD width is the number of columns one single PUD operation within a bank computes on. ( v) Data transposition indicates whether the substrate must first transpose data from the conventional horizontal layout to a vertical one. SIMDRAM [225] computes a single SIMD PUD operation at coarse, full-row granularity. MIMDRAM [235] adds fine-grained, mat-level computation and instruction-level parallelism, running different PUD operations on different mats (MIMD) and supporting SIMD widths between 512 (one mat) to 65,536 lanes (all mats). Proteus [292] adds bit-level parallelism, pipelining bit-independent PUD primitives across the subarrays of a bank. These substrates differ in parallelism and granularity, yet they share one requirement: regardless of mode or granularity, all have to transpose the entire input from the horizontal layout the processor produces to a verti-cal layout before computation. PipeDRAM , the substrate we present in §4, is the first PUD substrate to fully remove this taxing data transposition requirement while enabling all three data-parallelism modes and all three execution modes to be exploited within a single PUD substrate. 4Table 1: Summary of the PUD landscape.                                  
+
+> Parallelism Mode Execution Mode System Data Instr. Bit SIMD MIMD Pipe. Fine-Grained Peak SIMD Width (per-bank) No Transp. SIMDRAM [225] ✓✓65,536 MIMDRAM [235] ✓✓✓✓✓512 ×#mats
+> Proteus [292] ✓✓✓✓65,536
+> PipeDRAM (ours) ✓✓✓✓✓✓✓2,048 ×#bit-position ✓
+
+## 3. Motivation 
+
+In this section, we discuss the three limitations imposed by requiring a vertical data layout for bit-serial PUD execution: (i) costly runtime data layout transformation, ( ii ) amplified data movement and cache interference, and ( iii ) a dual data-layout view of memory that complicates system integration. 
+
+Costly Runtime Data Layout Transformation. Requiring a vertical data layout for bit-serial PUD execution necessitates frequent and costly runtime data layout transformation between the system’s native CPU-friendly horizontal format and the PUD-friendly vertical format. In conventional processor-centric systems, cache lines are organized horizontally across DRAM chips and columns to preserve the cache line abstrac-tion and maximize memory throughput. Each cache line ac-cess is serviced by a single sequence of DRAM commands (ACT -RD /WR -PRE ), since all bits of the cache line reside within the same DRAM row across chips. In contrast, under vertical-layout PUD execution, the bits of an N -bit data element are distributed across N different DRAM rows, with each row cor-responding to a distinct bit-position. Consequently, reading or writing a vertically organized cache line requires N separate DRAM ACT -RD /WR -PRE execution, one per row. Since DRAM row activations dominate both latency and energy consump-tion, this N -fold amplification of DRAM traffic substantially increases memory access cost and undermines the efficiency benefits of in-DRAM computation. We quantify, in Fig. 4, the impact of data transposition on the performance (top) and energy efficiency (bottom) of PUD operations by analyzing the operational intensity (i.e., the ratio of PUD operations to transposed bytes) across 16 bit-serial PUD operations and 12 real-world applications using SIM-DRAM [225] as the base PUD architecture. 2 The shaded bands represent the data transposition overhead envelope for three PUD complexity classes (logarithmic, linear, and quadratic; see SIMDRAM [225]), while the scatter points indicate the overhead incurred by the 12 real-world applications. We make three observations. First, three applications ( bp , fdtd , and 
+
+> km
+
+) exhibit low operational intensity (below 10 Op/B), causing data transposition to account for most of the total execution time (77%–100%) and energy consumption (73%–100%). Sec-ond, even for the nine compute-intensive applications with higher operational intensity, data transposition overhead still accounts for up to 14.6% of execution time and 12.3% of en-ergy consumption. Third, the operational intensity required to amortize data transposition overhead varies significantly 
+
+across operation complexity classes: quadratic operations (e.g., 
+
+> 2See §5 for details of our experimental methodology.
+
+multiplication, division) reach low overhead at much lower operational intensities than logarithmic operations (e.g., reduc-tions), because their higher per-element compute cost yields a more favorable compute-to-transposition ratio. 050 100            
+
+> Performance Overhead (%)
+> 2mm 3mm bp cov dg fdtd gmm gs hw km pca x264
+> 10 210 110 010 110 210 310 410 510 6
+> PUD Operational Intensity (PUD Operations per Transposed Byte)
+> 050 100
+> Energy Overhead (%)
+> 2mm 3mm bp cov dg fdtd gmm gs hw km pca x264 Logarithmic Linear Quadratic
+
+Figure 4: Data transposition overheads on 16 PUD operations (shaded bands) and 12 real-world applications (scatter points). 
+
+Amplified Data Movement & Cache Interference. Vertical-layout PUD incurs amplified data movement and cache inter-ference at cache line granularity, by tightly coupling PUD exe-cution with cache hierarchy behavior. When a cache line A
+
+belonging to a PUD memory object is evicted from the last-level cache (LLC), the data transposition unit (placed in the memory controller) intercepts the request (see [225]). Since a vertically-organized PUD memory object distributes the N
+
+bit-positions of each data word across N DRAM rows, writing such data at high throughput requires assembling a full vertical memory slice that spans N cache lines. Only after collecting all N cache lines, the memory controller can issue N DRAM write operations, each targeting a distinct DRAM row. 
+
+Dual Data-Layout View of Memory. PUD architectures that rely on a vertical data layout impose a dual data-layout view of memory address space , since the system must main-tain two incompatible physical organizations, i.e., the native horizontal layout for host execution and the vertical layout required for in-DRAM computation. This duality breaks the uniform memory abstraction expected by software and com-plicates system integration, as the programmer (or compiler) must explicitly distinguish between horizontally and vertically organized memory objects and determine when a data layout transformation should occur. This decision is inherently frag-ile: if a transformation occurs too late , it lies on the critical path of the PUD operation; if it occurs too early , subsequent host accesses may consume data already reorganized into the vertical format, forcing additional layout conversions. As a result, performance depends on anticipating dynamic cache residency and future access behavior. 
+
+Goal. Our goal in this work is to eliminate the fundamental limitations imposed by vertical data layout in bit-serial PUD architectures. We aim to remove the root cause of these ineffi-ciencies by enabling high-throughput in-DRAM computation 
+
+directly over horizontally laid-out data, thereby eliminating runtime data transposition and avoiding dual physical data lay-outs while remaining compatible with existing conventional memory systems. 54. PipeDRAM Overview 
+
+PipeDRAM is a PUD architecture that enables bit-serial/bit-parallel execution directly over horizontally laid-out data. 
+
+PipeDRAM is built on two key ideas. First, it deterministi-cally reorganizes bits within each cache line to construct a PUD-friendly data placement inside DRAM while preserv-ing the system-level horizontal data layout and cache line abstraction. Second, it combines fine-grained DRAM access with hardware/software pipelining to exploit bit-level paral-lelism across DRAM mats during PUD execution. PipeDRAM 
+
+consists of three main components. First, a mat-aware bit mapping (MABM) mechanism (§4.2), implemented in the mem-ory controller, that deterministically redistributes bits within each cache line to enable mat-level data interleaving with-out requiring runtime data layout transformation. Second, a 
+
+software-assisted pipelined execution model (§4.3) that statically schedules PUD primitives across DRAM mats and subarrays to sustain high-throughput bit-serial execution. Third, PipeDRAM 
+
+implements a hierarchical in-DRAM data copy scheme (§4.4) that accelerates carry propagation and removes inter-bit de-pendency communication from the critical path of the pipeline. 
+
+4.1. Subarray Organization 
+
+Fig. 5 shows the subarray organization of PipeDRAM . First, 
+
+PipeDRAM leverages the fine-grained mat access substrate of MIMDRAM [235] ( 1 in Fig. 5). Second, PipeDRAM lever-ages the isolation transistors of LISA [223] ( 2 ) to provide high-throughput connections between neighboring subarrays. Third, PipeDRAM incorporates the SALP [316] row-decoder latch ( 3 ) to enable subarray-level parallelism. In addition to these works, PipeDRAM introduces no additional circuitry sub-strate; it only logically designates neighboring subarrays as 
+
+copying subarrays , as we describe in §4.4. DDDDglobal row decoder mat selector    
+
+> SA SA SA SA SA SA SA SA global sense amplifiers
+> computing subarray copying subarray
+> mat0 mat0 matM-1 matM-1
+> local dec. local dec.
+> matline global wordline global bitline isolation trans. B-grp row dec. inter-mat interconnect 444
+> subarray intercon. inter-subarray sel. subarray sel. subarray sel. subarray sel. mat isolation transistor & row decoder latch
+> 12113
+
+Figure 5: PipeDRAM subarray organization, building on MIM-DRAM [235], LISA [223], and SALP [316]. 
+
+4.2. Mat-Aware Bit Mapping (MABM) 
+
+PipeDRAM ’s MABM mechanism eliminates the need for run-time data layout transformation by redefining how bits within a cache line are mapped to DRAM chips and mats while address-ing the data locality problem (§1) imposed by conventional DRAM interleaving. MABM simultaneously ( i) localizes each scalar value within a single DRAM chip; and ( ii ) interleaves the bit-positions of that scalar value across multiple DRAM mats using a deterministic mapping function . This data place-ment preserves the host’s horizontal data layout and cache line abstraction, while creating the bit distribution that PipeDRAM 
+
+requires for pipelined bit-serial execution. Each mat then holds one operand bit-position for many data elements, enabling successive mats to operate as pipeline stages and allowing dependency-critical values to be propagated through the data movement substrate described in §4.4, without runtime trans-position or costly cross-bitline communication hardware. 
+
+Implementation. Formally, let A[i]j denote bit-position j
+
+of scalar A[i], where N is the scalar bit-width. Let Nchips 
+
+denote the number of DRAM chips in a rank, and let Nmats 
+
+denote the number of DRAM mats participating in PUD exe-cution within a chip. MABM defines a deterministic mapping 
+
+Φ( A[i]j ) = ( c, m, ℓ ), where c = i mod Nchips , ℓ = ⌊i/N chips ⌋,and m = j mod Nmats . Here, c denotes the target DRAM chip, 
+
+m denotes the target DRAM mat within that chip, and ℓ de-notes the column group index within the mat, derived from the scalar index i; higher-order bit positions are mapped to successive mat groups. 3 This mapping ensures that: ( i) all bits of scalar A[i] reside within a single DRAM chip, and ( ii ) dis-tinct bit-positions of the scalar are distributed across different DRAM mats, enabling mat-level parallel execution of PUD primitives. When retrieving a cache line from DRAM during a read operation, the MABM mechanism applies the inverse permutation Φ−1 to the returned data before injecting it into the cache subsystem. Because Φ is bijective over the bits of a single cache line, the original horizontal cache line organiza-tion is reconstructed by applying Φ−1 to each bit read from DRAM. Specifically, a bit read from physical location (c, m, ℓ )
+
+is restored to Φ−1(c, m, ℓ ) = A[ℓ · Nchips + c]m. Equivalently, the scalar index is recovered as i = ℓ · Nchips + c, and the bit index is recovered as j = m.Fig. 6 illustrates the operation of the MABM mechanism dur-ing a cache line eviction to DRAM (a cache line retrieval, i.e., a DRAM read, is analogous). The MABM mechanism operates in three steps. In the first step, the memory controller receives an evicted cache line (e.g., 64 B ) containing 16 scalar elements 
+
+A[i], where each scalar is 4 B (32-bit) in this example ( 1 in Fig. 6). The cache line is organized in the conventional horizon-tal data layout. In the second step, upon receiving the cache line and prior to injecting its data into the memory controller’s write queue (not shown), the MABM mechanism applies Φ
+
+independently to each bit A[i]j ( 2 ). The cache line data is logically permuted such that each scalar element is confined to a single DRAM chip (determined by c = i mod Nchips ) and its bits are distributed across that chip’s DRAM mats according to m = j mod Nmats . The output of this step is a bit-level reorganized version of cache line A ( 3 ), which preserves the cache line abstraction while enabling mat-level bit distribution.                       
+
+> 3For clarity, the expression m=jassumes that the number of partici-pating mats equals the scalar bit-width ( Nmats =N). More generally, with
+> Nmats participating mats, m=jmod Nmats . For a bit-precision wider than Nmats bits, bit-positions jand j+Nmats share one mat and occupy dis-tinct column positions within it. As we discuss in §4.5, implementing MABM requires no information of the bit-width of individual DRAM requests.
+
+6In the third step, when the memory controller issues a DRAM write request, the reordered cache line is transferred over the standard DQ interface using the same beat-sized burst struc-ture as the baseline system ( 4 ). For example, during beat 0 
+
+( 5 ), the last 16 DQ signals deliver bit-slices {3,2,1,0} from scalar elements {A[15] , A [11] , A [7] , A [3] } to chip 0 . During 
+
+beat 1 , the last 16 DQ signals deliver bit-slices {7,6,5,4} from the same scalar elements, which are written to the next set of mats (i.e., mat 4 to mat 7). The remaining beats proceed analo-gously. After all beats in the burst are transferred to DRAM, each scalar element remains interleaved across DRAM chips and columns at cache line granularity, thereby preserving the horizontal data layout. However, within a given chip, all bits of a scalar are localized and distributed across that chip’s mats, enabling efficient bit-serial PUD execution without runtime data layout transformation. 64 memory controller DQ signals 16 16 16 16 chip 0 mat2 mat1 mat0 mat3 …chip 1 mat2 mat1 mat0 mat3 …chip 2 mat2 mat1 mat0 mat3 …chip 3 mat2 mat1 mat0 mat3 …                                          
+
+> A[15] A[14] A[13] A[12] A[11] A[10] A[9] A[8] A[7] A[6] A[5] A[4] A[3] A[2] A[1] A[0]
+> 33 3 3 22 2 2 11 1 1 00 0 0 3 3 3 3 2 2 2 2 1 1 1 1 0 0 0 0 3 3 3 3 2 2 2 2 1 1 1 1 0 0 0 0 3 3 3 3 2 2 2 2 1 1 1 1 0 0 0 0
+> evicted 64 B cache line A 4 B scalar
+> 77 7 7 66 6 6 55 5 5 44 4 4 7 7 7 7 6 6 6 6 5 5 5 5 4 4 4 4 7 7 7 7 6 6 6 6 5 5 5 5 4 4 4 4 7 7 7 7 6 6 6 6 5 5 5 5 4 4 4 4
+> 64 b beat 0 64 b beat 1
+> 31 30 29 28 31 30 29 28 31 30 29 28 31 30 29 28
+> 64 b beat 7 …
+> A[15]3 A[15]2 A[15]1 A[15]0 A[10]3 A[10]2 A[10]1 A[10]0 A[12]3 A[12]2 A[12]1 A[12]0 mat-aware bit mapping
+> 64 B bit-level data reorganized cache line A
+> 12345555
+> A[15] localized in chip 3
+
+Figure 6: Mat-aware bit mapping (MABM) mechanism placed at the memory controller. A 4 B scalar data element is denoted 
+
+A[i], and its bit j is denoted A[i]j .
+
+4.3. Software-Assisted Pipelined PUD Execution 
+
+4.3.1. Pipelined Execution Flow. PipeDRAM exploits the horizontal data layout produced by MABM (§4.2) to pipeline the execution of the several PUD primitives that compose a single bit-serial PUD operation across the DRAM mats within a DRAM chip. Instead of executing all PUD primitives of bit-position i before starting the execution of bit-position i +1, PipeDRAM assigns successive bit-positions to neighboring mats and overlaps their execution whenever bit-dependencies permit. In this way, the mats within a chip act as pipeline stages that process different bit-positions of the same operation, while intermediate values propagate between mats according to the inter-bit dependencies of the PUD operation. As a result, multiple bit-positions of the same PUD operation can be in flight simultaneously across a single DRAM subarray, converting mat-level parallelism into pipeline parallelism. Fig. 7 illustrates PipeDRAM ’s pipelined execution flow using the same 2-bit in-DRAM bit-serial addition shown in the DDG of Fig. 3. The figure maps the two operand bit-positions to dif-ferent DRAM mats and shows, cycle by cycle, which PUD prim-itives are issued to each mat. In this example, mat 0 executes the PUD primitives of the least-significant bit-position, while 
+
+mat 1 executes the PUD primitives of the next bit-position once the carry dependency becomes available. The execution pro-ceeds in five intervals: initialization , carry generation , carry propagation , steady-state , and pipeline drain . ( i) During ini-tialization ( cycles 1–2 ), PipeDRAM concurrently executes PUD primitives in mat 0 and mat 1 to copy input operand data into B-group rows (§2.2). ( ii ) During carry generation ( cycles 3–5 ), 
+
+PipeDRAM issues PUD primitives only to mat 0 to produce the first carry-out value, C0
+
+> out
+
+. ( iii ) In cycle 6 , PipeDRAM propa-gates C0 
+
+> out
+
+from mat 0 to mat 1 via the inter-mat interconnect (§2.2). ( iv ) Once cycle 6 completes, the inter-bit dependency is resolved and PipeDRAM proceeds by concurrently execut-ing PUD primitives over mat 0 and mat 1 during cycles 7–10 ,reaching a steady-state pipeline execution. ( v) After cycle 10 ,
+
+mat 0 completes all PUD primitives associated with the least-significant bit-position, producing S0. The remaining cycles (cycles 11–13 ) drain the pipeline by executing the remaining PUD primitives in mat 1 for the next bit-position, producing 
+
+S1 and C1
+
+> out
+
+. Finally, in cycle 13 , PipeDRAM forwards the carry produced in mat 1 to the next pipeline stage, mat 2, which cor-responds to the most-significant output bit, S2. Compared to the serialized execution of Fig. 3, PipeDRAM reduces the execu-tion of the operation from 18 cycles to 13 cycles by overlapping PUD primitives from different bit-positions across mats. 
+
+4.3.2. Software-Assisted Instruction Scheduling. 
+
+PipeDRAM employs a software-assisted static scheduler to construct the pipelined execution schedule of a PUD operation across DRAM mats. Unlike conventional processors, PUD execution is fully deterministic: each PUD operation corresponds to a fixed sequence of PUD primitives defined by a μProgram, with no conditional branches, dynamic memory accesses, or runtime control flow. Consequently, all data-/bit-dependencies between PUD primitives are known prior to execution. This property enables PipeDRAM to compute the instruction schedule offline and provide the memory controller with a static schedule that maps each PUD primitive to a pipeline stage (i.e., DRAM mat) and execution cycle. To do so, PipeDRAM adopts a scheduling strategy inspired by iterative modulo scheduling [313], widely used in very long instruction word (VLIW) compilers [327–331] to construct static execution schedules. Algorithm 1 shows the scheduling procedure (inspired by 
+
+iterative modulo scheduling [313]), which works in four main steps. Given a μProgram U describing a PUD operation and a target operand bit-position b, the scheduler determines when each PUD primitive should execute and on which DRAM mat it should be issued. The scheduler constructs a pipeline sched-ule that respects both ( i) data-/bit-dependencies between PUD primitives and ( ii ) resource constraints imposed by the limited number of DRAM mats that can execute PUD primitives con-currently. First, the scheduler constructs the DDG of the PUD primitives in the input μProgram (line 1). Second, it computes the minimum feasible initiation interval II , which defines the rate at which new operand bit-positions may enter the pipeline. 7SABC0 C1 T0 T1 T2 T3 DCC0 DCC0 DCC1 DCC1 mat 0 mat 1              
+
+> mat 2
+> mat 0 mat 1
+> mat 2
+> mat 0
+> mat 1 mat 2
+> mat 0
+> mat 1 mat 2
+> mat 0
+> mat 1 mat 2
+> mat 0 mat 1
+> mat 2
+> mat 0 mat 1
+> mat 2
+> mat 0 mat 1
+> mat 2
+> mat 0 mat 1
+> mat 2
+> mat 0 mat 1
+> mat 2 mat 0
+> mat 1
+> mat 2 mat 0
+> mat 1
+> mat 2 mat 0
+> mat 1 mat 2 tt 2 tt 3 tt A tt B tt C tt D tt S tt T tt a tt 21 tt 22 tt 23 tt 2A 212A3 12A3 02021A3 32 A2 B 032 A2 B 32 3 03 CA
+> MAJ(T0,T2,DCC1) MAJ(T1,T3,DCC0) T3←DCC1 T0←DCC1 MAJ(T0,T2,DCC1) T1←A0 MAJ(T1,T3,DCC0) S0←MAJ(T0,T1,T3) T0←DCC1 T1←A1 S1←MAJ(T0,T1,T3) S2←DCC1 mat 0 mat 1 09110 234511 612 713 814 15 16 17
+> one zero undefined D-group rows
+> C-group rows
+> B-group rows majority (AP )
+> src copy (AAP )
+> dst
+
+Figure 7: Example of a 2-bit in-DRAM bit-serial addition, A (2’b11) + B (2’b01) = S (3’b100) , in PipeDRAM , where bit i of both operands, Ai and Bi, resides in mat i. Each cycle executes PUD primitives according to the DDG in Fig. 3, whose primitives compute Ciout = MAJ( Ai, B i, C iin ) and Si = MAJ( Bi, C iout , MAJ( Ai, C iin , C iout )) . A bold outline marks the DRAM mats active in a cycle. 
+
+This interval is constrained by both data-dependencies and hardware resources. The recurrence-constrained initiation in-terval captures the dependency-critical paths in the μProgram, such as carry propagation, and ensures that a bit-position is 
+
+not issued before the intermediate values it depends on become available. The resource-constrained initiation interval captures the limited number of DRAM mats available for execution and ensures that the schedule does not oversubscribe mat-level resources in any cycle. The scheduler therefore sets II to the maximum of these two bounds (lines 2–4), since any smaller value would yield an illegal schedule. Third, given this II ,the scheduler iteratively attempts to construct a legal pipeline schedule. For each PUD primitive, it computes the earliest legal cycle that satisfies the dependency constraints (line 9), derives the pipeline stage as t mod II (line 10), and maps the PUD primitive to the DRAM mat corresponding to the target operand bit-position and pipeline stage (line 11). If the as-signment violates either a data-/bit-dependency or a mat-level resource constraint, the current attempt fails, and the sched-uler increases II (lines 12–14). Fourth, once a legal schedule is found, the resulting mapping assigns each PUD primitive to a specific DRAM mat, execution cycle, and pipeline stage. 
+
+4.4. Hierarchical In-DRAM Data Copy Scheme 
+
+During PipeDRAM ’s pipelined execution of a bit-serial PUD operation across DRAM mats, bit-dependent intermediate val-ues (e.g., carry values) must be propagated between neigh-boring pipeline stages (i.e., DRAM mats). However, if such values are propagated only through the low-cost inter-mat interconnect, communication across pipeline stages can be-come a throughput bottleneck. The key reason is that the inter-mat interconnect is fundamentally limited by the width of the helper flip-flops (HFFs) in the DRAM bank periphery. An inter-mat transfer can move only as many bits as the number of available HFFs, e.g., 4–8 bits in a typical DRAM organiza-tion [235, 306, 307, 309, 311, 312]. Thus, propagating an interme-diate value spanning an entire mat width requires repeating the transfer operation mat _width  
+
+> #HF F s
+
+times. For example, for a 
+
+Algorithm 1: PipeDRAM Static Instruction Scheduler 
+
+Input : μProgram U , target bit-position b
+
+Output : Static schedule S, where S : p 7 → (m, t, s ),where m is the DRAM mat that executes p, t
+
+is the cycle at which p issues, and s is the pipeline stage of p 
+
+> 1
+
+Construct DDG G from PUD primitives in U 
+
+> 2
+
+II rec ← recurrence-constrained II from inter-primitive dependencies in G 
+
+> 3
+
+II res ← resource-constrained II from the number of available DRAM mats  
+
+> 4
+
+II ← max( II rec , II res ) 
+
+> 5
+
+repeat  
+
+> 6
+
+Clear schedule S 
+
+> 7
+
+f ailed ← false  
+
+> 8
+
+foreach PUD primitive p ∈ U in dependency order 
+
+do  
+
+> 9
+
+t ← earliest legal cycle satisfying all dependencies of p in G 
+
+> 10
+
+s ← t mod II  
+
+> 11
+
+m ← DRAM mat for bit-position b and stage s 
+
+> 12
+
+if (m, t, s ) violates a dependency or resource constraint then f ailed ← true ; break  
+
+> 13
+
+Insert S[p] ← (m, t, s ) 
+
+> 14
+
+if f ailed then II ← II + 1  
+
+> 15
+
+until a legal schedule is found  
+
+> 16
+
+return S
+
+DRAM mat with 512 DRAM columns and 4 HFFs, the transfer must be repeated 512 4 = 128 times, where each iteration takes 
+
+tRELOC (ns ). This serialized transfer cost is acceptable for non-critical inter-mat data transfers, but it can become too slow for bit-dependency-critical data values. A naive way to reduce the latency of inter-mat data transfers would be to increase the width of the inter-mat interconnect by adding more HFFs per DRAM mat. However, such a solution is prohibitively ex-8pensive, since wide HFFs incur area overhead comparable to duplicating portions of the local row buffer. 4
+
+To mitigate this issue, PipeDRAM adopts a hierarchical in-DRAM data copy scheme ( 3 in Fig. 5) that separates latency-critical communication from non-critical data propagation. The scheme combines two complementary data transfer paths: (i) a high-throughput inter-subarray copy path (building in LISA [223], as Fig. 5 illustrates) for dependency-critical val-ues, and ( ii ) a low-cost inter-mat copy path for asynchronous propagation within a DRAM bank. By assigning each path to the communication it serves best, PipeDRAM removes carry propagation from the critical path of pipelined PUD execution while preserving low hardware cost. PipeDRAM logically par-titions neighboring (i.e., physically adjacent, sharing a local row buffer) subarrays into two roles. A computing subarray 
+
+executes PUD primitives over the active pipeline stages, while a neighboring copying subarray serves as a temporary staging area for intermediate values that must be forwarded to sub-sequent pipeline stages. This organization allows PipeDRAM 
+
+to remove carry-dependent communication from the critical path of computation: latency-critical values are first trans-ferred quickly to a copying subarray using the inter-subarray interconnect, and are then propagated asynchronously to the appropriate destination mats using the low-cost inter-mat in-terconnect. It is important to point out that the adoption of a copying subarray during PUD execution does not reduce the effective memory capacity of the DRAM subsystem, since the copying subarray is used as a staging buffer that only occu-pies the copying subarray’s local row buffer and does not hold any state during PUD operation, i.e., user data stored in the copying DRAM subarray is preserved. In case the PUD system enables PUD execution across all DRAM subarrays in a DRAM bank, a copying subarray can be time multiplexed between copying and computing across PUD execution, since enabling a copying subarray does not involve any static resource partition-ing and requires only that PipeDRAM appropriately schedules the inter-subarray/-mat DRAM commands (discussed below) during PUD execution. 
+
+4.4.1. Asynchronous Carry Propagation. Fig. 8 illustrates our hierarchical in-DRAM data copy scheme using the same 2-bit bit-serial addition as in Fig. 7. In the baseline execution (Fig. 8(a)), the carry data produced in mat 0 by PUD primitive 
+
+#4 , i.e., C0
+
+out , is propagated to the consumer pipeline stage in 
+
+mat 1 using the GB-MOV DRAM command ( 1 in Fig. 8(a)). This inter-mat data copy blocks the pipeline execution to process the following bit-independent PUD primitives in mat 0 (i.e., PUD primitives #5-#8 ) by tRELOC × mat width 
+
+#HF F s ns. In contrast, Fig. 8(b) shows PipeDRAM ’s asynchronous carry propagation in three main steps. First, once the carry C0
+
+out is produced in mat 0 by the computing subarray, PipeDRAM immediately moves it to the neighboring mat 0 in copying subarray using the high-throughput inter-subarray interconnect by issuing 
+
+> 4
+
+Making the HFF structure as wide as the mat width would incur an area overhead of 20—26% to a 4–8 Gbit DDR4 DRAM chip, according to our CACTI [332] analysis. 
+
+a LISA-RISC DRAM command ( 1 in Fig. 8(b)). This allows the carry originating mat ( mat 0) to continue executing carry-independent PUD primitives or begin processing a new subset of data elements after tRBM ns. Second, the memory con-troller issues a GB-MOV command to the copying subarray to asynchronously move C0
+
+out from mat 0 to mat 1 using the inter-mat interconnect in the copying subarray 2 ). Third, once the 
+
+GB-MOV command finishes executing, the memory controller issues a LISA-RISC command to copy C0
+
+out from mat 1 in the copying subarray to mat 1 in the computing subarray ( 3 ), thereby enabling the bit-dependent PUD primitives of the next pipeline stage to execute. mat1 mat0 mat1 mat0 mat1 mat0 mat1 mat0 local row buffer mat1 mat0 inter-mat interconnect global sense amplifiers                                                         
+
+> Cout 0Cin 1cycle 6 (step 1) cycle 6 (step 2) cycle 6 (step 3) cycle 7
+> GB-MOV mat1 ← mat0 GB-MOV mat1 ← mat0 GB-MOV mat1 ← mat0 MAJ(…) COPY (…)
+> carry-independent PUD primitives pipeline stalled due to carry propagation
+> mat1 mat0
+> COPY(…) MAJ (…)
+> cycle 8
+> mat1 mat0 mat1 mat0 mat1 mat0 mat1 mat0 mat1 mat0 mat1 mat0 inter-subarray interconnect computing subarray copying subarray
+> cycle 6 cycle 7 cycle 8 cycle 9 cycle 10
+> LISA-RISC cpy ← cmp MAJ(T1,T3,DCC0) T0 ←DCC1 T1 ←A0 S0 ← MAJ(T0,T1,T3) GB-MOV mat1 ← mat0 GB-MOV mat1 ← mat0 GB-MOV mat1 ← mat0 LISA-RISC cmp ← cpy
+> move carry propagation outside computing subarray pipeline progress for carry-independent PUD primitives (saved cycles) move carry back into computing subarray PUD primitives at computing sub: PUD primitives at copying sub: (a) Synchronous Carry Propagation (b) Asynchronous Carry Propagation via Copying Subarray 1123
+
+Figure 8: Carry propagation in PipeDRAM (2-bit addition of Fig. 7). (a) Baseline: carry propagation blocks computation. (b) PipeDRAM ’s hierarchical in-DRAM data copy scheme. 
+
+4.5. Discussion 
+
+Execution Model. PipeDRAM converts mat-level parallelism within a chip into pipeline parallelism for a single PUD op-eration, while preserving chip-level MIMD parallelism across the logical subarray. This execution model differs from prior fine-grained PUD architectures, such as MIMDRAM [235]: while they exploit data-level parallelism across multiple PUD operations, PipeDRAM exploits bit-level parallelism within a 
+
+single PUD operation. However, it is important to point out that PipeDRAM can also exploit data-level parallelism, since operand bits are interleaved across DRAM chips via our MABM scheme, enabling different DRAM chips within the same logi-cal DRAM subarray to execute independent PUD operations 
+
+concurrently , and thereby support MIMD-style execution. 
+
+Programming Model, ISA & System Support. PipeDRAM 
+
+leverages the same ISA extensions, compiler support, control unit, and coherency mechanism as prior PUD systems [225,235, 292]. It is important to point out that our MABM mechanism (§4.2) requires no knowledge of the data type or bit-precision of the cache lines the memory controller writes/reads to/from DRAM. MABM’s deterministic mapping Φ is defined over fixed-size M -bit words ( M = 64 bits in our design) and is applied identically to every cache line, so a DRAM read returns exactly the cache line the preceding write stored, regardless of how software interprets its bytes. The bit-precision M is needed 9only during the execution of a PUD operation, and such in-formation is present in the ISA extensions we inherit from SIMDRAM [225] and MIMDRAM [235]. 
+
+Execution Control. PipeDRAM leverages MIMDRAM’s con-trol unit [235], placed at the memory controller, to fetch, de-code, and dispatch bbop instructions to DRAM. When the memory controller receives a bbop instruction, the control unit decodes the instruction to identify the corresponding μProgram and retrieves its precomputed pipeline schedule from a dedicated pipeline schedule table . This table stores the static schedule produced by Algorithm 1 for each μProgram, mapping every PUD primitive to a (mat, cycle, stage) tuple. The control unit streams the retrieved schedule entries to the 
+
+μProgram processing engine , which issues PUD primitives to the corresponding mats according to the precomputed order. 
+
+## 5. Methodology 
+
+We implement PipeDRAM using an in-house cycle-level sim-ulator (which we open-source at [333]) and compare it to prior simulated state-of-the-art PUD frameworks, i.e., ( i) SIM-DRAM [225], a coarse-grained bit-serial PUD architecture; (ii ) MIMDRAM [235], a fine-grained bit-serial PUD architec-ture; and ( iii ) Proteus [292], a coarse-grained bit-parallel PUD architecture. Our in-house simulator was rigorously validated against the gem5 [334] implementations of SIMDRAM and MIMDRAM [335] and accounts for the additional latency im-posed by SALP-MASA (multitude of activated subarrays) [316] on DRAM ACT commands, i.e., the extra circuitry required to support SALP incurs an extra latency of 0.028 ns to an 
+
+ACT [336] (which is less than 0.11% extra latency for an AAP ). 5
+
+We also compare PipeDRAM against processor-centric sys-tems using publicly available performance and energy mea-surements for a real multicore CPU [337] and a real high-end GPU [338] on our evaluated workloads. These CPU and GPU measurements are not collected in this work; instead, we ob-tain them from the publicly available open-source artifact of prior work [339]. To ensure a fair comparison, we use the same workloads, compilation settings, and input datasets as those used to obtain these CPU and GPU measurements. Table 2 shows the system parameters we use in our evaluations. We use CACTI [332] to evaluate PipeDRAM and SIMDRAM/MIM-DRAM/ Proteus energy consumption, where we take into ac-count that each additional simultaneous row activation in-creases energy consumption by 22% [185,225,235–237,292]. All evaluated PUD architectures use 32 DRAM subarrays in a sin-gle DRAM bank for PUD execution if not otherwise stated. We evaluate three PipeDRAM configurations: ( i) PipeDRAM -Seq, a baseline PipeDRAM implementation that performs a simple first-in-first-out scheduling algorithm to schedule PUD prim-
+
+> 5
+
+The public gem5 MIMDRAM simulator [335] executes a vertical-layout bit-serial μProgram at full-row granularity; it cannot represent PipeDRAM ’s mechanisms, which require an explicit per-primitive DDG and a pipelined per-mat engine. Thus, we built a cycle-level, per-PUD primitive simulator that reuses the identical DRAM timing and energy parameters as SIMDRAM/MIM-DRAM/ Proteus , so the only difference from prior work is the execution model, keeping comparisons apples-to-apples. 
+
+itives across DRAM mats; ( ii ) PipeDRAM -Pipe, a PipeDRAM 
+
+implementation that implements our scheduling algorithm (from Algorithm 1); and ( iii ) PipeDRAM -Hier, which adds our 
+
+hierarchical in-DRAM copy scheme (§4.4) on top of PipeDRAM -Pipe. 
+
+Table 2: Evaluated system configurations.                
+
+> Multicore CPU [340] (From Artifact Results [339])
+> x86 [341], 16 cores, 8-wide, out-of-order, 3.8 GHz;
+> L1 Data + Inst. Private Cache: 256 kB, 8-way, 64 B line;
+> L2 Private Cache: 2 MB, 4-way, 64 B line;
+> L3 Shared Cache: 16 MB, 16-way, 64 B line;
+> Main Memory: 64 GB DDR4-2133, 4 channels, 4 ranks
+> High-End GPU [338] (From Artifact Results [339])
+> 7 nm technology node; 826 mm 2die area [338]; 108 streaming multiprocessors, 1.4 GHz base clock;
+> L2 Cache: 40 MB L2 Cache; Main Memory: 40 GB HBM2 [342, 343]
+> SIMDRAM [225] MIMDRAM [235]
+> Proteus [292] &PipeDRAM
+> gem5-based in-house simulator; x86 [341]; one out-of-order core @ 4 GHz ( only for instruction offloading);
+> L1 Data + Inst. Cache: 32 kB, 8-way, 64 B line;
+> L2 Cache: 256 kB, 4-way, 64 B line;
+> Memory Controller: 8 kB row size, FR-FCFS [344, 345]
+> Main Memory: DDR5-5200, 1 channel, 1 rank, 16 banks 32 DRAM subarrays in a single bank for PUD execution
+
+Real-World Applications. We select twelve workloads from four popular benchmark suites in our real-workload analysis (as Table 3 describes), including ( i) 525.x264_r ( x264 ) from SPEC 2017 [346]; ( ii ) pca from Phoenix [347]; ( iii ) 2mm , 3mm ,convolution ( cov ), doitgen ( dg ), fdtd-apml ( fdtd ), gemm ( gmm ), and gramschmidt ( gs ) from Polybench [348]; and ( iv ) heart-wall ( hw ), kmeans ( km ), and backprop ( bp ) from Rodinia [349]. These workloads were identified as PUD-friendly by prior work [235] through an extensive analysis of 117 applications, and have been used to evaluate MIMDRAM [235] and Pro-teus [292]. We use the LLVM-based compilation infrastructure of MIMDRAM [335] to identify memory-bound loops that can exploit SIMD parallelism and generate the corresponding bbop 
+
+instructions. We use the largest input dataset available in all evaluations and native data precisions (32-bit for all workloads other than x264 , which natively employs 8-bit precision). 
+
+Table 3: Evaluated applications and their characteristics.                            
+
+> Benchmark Suite Application (Short Name) Dataset Size PUD Ops. †
+> Phoenix [347] pca ( pca )R = C = 16000 D, S, M, R Polybench [348] 2mm ( 2mm )NI = NJ = NK = NL = 32000 M, R 3mm ( 3mm )NI = NJ = NK = NL = NM = 32000 M, R covariance ( cov )N = M = 32000 D, S, R doitgen ( dg )NQ = NR = 100, NP = 10000 M, C, R fdtd-apml ( fdtd )CZ = CYM = 400, CXM = 10000 D, M, S, A gemm ( gmm )NI = NJ = NK = 32000 M, R gramschmidt ( gs )NI = NJ = 32000 M, D, R Rodinia [349] backprop ( bp )134217728 input elm. M, R heartwall ( hw )test_4k.avi, 20 frames M, R kmeans ( km )16384 data points S, M, R SPEC 2017 [346] 525.x264_r ( x264 )1280 ×720, 1000 frames A, R
+> †: D = division, S = subtraction, M = multiplication, A = add, R = reduction, C = copy
+
+## 6. Evaluation 
+
+We demonstrate the advantages of PipeDRAM by evaluating (i) PipeDRAM ’s throughput for sixteen bit-serial and four bit-parallel PUD operations at 4- to 32-bit precision, in comparison to three state-of-the-art PUD systems, i.e., SIMDRAM [225], MIMDRAM [235], and Proteus [292] (§6.1); ( ii ) PipeDRAM ’s performance, energy consumption, and energy efficiency for twelve real-world applications, in comparison to the three PUD systems, a multicore CPU, and a high-end GPU (§6.2); (iii ) PipeDRAM ’s load balance and pipeline utilization across DRAM mats and DRAM chips (§6.3); and ( iv ) the SIMD-width 10 trade-off between PipeDRAM ’s pipelined execution and SIM-DRAM’s full-row execution for varying bit-precision and num-ber of data elements (§6.4). Finally, we evaluate two key over-heads in PipeDRAM : exposed carry-propagation latency (§6.5) and area cost on top of a DRAM chip and CPU die (§6.6). 
+
+6.1. Throughput Analysis 
+
+Bit-Serial PUD Operations. Fig. 9(a) shows the normal-ized throughput of all 16 bit-serial PUD operations for el-ement sizes of 4, 8, 16, and 32 bits. We simulate 64M ele-ments in a single DRAM bank with 32 subarrays. We compare SIMDRAM/MIMDRAM (with and without data transposition) against the three PipeDRAM configurations (i.e., PipeDRAM -Seq, PipeDRAM -Pipe, and PipeDRAM -Hier, as described in §5). All values are normalized to the throughput of SIM-DRAM/MIMDRAM at 4-bit precision. We make four observa-tions. First, PipeDRAM ’s pipelined execution makes steady-state throughput independent of bit-precision : each mat acts as a pipeline stage, and once full, a new batch enters at ev-ery initiation interval regardless of the bit-precision N . In contrast, SIMDRAM/MIMDRAM throughput scales logarith-mically (i.e., for AND/OR/XOR reduction), linearly (i.e., for bitcount, abs, addition, subtraction, equal, greater, greater equal, if-then-else, max, min, ReLU), or quadratically (i.e., for multiplication and division) with bit-precision depend-ing on the operation class. Second, with data transposition, SIMDRAM/MIMDRAM’s throughput drops 5 × at every bit-precision; PipeDRAM -Hier exceeds SIMDRAM/MIMDRAM for throughput above 8 bits ( 1.4×) and reaches 5.1× higher throughput at 32 bits when data transposition overhead is 
+
+realistically accounted for. Third, despite operating on 32 ×
+
+fewer SIMD lanes, PipeDRAM -Hier achieves 0.17 ×, 0.30 ×,
+
+0.56 ×, and 1.06 × SIMDRAM/MIMDRAM throughput (with-out transposition) at 4, 8, 16, and 32 bits, progressively closing the gap as precision increases. Fourth, PipeDRAM -Seq pro-vides only 0.025 × of SIMDRAM/MIMDRAM throughput due to the narrower mat-level SIMD width; pipelining recovers this from 40 × slower to competitive, confirming that both MABM (§4.2) and pipelined execution (§4.3) are necessary for competitive PUD throughput. We conclude that PipeDRAM -Hier provides 2.0 × the throughput of SIMDRAM/MIMDRAM with data transposition, on average across all 16 bit-serial PUD operations, and matches their transposition-free throughput at 32 bits (1.06 ×) despite operating on 32 × fewer SIMD lanes per PUD primitive. 
+
+Bit-Parallel PUD Operations. Fig. 9(b) shows normalized throughput for addition, subtraction, multiplication, and di-vision, normalized to Proteus at 4 bits. We make three obser-vations. First, PipeDRAM -Hier outperforms Proteus by 2.2×,
+
+3.2×, 4.0×, and 5.8× (without transposition) at 4, 8, 16, and 32 bits, because PipeDRAM ’s modulo scheduling overlaps bit-independent primitives across pipeline stages whereas Proteus 
+
+serializes all primitives within each bit-position. PipeDRAM -Seq performs comparably to Proteus (1.1×), confirming that the substrate change alone provides only a marginal benefit. 0.01 0.1 1                                         
+
+> AND red. OR red. XOR red. bitcount
+> 0.01 0.1 1
+> abs add sub equal
+> 0.01 0.1 1
+> greater greater_eq if-then-else max
+> 4816 32 0.001 0.01 0.1 1
+> min
+> 4816 32
+> relu
+> 4816 32
+> mul
+> 4816 32
+> div
+> 4816 32 0.001 0.01 0.1 1
+> add
+> 4816 32
+> sub
+> 4816 32
+> mul
+> 4816 32
+> div
+> Bit-Precision
+> (a) Bit-Serial PUD Operations
+> Bit-Precision
+> (b) Bit-Parallel PUD Operations
+> Normalized Throughput (log scale)
+> SIMDRAM/MIMDRAM Proteus PipeDRAM-Seq PipeDRAM-Pipe SIMDRAM/MIMDRAM Proteus PipeDRAM-Seq PipeDRAM-Pipe PipeDRAM-Hier w/o transposition w/ transposition
+
+Figure 9: Normalized throughput for (a) sixteen bit-serial PUD operations (norm. to SIMDRAM/MIMDRAM at 4-bit precision) and (b) four bit-parallel operations (norm. to Proteus at 4-bit precision). Solid lines: ideal throughput (no transposition); dashed: with transposition overhead. 
+
+Second, with data transposition taken into account, Proteus ’throughput drops by 91% for addition and subtraction at 4-bit precision, where the data transposition cost dominates; 
+
+PipeDRAM -Hier outperforms Proteus with transposition by 
+
+12 .4×, 7.6×, 6.0×, and 6.8× at 4, 8, 16, and 32 bits (geometric mean across all four operations). Third, all configurations de-grade with bit-precision for bit-parallel operations due to the 
+
+O(n log n) parallel-prefix complexity [292], but the pipelining benefit grows with precision as more bit-positions create op-portunities for overlapping independent PUD primitives. We conclude that PipeDRAM ’s combination of MABM and modulo scheduling outperforms Proteus by 2–6× without transposi-tion and 6–12 × with transposition. 
+
+6.2. Real-World Applications 
+
+Performance Analysis. Fig. 10(a) shows the normalized exe-cution time of 12 real-world applications. All values are nor-malized to SIMDRAM-ideal (compute-only, no transposition overhead) using 32 subarrays per bank and 16 banks. We make three observations. First, data transposition dominates execution time in SIMDRAM and MIMDRAM. Across all 12 workloads, data transposition accounts for 8–100% of total exe-cution time (geometric mean 42.8%; 8.76 × of SIMDRAM-ideal). Two workloads ( fdtd and bp ) are extreme cases where trans-position overheads dominate computation time, because both 11 have very low compute intensity relative to the volume of data that must be transposed ( 38 .6 GB and 37 .1 GB ). PipeDRAM 
+
+completely eliminates this overhead through MABM. Second, 
+
+PipeDRAM -Hier provides 11.8 × geometric mean speedup over SIMDRAM and MIMDRAM (with transposition) and 80.4 ×
+
+over Proteus across all 12 workloads. Even excluding the two transposition-dominated outliers, PipeDRAM -Hier pro-vides 2.8 × higher throughput over SIMDRAM/MIMDRAM and 27.8 × higher throughput over Proteus , demonstrating that the benefit extends beyond transposition elimination. The speedup over Proteus is substantially larger because besides suffering from data transposition overheads (as SIMDRAM and MIM-DRAM), Proteus also suffers from the absence of any scheduling mechanism that can effectively pipeline the execution of bit-independent PUD primitives across DRAM subarrays during its bit-parallel execution. Third, pipelined scheduling is criti-cal. PipeDRAM -Seq (MABM only, no scheduling) provides a geometric mean normalized execution time of 8.62 × that of SIMDRAM-ideal, comparable to SIMDRAM with transposition (8.76 ×), because the 32 × SIMD-width reduction offsets the transposition savings. PipeDRAM -Pipe and PipeDRAM -Hier re-duce the execution time to 0.85 × and 0.74 × of SIMDRAM-ideal, respectively, confirming that modulo scheduling and hierar-chical data copy are essential to surpass SIMDRAM’s compute-only performance despite the narrower SIMD width. Overall, 
+
+PipeDRAM -Hier is 11.6 × faster than PipeDRAM -Seq and 1.1 ×
+
+faster than PipeDRAM -Pipe. We conclude that PipeDRAM -Hier consistently outperforms all baselines in execution time, pro-viding 11.77 ×, 11.75 ×, and 80.4 × lower execution time over SIMDRAM, MIMDRAM, and Proteus , respectively, by combin-ing transposition elimination with pipelined scheduling. pca 2mm 3mm cov dg fdtd gmm gs bp hw km x264 GMean                        
+
+> 10 1
+> 10 0
+> 10 1
+> 10 2
+> 10 3
+> Normalized Exec. Time (log scale)
+> 2.7k× 34k× 2.7k× 34k× 2.7k× 34k×
+> (a)
+> pca 2mm 3mm cov dg fdtd gmm gs bp hw km x264 GMean
+> 10 3
+> 10 2
+> 10 1
+> 10 0
+> 10 1
+> 10 2
+> Normalized Energy (log scale)
+> 261× 3.3k× 260× 3.3k× 262× 3.3k×
+> (b)
+> SIMDRAM MIMDRAM Proteus PipeDRAM-Seq PipeDRAM-Pipe PipeDRAM-Hier Comp. Trans.
+
+Figure 10: Normalized (a) execution time and (b) energy con-sumption for 12 real-world applications. Values are normalized to SIMDRAM without data transposition overhead. 
+
+Energy Analysis. Fig. 10(b) shows the normalized energy of the 12 real-world applications for the three baselines PUD systems and three PipeDRAM configurations. We make three observations. First, PipeDRAM is the most energy-efficient PUD substrate. PipeDRAM -Pipe consumes only 0.066 × of the energy of SIMDRAM-ideal (geometric mean), reducing energy by 55.3 × over SIMDRAM, 6.6 × over MIMDRAM, and 82.8 ×
+
+over Proteus (with transposition in all three cases). Compared to SIMDRAM and Proteus , besides eliminating energy con-sumed during data transposition, PipeDRAM energy savings stem from mat-granularity activation: each PUD primitive acti-vates a single 512-bit mat rather than a full 65,536-bit subarray row, reducing activation energy by 128 ×. Since pipelining only overlaps existing operations without adding new activations, 
+
+PipeDRAM -Seq and PipeDRAM -Pipe have identical energy. Sec-ond, PipeDRAM maintains MIMDRAM’s fine-grained activa-tion benefits while eliminating transposition energy. MIM-DRAM with transposition consumes 0.43 × SIMDRAM-ideal energy, already significantly lower than SIMDRAM (3.65 ×) due to MIMDRAM’s fine-grained subarray activation. PipeDRAM -Pipe reduces energy further to 0.066 × SIMDRAM-ideal, achiev-ing 6.6 × lower energy than MIMDRAM (with transposition), because PipeDRAM inherits the same fine-grained activation at mat granularity while completely eliminating the transposi-tion energy overhead. Third, PipeDRAM -Hier increases energy by 2.2 × compared to PipeDRAM -Pipe (geometric mean), con-suming 0.14 × of the SIMDRAM-ideal energy. This overhead arises because hierarchical data copy uses a dedicated commu-nication subarray for each carry propagation, the LISA inter-subarray transfers and relay operations require additional row activations that are absent in PipeDRAM -Pipe’s direct inter-mat carry path. Despite this overhead, PipeDRAM -Hier still re-duces energy by 25.4 × over SIMDRAM, 3.0 × over MIMDRAM (with transposition), and 38.0 × over Proteus . We conclude that 
+
+PipeDRAM is the most energy-efficient PUD substrate. 
+
+Energy Efficiency. Fig. 11 shows the CPU-normalized per-formance per Watt across all 12 workloads. We include CPU and GPU results (obtained from [339]) for context. 6
+
+We include GPU results for the eight workloads with avail-able GPU measurements (i.e., GMean-8 in the figure). We make three observations. First, PipeDRAM -Hier achieves 356 ×/11.7 ×/25.4 ×/3.0 ×/37.9 × the energy efficiency of the CPU, GPU, SIMDRAM, MIMDRAM, and Proteus , respectively, on average across the 12 real-world applications. PipeDRAM -Hier outperforms the GPU in energy efficiency in every work-load with available GPU measurements, with gains ranging from 1.0 × (hw ) to 363 × (cov ). Second, data transposition over-head makes SIMDRAM and Proteus less energy-efficient than the CPU on three workloads ( fdtd , bp , and hw ), and MIM-DRAM on two ( fdtd and bp ), where the energy cost of data layout conversion exceeds the benefits from in-DRAM compu-tation. PipeDRAM avoids this entirely through MABM, main-taining energy efficiency above 27 × that of the CPU across all 12 workloads. Third, PipeDRAM -Seq and PipeDRAM -Pipe achieve identical energy efficiency (776 ×), since pipelining overlaps existing operations without introducing new DRAM activations. PipeDRAM -Hier trades a 2.2 × energy increase for     
+
+> 6Our analysis of Fig. 10 uses SIMDRAM-ideal as a normalization point and raw execution time and energy as key metrics in order to isolate the impact of data transposition on PUD execution. Our analysis of Fig. 11, in contrast, aims to compare PipeDRAM against both processor-centric and memory-centric systems. Hence, we employ performance per Watt as our key metric for Fig. 11 analysis, since it simultaneously captures the impact of data movement on an application’s performance and energy [235].
+
+12 its latency benefits due to the additional DRAM row activations required by the hierarchical inter-subarray carry propagation, but still achieves 356 × higher performance per watt than the CPU. We conclude that PipeDRAM is the most energy-efficient substrate when data transposition overheads are considered. pca 2mm 3mm cov dg fdtd gmm gs bp hw km x264 GMean-8 GMean-12        
+
+> 10 1
+> 10 1
+> 10 3
+> CPU-Normalized Performance/Watt (log)
+> 27k 27k
+> GPU SIMDRAM MIMDRAM Proteus PipeDRAM-Seq PipeDRAM-Pipe PipeDRAM-Hier
+
+Figure 11: CPU-normalized energy efficiency (performance per Watt) for twelve real-world applications. Phoenix [347] and SPEC2017 [346] do not provide GPU implementations of pca 
+
+and x264 .
+
+6.3. Load Balance & Pipeline Utilization 
+
+Fig. 12 quantifies the PipeDRAM ’s utilization of each of the 32 mats within a DRAM chip (left) and of each of the four DRAM chips (right) for our twelve real-world applications. A mat’s utilization is the fraction of time it is busy; a chip’s utilization is the average mat utilization across 32 mats. We make three observations. First, PipeDRAM achieves high uti-lization at both mat and chip granularities. Averaged across our twelve workloads, intra-chip (mat) utilization is 87% (93% across the eleven 32-bit workloads), and the four chips are utilized identically, with inter-chip imbalance below 0.04%. This happens as a consequence of our two mechanisms act-ing together: MABM distributes each operation’s bit-positions across the 32 mats, and PipeDRAM ’s modulo scheduler exe-cutes the bit-independent PUD primitives of one bit-position in its mat while the carry-dependent primitives of the neigh-boring bit-position execute in the adjacent mat, so that every mat stays busy. Chip balance is structural, since MABM places data element i on DRAM chip i mod 4 , each group of 2,048 consecutive data elements that one PUD primitive operates on has exactly 512 data elements on each of the four chips. Only the last such group of an operation whose element count is not 
+
+a multiple of 2,048 can have more data elements on one chip than on another, by at most one data element per chip. Second, the residual intra-mat load imbalance is caused by the deployed bit-serial algorithm, not by PipeDRAM ’s pipeline structures. Each bit-serial operation has a characteristic per-bit-position work distribution: ( i) multiplication is the most uneven PUD operation, since a result at bit-position m accumulates every partial product Aj · Bk with j+k=m, so its per-bit work is maximal at the middle result bits and minimal at the least-and most-significant bits; ( ii ) division is monotonic, since its low-order quotient bits operate on a wider intermediate re-mainder, so per-bit work decreases from the low-order to the high-order quotient bits; ( iii ) addition/subtraction and the logic bitwise operations are nearly uniform. MABM reduces the mul-tiplication imbalance at no cost by assigning bit-positions j
+
+and j+32 to the same mat, and because multiplication’s work is symmetric across its midpoint, these paired positions sum to nearly equal per-mat work across all 32 mats. We observe that the seven multiplication-dominated applications ( 2mm , 3mm ,
+
+> dg
+
+, gmm , bp , hw , km ) reach 100% mat and chip utilization. In contrast, division has exactly 32 bit-positions, so no two bit-positions share a mat; the four division-heavy applications (pca , cov , fdtd , gs ) consequently settle at 78–88% mat utiliza-tion. Third, x264 ’s lower utilization is a property of its kernel, 
+
+not of PipeDRAM . Its operands are 8-bit, so the algorithm spans only 8 bit-positions and exercises 8 of the 32 mats, each at 100% utilization. We conclude that MABM introduces no structural imbalance across chips or mats; the only non-uniformity is the deployed bit-serial algorithm’s intrinsic per-bit work, which 
+
+PipeDRAM equalizes across mats. 0 8 16 24 31    
+
+> Mat within Chip
+> pca 2mm 3mm cov dg fdtd gmm gs bp hw km x264
+> 0123
+> Chip
+> 020 40 60 80 100
+> Utilization (%)
+
+Figure 12: DRAM-mat (left) and DRAM chip (right) utilization of twelve applications during PipeDRAM ’s execution. 
+
+6.4. SIMD-Width Trade-Off Analysis 
+
+PipeDRAM reorganizes PUD parallelism rather than reduc-ing it. As Table 1 shows, PipeDRAM ’s peak SIMD width is 
+
+2,048 ×#bit-precision, since each bit-position of a PUD opera-tion occupies one mat (512 columns across four chips, i.e., 2,048 lanes). Therefore, two parameters set PipeDRAM ’s throughput: (i) bit-precision fixes how many mats a single PUD operation occupies, and thus its width; ( ii ) number of data elements fixes how many 2,048-element batches iterate through those mats. A single batch occupies one mat at a time, and once enough batches are in flight to fill all #bit-precision mats, PipeDRAM 
+
+reaches its steady-state width of 2,048 ×#bit-precision (65,536 at 32 bits, matching SIMDRAM’s row granularity). Which or-ganization is faster, PipeDRAM ’s pipeline or SIMDRAM’s full row, depends on both the bit-precision and the number of data elements per PUD operation. Fig. 13 quantifies this trade-off by showing PipeDRAM -Hier’s compute-only throughput relative to SIMDRAM, with no data transposition for either system, across both parameters, for multiplication (the dominant oper-ation in seven of our twelve applications); markers show where the twelve applications fall. We make three observations. First, at large operand sizes, the bit-precision decides the trade-off. SIMDRAM’s bit-serial latency grows quadratically with pre-cision for multiplication, whereas PipeDRAM ’s steady-state throughput is precision-independent. Therefore, PipeDRAM -Hier has the same performance as SIMDRAM at 23 bits and is 
+
+1.4× faster than SIMDRAM at 32 bits. Second, at small operand sizes, both systems are bound by operation latency and SIM-DRAM’s wide row goes underused, so PipeDRAM -Hier is faster at every bit-precision (e.g., 1.5× at 2,048 elements and 2 bits). SIMDRAM’s coarser-granularity benefits appear only when 13 bit-precision is below 23 bits and per-operation data sizes is above 6K–30K data elements (the red region). For a single PUD operation over M < 65 ,536 data elements, both SIMDRAM and PipeDRAM leave 1 − M/ 65 ,536 of their available SIMD lanes unused (at 32 bits). However, differently than SIMDRAM that wastes 65 ,536 − M columns that hold no data element, in PipeDRAM , a DRAM mat is unused only during pipeline fill and drain, and PipeDRAM ’s fine-grained mat activation lets the control unit issue an independent PUD operation to that mat in those cycles. Third, all twelve applications fall in the PipeDRAM -favored region (even though we do not include any data transposition overhead for SIMDRAM). The matrix-multiplication kernels ( 2mm , 3mm , gmm ; 32 bits, 32K elements per operation) run 1.12 × faster than SIMDRAM even with its transposition overhead ignored, and PipeDRAM -Hier is 1.35 ×
+
+faster, on average across all twelve applications (Fig. 10). We conclude that PipeDRAM ’s pipelined organization of PUD par-allelism matches or exceeds full-row SIMD at the precision and data sizes of real workloads, even when SIMDRAM’s transpo-sition overhead is ignored. 2 8 16 24 32 40 
+
+> Bit-Precision
+> 100 1K 10K 100K 1M 10M 100M 1B
+> Data Elements per PUD Op.
+> 1 mat (512) 1 row (64K)
+> 1/8x 1/4x 1/2x 1x 2x 4x 8x PipeDRAM-Hier / SIMDRAM Throughput (compute-only)
+
+Figure 13: PipeDRAM vs. SIMDRAM (no transposition) through-put for varying bit-precision and number of data elements. 
+
+6.5. Carry-Propagation Overhead Analysis 
+
+PipeDRAM hides carry-propagation latency by overlapping it with ( i) bit-independent PUD primitives within a given PUD operation and ( ii ) subsequent batches of elements entering the pipeline. Fig. 14 shows the carry-propagation overhead that remains exposed on the critical path as the number of in-flight batches B (i.e., the elements per PUD operation divided by the 2,048-lane SIMD width) varies, for the three PUD oper-ation scaling classes (i.e., linear, logarithmic, and quadratic); markers show our twelve applications at their measured B
+
+and dominant operation. We make three observations. First, the quadratic operations, which dominate the PUD execution time of eleven of our twelve applications, are largely insen-sitive to carry propagation latency even in the B=1 worst case (2.2–13% exposed), since each carry round-trip overlaps with the many bit-independent PUD primitives that each mat executes per bit-position. Second, carry-propagation overhead decays rapidly with B: once the pipeline is full, the only compo-nent that is never hidden is the short per-batch inter-subarray data movement operation that transfers the carry from the computing to the copying subarray (§4.4), which our hierar-chical in-DRAM data copy scheme makes 15 × cheaper than a direct inter-mat transfer. In steady state, the exposed carry-propagation time accounts for 2.8–16% of PipeDRAM -Hier’s execution time for linear operations, 7.5% for logarithmic oper-ations, and below 0.1% for quadratic operations. Third, eleven applications operate at B ≥ 5, where exposed carry propa-gation overhead is at most 2.9% ( fdtd ); x264 sits at the B=1 
+
+worst case (31% overhead) yet still executes in 0.78 × the time of SIMDRAM-ideal (§6.2), since SIMDRAM utilizes fewer than 1% of its 65,536 SIMD lanes at 320 elements per PUD opera-tion. We conclude that carry-propagation latency is effectively hidden for data-parallel workloads and that, even in the single-batch worst case, exposed carry propagation latency does not 
+
+negate PipeDRAM ’s performance benefits. 1 10 100 1K 10K 100K 1M  
+
+> Number of In-Flight Batches
+> 010 20 30 40 50 60 70
+> Carry Prop. Overhead (%)  linear ops logarithmic ops quadratic ops
+> x264 bp cov
+> fdtd dg, hw pca, km 2mm, 3mm, gmm, gs
+
+Figure 14: Exposed carry-propagation overhead of PipeDRAM -Hier as a fraction of its execution time vs. the number of in-flight batches B.
+
+6.6. Area Analysis 
+
+Area Analysis. We use CACTI 7.0 [332] to evaluate the area overhead of PipeDRAM using a 22 nm technology node, fol-lowing the methodology of prior PUD works [225, 235, 292]. 
+
+DRAM Chip Area Overhead. PipeDRAM does not intro-duce any new modifications to the DRAM array circuitry. It builds on three existing DRAM enhancements: ( i) the fine-grained mat access substrate of MIMDRAM [235], including mat isolation transistors, row decoder latches, mat selectors, and the inter-mat interconnect, which incurs 1.11 % area over-head on a DRAM chip [235]; ( ii ) the inter-subarray isola-tion transistors of LISA [223], which incur 0.6 % area over-head [223,292]; and ( iii ) the SALP circuitry [316], which incurs 0.15% area overhead [292,316]. In total, PipeDRAM incurs 1.86% area overhead in a DRAM chip. 
+
+MABM Area Overhead. The MABM mechanism (§4.2) implements the deterministic bit permutation Φ and its in-verse Φ−1 on the memory controller’s cache line data path. Because the permutation is a static rewiring of bit positions within each cache line, it is a fixed bit permutation that requires 
+
+no logic gates: only wire routing. To confirm this, we imple-mented both Φ and Φ−1 in Verilog HDL and synthesized them using Yosys [350], an open-source synthesis framework, target-ing the open-source Nangate 45 nm standard cell library [351]. Both permutations synthesize to zero logic cells ; the mapping is implemented entirely through wire routing, incurring no logic gate area, latency, or power overhead. 
+
+Memory Controller Area Overhead. PipeDRAM lever-ages MIMDRAM’s existing control unit [235] to fetch, decode, and dispatch bbop instructions. PipeDRAM extends this control unit with a pipeline schedule table that stores the precomputed static schedule (Algorithm 1) for each μProgram. Each schedule entry maps a PUD primitive to a (mat, cycle, stage) tuple, re-14 quiring 4 B per entry. For our 16 bit-serial operations at 32-bit precision, the largest schedule (division) contains 1,350 entries, requiring 5.3 kB . We provision a 16 kB schedule scratchpad, sufficient to hold the schedules for all evaluated operations si-multaneously. Using CACTI, we estimate the extended control unit area to be 0.27 mm 2, comparable to MIMDRAM’s control unit ( 0.253 mm 2 [235]). 
+
+Total CPU Die Area Overhead. Considering the MABM logic (negligible area) and the extended control unit (0.27 mm 2), PipeDRAM ’s total memory controller-side area is 
+
+0.27 mm 2. This represents 0.05% of the die area of a state-of-the-art Intel Xeon E5-2697 v3 CPU [197]. PipeDRAM ’s CPU-side area is smaller than that of SIMDRAM, MIMDRAM, and 
+
+Proteus because it eliminates the 0.06 mm 2 transposition unit that both prior works require. We conclude that PipeDRAM incurs low area cost on top of a DRAM chip (1.86%) and CPU die (0.05%), while eliminating the data transposition unit required by all prior PUD architectures. 
+
+Implementation Complexity & Practical Deployability. 
+
+PipeDRAM adds no arithmetic logic to the DRAM array. The cost and complexity of such logic arise from building it in density-optimized DRAM [18, 352]. PipeDRAM ’s DRAM-side modifications are limited to structural circuitry (i.e., isolation transistors, latches, and narrow interconnects) that reuses the existing sense amplifiers as the compute substrate. These changes are modular, touching disjoint subarray structures, so their area costs simply add (1.11% + 0.6% + 0.15% = 1.86%), with no extra cost from combining them. We make two key ob-servations regarding PipeDRAM ’s practical deployability. First, 
+
+PipeDRAM ’s area cost and complexity are well within previ-ous area budgets reported by DRAM vendors for commodity DRAM chips [25,72,73,131,353] that include non-conventional on-die logic. For example, ( i) JEDEC standardized per row acti-vation counting (PRAC) in DDR5 [354], which requires DRAM chips to keep an activation counter for every row and to in-crement and compare it against a threshold with in-die logic; MINT [355] reports the area overhead of such per-row counters in an SK hynix design at approximately 9% of a DRAM chip; and ( ii ) SK hynix fabricated multiply-accumulate units directly in a DRAM chip in Newton [131] (productized as GDDR6-AiM [25]), imposing ∼20% area cost to DRAM (within the imposed 25% area cost that SK hynix defined as budget for in-DRAM compute [131]). Second, PipeDRAM ’s DRAM-side modifications also fit within the three-to-four metal layers in commodity DRAM [310, 311]), since the isolation transistors required for fine-grained activation can be rerouted within the already-present metal layers, as Half-DRAM [306] demon-strates using only a wordline shift and a few metal vias [306]. The metal-track budget is strained only when a mat’s datapath is widened [311]; PipeDRAM instead computes at narrow mat granularity, with an HFF-width inter-mat carry path that adds 
+
+no coarse-pitch wiring tracks and inter-subarray transfers that reuse the existing master-data-line routing [310]. Therefore, 
+
+PipeDRAM requires no circuit of unprecedented complexity and is deployable within commodity DRAM’s existing struc-ture and metal budget. It is important to note that, if enabled, fine-grained DRAM [304–312], SALP [316], and LISA [223] would independently provide performance and energy benefits beyond assisting PipeDRAM , as they were originally proposed to improve the efficiency of commodity DRAM chips broadly. Our evaluation does not include these independent benefits of the three schemes; so the cost of these structures that support 
+
+PipeDRAM would actually be amortized further if they are enabled for general deployment. 
+
+## 7. Related Work 
+
+To our knowledge, PipeDRAM is the first processing-using-DRAM (PUD) architecture that executes bit-serial/bit-parallel PUD operations directly over horizontally laid-out data with-out requiring any data transposition overheads. PipeDRAM 
+
+architecture has three major novel aspects: ( i) the bit-positions of each data element within a cache line are interleaved across the DRAM mats of a single DRAM chip, one bit-position per mat, without incurring runtime data transposition overheads; (ii ) the mats of a DRAM chip operate as pipeline stages that process successive bit-positions concurrently under a statically computed iterative modulo schedule; and ( iii ) carry propa-gation between pipeline stages is decoupled from computa-tion through an inter-subarray data copy path. We highlight 
+
+PipeDRAM ’s key contributions by contrasting them with state-of-the-art PIM designs. 
+
+Processing-Using-DRAM. Prior works propose different ways of implementing bit-serial/-parallel PUD operations (e.g., [130, 185, 187, 190, 191, 194, 211, 216, 217, 225, 235, 292]). Such works could benefit from PipeDRAM ’s key mechanisms to enable PUD operations over horizontally laid-out data using their specific PUD primitive. Among bit-serial approaches, MIMDRAM [235] introduces fine-grained mat-level access and inter-/intra-mat data movement to enable MIMD execu-tion of data-independent PUD operations across DRAM mats. 
+
+PipeDRAM builds on MIMDRAM’s fine-grained PUD substrate but repurposes it for a fundamentally different goal, i.e., rather than exploiting data-level parallelism across multiple indepen-dent PUD operations, PipeDRAM exploits bit-level parallelism 
+
+within a single PUD operation by treating each mat as a pipeline stage for one bit-position of a bit-serial/bit-parallel compu-tation. Proteus [292] distributes the bit-positions of a data word across multiple DRAM subarrays within a bank, leverag-ing LISA [223] to propagate intermediate (e.g., carry) values between subarrays and enabling bit-parallel PUD arithmetic. 
+
+PipeDRAM exploits a similar form of bit-level parallelism but at a finer granularity (mats instead of subarrays) and deploys a modulo scheduling-based pipeline execution model that over-laps bit-independent PUD primitives across pipeline stages, sustaining high throughput with simple statically-defined con-trol logic. In contrast, Proteus serializes all primitives within each bit-position and requires simultaneously operating mul-tiple subarrays in a bank (constrained by the DRAM power-delivery limits, e.g., tFAW ), without providing a scheduler that can keep high-throughput PUD execution across bit-positions. 15 Our evaluation shows that PipeDRAM outperforms both MIM-DRAM (by 11.8 ×) and Proteus (by 80.4 ×) in execution time, on average across twelve real-world applications, while con-suming 25.4 × and 38.0 × less energy, respectively. 
+
+NVM-Based PUM Architectures. Several processing-using-NVM works [208, 209, 356–363] exploit the concept of parti-tions (i.e., dividing a memory array into smaller, independently operable sections) to accelerate in-memory computation. FE-LIX [356] segments ReRAM crossbar bitlines with transistor switches to enable multiple stateful logic gates to execute con-currently within the same row. PartitionPIM [357] formalizes this mechanism into serial, parallel, and semi-parallel execu-tion modes, where semi-parallel mode enables inter-partition communication for carry propagation across bit-positions. Ar-itPIM [358] generalizes the partition concept into a technology-agnostic framework, showing that partitions can reduce bit-parallel addition execution time by assigning each partition to a different bit-position of the same operand. These ap-proaches exploit partitions for spatial bit-level parallelism, but do not temporally overlap the execution of successive operations across partitions: once an operation completes, the next begins from scratch with no pipelined steady state. RACER [208, 209] goes further by organizing ReRAM tiles into a pipeline with bit-striped data placement and inter-tile ReRAM buffers that serve as pipeline registers, propagating micro-ops tile-to-tile via hardware queues. This is conceptu-ally closest to PipeDRAM ’s pipelined execution across DRAM mats. However, RACER relies on fixed hardware micro-op queues rather than a software modulo scheduler, limiting its ability to exploit operation-specific parallelism (e.g., overlap-ping bit-independent primitives that do not lie on the carry chain). A key distinction that separates PipeDRAM from the NVM-based PUM architectures is that PipeDRAM targets com-modity DRAM, which serves as the system’s main memory. Because DRAM is shared between the host processor and PUD execution, it must preserve the horizontal data layout that modern processors rely on for cache line abstraction, memory interleaving, and high memory throughput. NVM-based PUM systems often operate as dedicated accelerators with custom data layouts and do not face this constraint. 
+
+Avoiding Dual-Data Layout in PNM Systems. DRAM-based PNM systems (e.g., [18,22,139,364,365]) often suffer from similar dual-data layout issues we identify for PUD systems (§3), where data words need to be localized within a DRAM chip (or DRAM bank) prior to computation using data transfor-mation routines, leading to added performance overheads, pro-gramming, and system complexities [18,22,139,364–366]. Prior works (e.g., [139, 365]) aim to mitigate such a dual-data layout issue in PNM systems either via ( i) DIMM-based data relayout hardware units that filter out continuous cache line blocks of data before DRAM–CPU data transfer [139, 366], or ( ii ) spe-cialized huge-page based data allocation routines that align PNM data within a DRAM bank of a DRAM chip [365]. Even though such solutions are effective at alleviating the dual-data layout issue in PNM systems, they fall short when applied to PUD systems for two main reasons. First, PUD systems impose a more restrictive environment where data must be properly aligned across all levels of the DRAM hierarchy since computa-tion happens in-situ . This requirement means that employing flexible DRAM interleaving and data allocation routines (as in [139, 365, 366]) cannot fully mitigate the dual-data layout issue in PUD systems, since neither the memory controller nor the operating system (OS) has enough information regarding internal DRAM organization (i.e., how the address maps to a DRAM subarray and DRAM mat [367–369]). PipeDRAM ad-dresses this issue by leveraging MIMDRAM’s data allocation routine, which combines huge pages and reverse-engineered DRAM address mapping to align pages further into the DRAM hierarchy (across subarrays and mats) [235,370]. Second, while PNM systems operate under a conventional horizontal data layout (spanning a single DRAM row), PUD systems operate over a vertical data layout (spanning multiple DRAM rows). This means that moving between a PUD-friendly data layout and the CPU-friendly data layout fundamentally requires read-ing multiple DRAM rows to compose a single cache line. A DRAM-side data re-layout accelerator (e.g., [61, 371]) could potentially improve such a process, but it cannot eliminate the data transposition overhead caused by multiple DRAM row activations. PipeDRAM fundamentally eliminates the need for data transposition by employing a PUD-friendly horizontal data layout using its MABM interleaving mechanism (§4.2). 
+
+## 8. Conclusion 
+
+We introduce PipeDRAM , a processing-using-DRAM (PUD) architecture that eliminates the need for runtime data layout transformation, enabling bit-serial/bit-parallel PUD execution 
+
+directly over horizontally laid-out data, which is friendly to and conventional in compute-centric (CPU, GPU, TPU) sys-tems. PipeDRAM combines three new key mechanisms: ( i) a 
+
+mat-aware bit mapping (MABM) mechanism that determin-istically reorganizes bits within each cache line to enable PUD-friendly data placement in a horizontal layout, with-out incurring any additional data movement, latency, or area overheads; ( ii ) a software-assisted pipelined execution model 
+
+that statically schedules PUD primitives across DRAM mats to overlap bit-dependent and bit-independent computation; and ( iii ) a hierarchical in-memory data copy scheme that sepa-rates latency-critical carry propagation from non-critical in-termediate data transfers, ensuring that inter-mat communi-cation does not dominate PUD execution time. Our detailed evaluation demonstrates that PipeDRAM significantly outper-forms three state-of-the-art PUD systems in both performance and energy efficiency, while incurring low area cost on top of a DRAM chip and CPU die. We conclude that PipeDRAM 
+
+effectively bridges the gap between the horizontal data lay-out of modern memory systems and the vertical layout re-quired by PUD architectures, unlocking the full performance and energy efficiency potential of in-DRAM computation. To enable further research, design, and adoption of PUD sys-tems, we freely open-source the PipeDRAM infrastructure at 
+
+> https://github.com/CMU-SAFARI/PipeDRAM
+
+.16 Acknowledgments 
+
+We thank the anonymous reviewers of MICRO 2026 for their encouraging feedback. We thank the SAFARI Research Group members for providing a stimulating intellectual environment. We acknowledge the generous gifts from our industrial part-ners, including Google, Huawei, Intel, and Microsoft. This work is supported in part by the ETH Future Computing Labo-ratory (EFCL), Semiconductor Research Corporation, AI Chip Center for Emerging Smart Systems (ACCESS), sponsored by InnoHK funding, Hong Kong SAR, and European Union’s Horizon programme for research and innovation [101047160 -BioPIM]. 
+
+## References 
+
+[1] S. Ghose, A. Boroumand, J. S. Kim, J. Gómez-Luna, and O. Mutlu, “Processing-in-Memory: A Workload-Driven Perspective,” IBM JRD , 2019. [2] O. Mutlu, S. Ghose, J. Gómez-Luna, and R. Ausavarungnirun, “A Modern Primer on Processing in Memory,” in Emerging Computing: From Devices to Systems — Looking Beyond Moore and Von Neumann . Springer, 2021. [3] G. F. Oliveira, J. Gómez-Luna, L. Orosa, S. Ghose, N. Vijaykumar, I. Fernandez, M. Sadrosadati, and O. Mutlu, “DAMOV: A New Methodology and Benchmark Suite for Evaluating Data Movement Bottlenecks,” IEEE Access , 2021. [4] S. Ghose, K. Hsieh, A. Boroumand, R. Ausavarungnirun, and O. Mutlu, “The Processing-in-Memory Paradigm: Mechanisms to Enable Adoption,” in Beyond-CMOS Technologies for Next Generation Computer Design , 2019. [5] O. Mutlu, S. Ghose, J. Gómez-Luna, and R. Ausavarungnirun, “Processing Data Where It Makes Sense: Enabling In-Memory Computation,” MicPro , 2019. [6] O. Mutlu, S. Ghose, J. Gómez-Luna, and R. Ausavarungnirun, “Enabling Practical Processing in and Near Memory for Data-Intensive Computing,” in DAC , 2019. [7] O. Mutlu and L. Subramanian, “Research Problems and Opportunities in Memory Systems,” SUPERFRI , 2014. [8] O. Mutlu, “Memory Scaling: A Systems Architecture Perspective,” in IMW , 2013. [9] G. H. Loh, N. Jayasena, M. Oskin, M. Nutter, D. Roberts, M. Meswani, D. P. Zhang, and M. Ignatowski, “A Processing in Memory Taxonomy and a Case for Studying Fixed-Function PIM,” in WoNDP , 2013. [10] R. Balasubramonian, J. Chang, T. Manning et al. , “Near-Data Processing: Insights from a MICRO-46 Workshop,” IEEE Micro , 2014. [11] H. S. Stone, “A Logic-in-Memory Computer,” IEEE Trans. Comput. , 1970. [12] A. Saulsbury, F. Pong, and A. Nowatzyk, “Missing the Memory Wall: The Case for Processor/Memory Integration,” in ISCA , 1996. [13] W. H. Kautz, “Cellular Logic-in-Memory Arrays,” IEEE TC , 1969. [14] O. Mutlu, A. Olgun, and İ. E. Yüksel, “Memory-Centric Computing: Solving Com-puting’s Memory Problem,” in IMW , 2025. [15] O. Mutlu, A. Olgun, G. F. Oliveira, and I. E. Yuksel, “Memory-Centric Computing: Recent Advances in Processing-in-DRAM,” in IEDM , 2024. [16] A. Farmahini-Farahani, J. H. Ahn, K. Morrow, and N. S. Kim, “NDA: Near-DRAM Acceleration Architecture Leveraging Commodity DRAM Devices and Standard Memory Modules,” in HPCA , 2015. [17] O. O. Babarinsa and S. Idreos, “JAFAR: Near-Data Processing for Databases,” in 
+
+SIGMOD , 2015. [18] F. Devaux, “The True Processing in Memory Accelerator,” in Hot Chips , 2019. [19] N. M. Ghiasi, J. Park, H. Mustafa, J. Kim, A. Olgun, A. Gollwitzer, D. S. Cali, C. Firtina, H. Mao, N. A. Alserr et al. , “GenStore: A High-Performance and Energy-Efficient In-Storage Computing System for Genome Sequence Analysis,” in ASPLOS , 2022. [20] J. Gómez-Luna, I. El Hajj, I. Fernandez, C. Giannoula, G. F. Oliveira, and O. Mutlu, “Benchmarking Memory-Centric Computing Systems: Analysis of Real Processing-in-Memory Hardware,” in CUT , 2021. [21] J. Gómez-Luna, I. E. Hajj, I. Fernández, C. Giannoula, G. F. Oliveira, and O. Mutlu, “Benchmarking a New Paradigm: An Experimental Analysis of a Real Processing-in-Memory Architecture,” arXiv:2105.03814 [cs.AR], 2021. [22] J. Gómez-Luna, I. El Hajj, I. Fernandez, C. Giannoula, G. F. Oliveira, and O. Mutlu, “Benchmarking a New Paradigm: Experimental Analysis and Characterization of a Real Processing-in-Memory System,” IEEE Access , 2022. [23] C. Giannoula, N. Vijaykumar, N. Papadopoulou, V. Karakostas, I. Fernandez, J. Gómez-Luna, L. Orosa, N. Koziris, G. Goumas, and O. Mutlu, “SynCron: Ef-ficient Synchronization Support for Near-Data-Processing Architectures,” in HPCA ,2021. [24] G. Singh, D. Diamantopoulos, C. Hagleitner, J. Gomez-Luna, S. Stuijk, O. Mutlu, and H. Corporaal, “NERO: A Near High-Bandwidth Memory Stencil Accelerator for Weather Prediction Modeling,” in FPL , 2020. [25] S. Lee, K. Kim, S. Oh, J. Park, G. Hong, D. Ka, K. Hwang, J. Park, K. Kang, J. Kim, J. Jeon, N. Kim, Y. Kwon, K. Vladimir, W. Shin, J. Won, M. Lee, H. Joo et al. , “A 1ynm 1.25V 8Gb, 16Gb/s/pin GDDR6-Based Accelerator-in-Memory Supporting 1TFLOPS MAC Operation and Various Activation Functions for Deep-Learning Applications,” in ISSCC , 2022. [26] L. Ke, X. Zhang, J. So, J.-G. Lee, S.-H. Kang, S. Lee, S. Han, Y. Cho, J. H. Kim, Y. Kwon et al. , “Near-Memory Processing in Action: Accelerating Personalized Recommendation with AxDIMM,” IEEE Micro , 2021. [27] C. Giannoula, I. Fernandez, J. G. Luna, N. Koziris, G. Goumas, and O. Mutlu, “SparseP: Towards Efficient Sparse Matrix Vector Multiplication on Real Processing-in-Memory Architectures,” in SIGMETRICS , 2022. [28] H. Shin, D. Kim, E. Park, S. Park, Y. Park, and S. Yoo, “McDRAM: Low Latency and Energy-Efficient Matrix Computations in DRAM,” IEEE TCADICS , 2018. [29] S. Cho, H. Choi, E. Park, H. Shin, and S. Yoo, “McDRAM v2: In-Dynamic Random Access Memory Systolic Array Accelerator to Address the Large Model Problem in Deep Neural Networks on the Edge,” IEEE Access , 2020. [30] A. Denzler, R. Bera, N. Hajinazar, G. Singh, G. F. Oliveira, J. Gómez-Luna, and O. Mutlu, “Casper: Accelerating Stencil Computation using Near-Cache Processing,” arXiv:2112.14216 [cs.AR], 2021. [31] H. Asghari-Moghaddam, Y. H. Son, J. H. Ahn, and N. S. Kim, “Chameleon: Versatile and Practical Near-DRAM Acceleration Architecture for Large Memory Systems,” in MICRO , 2016. [32] D. Patterson, T. Anderson, N. Cardwell et al. , “A Case for Intelligent RAM,” IEEE Micro , 1997. [33] D. G. Elliott, M. Stumm, W. M. Snelgrove et al. , “Computational RAM: Implementing Processors in Memory,” Design and Test of Computers , 1999. [34] M. A. Z. Alves, P. C. Santos, F. B. Moreira, M. Diener, and L. Carro, “Saving Memory Movements Through Vector Processing in the DRAM,” in CASES , 2015. [35] S. L. Xi, O. Babarinsa, M. Athanassoulis, and S. Idreos, “Beyond the Wall: Near-Data Processing for Databases,” in Int. Workshop on Data Management on New Hardware ,2015. [36] W. Sun, Z. Li, S. Yin, S. Wei, and L. Liu, “ABC-DIMM: Alleviating the Bottleneck of Communication in DIMM-Based Near-Memory Processing with Inter-DIMM Broadcast,” in ISCA , 2021. [37] K. K. Matam, G. Koo, H. Zha, H.-W. Tseng, and M. Annavaram, “GraphSSD: Graph Semantics Aware SSD,” in ISCA , 2019. [38] M. Gokhale, B. Holmes, and K. Iobst, “Processing in Memory: The Terasys Massively Parallel PIM Array,” Computer , 1995. [39] M. Hall, P. Kogge, J. Koller, P. Diniz, J. Chame, J. Draper, J. LaCoss, J. Granacki, J. Brockman, A. Srivastava et al. , “Mapping Irregular Applications to DIVA, a PIM-Based Data-Intensive Architecture,” in SC , 1999. [40] M. A. Z. Alves, P. C. Santos, M. Diener, and L. Carro, “Opportunities and Challenges of Performing Vector Operations Inside the DRAM,” in MEMSYS , 2015. [41] E. Lockerman, A. Feldmann, M. Bakhshalipour, A. Stanescu, S. Gupta, D. Sanchez, and N. Beckmann, “Livia: Data-Centric Computing Throughout the Memory Hier-archy,” in ASPLOS , 2020. [42] J. Ahn, S. Hong, S. Yoo, O. Mutlu, and K. Choi, “A Scalable Processing-in-Memory Accelerator for Parallel Graph Processing,” in ISCA , 2015. [43] L. Nai, R. Hadidi, J. Sim, H. Kim, P. Kumar, and H. Kim, “GraphPIM: Enabling Instruction-Level PIM Offloading in Graph Computing Frameworks,” in HPCA ,2017. [44] A. Boroumand, S. Ghose, Y. Kim, R. Ausavarungnirun, E. Shiu, R. Thakur, D. Kim, A. Kuusela, A. Knies, P. Ranganathan et al. , “Google Workloads for Consumer Devices: Mitigating Data Movement Bottlenecks,” in ASPLOS , 2018. [45] A. Boroumand, S. Ghose, B. Lucia, K. Hsieh, K. Malladi, H. Zheng, and O. Mutlu, “LazyPIM: An Efficient Cache Coherence Mechanism for Processing-in-Memory,” 
+
+CAL , 2017. [46] D. Zhang, N. Jayasena, A. Lyashevsky, J. L. Greathouse, L. Xu, and M. Ignatowski, “TOP-PIM: Throughput-Oriented Programmable Processing in Memory,” in HPDC ,2014. [47] M. Gao and C. Kozyrakis, “HRL: Efficient and Flexible Reconfigurable Logic for Near-Data Processing,” in HPCA , 2016. [48] J. S. Kim, D. S. Cali, H. Xin, D. Lee, S. Ghose, M. Alser, H. Hassan, O. Ergin, C. Alkan, and O. Mutlu, “GRIM-Filter: Fast Seed Location Filtering in DNA Read Mapping Using Processing-in-Memory Technologies,” BMC Genomics , 2018. [49] M. Drumond, A. Daglis, N. Mirzadeh, D. Ustiugov, J. Picorel, B. Falsafi, B. Grot, and D. Pnevmatikatos, “The Mondrian Data Engine,” in ISCA , 2017. [50] P. C. Santos, G. F. Oliveira, D. G. Tomé, M. A. Z. Alves, E. C. Almeida, and L. Carro, “Operand Size Reconfiguration for Big Data Processing in Memory,” in DATE , 2017. [51] G. F. Oliveira, P. C. Santos, M. A. Alves, and L. Carro, “NIM: An HMC-Based Machine for Neuron Computation,” in ARC , 2017. [52] J. Ahn, S. Yoo, O. Mutlu, and K. Choi, “PIM-Enabled Instructions: A Low-Overhead, Locality-Aware Processing-in-Memory Architecture,” in ISCA , 2015. [53] M. Gao, J. Pu, X. Yang, M. Horowitz, and C. Kozyrakis, “TETRIS: Scalable and Efficient Neural Network Acceleration with 3D Memory,” in ASPLOS , 2017. [54] D. Kim, J. Kung, S. Chai, S. Yalamanchili, and S. Mukhopadhyay, “Neurocube: A Programmable Digital Neuromorphic Architecture with High-Density 3D Memory,” in ISCA , 2016. [55] P. Gu, S. Li, D. Stow, R. Barnes, L. Liu, Y. Xie, and E. Kursun, “Leveraging 3D Technologies for Hardware Security: Opportunities and Challenges,” in GLSVLSI ,2016. [56] A. Boroumand, S. Ghose, M. Patel, H. Hassan, B. Lucia, R. Ausavarungnirun, K. Hsieh, N. Hajinazar, K. T. Malladi, H. Zheng et al. , “CoNDA: Efficient Cache Coherence Support for Near-Data Accelerators,” in ISCA , 2019. [57] K. Hsieh, E. Ebrahimi, G. Kim, N. Chatterjee, M. O’Connor, N. Vijaykumar, O. Mutlu, and S. W. Keckler, “Transparent Offloading and Mapping (TOM) En-abling Programmer-Transparent Near-Data Processing in GPU Systems,” in ISCA ,2016. [58] D. S. Cali, G. S. Kalsi, Z. Bingöl, C. Firtina, L. Subramanian, J. S. Kim, R. Ausavarung-nirun, M. Alser, J. Gomez-Luna, A. Boroumand et al. , “GenASM: A High-
+
+17 Performance, Low-Power Approximate String Matching Acceleration Framework for Genome Sequence Analysis,” in MICRO , 2020. [59] S. H. Pugsley, J. Jestes, H. Zhang, R. Balasubramonian et al. , “NDC: Analyzing the Impact of 3D-Stacked Memory+Logic Devices on MapReduce Workloads,” in 
+
+ISPASS , 2014. [60] A. Pattnaik, X. Tang, A. Jog, O. Kayiran, A. K. Mishra, M. T. Kandemir, O. Mutlu, and C. R. Das, “Scheduling Techniques for GPU Architectures with Processing-in-Memory Capabilities,” in PACT , 2016. [61] B. Akin, F. Franchetti, and J. C. Hoe, “Data Reorganization in Memory Using 3D-Stacked DRAM,” in ISCA , 2015. [62] K. Hsieh, S. Khan, N. Vijaykumar, K. K. Chang, A. Boroumand, S. Ghose, and O. Mutlu, “Accelerating Pointer Chasing in 3D-Stacked Memory: Challenges, Mech-anisms, Evaluation,” in ICCD , 2016. [63] J. H. Lee, J. Sim, and H. Kim, “BSSync: Processing Near Memory for Machine Learning Workloads with Bounded Staleness Consistency Models,” in PACT , 2015. [64] A. Boroumand, S. Ghose, B. Akin, R. Narayanaswami, G. F. Oliveira, X. Ma, E. Shiu, and O. Mutlu, “Mitigating Edge Machine Learning Inference Bottlenecks: An Empirical Study on Accelerating Google Edge Models,” arXiv:2103.00768 [cs.AR], 2021. [65] A. Boroumand, S. Ghose, B. Akin, R. Narayanaswami, G. F. Oliveira, X. Ma, E. Shiu, and O. Mutlu, “Google Neural Network Models for Edge Devices: Analyzing and Mitigating Machine Learning Inference Bottlenecks,” in PACT , 2021. [66] A. Boroumand, S. Ghose, G. F. Oliveira, and O. Mutlu, “Polynesia: Enabling High-Performance and Energy-Efficient Hybrid Transactional/Analytical Databases with Hardware/Software Co-Design,” in ICDE , 2022. [67] A. Boroumand, S. Ghose, G. F. Oliveira, and O. Mutlu, “Polynesia: Enabling Effective Hybrid Transactional/Analytical Databases with Specialized Hardware/Software Co-Design,” arXiv:2103.00798 [cs.AR], 2021. [68] A. Boroumand, “Practical Mechanisms for Reducing Processor-Memory Data Move-ment in Modern Workloads,” Ph.D. dissertation, Carnegie Mellon University, 2020. [69] M. Besta, R. Kanakagiri, G. Kwasniewski, R. Ausavarungnirun, J. Beránek, K. Kanel-lopoulos, K. Janda, Z. Vonarburg-Shmaria, L. Gianinazzi, I. Stefan et al. , “SISA: Set-Centric Instruction Set Architecture for Graph Mining on Processing-in-Memory Systems,” in MICRO , 2021. [70] I. Fernandez, R. Quislant, E. Gutiérrez, O. Plata, C. Giannoula, M. Alser, J. Gómez-Luna, and O. Mutlu, “NATSA: A Near-Data Processing Accelerator for Time Series Analysis,” in ICCD , 2020. [71] G. Singh, J. Gómez-Luna, G. Mariani, G. F. Oliveira, S. Corda, S. Stuijk, O. Mutlu, and H. Corporaal, “NAPEL: Near-Memory Computing Application Performance Prediction via Ensemble Learning,” in DAC , 2019. [72] Y.-C. Kwon, S. H. Lee, J. Lee, S.-H. Kwon, J. M. Ryu, J.-P. Son, O. Seongil, H.-S. Yu, H. Lee, S. Y. Kim et al. , “A 20nm 6GB Function-in-Memory DRAM, Based on HBM2 with a 1.2 TFLOPS Programmable Computing Unit using Bank-Level Parallelism, for Machine Learning Applications,” in ISSCC , 2021. [73] S. Lee, S.-h. Kang, J. Lee, H. Kim, E. Lee, S. Seo, H. Yoon, S. Lee, K. Lim, H. Shin 
+
+et al. , “Hardware Architecture and Software Stack for PIM Based on Commercial DRAM Technology: Industrial Product,” in ISCA , 2021. [74] D. Niu, S. Li, Y. Wang, W. Han, Z. Zhang, Y. Guan, T. Guan, F. Sun, F. Xue, L. Duan 
+
+et al. , “184QPS/W 64Mb/ mm 2 3D Logic-to-DRAM Hybrid Bonding with Process-Near-Memory Engine for Recommendation System,” in ISSCC , 2022. [75] Q. Zhu, T. Graf, H. E. Sumbul, L. Pileggi, and F. Franchetti, “Accelerating Sparse Matrix-Matrix Multiplication with 3D-Stacked Logic-in-Memory Hardware,” in 
+
+HPEC , 2013. [76] E. Azarkhish, C. Pfister, D. Rossi, I. Loi, and L. Benini, “Logic-Base Interconnect Design for Near Memory Computing in the Smart Memory Cube,” IEEE VLSI , 2016. [77] E. Azarkhish, D. Rossi, I. Loi, and L. Benini, “Neurostream: Scalable and Energy Efficient Deep Learning with Smart Memory Cubes,” TPDS , 2018. [78] Q. Guo, N. Alachiotis, B. Akin, F. Sadi, G. Xu, T. M. Low, L. Pileggi, J. C. Hoe, and F. Franchetti, “3D-Stacked Memory-Side Acceleration: Accelerator and System Design,” in WoNDP , 2014. [79] J. P. C. de Lima, P. C. Santos, M. A. Alves, A. Beck, and L. Carro, “Design Space Exploration for PIM Architectures in 3D-Stacked Memories,” in CF , 2018. [80] B. Akın, J. C. Hoe, and F. Franchetti, “HAMLeT: Hardware Accelerated Memory Layout Transform within 3D-Stacked DRAM,” in HPEC , 2014. [81] Y. Huang, L. Zheng, P. Yao, J. Zhao, X. Liao, H. Jin, and J. Xue, “A Heterogeneous PIM Hardware-Software Co-Design for Energy-Efficient Graph Processing,” in 
+
+IPDPS , 2020. [82] G. Dai, T. Huang, Y. Chi, J. Zhao, G. Sun, Y. Liu, Y. Wang, Y. Xie, and H. Yang, “GraphH: A Processing-in-Memory Architecture for Large-Scale Graph Processing,” 
+
+TCAD , 2018. [83] J. Liu, H. Zhao, M. A. Ogleari, D. Li, and J. Zhao, “Processing-in-Memory for Energy-Efficient Neural Network Training: A Heterogeneous Approach,” in MICRO ,2018. [84] P.-A. Tsai, C. Chen, and D. Sanchez, “Adaptive Scheduling for Systems with Asym-metric Memory Hierarchies,” in MICRO , 2018. [85] P. Gu, X. Xie, Y. Ding, G. Chen, W. Zhang, D. Niu, and Y. Xie, “iPIM: Programmable In-Memory Image Processing Accelerator using Near-Bank Architecture,” in ISCA ,2020. [86] A. Farmahini-Farahani, J. H. Ahn, K. Compton, and N. S. Kim, “DRAMA: An Architecture for Accelerated Processing Near Memory,” CAL , 2014. [87] H. Asghari-Moghaddam, A. Farmahini-Farahani, K. Morrow et al. , “Near-DRAM Acceleration with Single-ISA Heterogeneous Processing in Standard Memory Mod-ules,” IEEE Micro , 2016. [88] J. Huang, R. R. Puli, P. Majumder, S. Kim, R. Boyapati, K. H. Yum, and E. J. Kim, “Active-Routing: Compute on the Way for Near-Data Processing,” in HPCA , 2019. [89] C. D. Kersey, H. Kim, and S. Yalamanchili, “Lightweight SIMT Core Designs for Intelligent 3D Stacked DRAM,” in MEMSYS , 2017. [90] J. Li, X. Wang, A. Tumeo, B. Williams, J. D. Leidel, and Y. Chen, “PIMS: A Lightweight Processing-in-Memory Accelerator for Stencil Computations,” in MEMSYS , 2019. [91] A. Boroumand, S. Ghose, M. Patel, H. Hassan, B. Lucia, N. Hajinazar, K. Hsieh, K. T. Malladi, H. Zheng, and O. Mutlu, “LazyPIM: Efficient Support for Cache Coherence in Processing-in-Memory Architectures,” arXiv:1706.03162 [cs.AR], 2017. [92] Y. Zhuo, C. Wang, M. Zhang, R. Wang, D. Niu, Y. Wang, and X. Qian, “GraphQ: Scalable PIM-Based Graph Processing,” in MICRO , 2019. [93] M. Zhang, Y. Zhuo, C. Wang, M. Gao, Y. Wu, K. Chen, C. Kozyrakis, and X. Qian, “GraphP: Reducing Communication for PIM-Based Graph Processing with Efficient Data Partition,” in HPCA , 2018. [94] H. Lim and G. Park, “Triple Engine Processor (TEP): A Heterogeneous Near-Memory Processor for Diverse Kernel Operations,” TACO , 2017. [95] E. Azarkhish, D. Rossi, I. Loi, and L. Benini, “A Case for Near Memory Computation Inside the Smart Memory Cube,” in EMS , 2016. [96] M. A. Z. Alves, M. Diener, P. C. Santos, and L. Carro, “Large Vector Extensions Inside the HMC,” in DATE , 2016. [97] J. Jang, J. Heo, Y. Lee, J. Won, S. Kim, S. J. Jung, H. Jang, T. J. Ham, and J. W. Lee, “Charon: Specialized Near-Memory Processing Architecture for Clearing Dead Objects in Memory,” in MICRO , 2019. [98] R. Nair, S. F. Antao, C. Bertolli, P. Bose et al. , “Active Memory Cube: A Processing-in-Memory Architecture for Exascale Systems,” IBM JRD , 2015. [99] R. Hadidi, L. Nai, H. Kim, and H. Kim, “CAIRO: A Compiler-Assisted Technique for Enabling Instruction-Level Offloading of Processing-in-Memory,” TACO , 2017. [100] P. C. Santos, G. F. Oliveira, J. P. Lima, M. A. Alves, L. Carro, and A. C. Beck, “Processing in 3D Memories to Speed Up Operations on Complex Data Structures,” in DATE , 2018. [101] P. Yang, S. Durvasula, I. Fernandez, M. Sadrosadati, O. Mutlu, G. Pekhimenko, and C. Giannoula, “DCC: Data-Centric Compilation of Machine Learning Kernels for Processing-In-Memory Architectures,” in ISCA , 2026. [102] Y. Zhao, F. Liu, O. Mutlu, M. Gao, J. Liu, H. Guan, and L. Jiang, “COSM: A Cooper-ative Scheduling Framework for Concurrent PIM and CPU Execution on Mobile Devices,” in ISCA , 2026. [103] M. Barkhordar, A. Tabatabaeian, M. Sadrosadati, C. Giannoula, J. G. Luna, I. El Hajj, O. Mutlu, and A. R. Alameldeen, “ALPHA-PIM: Analysis of Linear Algebraic Pro-cessing for High-Performance Graph Applications on a Real Processing-In-Memory System,” in IISWC , 2025. [104] C. Giannoula, P. Yang, I. Fernandez, J. Yang, S. Durvasula, Y. X. Li, M. Sadrosadati, J. G. Luna, O. Mutlu, and G. Pekhimenko, “PyGim: An Efficient Graph Neural Network Library for Real Processing-In-Memory Architectures,” in SIGMETRICS ,2024. [105] Y. He, H. Mao, C. Giannoula, M. Sadrosadati, J. Gómez-Luna, H. Li, X. Li, Y. Wang, and O. Mutlu, “PAPI: Exploiting Dynamic Parallelism in Large Language Model Decoding with a Processing-In-Memory-Enabled Computing System,” in ASPLOS ,2025. [106] Y. Gu, A. Khadem, S. Umesh, N. Liang, X. Servot, O. Mutlu, R. Iyer, and R. Das, “PIM Is All You Need: A CXL-Enabled GPU-Free System for Large Language Model Inference,” in ASPLOS , 2025. [107] S. Rhyner, H. Luo, J. Gómez-Luna, M. Sadrosadati, J. Jiang, A. Olgun, H. Gupta, C. Zhang, and O. Mutlu, “PIM-Opt: Demystifying Distributed Optimization Algo-rithms on a Real-World Processing-In-Memory System,” in PACT , 2024. [108] A. Alonso-Marín, I. Fernandez, Q. Aguado-Puig, J. Gómez-Luna, S. Marco-Sola, O. Mutlu, and M. Moreto, “BIMSA: Accelerating Long Sequence Alignment Using Processing-In-Memory,” Bioinformatics , 2024. [109] P. Chi, S. Li, C. Xu, T. Zhang, J. Zhao, Y. Liu, Y. Wang, and Y. Xie, “PRIME: A Novel Processing-in-Memory Architecture for Neural Network Computation in ReRAM-Based Main Memory,” in ISCA , 2016. [110] M. Gao, G. Ayers, and C. Kozyrakis, “Practical Near-Data Processing for in-Memory Analytics Frameworks,” in PACT , 2015. [111] M. Hashemi, E. Ebrahimi, O. Mutlu, Y. N. Patt et al. , “Accelerating Dependent Cache Misses with an Enhanced Memory Controller,” in ISCA , 2016. [112] M. Hashemi, O. Mutlu, and Y. N. Patt, “Continuous Runahead: Transparent Hard-ware Acceleration for Memory Intensive Workloads,” in MICRO , 2016. [113] S. M. Hassan, S. Yalamanchili, and S. Mukhopadhyay, “Near Data Processing: Impact and Optimization of 3D Memory System Architecture on the Uncore,” in MEMSYS ,2015. [114] Z. Liu, I. Calciu, M. Herlihy, and O. Mutlu, “Concurrent Data Structures for Near-Memory Computing,” in SPAA , 2017. [115] J. M. Herruzo, I. Fernandez, S. González-Navarro, and O. Plata, “Enabling Fast and Energy-Efficient FM-Index Exact Matching Using Processing-Near-Memory,” The Journal of Supercomputing , 2021. [116] B. Asgari, R. Hadidi, J. Cao, D. E. Shim, S.-K. Lim, and H. Kim, “FAFNIR: Accelerating Sparse Gathering by Using Efficient Near-Memory Intelligent Reduction,” in HPCA ,2021. [117] UPMEM, “Introduction to UPMEM PIM. Processing-in-memory (PIM) on DRAM Accelerator (White Paper),” 2018. [118] A. C. Jacob, Z. Sura, T. Chen, C. Bertolli, S. Antao, O. Sallenave, K. O’Brien, H. Ja-cobson, R. Nair, J. R. Brunheroto et al. , “Compiling for the Active Memory Cube,” Tech. Rep. RC25644 (WAT1612-008). IBM Research Division, Tech. Rep., 2016. [119] S. Lloyd and M. Gokhale, “In-Memory Data Rearrangement for Irregular, Data-
+
+18 Intensive Computing,” IEEE Computer , 2015. [120] R. Nair, “Evolution of Memory Architecture,” Proceedings of the IEEE , 2015. [121] M. Lenjani, P. Gonzalez, E. Sadredini, S. Li, Y. Xie, A. Akel, S. Eilert, M. R. Stan, and K. Skadron, “Fulcrum: A Simplified Control and Access Mechanism Toward Flexible and Practical In-Situ Accelerators,” in HPCA , 2020. [122] Z. Sura, A. Jacob, T. Chen, B. Rosenburg, O. Sallenave, C. Bertolli, S. Antao, J. Brun-heroto, Y. Park, K. O’Brien et al. , “Data Access Optimization in a Processing-in-Memory System,” in CF , 2015. [123] R. Hadidi, B. Asgari, B. A. Mudassar, S. Mukhopadhyay, S. Yalamanchili, and H. Kim, “Demystifying the Characteristics of 3D-Stacked Memories: A Case Study for Hybrid Memory Cube,” in IISWC , 2017. [124] P. Gu, X. Xie, S. Li, D. Niu, H. Zheng, K. T. Malladi, and Y. Xie, “DLUX: A LUT-Based Near-Bank Accelerator for Data Center Deep Learning Training Workloads,” TCAD ,2020. [125] B. Asgari, S. Mukhopadhyay, and S. Yalamanchili, “MAHASIM: Machine-Learning Hardware Acceleration Using a Software-Defined Intelligent Memory System,” J. Signal Process Syst. , 2020. [126] S. Baskaran and J. Sampson, “Decentralized Offload-Based Execution on Memory-Centric Compute Cores,” in MEMSYS , 2020. [127] H. Ahmed, P. C. Santos, J. P. Lima, R. F. Moura, M. A. Alves, A. C. Beck, and L. Carro, “A Compiler for Automatic Selection of Suitable Processing-in-Memory Instructions,” in DATE , 2019. [128] J. Picorel, D. Jevdjic, and B. Falsafi, “Near-Memory Address Translation,” in PACT ,2017. [129] C. Min, J. Mao, H. Li, and Y. Chen, “NeuralHMC: An Efficient HMC-Based Acceler-ator for Deep Neural Networks,” in ASP-DAC , 2019. [130] R. Zhou, A. Roohi, D. Misra, and S. Angizi, “FlexiDRAM: A Flexible In-DRAM Framework to Enable Parallel General-Purpose Computation,” in ISLPED , 2022. [131] M. He, C. Song, I. Kim, C. Jeong, S. Kim, I. Park, M. Thottethodi, and T. Vijayku-mar, “Newton: A DRAM-Maker’s Accelerator-in-Memory (AiM) Architecture for Machine Learning,” in MICRO , 2020. [132] S. Pugsley, R. Balasubramonian, J. Jestes, F. Li, A. Davis, V. Srinivasan, and A. Buyuk-tosunoglu, “Comparing Different Implementations of Near Data Computing with In-Memory MapReduce Workloads,” IEEE Micro , 2014. [133] A. Devic, S. B. Rai, A. Sivasubramaniam, A. Akel, S. Eilert, and J. Eno, “To PIM or Not for Emerging General Purpose Processing in DDR Memory Systems,” in ISCA ,2022. [134] A. Subramaniyan and R. Das, “Parallel Automata Processor,” in ISCA , 2017. [135] N. Bowman, N. Cardwell, C. Kozyrakis et al. , “Evaluation of existing architectures in iram systems,” in Int. Symp. Computer Architecture - Workshop on Mixing Logic and DRAM , 1997. [136] M. Wei, M. Snir, J. Torrellas, and R. B. Tremaine, “A Near-Memory Processor for Vector, Streaming and Bit Manipulation Workloads,” University of Illinois at Urbana-Champaign, Tech. Rep., 2005. [137] L. Ke, U. Gupta, B. Y. Cho, D. Brooks, V. Chandra, U. Diril, A. Firoozshahian, K. Hazelwood, B. Jia, H.-H. S. Lee et al. , “RecNMP: Accelerating Personalized Recommendation with Near-Memory Processing,” in ISCA , 2020. [138] N. S. Kim, D. Chen, J. Xiong, and W. H. Wen-mei, “Heterogeneous Computing Meets Near-Memory Acceleration and High-Level Synthesis in the Post-Moore Era,” IEEE Micro , 2017. [139] Y. Zhao, M. Gao, F. Liu, Y. Hu, Z. Wang, H. Lin, J. Li, H. Xian, H. Dong, T. Yang 
+
+et al. , “UM-PIM: DRAM-Based PIM with Uniform & Shared Memory Space,” in 
+
+ISCA , 2024. [140] B. Gu, A. S. Yoon, D.-H. Bae, I. Jo, J. Lee, J. Yoon, J.-U. Kang, M. Kwon, C. Yoon, S. Cho, J. Jeong, and D. Chang, “Biscuit: A Framework for Near-Data Processing of Big Data Workloads,” in ISCA , 2016. [141] G. Kim, N. Chatterjee, M. O’Connor, and K. Hsieh, “Toward Standardized Near-Data Processing with Unrestricted Data Placement for GPUs,” in SC , 2017. [142] A. Morad, L. Yavits, and R. Ginosar, “GP-SIMD Processing-in-Memory,” ACM TACO ,2015. [143] J. Gómez-Luna, Y. Guo, S. Brocard, J. Legriel, R. Cimadomo, G. F. Oliveira, G. Singh, and O. Mutlu, “Machine Learning Training on a Real Processing-in-Memory System,” arXiv:2206.06022 [cs.AR], 2022. [144] I. Fernandez, R. Quislant, C. Giannoula, M. Alser, J. Gómez-Luna, E. Gutiérrez, O. Plata, and O. Mutlu, “Exploiting Near-Data Processing to Accelerate Time Series Analysis,” arXiv:2206.00938 [cs.AR], 2022. [145] G. F. Oliveira, A. Boroumand, S. Ghose, J. Gómez-Luna, and O. Mutlu, “Heteroge-neous Data-Centric Architectures for Modern Data-Intensive Applications: Case Studies in Machine Learning and Databases,” arXiv:2205.14664 [cs.AR], 2022. [146] S. Lloyd and M. Gokhale, “Design Space Exploration of Near Memory Accelerators,” in MEMSYS , 2018. [147] M. Gokhale, S. Lloyd, and C. Hajas, “Near Memory Data Structure Rearrangement,” in MEMSYS , 2015. [148] A. Rodrigues, M. Gokhale, and G. Voskuilen, “Towards a Scatter-Gather Architec-ture: Hardware and Software Issues,” in MEMSYS , 2019. [149] S. Lloyd and M. Gokhale, “Near Memory Key/Value Lookup Acceleration,” in 
+
+MEMSYS , 2017. [150] J. Landgraf, S. Lloyd, and M. Gokhale, “Combining Emulation and Simulation to Evaluate a Near Memory Key/Value Lookup Accelerator,” arXiv:2105.06594v1 [cs.AR], 2021. [151] J. H. Kim, S.-h. Kang, S. Lee, H. Kim, W. Song, Y. Ro, S. Lee, D. Wang, H. Shin, B. Phuah et al. , “Aquabolt-XL: Samsung HBM2-PIM with In-Memory Processing for ML Accelerators and Beyond,” in Hot Chips , 2021. [152] D. Lee, J. So, M. AHN, J.-G. Lee, J. Kim, J. Cho, R. Oliver, V. C. Thummala, R. s. JV, S. S. Upadhya et al. , “Improving In-Memory Database Operations with Acceleration DIMM (AxDIMM),” in DaMoN , 2022. [153] F. A. Siddique, D. Guo, Z. Fan, M. Gholamrezaei, M. Baradaran, A. Ahmed, H. Ab-bot, K. Durrer, K. Nandagopal, E. Ermovick et al. , “Architectural Modeling and Benchmarking for Digital DRAM PIM,” in IISWC , 2024. [154] W. Jaiyeoba, N. Elyasi, C. Choi, and K. Skadron, “ACTS: A Near-Memory FPGA Graph Processing Framework,” in FPGA , 2023. [155] M. Lenjani, A. Ahmed, and K. Skadron, “Pulley: An Algorithm/Hardware Co-Optimization for In-Memory Sorting,” CAL , 2022. [156] M. Lenjani and K. Skadron, “Supporting Moderate Data Dependency, Position Dependency, and Divergence in PIM-Based Accelerators,” IEEE Micro , 2021. [157] M. Zhou, L. Wu, M. Li, N. Moshiri, K. Skadron, and T. Rosing, “Ultra Efficient Acceleration for De Novo Genome Assembly via Near-Memory Computing,” in 
+
+PACT , 2021. [158] E. Sadredini, R. Rahimi, M. Imani, and K. Skadron, “Sunder: Enabling Low-Overhead and Scalable Near-Data Pattern Matching Acceleration,” in MICRO , 2021. [159] S. Mosanu, M. N. Sakib, T. Tracy, E. Cukurtas, A. Ahmed, P. Ivanov, S. Khan, K. Skadron, and M. Stan, “PiMulator: A Fast and Flexible Processing-in-Memory Emulation Platform,” in DATE , 2022. [160] G. Singh, M. Alser, D. S. Cali, D. Diamantopoulos, J. Gómez-Luna, H. Corporaal, and O. Mutlu, “FPGA-Based Near-Memory Acceleration of Modern Data-Intensive Applications,” IEEE Micro , 2021. [161] G. Singh, D. Diamantopoulos, J. Gómez-Luna, C. Hagleitner, S. Stuijk, H. Corporaal, and O. Mutlu, “Accelerating Weather Prediction Using Near-Memory Reconfig-urable Fabric,” ACM TRETS , 2021. [162] G. Dai, Z. Zhu, T. Fu, C. Wei, B. Wang, X. Li, Y. Xie, H. Yang, and Y. Wang, “DIMMin-ing: Pruning-Efficient and Parallel Graph Mining on Near-Memory-Computing,” in 
+
+ISCA , 2022. [163] J. Gómez-Luna, Y. Guo, S. Brocard, J. Legriel, R. Cimadomo, G. F. Oliveira, G. Singh, and O. Mutlu, “Evaluating Machine Learning Workloads on Memory-Centric Com-puting Systems,” in ISPASS , 2023. [164] H. Gupta, M. Kabra, J. Gómez-Luna, K. Kanellopoulos, and O. Mutlu, “Evaluating Homomorphic Operations on a Real-World Processing-In-Memory System,” in 
+
+IISWC , 2023. [165] G. F. Oliveira, A. Kohli, D. Novo, J. Gómez-Luna, and O. Mutlu, “DaPPA: A Data-Parallel Framework for Processing-in-Memory Architectures,” arXiv:2310.10168 [cs.AR], 2023. [166] J. Park, J. Choi, K. Kyung, M. J. Kim, Y. Kwon, N. S. Kim, and J. H. Ahn, “AttAcc! Unleashing the Power of PIM for Batched Transformer-Based Generative Model Inference,” in ASPLOS , 2024. [167] M. Seo, X. T. Nguyen, S. J. Hwang, Y. Kwon, G. Kim, C. Park, I. Kim, J. Park, J. Kim, W. Shin et al. , “IANUS: Integrated Accelerator based on NPU-PIM Unified Memory System,” in ASPLOS , 2024. [168] C. Li, Z. Zhou, Y. Wang, F. Yang, T. Cao, M. Yang, Y. Liang, and G. Sun, “PIM-DL: Expanding the Applicability of Commodity DRAM-PIMs for Deep Learning via Algorithm-System Co-Optimization,” in ASPLOS , 2024. [169] A. Lopes, D. Castro, and P. Romano, “PIM-STM: Software Transactional Memory for Processing-In-Memory Systems,” in ASPLOS , 2024. [170] Y. Lee, H. Kim, and M. Rhu, “PreSto: An In-Storage Data Preprocessing System for Training Recommendation Models,” in ISCA , 2024. [171] D. Baek, S. Hwang, and J. Huh, “pSyncPIM: Partially Synchronous Execution of Sparse Matrix Operations for All-Bank PIM Architectures,” in ISCA , 2024. [172] Y. Wang, S. Li, Q. Zheng, L. Song, Z. Li, A. Chang, H. Li, and Y. Chen, “NDSearch: Ac-celerating Graph-Traversal-Based Approximate Nearest Neighbor Search through Near Data Processing,” in ISCA , 2024. [173] H. Liu, L. Zheng, Y. Huang, J. Zhou, C. Liu, R. Wang, X. Liao, H. Jin, and J. Xue, “Enabling Efficient Large Recommendation Model Training with Near CXL Memory Processing,” in ISCA , 2024. [174] Z. Yue, H. Wang, J. Fang, J. Deng, G. Lu, F. Tu, R. Guo, Y. Li, Y. Qin, Y. Wang, C. Li, H. Han, S. Wei, Y. Hu, and S. Yin, “Exploiting Similarity Opportunity of Emerging AI Models on 3D Hybrid Bonding Architecture,” in ISCA , 2024. [175] B. Tian, Y. Li, L. Jiang, S. Cai, and M. Gao, “NDPBridge: Enabling Cross-Bank Coordination in Near-DRAM-Bank Processing Architectures,” in ISCA , 2024. [176] N. Ghiasi, M. Sadrosadati, H. Mustafa, A. Gollwitzer, C. Firtina, J. Eudine, H. Mao, J. Lindegger, M. Cavlak, M. Alser, J. Park, and O. Mutlu, “MegIS: High-Performance, Energy-Efficient, and Low-Cost Metagenomic Analysis with In-Storage Processing,” in ISCA , 2024. [177] Y. Li, B. Tian, Y. Ren, and M. Gao, “Stream-Based Data Placement for Near-Data Processing with Extended Memory,” in MICRO , 2024. [178] B. C. Schwedock and N. Beckmann, “Leviathan: A Unified System for General-Purpose Near-Data Computing,” in MICRO , 2024. [179] D. Lee, B. Hyun, T. Kim, and M. Rhu, “PIM-MMU: A Memory Management Unit for Accelerating Data Transfers in Commercial PIM Systems,” in MICRO , 2024. [180] P. Huo, A. Devulapally, H. Al Maruf, M. Park, K. Nair, M. Arunachalam, G. G. Akbulut, M. T. Kandemir, and V. Narayanan, “PIFS-Rec: Process-In-Fabric-Switch for Large-Scale Recommendation System Inferences,” in MICRO , 2024. [181] H. Ham, J. Hong, G. Park, Y. Shin, O. Woo, W. Yang, J. Bae, E. Park, H. Sung, E. Lim 
+
+et al. , “Low-Overhead General-Purpose Near-Data Processing in CXL Memory Expanders,” in MICRO , 2024. [182] R. Mahapatra, S. Ghodrati, B. H. Ahn, S. Kinzer, S.-T. Wang, H. Xu, L. Karthikeyan, H. Sharma, A. Yazdanbakhsh, M. Alian et al. , “In-Storage Domain-Specific Acceler-ation for Serverless Computing,” in ASPLOS , 2024. [183] G. Heo, S. Lee, J. Cho, H. Choi, S. Lee, H. Ham, G. Kim, D. Mahajan, and J. Park, 
+
+19 “NeuPIMs: NPU-PIM Heterogeneous Acceleration for Batched LLM Inferencing,” in 
+
+ASPLOS , 2024. [184] A. Shafiee, A. Nag, N. Muralimanohar, R. Balasubramonian, J. P. Strachan, M. Hu, R. S. Williams, and V. Srikumar, “ISAAC: A Convolutional Neural Network Accel-erator with In-Situ Analog Arithmetic in Crossbars,” in ISCA , 2016. [185] V. Seshadri, D. Lee, T. Mullins, H. Hassan, A. Boroumand, J. Kim, M. A. Kozuch, O. Mutlu, P. B. Gibbons, and T. C. Mowry, “Ambit: In-Memory Accelerator for Bulk Bitwise Operations Using Commodity DRAM Technology,” in MICRO , 2017. [186] V. Seshadri and O. Mutlu, “In-DRAM Bulk Bitwise Execution Engine,” arXiv:1905.09822 [cs.AR], 2019. [187] S. Li, D. Niu, K. T. Malladi, H. Zheng, B. Brennan, and Y. Xie, “DRISA: A DRAM-Based Reconfigurable In-Situ Accelerator,” in MICRO , 2017. [188] V. Seshadri, Y. Kim, C. Fallin, D. Lee, R. Ausavarungnirun, G. Pekhimenko, Y. Luo, O. Mutlu, P. B. Gibbons, M. A. Kozuch et al. , “RowClone: Fast and Energy-Efficient In-DRAM Bulk Data Copy and Initialization,” in MICRO , 2013. [189] V. Seshadri and O. Mutlu, “The Processing Using Memory Paradigm: In-DRAM Bulk Copy, Initialization, Bitwise AND and OR,” arXiv:1610.09603 [cs.AR], 2016. [190] Q. Deng, L. Jiang, Y. Zhang, M. Zhang, and J. Yang, “DrAcc: A DRAM Based Accelerator for Accurate CNN Inference,” in DAC , 2018. [191] X. Xin, Y. Zhang, and J. Yang, “ELP2IM: Efficient and Low Power Bitwise Operation Processing in DRAM,” in HPCA , 2020. [192] L. Song, Y. Zhuo, X. Qian, H. Li, and Y. Chen, “GraphR: Accelerating Graph Pro-cessing Using ReRAM,” in HPCA , 2018. [193] L. Song, X. Qian, H. Li, and Y. Chen, “PipeLayer: A Pipelined ReRAM-Based Accelerator for Deep Learning,” in HPCA , 2017. [194] F. Gao, G. Tziantzioulis, and D. Wentzlaff, “ComputeDRAM: In-Memory Compute Using Off-the-Shelf DRAMs,” in MICRO , 2019. [195] C. Eckert, X. Wang, J. Wang, A. Subramaniyan, R. Iyer, D. Sylvester, D. Blaauw, and R. Das, “Neural Cache: Bit-Serial In-Cache Acceleration of Deep Neural Networks,” in ISCA , 2018. [196] S. Aga, S. Jeloka, A. Subramaniyan, S. Narayanasamy, D. Blaauw, and R. Das, “Compute Caches,” in HPCA , 2017. [197] D. Fujiki, S. Mahlke, and R. Das, “Duality Cache for Data Parallel Acceleration,” in 
+
+ISCA , 2019. [198] V. Seshadri, D. Lee, T. Mullins, H. Hassan, A. Boroumand, J. Kim, M. A. Kozuch, O. Mutlu, P. B. Gibbons, and T. C. Mowry, “Buddy-RAM: Improving the Performance and Efficiency of Bulk Bitwise Operations Using DRAM,” arXiv:1611.09988 [cs.AR], 2016. [199] V. Seshadri and O. Mutlu, “Simple Operations in Memory to Reduce Data Movement,” in Advances in Computers, Volume 106 , 2017. [200] V. Seshadri, Y. Kim, C. Fallin, D. Lee, R. Ausavarungnirun, G. Pekhimenko, Y. Luo, O. Mutlu, P. B. Gibbons, M. A. Kozuch et al. , “RowClone: Accelerating Data Move-ment and Initialization Using DRAM,” arXiv:1805.03502 [cs.AR], 2018. [201] V. Seshadri, K. Hsieh, A. Boroum, D. Lee, M. A. Kozuch, O. Mutlu, P. B. Gibbons, and T. C. Mowry, “Fast Bulk Bitwise AND and OR in DRAM,” CAL , 2015. [202] S. Li, C. Xu, Q. Zou, J. Zhao, Y. Lu, and Y. Xie, “Pinatubo: A Processing-in-Memory Architecture for Bulk Bitwise Operations in Emerging Non-Volatile Memories,” in 
+
+DAC , 2016. [203] J. D. Ferreira, G. Falcao, J. Gómez-Luna, M. Alser, L. Orosa, M. Sadrosadati, J. S. Kim, G. F. Oliveira, T. Shahroodi, A. Nori et al. , “pLUTo: In-DRAM Lookup Tables to Enable Massively Parallel General-Purpose Computation,” arXiv:2104.07699 [cs.AR], 2021. [204] J. D. Ferreira, G. Falcao, J. Gómez-Luna, M. Alser, L. Orosa, M. Sadrosadati, J. S. Kim, G. F. Oliveira, T. Shahroodi, A. Nori et al. , “pLUTo: Enabling Massively Parallel Computation in DRAM via Lookup Tables,” in MICRO , 2022. [205] M. Imani, S. Gupta, Y. Kim, and T. Rosing, “FloatPIM: In-Memory Acceleration of Deep Neural Network Training with High Precision,” in ISCA , 2019. [206] Z. He, L. Yang, S. Angizi, A. S. Rakin, and D. Fan, “Sparse BD-Net: A Multiplication-Less DNN with Sparse Binarized Depth-Wise Separable Convolution,” JETC , 2020. [207] J. Park, R. Azizi, G. F. Oliveira, M. Sadrosadati, R. Nadig, D. Novo, J. Gómez-Luna, M. Kim, and O. Mutlu, “Flash-Cosmos: In-Flash Bulk Bitwise Operations Using Inherent Computation Capability of NAND Flash Memory,” in MICRO , 2022. [208] M. S. Truong, L. Shen, A. Glass, A. Hoffmann, L. R. Carley, J. A. Bain, and S. Ghose, “Adapting the RACER Architecture to Integrate Improved In-ReRAM Logic Primi-tives,” JETCAS , 2022. [209] M. S. Truong, E. Chen, D. Su, L. Shen, A. Glass, L. R. Carley, J. A. Bain, and S. Ghose, “RACER: Bit-Pipelined Processing Using Resistive Memory,” in MICRO , 2021. [210] A. Olgun, M. Patel, A. G. Yağlıkçı, H. Luo, J. S. Kim, F. N. Bostancı, N. Vijaykumar, O. Ergin, and O. Mutlu, “QUAC-TRNG: High-Throughput True Random Number Generation Using Quadruple Row Activation in Commodity DRAMs,” in ISCA ,2021. [211] J. S. Kim, M. Patel, H. Hassan, L. Orosa, and O. Mutlu, “D-RaNGe: Using Commodity DRAM Devices to Generate True Random Numbers With Low Latency and High Throughput,” in HPCA , 2019. [212] J. S. Kim, M. Patel, H. Hassan, and O. Mutlu, “The DRAM Latency PUF: Quickly Evaluating Physical Unclonable Functions by Exploiting the Latency-Reliability Tradeoff in Modern Commodity DRAM Devices,” in HPCA , 2018. [213] F. N. Bostancı, A. Olgun, L. Orosa, A. G. Yağlıkçı, J. S. Kim, H. Hassan, O. Ergin, and O. Mutlu, “DR-STRaNGe: End-to-End System Design for DRAM-Based True Random Number Generators,” in HPCA , 2022. [214] A. Olgun, J. G. Luna, K. Kanellopoulos, B. Salami, H. Hassan, O. Ergin, and O. Mutlu, “PiDRAM: A Holistic End-to-End FPGA-Based Framework for Processing-in-DRAM,” 
+
+TACO , 2022. [215] M. F. Ali, A. Jaiswal, and K. Roy, “In-Memory Low-Cost Bit-Serial Addition Using Commodity DRAM Technology,” in TCAS-I , 2019. [216] S. Angizi and D. Fan, “GraphiDe: A Graph Processing Accelerator Leveraging In-DRAM-Computing,” in GLSVLSI , 2019. [217] S. Li, A. O. Glova, X. Hu, P. Gu, D. Niu, K. T. Malladi, H. Zheng, B. Brennan, and Y. Xie, “SCOPE: A Stochastic Computing Engine for DRAM-Based In-Situ Accelerator,” in MICRO , 2018. [218] Y. Zha and J. Li, “Hyper-AP: Enhancing Associative Processing Through A Full-Stack Optimization,” in ISCA , 2020. [219] D. Fujiki, S. Mahlke, and R. Das, “In-Memory Data Parallel Processor,” in ASPLOS ,2018. [220] L. Orosa, Y. Wang, M. Sadrosadati, J. Kim, M. Patel, I. Puddu, H. Luo, K. Razavi, J. Gómez-Luna, H. Hassan, N. M. Ghiasi, S. Ghose, and O. Mutlu, “CODIC: A Low-Cost Substrate for Enabling Custom In-DRAM Functionalities and Optimizations,” in ISCA , 2021. [221] M. Sharad, D. Fan, and K. Roy, “Ultra Low Power Associative Computing with Spin Neurons and Resistive Crossbar Memory,” in DAC , 2013. [222] S. H. S. Rezaei, M. Modarressi, R. Ausavarungnirun, M. Sadrosadati, O. Mutlu, and M. Daneshtalab, “NoM: Network-on-Memory for Inter-Bank Data Transfer in Highly-Banked Memories,” CAL , 2020. [223] K. K. Chang, P. J. Nair, D. Lee, S. Ghose, M. K. Qureshi, and O. Mutlu, “Low-Cost Inter-Linked Subarrays (LISA): Enabling Fast Inter-Subarray Data Movement in DRAM,” in HPCA , 2016. [224] K. K. Chang, “Understanding and Improving the Latency of DRAM-Based Memory Systems,” Ph.D. dissertation, Carnegie Mellon University, 2017. [225] N. Hajinazar, G. F. Oliveira, S. Gregorio, J. D. Ferreira, N. M. Ghiasi, M. Patel, M. Alser, S. Ghose, J. Gómez-Luna, and O. Mutlu, “SIMDRAM: A Framework for Bit-Serial SIMD Processing Using DRAM,” in ASPLOS , 2021. [226] C. Gao, X. Xin, Y. Lu, Y. Zhang, J. Yang, and J. Shu, “ParaBit: Processing Parallel Bitwise Operations in NAND Flash Memory Based SSDs,” in MICRO , 2021. [227] H. Lee, M. Kim, D. Min, J. Kim, J. Back, H. Yoo, J.-H. Lee, and J. Kim, “3D-FPIM: An Extreme Energy-Efficient DNN Acceleration System Using 3D NAND Flash-Based In-Situ PIM Unit,” in MICRO , 2022. [228] X. Si, W.-S. Khwa, J.-J. Chen, J.-F. Li, X. Sun, R. Liu, S. Yu, H. Yamauchi, Q. Li, and M.-F. Chang, “A Dual-Split 6T SRAM-Based Computing-in-Memory Unit-Macro with Fully Parallel Product-Sum Operation for Binarized DNN Edge Processors,” 
+
+TCAS-I , 2019. [229] W. A. Simon, Y. M. Qureshi, M. Rios, A. Levisse, M. Zapater, and D. Atienza, “BLADE: An In-Cache Computing Architecture for Edge Devices,” Trans. on Comp. , 2020. [230] A. Nag, C. Ramachandra, R. Balasubramonian, R. Stutsman, E. Giacomin, H. Kambal-asubramanyam, and P.-E. Gaillardon, “GenCache: Leveraging In-Cache Operators for Efficient Sequence Alignment,” in MICRO , 2019. [231] X. Wang, J. Yu, C. Augustine, R. Iyer, and R. Das, “Bit Prudent In-Cache Acceleration of Deep Convolutional Neural Networks,” in HPCA , 2019. [232] Z. Wang, C. Liu, A. Arora, L. John, and T. Nowatzki, “Infinity Stream: Portable and Programmer-Friendly In-/Near-Memory Fusion,” in ASPLOS , 2023. [233] Q. Deng, Y. Zhang, M. Zhang, and J. Yang, “LAcc: Exploiting Lookup Table-Based Fast and Accurate Vector Multiplication in DRAM-Based CNN Accelerator,” in 
+
+DAC , 2019. [234] X. Peng, Y. Wang, and M.-C. Yang, “CHOPPER: A Compiler Infrastructure for Programmable Bit-Serial SIMD Processing Using Memory In DRAM,” in HPCA ,2023. [235] G. F. Oliveira, A. Olgun, A. G. G. Yaglikçi, N. Bostanci, J. Gómez-Luna, S. Ghose, and O. Mutlu, “MIMDRAM: An End-to-End Processing-Using-DRAM System for High-Throughput, Energy-Efficient and Programmer-Transparent Multiple-Instruction Multiple-Data Computing,” in HPCA , 2024. [236] I. E. Yuksel, Y. C. Tuğrul, A. Olgun, F. N. Bostanci, A. G. Yaglikçi, G. F. Oliveira, H. Luo, J. Gómez-Luna, M. Sadrosadati, and O. Mutlu, “Functionally-Complete Boolean Logic in Real DRAM Chips: Experimental Characterization and Analysis,” in HPCA , 2024. [237] I. E. Yuksel, Y. C. Tugrul, F. Bostanci, G. F. Oliveira, A. G. Yaglikci, A. Olgun, M. Soysal, H. Luo, J. Gómez-Luna, M. Sadrosadati et al. , “Simultaneous Many-Row Activation in Off-the-Shelf DRAM Chips: Experimental Characterization and Analysis,” in DSN , 2024. [238] L. Yavits, R. Kaplan, and R. Ginosar, “GIRAF: General Purpose In-Storage Resistive Associative Framework,” TPDS , 2021. [239] V. Seshadri, “Simple DRAM and Virtual Memory Abstractions to Enable Highly Efficient Memory Systems,” Ph.D. dissertation, Carnegie Mellon University, 2016. [240] W. H. Choi, P.-F. Chiu, W. Ma, G. Hemink, T. T. Hoang, M. Lueker-Boden, and Z. Bandic, “An In-Flash Binary Neural Network Accelerator with SLC NAND Flash Array,” in ISCAS , 2020. [241] R. Han, P. Huang, Y. Xiang, C. Liu, Z. Dong, Z. Su, Y. Liu, L. Liu, X. Liu, and J. Kang, “A Novel Convolution Computing Paradigm Based on NOR Flash Array with High Computing Speed and Energy Efficiency,” TCAS-I , 2019. [242] F. Merrikh-Bayat, X. Guo, M. Klachko, M. Prezioso, K. K. Likharev, and D. B. Strukov, “High-Performance Mixed-Signal Neurocomputing with Nanoscale Floating-Gate Memory Cell Arrays,” TNNLS , 2017. [243] P. Wang, F. Xu, B. Wang, B. Gao, H. Wu, H. Qian, and S. Yu, “Three-Dimensional NAND Flash for Vector–Matrix Multiplication,” TVLSI , 2018. [244] H.-T. Lue, P.-K. Hsu, M.-L. Wei, T.-H. Yeh, P.-Y. Du, W.-C. Chen, K.-C. Wang, and C.-Y. Lu, “Optimal Design Methods to Transform 3D NAND Flash into a High-Density, High-Bandwidth and Low-Power Nonvolatile Computing in Memory (nvCIM) Accelerator for Deep-Learning Neural Networks (DNN),” in IEDM , 2019. 
+
+20 [245] S. Kim, Y. Jin, G. Sohn, J. Bae, T. J. Ham, and J. W. Lee, “Behemoth: A Flash-Centric Training Accelerator for Extreme-Scale {DNNs },” in FAST , 2021. [246] S. Wang, “MemCore: Computing-in-Flash Design for Deep Neural Network Accel-eration,” in EDTM , 2022. [247] R. Han, Y. Xiang, P. Huang, Y. Shan, X. Liu, and J. Kang, “Flash Memory Array for Efficient Implementation of Deep Neural Networks,” Adv. Intell. Syst. , 2021. [248] M. Kang, H. Kim, H. Shin, J. Sim, K. Kim, and L.-S. Kim, “S-FLASH: A NAND Flash-Based Deep Neural Network Accelerator Exploiting Bit-Level Sparsity,” TC ,2021. [249] S.-T. Lee and J.-H. Lee, “Neuromorphic Computing Using NAND Flash Memory Architecture with Pulse Width Modulation Scheme,” Front. Neurosci. , 2020. [250] K. Al-Hawaj, O. Afuye, S. Agwa, A. Apsel, and C. Batten, “Towards a Reconfigurable Bit-Serial/Bit-Parallel Vector Accelerator Using In-Situ Processing-in-SRAM,” in 
+
+ISCAS , 2020. [251] M. Kang, M.-S. Keel, N. R. Shanbhag, S. Eilert, and K. Curewitz, “An Energy-Efficient VLSI Architecture for Pattern Recognition via Deep Embedding of Computation in SRAM,” in ICASSP , 2014. [252] H. Kim, T. Yoo, T. T.-H. Kim, and B. Kim, “Colonnade: A Reconfigurable SRAM-Based Digital Bit-Serial Compute-in-Memory Macro for Processing Neural Net-works,” JSSC , 2021. [253] Z. Jiang, S. Yin, J.-S. Seo, and M. Seok, “C3SRAM: An In-Memory-Computing SRAM Macro Based on Robust Capacitive Coupling Computing Mechanism,” JSSC , 2020. [254] S. Jeloka, N. B. Akesh, D. Sylvester, and D. Blaauw, “A 28 nm Configurable Memory (TCAM/BCAM/SRAM) Using Push-Rule 6T Bit Cell Enabling Logic-in-Memory,” 
+
+JSSC , 2016. [255] M. Kang, E. P. Kim, M.-s. Keel, and N. R. Shanbhag, “Energy-Efficient and High Throughput Sparse Distributed Memory Architecture,” in ISCAS , 2015. [256] M. Imani, S. Pampana, S. Gupta, M. Zhou, Y. Kim, and T. Rosing, “DUAL: Accel-eration of Clustering Algorithms Using Digital-Based Processing in-Memory,” in 
+
+MICRO , 2020. [257] P. R. Sutradhar, S. Bavikadi, M. Connolly, S. Prajapati, M. A. Indovina, S. M. P. Dinakarrao, and A. Ganguly, “Look-Up-Table Based Processing-in-Memory Ar-chitecture with Programmable Precision-Scaling for Deep Learning Applications,” 
+
+TPDS , 2021. [258] P. R. Sutradhar, M. Connolly, S. Bavikadi, S. M. P. Dinakarrao, M. A. Indovina, and A. Ganguly, “pPIM: A Programmable Processor-in-Memory Architecture with Precision-Scaling for Deep Learning,” CAL , 2020. [259] T. Shahroodi, G. Singh, M. Zahedi, H. Mao, J. Lindegger, C. Firtina, S. Wong, O. Mutlu, and S. Hamdioui, “Swordfish: A Framework for Evaluating Deep Neu-ral Network-Based Basecalling Using Computation-In-Memory with Non-Ideal Memristors,” in MICRO , 2023. [260] L. Yavits, “DRAMA: Commodity DRAM Based Content Addressable Memory,” CAL ,2023. [261] Z. Jahshan and L. Yavits, “MajorK: Majority Based kMer Matching in Commodity DRAM,” CAL , 2024. [262] M. Khalifa, B. Hoffer, O. Leitersdorf, R. Hanhan, B. Perach, L. Yavits, and S. Kvatinsky, “ClaPIM: Scalable Sequence Classification Using Processing-in-Memory,” TVLSI ,2023. [263] E. Garzón, A. Teman, M. Lanuzza, and L. Yavits, “AIDA: Associative In-Memory Deep learning Accelerator,” IEEE Micro , 2022. [264] R. Hanhan, E. Garzón, Z. Jahshan, A. Teman, M. Lanuzza, and L. Yavits, “EDAM: Edit Distance Tolerant Approximate Matching Content Addressable Memory,” in 
+
+ISCA , 2022. [265] A. Morad, L. Yavits, S. Kvatinsky, and R. Ginosar, “Resistive GP-SIMD Processing-in-Memory,” TACO , 2016. [266] L. Wu, R. Sharifi, A. Venkat, and K. Skadron, “DRAM-CAM: General-Purpose Bit-Serial Exact Pattern Matching,” in CAL , 2022. [267] E. Sadredini, R. Rahimi, M. Lenjani, M. Stan, and K. Skadron, “FlexAmata: A Universal and Efficient Adaption of Applications to Spatial Automata Processing Accelerators,” in ASPLOS , 2020. [268] E. Sadredini, R. Rahimi, V. Verma, M. Stan, and K. Skadron, “eAP: A Scalable and Efficient In-Memory Accelerator for Automata Processing,” in MICRO , 2019. [269] K. Angstadt, A. Subramaniyan, E. Sadredini, R. Rahimi, K. Skadron, W. Weimer, and R. Das, “ASPEN: A Scalable In-SRAM Architecture for Pushdown Automata,” in MICRO , 2018. [270] K. Wang, E. Sadredini, and K. Skadron, “Sequential Pattern mining with the Micron Automata Processor,” in CF , 2016. [271] K. Wang, Y. Qi, J. J. Fox, M. R. Stan, and K. Skadron, “Association Rule Mining with the Micron Automata Processor,” in IPDPS , 2015. [272] S. Angizi, Z. He, and D. Fan, “PIMA-Logic: A Novel Processing-in-Memory Ar-chitecture for Highly Flexible and Energy-Efficient Logic Computation,” in DAC ,2018. [273] S. Angizi, A. S. Rakin, and D. Fan, “CMP-PIM: An Energy-Efficient Comparator-Based Processing-in-Memory Neural Network Accelerator,” in DAC , 2018. [274] S. Angizi, J. Sun, W. Zhang, and D. Fan, “AlignS: A Processing-in-Memory Acceler-ator for DNA Short Read Alignment Leveraging SOT-MRAM,” in DAC , 2019. [275] Y. Levy, J. Bruck, Y. Cassuto, E. G. Friedman, A. Kolodny, E. Yaakobi, and S. Kvatin-sky, “Logic Operations in Memory Using a Memristive Akers Array,” Microelectron-ics Journal , 2014. [276] S. Kvatinsky, D. Belousov, S. Liman, G. Satat, N. Wald, E. G. Friedman, A. Kolodny, and U. C. Weiser, “MAGIC—Memristor-Aided Logic,” IEEE TCAS II: Express Briefs ,2014. [277] S. Kvatinsky, A. Kolodny, U. C. Weiser, and E. G. Friedman, “Memristor-Based IMPLY Logic Design Procedure,” in ICCD , 2011. [278] S. Kvatinsky, G. Satat, N. Wald, E. G. Friedman, A. Kolodny, and U. C. Weiser, “Memristor-Based Material Implication (IMPLY) Logic: Design Principles and Methodologies,” TVLSI , 2014. [279] P.-E. Gaillardon, L. Amaru, A. Siemon, and et al., “The Programmable Logic-in-Memory (PLiM) Computer,” in DATE , 2016. [280] D. Bhattacharjee, R. Devadoss, and A. Chattopadhyay, “ReVAMP: ReRAM Based VLIW Architecture for In-Memory Computing,” in DATE , 2017. [281] S. Hamdioui, L. Xie, H. A. D. Nguyen, and et al., “Memristor Based Computation-in-Memory Architecture for Data-Intensive Applications,” in DATE , 2015. [282] L. Xie, H. A. D. Nguyen, M. Taouil, and et al., “Fast Boolean Logic Papped on Memristor Crossbar,” in ICCD , 2015. [283] S. Hamdioui, S. Kvatinsky, and e. a. G. Cauwenberghs, “Memristor for Computing: Myth or Reality?” in DATE , 2017. [284] J. Yu, H. A. D. Nguyen, L. Xie, and et al., “Memristive Devices for Computation-in-Memory,” in DATE , 2018. [285] Y. Xi, B. Gao, J. Tang, A. Chen, M.-F. Chang, X. S. Hu, J. Van Der Spiegel, H. Qian, and H. Wu, “In-Memory Learning With Analog Resistive Switching Memory: A Review and Perspective,” Proc. IEEE , 2020. [286] L. Zheng, S. Shin, S. Lloyd, M. Gokhale, K. Kim, and S.-M. Kang, “RRAM-Based TCAMs for Pattern Search,” in ISCAS , 2016. [287] X. Ma, S. Deng, J. Wu, Z. Zhao, D. Lehninger, T. Ali, K. Seidel, S. De, X. He, Y. Chen 
+
+et al. , “A 2-Transistor-2-Capacitor Ferroelectric Edge Compute-in-Memory Scheme with Disturb-Free Inference and High Endurance,” EDL , 2023. [288] S. Slesazeck, T. Ravsher, V. Havel, E. T. Breyer, H. Mulaosmanovic, and T. Mikolajick, “A 2TnC Ferroelectric Memory Gain Cell Suitable for Compute-in-Memory and Neuromorphic Application,” in IEDM , 2019. [289] Q. Wang, D. Zhang, Y. Zhao, C. Liu, Q. Hu, X. Liu, J. Yang, and H. Lv, “A 1T2C FeCAP-Based In-Situ Bitwise X(N)OR Logic Operation with Two-Step Write-Back Circuit for Accelerating Compute-in-Memory,” Micromachines , 2021. [290] D. Tokuda, İ. E. Yüksel, T. Kubo, A. Olgun, H. Luo, N. Bostanci, J. Wang, A. G. Yağlıkçı, S. Takamaeda-Yamazaki, and O. Mutlu, “PuDGhost: Experimental Analysis of Computation Result Corruption in Processing-using-DRAM Operations on Real DRAM Chips and Implications for Future Systems,” in ISCA , 2026. [291] I. E. Yuksel, A. Olgun, F. N. Bostanci, O. Canpolat, G. F. Oliveira, M. Sadrosadati, A. G. Yağlikçi, O. Mutlu et al. , “In-DRAM True Random Number Generation Using Simultaneous Multiple-Row Activation: An Experimental Study of Real DRAM Chips,” in ICCD , 2025. [292] G. F. Oliveira, M. Kabra, Y. Guo, K. Chen, A. G. Yaglikci, M. Soysal, M. Sadrosadati, J. Olivares Bueno, S. Ghose, J. Gómez-Luna, and O. Mutlu, “Proteus: Achieving High-Performance Processing-Using-DRAM with Dynamic Bit-Precision, Adaptive Data Representation, and Flexible Arithmetic,” in ICS , 2025. [293] M. Soysal, K. Koliogeorgi, C. Firtina, N. M. Ghiasi, R. Nadig, H. Mao, G. F. de Oliveira Junior, Y. Liang, K. Zambaku, M. Sadrosadati et al. , “MARS: Processing-In-Memory Acceleration of Raw Signal Genome Analysis Inside the Storage Sub-system,” in ICS , 2025. [294] I. E. Yuksel, A. Sood, A. Olgun, O. Canpolat, H. Luo, N. Bostanci, M. Sadrosa-dati, G. Yaglikci, and O. Mutlu, “PuDHammer: Experimental Analysis of Read Disturbance Effects of Processing-using-DRAM in Real DRAM Chips",” in ISCA ,2025. [295] D. Tokuda, T. Kubo, I. E. Yuksel, A. Olgun, H. Luo, T. Nagatani, G. F. De Oliveira, A. G. Yağlıkçı, M. Sadrosadati, O. Mutlu et al. , “Clutch: High Performance Vector-Scalar Comparison using DRAM via Chunked Temporal Coding,” in ICS , 2026. [296] R. Zhou, A. Roohi, D. Misra, and S. Angizi, “ReD-LUT: Reconfigurable In-DRAM LUTs Enabling Massive Parallel Computation,” in ICCAD , 2022. [297] R. Zhou, S. Tabrizchi, A. Roohi, and S. Angizi, “LT-PIM: An LUT-Based Processing-in-DRAM Architecture With RowHammer Self-Tracking,” CAL , 2022. [298] Z. Zhang, Z. Zhu, and X. Zhang, “A Permutation-Based Page Interleaving Scheme to Reduce Row-Buffer Conflicts and Exploit Data Locality,” in MICRO , 2000. [299] B. R. Rau, “Pseudo-Randomly Interleaved Memory,” in ISCA , 1991. [300] W.-C. Hsu and J. E. Smith, “Performance of Cached DRAM Organizations in Vector Supercomputers,” in ISCA , 1993. [301] M. Wi, W. Doh, S. Baek, S. Park, M. Erez, and J. H. Ahn, “Sudoku: Refining DRAM Address Mapping Through Advanced Timing and Configuration Analysis,” IEEE Access , 2026. [302] A. Plin, L. Casalino, T. Rokicki, and R. Salvador, “Knock-Knock: Black-Box, Platform-Agnostic DRAM Address-Mapping Reverse Engineering,” in uASC , 2026. [303] F. Gao, G. Tziantzioulis, and D. Wentzlaff, “FracDRAM: Fractional Values in Off-the-Shelf DRAM,” in MICRO , 2022. [304] E. Cooper-Balis and B. Jacob, “Fine-Grained Activation for Power Reduction in DRAM,” IEEE Micro , 2010. [305] A. N. Udipi, N. Muralimanohar, N. Chatterjee, R. Balasubramonian, A. Davis, and N. P. Jouppi, “Rethinking DRAM Design and Organization for Energy-Constrained Multi-Cores,” in ISCA , 2010. [306] T. Zhang, K. Chen, C. Xu, G. Sun, T. Wang, and Y. Xie, “Half-DRAM: A High-Bandwidth and Low-Power DRAM Architecture from the Rethinking of Fine-Grained Activation,” in ISCA , 2014. [307] H. Ha, A. Pedram, S. Richardson, S. Kvatinsky, and M. Horowitz, “Improving Energy Efficiency of DRAM by Exploiting Half Page Row Access,” in MICRO , 2016. [308] Y. Lee, H. Kim, S. Hong, and S. Kim, “Partial Row Activation for Low-Power DRAM System,” in HPCA , 2017. [309] A. Olgun, F. Bostanci, G. F. Oliveira, Y. C. Tugrul, R. Bera, A. G. Yaglikci, H. Hassan, O. Ergin, and O. Mutlu, “Sectored DRAM: An Energy-Efficient High-Throughput and Practical Fine-Grained DRAM Architecture,” arXiv:2207.13795 [cs.AR], 2022. 
+
+21 [310] J. M. O’Connor, “Energy Efficient High Bandwidth DRAM for Throughput Proces-sors,” Ph.D. dissertation, The University of Texas at Austin, 2021. [311] M. O’Connor, N. Chatterjee, D. Lee, J. Wilson, A. Agrawal, S. W. Keckler, and W. J. Dally, “Fine-Grained DRAM: Energy-Efficient DRAM for Extreme Bandwidth Systems,” in MICRO , 2017. [312] A. Olgun, F. N. Bostanci, G. Francisco de Oliveira Junior, Y. C. Tugrul, R. Bera, A. G. Yaglikci, H. Hassan, O. Ergin, and O. Mutlu, “Sectored DRAM: A Practical Energy-Eefficient and High-Performance Fine-Grained DRAM Architecture,” TACO ,2024. [313] B. R. Rau, “Iterative Modulo Scheduling: An Algorithm for Software Pipelining Loops,” in MICRO , 1994. [314] B. R. Rau and C. D. Glaeser, “Some Scheduling Techniques and an Easily Schedulable Horizontal Architecture for High-Performance Scientific Computing,” in MICRO ,1981. [315] B. R. Rau, M. S. Schlansker, and P. P. Tirumalai, “Code Generation Schema for Modulo Scheduled Loops,” in MICRO , 1992. [316] Y. Kim, V. Seshadri, D. Lee, J. Liu, and O. Mutlu, “A Case for Exploiting Subarray-Level Parallelism (SALP) in DRAM,” in ISCA , 2012. [317] D. Lee, Y. Kim, V. Seshadri, J. Liu, L. Subramanian, and O. Mutlu, “Tiered-Latency DRAM: A Low Latency and Low Cost DRAM Architecture,” in HPCA , 2013. [318] A. G. Yağlikçi, A. Olgun, M. Patel, H. Luo, H. Hassan, L. Orosa, O. Ergin, and O. Mutlu, “Hira: Hidden row activation for reducing refresh latency of off-the-shelf dram chips,” in MICRO , 2022. [319] J. Kim, M. Patel, H. Hassan, and O. Mutlu, “Solar-DRAM: Reducing DRAM Access Latency by Exploiting the Variation in Local Bitlines,” in ICCD , 2018. [320] D. Lee, S. Khan, L. Subramanian, S. Ghose, R. Ausavarungnirun, G. Pekhimenko, V. Seshadri, and O. Mutlu, “Design-Induced Latency Variation in Modern DRAM Chips: Characterization, Analysis, and Latency Reduction Mechanisms,” in SIG-METRICS , 2017. [321] C. Kim, D. Burger, and S. W. Keckler, “An Adaptive, Non-Uniform Cache Structure for Wire-Delay Dominated On-Chip Caches,” in ASPLOS , 2002. [322] K.-N. Lim, W.-J. Jang, H.-S. Won, K.-Y. Lee, H. Kim, D.-W. Kim, M.-H. Cho, S.-L. Kim, J.-H. Kang, K.-W. Park et al. , “A 1.2 V 23nm 6F2 4Gb DDR3 SDRAM with Local-Bitline Sense Amplifier, Hybrid LIO Sense Amplifier and Dummy-Less Array Architecture,” in ISSCC , 2012. [323] T. Takahashi, T. Sekiguchi, R. Takemura, S. Narui, H. Fujisawa, S. Miyatake, M. Morino, K. Arai, S. Yamada, S. Shukuri et al. , “A Multigigabit DRAM Technology with 6F2 Open-Bitline Cell, Distributed Overdriven Sensing, and Stacked-Flash Fuse,” JSSC , 2001. [324] Y. Wang, L. Orosa, X. Peng, Y. Guo, S. Ghose, M. Patel, J. S. Kim, J. G. Luna, M. Sadrosadati, N. M. Ghiasi et al. , “FIGARO: Improving System Performance via Fine-Grained In-DRAM Data Relocation and Caching,” in MICRO , 2020. [325] M. Zhou, W. Xu, J. Kang, and T. Rosing, “TransPIM: A Memory-Based Acceleration via Software-Hardware Co-Design for Transformer,” in HPCA , 2022. [326] J. Liu, M. Zhou, Y. Pan, C.-Y. Yang, L. Josipović, and T. Rosing, “OptiPIM: Optimizing Processing-in-Memory Acceleration Using Integer Linear Programming,” in ISCA ,2025. [327] B. Mei, S. Vernalde, D. Verkest, and R. Lauwereins, “Design Methodology for a Tightly Coupled VLIW/Reconfigurable Matrix Architecture: A Case Study,” in 
+
+DATE , 2004. [328] J. A. Fisher and P. Faraboschi, Embedded Computing: A VLIW Approach to Architec-ture, Compilers and Tools . Elsevier, 2005. [329] P. Faraboschi, G. Brown, J. A. Fisher, G. Desoli, and F. Homewood, “Lx: A Technol-ogy Platform for Customizable VLIW Embedded Processing,” in ISCA , 2000. [330] J. A. Fisher, “Very Long Instruction Word Architectures and the ELI-512,” in ISCA ,1983. [331] J. R. Ellis, “Bulldog: A Compiler for VLIW Architectures,” Ph.D. dissertation, Yale University, 1985. [332] P. Shivakumar and N. P. Jouppi, “CACTI 3.0: An Integrated Cache Timing, Power, and Area Model,” Compaq Computer Corporation, Tech. Rep. 2001/2, 2001. [333] SAFARI Research Group, “PipeDRAM Simulator,” https://github.com/ CMU-SAFARI/PipeDRAM. [334] N. Binkert, B. Beckmann, G. Black, S. K. Reinhardt, A. Saidi, A. Basu, J. Hestness, D. R. Hower, T. Krishna, S. Sardashti, R. Sen, K. Sewell, M. Shoaib, N. Vaish, M. D. Hill, and D. A. Wood, “The gem5 Simulator,” Comput. Archit. News , 2011. [335] SAFARI Research Group, “MIMDRAM Simulator,” https://github.com/ CMU-SAFARI/MIMDRAM. [336] H. Hassan, A. Olgun, A. G. Yaglikci, H. Luo, and O. Mutlu, “A Case for Self-Managing DRAM Chips: Improving Performance, Efficiency, Reliability, and Security via Autonomous in-DRAM Maintenance Operations,” arXiv:2207.13358 [cs.AR], 2022. [337] Intel Corp., “6th Generation Intel Core Processor Family Datasheet,” http://www. intel.com/content/www/us/en/processors/core/. [338] NVIDIA, “NVIDIA A100 Tensor Core GPU Architecture. White Pa-per,” https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/ nvidia-ampere-architecture-whitepaper.pdf, 2020. [339] SAFARI Research Group, “Proteus Simulator & Dataset ,” https://github.com/ CMU-SAFARI/Proteus. [340] Intel Corp., “10th Generation Intel Core Processor Family Datasheet,” https://www. intel.com/content/www/us/en/products/platforms/details/comet-lake-s.html. [341] Intel Corp., Intel® 64 and IA-32 Architectures Software Developer’s Manual, Vol. 3 ,2016. [342] D. U. Lee, K. W. Kim, K. W. Kim, H. Kim, J. Y. Kim, Y. J. Park, J. H. Kim, D. S. Kim, H. B. Park, J. W. Shin et al. , “A 1.2V 8Gb 8-Channel 128GB/s High-Bandwidth Memory (HBM) Stacked DRAM with Effective Microbump I/O Test Methods Using 29nm Process and TSV,” in ISSCC , 2014. [343] D. Lee, S. Ghose, G. Pekhimenko, S. Khan, and O. Mutlu, “Simultaneous Multi-Layer Access: Improving 3D-Stacked Memory Bandwidth at Low Cost,” TACO , 2016. [344] O. Mutlu and T. Moscibroda, “Stall-Time Fair Memory Access Scheduling for Chip Multiprocessors,” in MICRO , 2007. [345] W. K. Zuravleff and T. Robinson, “Controller for a Synchronous DRAM That Max-imizes Throughput by Allowing Memory Requests and Commands to Be Issued Out of Order,” U.S. Patent 5 630 096, 1997. [346] Standard Performance Evaluation Corp., “SPEC CPU2017 Benchmarks,” http:// www.spec.org/cpu2017/. [347] R. M. Yoo, A. Romano, and C. Kozyrakis, “Phoenix Rebirth: Scalable MapReduce on a Large-Scale Shared-Memory System,” in IISWC , 2009. [348] L.-N. Pouchet, “PolyBench: The Polyhedral Benchmark Suite,” https://www.cs. colostate.edu/~pouchet/software/polybench/. [349] S. Che, M. Boyer, J. Meng, D. Tarjan, J. W. Sheaffer, S. Lee, and K. Skadron, “Rodinia: A Benchmark Suite for Heterogeneous Computing,” in IISWC , 2009. [350] C. Wolf, “Yosys Open SYnthesis Suite,” https://yosyshq.net/yosys/. [351] “NanGate 45nm Open Cell Library.” [Online]. Available: https://si2.org/ open-cell-library/ [352] Y.-B. Kim and T. W. Chen, “Assessing Merged DRAM/Logic Technology,” in ISCA ,1996. [353] W. Kim, C. Jung, S. Yoo, D. Hong, J. Hwang, J. Yoon, O. Jung, J. Choi, S. Hyun, M. Kang et al. , “A 1.1V 16Gb DDR5 DRAM with Probabilistic-Aggressor Track-ing, Refresh-Management Functionality, Per-Row Hammer Tracking, a Multi-Step Precharge, and Core-Bias Modulation for Security and Reliability Enhancement,” in ISSCC , 2023. [354] JEDEC, “JESD79-5C: DDR5 SDRAM Standard,” Apr. 2024. [355] M. Qureshi, S. Qazi, and A. Jaleel, “MINT: Securely Mitigating Rowhammer with a Minimalist In-DRAM Tracker,” in MICRO , 2024. [356] S. Gupta, M. Imani, and T. Rosing, “FELIX: Fast and Energy-Efficient Logic in Memory,” in ICCAD , 2018. [357] O. Leitersdorf, R. Ronen, and S. Kvatinsky, “PartitionPIM: Practical Memristive Partitions for Fast Processing-in-Memory,” arXiv:2206.04200 [cs.AR], 2022. [358] O. Leitersdorf, D. Leitersdorf, J. Gal, M. Dahan, R. Ronen, and S. Kvatinsky, “AritPIM: High-Throughput In-Memory Arithmetic,” IEEE Trans. Emerg. Topics Comput. , 2023. [359] O. Leitersdorf, R. Ronen, and S. Kvatinsky, “PyPIM: Integrating Digital Processing-in-Memory from Microarchitectural Design to Python Tensors,” in MICRO , 2024. [360] P. Joshi, A. Chakraborty, and H. Rahaman, “LUT-Based Mapping of Logic Functions to Partitioned Memristive Crossbar Using MAGIC for High-Throughput Comput-ing,” TCAD , 2025. [361] R. Wong, B. Feinberg, and S. Ghose, “DARTH-PUM: A Hybrid Processing-Using-Memory Architecture,” in ASPLOS , 2026. [362] F. Seiler, H. Hu, R. Wong, K. K. Güclü, Y. Sun, S. Ghose, J. Aghassi-Hagmann, and N. TaheriNejad, “Cross-Layer Design Approaches of Stateful Digital Memristive In-Memory Computing,” in SoCC , 2026. [363] M. S. Truong, Y. Sun, D. Xiong, A. Shah, A. Glass, A. Farrell, J. A. Bain, L. R. Carley, and S. Ghose, “The Memory Processing Unit: A Generalized Interface for End-to-End In-Memory Execution,” in HPCA , 2026. [364] UPMEM, “UPMEM Website,” https://www.upmem.com, 2020. [365] S. H. Seo, J. Kim, D. Lee, S. Yoo, S. Moon, Y. Park, and J. W. Lee, “FACIL: Flexible DRAM Address Mapping for SoC-PIM Cooperative On-device LLM Inference,” in 
+
+HPCA , 2025. [366] Y. Zhao, F. Liu, Y. Hu, Z. Wang, M. Gao, O. Mutlu, H. Xian, H. Dong, N. Jing, X. Liang 
+
+et al. , “GUMPIM: Unitary and Malleable Memory for Processing-in-Memory with Guaranteed PIM Pages,” TACO , 2026. [367] J. S. Kim, M. Patel, A. G. Yağlıkçı, H. Hassan, R. Azizi, L. Orosa, and O. Mutlu, “Revisiting RowHammer: An Experimental Analysis of Modern DRAM Devices and Mitigation Techniques,” in ISCA , 2020. [368] L. Orosa, A. G. Yaglikci, H. Luo, A. Olgun, J. Park, H. Hassan, M. Patel, J. S. Kim, and O. Mutlu, “A Deeper Look into RowHammer’s Sensitivities: Experimental Analysis of Real DRAM Chips and Implications on Future Attacks and Defenses",” in MICRO ,2021. [369] A. G. Yağlıkçı, H. Luo, G. F. De Oliviera, A. Olgun, M. Patel, J. Park, H. Hassan, J. S. Kim, L. Orosa, and O. Mutlu, “Understanding RowHammer Under Reduced Wordline Voltage: An Experimental Study Using Real DRAM Devices,” in DSN ,2022. [370] G. F. Oliveira, E. G. Esposito, J. Gómez-Luna, and O. Mutlu, “PUMA: Efficient and Low-Cost Memory Allocation and Alignment Support for Processing-Using-Memory Architectures,” arXiv:2403.04539 [cs.AR], 2024. [371] B. Akin, F. Franchetti, and J. C. Hoe, “HAMLeT Architecture for Parallel Data Reorganization in Memory,” IEEE Micro , 2015. 
+
+22 A. Artifact Appendix 
+
+A.1. Abstract 
+
+This artifact contains the analytical PUD, instrumented ap-plication workloads, immutable paper inputs, plotting pro-grams, MABM RTL, and validation tools needed to reproduce 
+
+PipeDRAM ’s evaluation results. It compares SIMDRAM, MIM-DRAM, Proteus , and three PipeDRAM configurations while preserving the submitted timing, energy, batching, and transpo-sition methodology. We provide two workflows. ( i) The quick 
+
+workflow regenerates and validates all figures from frozen pa-per CSVs. ( ii ) The full workflow rebuilds and executes every redistributable paper-scale workload before regenerating the figures. The artifact also supports one-command reproduction of an individual figure and a guided notebook with separate cells for every experiment. 
+
+A.2. Artifact Checklist (Meta-Information) 
+
+• Algorithm: Per-primitive PUD simulation, dependency-graph construc-tion, modulo scheduling, PipeDRAM hierarchical carry transfer, MABM bit permutation. • Program: Python, C/C++, Verilog, and shell scripts. • Compilation: GCC/G++, GNU Make, Yosys, and Icarus Verilog. • Model: Analytical DRAM latency/energy model with fixed submitted pa-rameters; instrumented application-level PUD cost model. • Data sets: Included frozen CSVs; deterministically generated kmeans input; optional checksum-verified heartwall video; frozen x264 results without restricted SPEC source or media. • Run-time environment: Ubuntu 24.04 x86-64, Python 3.12. • Hardware: Quick mode requires a conventional x86-64 system. Full mode is recommended on a 32-thread host with 64 GB RAM. No GPU is required. • Execution: Automated quick, full, area-only, and per-figure workflows. • Metrics: Latency, throughput, energy, normalized performance/W, trans-position overhead, mat utilization, carry overhead, crossover point, and area. • Output: One-page PDF figures, auxiliary PNGs, regenerated CSVs, JSON metrics, and textual validation results. • Experiments: Figures 4 and 9–14, application workload evaluation, dataset verification, and area/RTL evaluation. • Disk space: Approximately 1 GB for setup and quick mode; reserve 10 GB for full mode and generated inputs. • Preparation time: Approximately 5–15 minutes after system packages are available. • Experiment time: Quick mode normally completes in under two minutes. Full mode is hardware-dependent; allow up to 24 hours on an evaluator machine. • Available to evaluators: Tokenized Zenodo preview; permanent record DOI: https://doi.org/10.5281/zenodo.21530459 .• Code licenses: MIT for project-authored code; retained third-party bench-mark notices and licenses. • Data licenses: Frozen numerical results are included. Restricted SPEC source/media and the heartwall video are excluded. • Workflow automation: Shell scripts and a Jupyter notebook. • Archived: DOI: 10.5281/zenodo.21530459. 
+
+A.3. Description 
+
+A.3.1. How to Access. The artifact is archived under https: //doi.org/10.5281/zenodo.21530459 . Extract the ZIP and enter the artifact_ae directory. The directory is indepen-dently distributable and does not read files from its parent directory. The root README.md is the primary entry point. 
+
+PipeDRAM_AE.ipynb provides a guided, figure-by-figure inter-face. 
+
+A.3.2. Hardware Dependencies. Quick reproduction and area verification require no specialized hardware. A few CPU cores, 2 GB RAM, and roughly 1 GB free disk space are suffi-cient. The full workflow uses paper-scale problem dimensions. We recommend 32 hardware threads, 64 GB RAM, swap space, and 10 GB free disk. Large PolyBench allocations rely on the operating system’s virtual-memory support. CPU RAPL and GPU measurements are immutable paper inputs and are not remeasured because they depend on the original evaluation platforms. 
+
+A.3.3. Software Dependencies. The supported environment is Ubuntu 24.04 x86-64. Install:             
+
+> sudo apt update sudo apt install -y build-essential python3-venv \texlive-extra-utils poppler-utils \fonts-liberation yosys iverilog
+
+The artifact pins NumPy, Matplotlib, adjustText, SciPy, Pil-low, and their Python dependencies in requirements.txt .The setup script creates an in-artifact virtual environment and checks GCC, G++, Make, PDF tools, Yosys, Icarus Verilog, and 
+
+vvp .
+
+A.4. Installation 
+
+From artifact_ae :
+
+> ./scripts/setup.sh
+
+Successful setup ends with Artifact environment is ready . No administrator privileges are needed after the pre-requisite packages have been installed. 
+
+A.5. Experiment Workflow   
+
+> ./scripts/reproduce.sh quick ./scripts/validate.sh quick
+
+This regenerates Figures 4 and 9–14 plus the area compar-ison from immutable paper inputs. It then checks numerical claims, PDFs, labels, rasterized renderings, reference check-sums, MABM RTL, and path isolation.   
+
+> ./scripts/reproduce.sh full ./scripts/validate.sh full
+
+When the verified heartwall video is available:     
+
+> ./scripts/reproduce.sh full \--heartwall-input /path/to/test_4k.avi ./scripts/validate.sh full
+
+Full mode rebuilds and runs 2mm, 3mm, covariance, doitgen, fdtd-apml, gemm, gramschmidt, backprop, PCA, and kmeans. It also builds heartwall and runs it when the verified video is supplied. x264 always uses its frozen result. Generated files are placed under generated/ ; immutable references are never overwritten. 
+
+A.5.3. Individual Figures. Each figure supports a lightweight replot and a full experiment path:     
+
+> ./scripts/reproduce_figure.sh 10 replot ./scripts/reproduce_figure.sh 10 full
+
+23 ./scripts/reproduce_figure.sh area full 
+
+Figures 4, 10, and 11 consume application CSVs; their full mode regenerates those results. Figures 9 and 12–14 execute their analytical simulator experiments directly. The notebook caches full workload preparation so multiple data-dependent figure cells do not repeat it. 
+
+> ./scripts/reproduce_area.sh
+
+This verifies that 1.11 + 0 .60 + 0 .15 = 1 .86% , confirms that the 1,350-entry schedule requires 5,400 bytes and fits in 16 KiB, synthesizes MABM to zero logic cells using Yosys, and checks the permutation/inverse round trip using Icarus Verilog. 
+
+A.6. Evaluation and Expected Results 
+
+A.5.4. Area and RTL. A successful quick or full validation prints:              
+
+> Numerical, PDF, label, and rendering validation passed Source and path isolation scan passed quick validation passed
+
+The final line reports full validation passed in full mode. Expected outputs are summarized below.  
+
+> expected_metrics.json
+
+contains plotted workload values, geometric means, crossover points, mat utilization, and exposed-carry fractions. 
+
+Table 4: Artifact outputs. 
+
+Paper item Output PDF Fig. 4 transposition_reuse_combined.pdf 
+
+Fig. 9 combined_scalability.pdf 
+
+Fig. 10 workload_normalized_combined.pdf 
+
+Fig. 11 energy_efficiency_cpu_normalized.pdf 
+
+Fig. 12 precision_datasize_tradeoff.pdf 
+
+Fig. 13 mat_utilization.pdf 
+
+Fig. 14 exposed_carry.pdf 
+
+Area area_comparison.pdf 
+
+A.7. Experiment Customization 
+
+The notebook exposes:        
+
+> FIGURE_MODE ="replot" #or "full" HEARTWALL_INPUT =None
+
+DRAM organization, timing, energy, precision, scheduling, transposition, subarray, and bank parameters can be explored using the simulator CLI. Customization is encouraged for sen-sitivity analysis, but changed parameters are not expected to pass the paper-reference validator. 
+
+A.8. Troubleshooting and Notes 
+
+• If setup reports a missing command, install the Ubuntu pack-ages listed under software dependencies. • A heartwall checksum failure means the video differs from the exact paper-scale input. Omit the argument to use the frozen result. • A kmeans checksum failure indicates a missing, corrupt, or non-reference generated input. Remove it and rerun the generation script. • Rendering mismatches usually indicate an unpinned Python environment or missing Liberation Sans fonts. Remove 
+
+> .venv
+
+, rerun setup, and reproduce again. • Full workloads intentionally use paper-scale dimensions and may allocate several gigabytes. Quick mode is the recom-mended path on a constrained system. • The package excludes development logs, caches, build prod-ucts, and large generated inputs. Workflow scripts recreate them as needed. 
+
+A.9. Methodology 
+
+Artifact-review and badging methodology: • https://www.acm.org/publications/policies/ artifact-review-and-badging-current 
+
+• https://ctuning.org/ae 
+
+24

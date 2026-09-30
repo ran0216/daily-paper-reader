@@ -1,0 +1,121 @@
+{
+  "date": "20260930",
+  "date_label": "",
+  "generated_at": "2026-09-30 23:32:16 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.34612v1",
+      "route": "202609/30/2609.34612v1-spimoe-exploiting-hybrid-sparsity-for-reasoning-moe-inference-on-heterogeneous-pim-architectures",
+      "title": "SPIMOE: Exploiting Hybrid Sparsity for Reasoning MoE Inference on Heterogeneous PIM Architectures",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "异构PIM架构上的AI推理加速器协同设计",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.34727v1",
+      "route": "202609/30/2609.34727v1-dynamic-flow-static-graph-kv-cache-reuse-for-efficient-llm-serving-on-mobile-npus",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向移动NPU的LLM服务计算-存储协同设计",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.35254v1",
+      "route": "202609/30/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "28nm模拟PCM存内计算与数字RISC-V NPU边缘GenAI片上系统",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.26644v1",
+      "route": "202609/30/2609.26644v1-dynamic-slack-aware-clocking-for-near-threshold-tensor-processing-units-tpus",
+      "title": "Dynamic Slack-Aware Clocking for Near-Threshold Tensor Processing Units (TPUs)",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向近阈值张量处理单元的动态时序余量感知时钟",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.27453v1",
+      "route": "202609/30/2609.27453v1-implementation-and-evaluation-of-bitnet-inference-on-a-cgla-by-signed-int4-instructions",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将BitNet推理映射到可编程ASIC加速器",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.30998v1",
+      "route": "202609/30/2609.30998v1-pipedram-a-data-transposition-free-in-dram-architecture-with-hardwaresoftware-pipelining",
+      "title": "PipeDRAM: A Data-Transposition-Free In-DRAM Architecture with Hardware/Software Pipelining",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "带软硬件流水的DRAM内加速器架构",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    },
+    {
+      "paper_id": "2609.34351v1",
+      "route": "202609/30/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "DNN加速器架构与数据复用映射",
+      "first_seen_at": "2026-09-30 23:32:16 UTC",
+      "updated_at": "2026-09-30 23:32:16 UTC"
+    }
+  ]
+}
