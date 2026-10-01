@@ -1,0 +1,147 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-01T23:50:18.037873+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 2,
+    "quick_skim_target": 11,
+    "quick_selected": 2
+  },
+  "deep_dive": [
+    {
+      "id": "2609.35254v1",
+      "source": "arxiv",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "abstract": "We present MEGATRON, a heterogeneous Edge GenAI System-on-Chip in 28nm FD-SOI CMOS technology combining a non-volatile analog in-memory-computing engine based on a 4Mi-cell phase-change memory (PCM) array with a digital RISC-V-based flexible neural processing unit. MEGATRON demonstrates up to 3.5 TOPS/W using the RISC-V processors and 57.5 TOPS/W with PCiM, at a storage density of 1.52 Mparam/mm${}^2$ with 4-bit effective weight precision.",
+      "authors": [
+        "Alessandro Nadalini",
+        "Angelo Garofalo",
+        "Lorenzo Greco",
+        "Andrea Belano",
+        "Alessio Antolini",
+        "Francesco Zavalloni",
+        "Andrea Lico",
+        "Riccardo Zurla",
+        "Emanuela Calvetti",
+        "Luigi Croce",
+        "Marco Pasotti",
+        "Alessandro Cabrini",
+        "Eleonora Franchi Scarselli",
+        "Davide Rossi",
+        "Francesco Conti"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-28T14:18:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.35254v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "edge GenAI SoC with RISC-V neural processing unit",
+      "llm_evidence_cn": "含RISC-V神经处理单元的边缘生成式AI片上系统",
+      "llm_evidence": "含RISC-V神经处理单元的边缘生成式AI片上系统",
+      "canonical_evidence": "含RISC-V神经处理单元的边缘生成式AI片上系统",
+      "llm_tldr_en": "MEGATRON is a 28nm FD-SOI edge GenAI SoC combining an analog PCM compute-in-memory engine with a RISC-V neural processing unit, reaching 57.5 TOPS/W and 1.52 Mparam/mm2 density at 4-bit weights.",
+      "llm_tldr_cn": "针对边缘生成式AI对高能效算力的需求，本文提出28nm FD-SOI异构片上系统MEGATRON，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。系统在4比特有效权重精度下实现最高57.5 TOPS/W的能效与1.52 Mparam/mm²的存储密度。该工作展示了模拟与数字混合架构在边缘AI推理中的可行性与显著能效优势。",
+      "llm_tldr": "针对边缘生成式AI对高能效算力的需求，本文提出28nm FD-SOI异构片上系统MEGATRON，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。系统在4比特有效权重精度下实现最高57.5 TOPS/W的能效与1.52 Mparam/mm²的存储密度。该工作展示了模拟与数字混合架构在边缘AI推理中的可行性与显著能效优势。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.34727v1",
+      "source": "arxiv",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "abstract": "On-device large language model (LLM) serving is a cornerstone of local-first personal intelligence, offering users data sovereignty, strong privacy guarantees, and freedom from cloud API latency and cost. Although KV caching is widely used to reduce latency in long-context inference, existing designs were primarily optimized for cloud GPUs with dynamic execution environments and abundant memory bandwidth. These architectural assumptions do not hold on mobile NPUs, where computation graphs must be statically compiled and both memory capacity and I/O bandwidth are severely constrained. In this work, we present a compute-storage co-design for mobile-centric prefix and non-prefix KV reuse. We first propose an intra-graph mechanism that maps selective KV recomputation onto static NPU graphs, reconciling algorithmic dynamicity with NPU staticity. We further develop an inter-graph scheduler to optimize chunk merging and minimize padding with dynamic programming. To address mobile bandwidth limitations, we introduce a hierarchical KV manager featuring a tree-hash-semantic hybrid structure, along with cost-aware prefetching and eviction policies. We also build a two-dimensional pipeline that overlaps KV loading, rerotation, and storage with NPU execution, hiding data-movement latency. Experiments across representative on-device workloads and LLMs show that our design reduces time-to-first-token (TTFT) by $40-60\\%$ compared with no reuse and prefix-only caching.",
+      "authors": [
+        "Zhengxiang Huang",
+        "Shengheng Chen",
+        "Chaoyue Niu",
+        "Yujie Sun",
+        "Zhaode Wang",
+        "Zeyu Zhao",
+        "Chengfei Lv",
+        "Fan Wu",
+        "Guihai Chen"
+      ],
+      "primary_category": "cs.OS",
+      "categories": [
+        "cs.OS",
+        "cs.AI",
+        "cs.DB"
+      ],
+      "published": "2026-09-28T09:29:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.34727v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "mobile NPU architecture co-design for efficient LLM serving",
+      "llm_evidence_cn": "面向LLM高效服务的移动NPU架构协同设计",
+      "llm_evidence": "面向LLM高效服务的移动NPU架构协同设计",
+      "canonical_evidence": "面向LLM高效服务的移动NPU架构协同设计",
+      "llm_tldr_en": "A compute-storage co-design for mobile NPUs enables prefix and non-prefix KV cache reuse under static graph compilation and tight memory/IO budgets, reducing long-context LLM inference latency on device.",
+      "llm_tldr_cn": "端侧大模型服务受移动NPU静态编译计算图与有限内存、I/O带宽约束，云端GPU导向的KV缓存设计难以适用。本文提出面向移动NPU的计算-存储协同设计，包含图内机制将序列块映射以支持前缀与非前缀KV复用。该设计在静态编译与带宽受限条件下实现KV缓存复用，降低长上下文推理延迟。其贡献在于为移动NPU上的高效LLM推理提供了架构级缓存复用方案。",
+      "llm_tldr": "端侧大模型服务受移动NPU静态编译计算图与有限内存、I/O带宽约束，云端GPU导向的KV缓存设计难以适用。本文提出面向移动NPU的计算-存储协同设计，包含图内机制将序列块映射以支持前缀与非前缀KV复用。该设计在静态编译与带宽受限条件下实现KV缓存复用，降低长上下文推理延迟。其贡献在于为移动NPU上的高效LLM推理提供了架构级缓存复用方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.27453v1",
+      "source": "arxiv",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "abstract": "Large language model (LLM) inference transfers model weights and activations for every generated token, making memory traffic and its energy cost part of the decode path. BitNet b1.58 represents its low-bit weights by ternary values and uses integer activations. However, this arithmetic does not match conventional int8 or floating-point general matrix multiplication, and existing BitNet accelerators implement it in specialized datapaths. We instead map this operation to a CPU-Grounded Linear Array (CGLA), a programmable ASIC with explicit direct memory access, local memories, and reusable compiler-visible integer lanes. The mapping adds OP_SMA4 as a reusable signed-int4 multiply-accumulate instruction rather than a BitNet-only datapath. Each ternary weight occupies one signed 4-bit lane. Each int8 activation is split into two signed-int4 fragments and reconstructed by shift-and-add. Frequency scaling of the 145 MHz FPGA measurement to an 840 MHz 28 nm CGLA achieved 0.390 ns per signed-int4 product. We showed that CGLA-offloaded BitNet C++ execution measures 2.52 tokens/s.",
+      "authors": [
+        "Takuto Ando",
+        "Yasuhiko Nakashima"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-23T07:19:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.27453v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "programmable ASIC accelerator for LLM inference",
+      "llm_evidence_cn": "面向LLM推理的可编程ASIC加速器",
+      "llm_evidence": "面向LLM推理的可编程ASIC加速器",
+      "canonical_evidence": "面向LLM推理的可编程ASIC加速器",
+      "llm_tldr_en": "The paper maps BitNet b1.58 ternary-weight inference onto a programmable CPU-Grounded Linear Array ASIC by adding a reusable signed-int4 multiply-accumulate instruction, avoiding a BitNet-only datapath.",
+      "llm_tldr_cn": "大模型推理每生成一个token都需搬运权重与激活，内存流量及其能耗成为解码路径瓶颈。BitNet b1.58用三值权重与整数激活，但其算术与常规int8或浮点矩阵乘不匹配，现有加速器采用专用数据通路。本文将该运算映射到CPU-Grounded线性阵列CGLA这一可编程ASIC，新增可复用的有符号int4乘累加指令OP_SMA4而非BitNet专用通路，从而在通用可编程整数通道上高效支持低比特大模型推理。",
+      "llm_tldr": "大模型推理每生成一个token都需搬运权重与激活，内存流量及其能耗成为解码路径瓶颈。BitNet b1.58用三值权重与整数激活，但其算术与常规int8或浮点矩阵乘不匹配，现有加速器采用专用数据通路。本文将该运算映射到CPU-Grounded线性阵列CGLA这一可编程ASIC，新增可复用的有符号int4乘累加指令OP_SMA4而非BitNet专用通路，从而在通用可编程整数通道上高效支持低比特大模型推理。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "date": "20261001",
+  "date_label": "",
+  "generated_at": "2026-10-01 23:51:21 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.35254v1",
+      "route": "202610/01/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "含RISC-V神经处理单元的边缘生成式AI片上系统",
+      "first_seen_at": "2026-10-01 23:51:21 UTC",
+      "updated_at": "2026-10-01 23:51:21 UTC"
+    },
+    {
+      "paper_id": "2609.34727v1",
+      "route": "202610/01/2609.34727v1-dynamic-flow-static-graph-kv-cache-reuse-for-efficient-llm-serving-on-mobile-npus",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向LLM高效服务的移动NPU架构协同设计",
+      "first_seen_at": "2026-10-01 23:51:21 UTC",
+      "updated_at": "2026-10-01 23:51:21 UTC"
+    },
+    {
+      "paper_id": "2609.27453v1",
+      "route": "202610/01/2609.27453v1-implementation-and-evaluation-of-bitnet-inference-on-a-cgla-by-signed-int4-instructions",
+      "title": "Implementation and Evaluation of BitNet Inference on a CGLA by Signed-Int4 Instructions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向LLM推理的可编程ASIC加速器",
+      "first_seen_at": "2026-10-01 23:51:21 UTC",
+      "updated_at": "2026-10-01 23:51:21 UTC"
+    }
+  ]
+}
