@@ -1,0 +1,267 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-02T23:24:44.419060+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 5,
+    "quick_skim_target": 11,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2609.35254v1",
+      "source": "arxiv",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "abstract": "We present MEGATRON, a heterogeneous Edge GenAI System-on-Chip in 28nm FD-SOI CMOS technology combining a non-volatile analog in-memory-computing engine based on a 4Mi-cell phase-change memory (PCM) array with a digital RISC-V-based flexible neural processing unit. MEGATRON demonstrates up to 3.5 TOPS/W using the RISC-V processors and 57.5 TOPS/W with PCiM, at a storage density of 1.52 Mparam/mm${}^2$ with 4-bit effective weight precision.",
+      "authors": [
+        "Alessandro Nadalini",
+        "Angelo Garofalo",
+        "Lorenzo Greco",
+        "Andrea Belano",
+        "Alessio Antolini",
+        "Francesco Zavalloni",
+        "Andrea Lico",
+        "Riccardo Zurla",
+        "Emanuela Calvetti",
+        "Luigi Croce",
+        "Marco Pasotti",
+        "Alessandro Cabrini",
+        "Eleonora Franchi Scarselli",
+        "Davide Rossi",
+        "Francesco Conti"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-28T14:18:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.35254v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Heterogeneous edge GenAI System-on-Chip integrating analog PCM compute-in-memory with a digital RISC-V neural processing unit",
+      "llm_evidence_cn": "面向边缘生成式AI的异构系统级芯片，集成模拟相变存内计算与RISC-V神经处理单元",
+      "llm_evidence": "面向边缘生成式AI的异构系统级芯片，集成模拟相变存内计算与RISC-V神经处理单元",
+      "canonical_evidence": "面向边缘生成式AI的异构系统级芯片，集成模拟相变存内计算与RISC-V神经处理单元",
+      "llm_tldr_en": "MEGATRON presents a 28nm FD-SOI heterogeneous edge GenAI SoC combining a 4Mi-cell analog PCM compute-in-memory engine with a digital RISC-V neural processing unit, achieving 57.5 TOPS/W and 1.52 Mparam/mm2 at 4-bit weights.",
+      "llm_tldr_cn": "边缘生成式AI对芯片能效与存储密度提出严苛要求，单一数字架构难以同时兼顾。本文提出MEGATRON，一种28nm FD-SOI异构边缘GenAI系统级芯片，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。实测数字处理器能效为3.5 TOPS/W，存内计算引擎达57.5 TOPS/W，存储密度1.52 Mparam/mm²。该结果展示了模拟存内计算与数字NPU协同在边缘AI推理中的高能效与高密度潜力。",
+      "llm_tldr": "边缘生成式AI对芯片能效与存储密度提出严苛要求，单一数字架构难以同时兼顾。本文提出MEGATRON，一种28nm FD-SOI异构边缘GenAI系统级芯片，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。实测数字处理器能效为3.5 TOPS/W，存内计算引擎达57.5 TOPS/W，存储密度1.52 Mparam/mm²。该结果展示了模拟存内计算与数字NPU协同在边缘AI推理中的高能效与高密度潜力。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.34727v1",
+      "source": "arxiv",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "abstract": "On-device large language model (LLM) serving is a cornerstone of local-first personal intelligence, offering users data sovereignty, strong privacy guarantees, and freedom from cloud API latency and cost. Although KV caching is widely used to reduce latency in long-context inference, existing designs were primarily optimized for cloud GPUs with dynamic execution environments and abundant memory bandwidth. These architectural assumptions do not hold on mobile NPUs, where computation graphs must be statically compiled and both memory capacity and I/O bandwidth are severely constrained. In this work, we present a compute-storage co-design for mobile-centric prefix and non-prefix KV reuse. We first propose an intra-graph mechanism that maps selective KV recomputation onto static NPU graphs, reconciling algorithmic dynamicity with NPU staticity. We further develop an inter-graph scheduler to optimize chunk merging and minimize padding with dynamic programming. To address mobile bandwidth limitations, we introduce a hierarchical KV manager featuring a tree-hash-semantic hybrid structure, along with cost-aware prefetching and eviction policies. We also build a two-dimensional pipeline that overlaps KV loading, rerotation, and storage with NPU execution, hiding data-movement latency. Experiments across representative on-device workloads and LLMs show that our design reduces time-to-first-token (TTFT) by $40-60\\%$ compared with no reuse and prefix-only caching.",
+      "authors": [
+        "Zhengxiang Huang",
+        "Shengheng Chen",
+        "Chaoyue Niu",
+        "Yujie Sun",
+        "Zhaode Wang",
+        "Zeyu Zhao",
+        "Chengfei Lv",
+        "Fan Wu",
+        "Guihai Chen"
+      ],
+      "primary_category": "cs.OS",
+      "categories": [
+        "cs.OS",
+        "cs.AI",
+        "cs.DB"
+      ],
+      "published": "2026-09-28T09:29:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.34727v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "KV cache reuse for LLM serving on mobile NPU architecture",
+      "llm_evidence_cn": "面向移动NPU架构的LLM服务KV缓存复用",
+      "llm_evidence": "面向移动NPU架构的LLM服务KV缓存复用",
+      "canonical_evidence": "面向移动NPU架构的LLM服务KV缓存复用",
+      "llm_tldr_en": "KV caching is optimized for cloud GPUs, not mobile NPUs where graphs are statically compiled and memory is scarce. This work proposes a compute-storage co-design with an intra-graph mechanism for prefix and non-prefix KV reuse, improving on-device LLM serving.",
+      "llm_tldr_cn": "端侧大模型服务受限于移动NPU计算图需静态编译、内存容量与I/O带宽紧张的现实，而现有KV缓存方案主要针对动态执行、带宽充裕的云端GPU。本文提出面向移动端的计算-存储协同设计，先给出图内机制来映射序列以实现前缀与非前缀KV复用。该方案缓解了移动NPU上长上下文推理的缓存瓶颈，提升了端侧LLM服务的效率，为NPU架构下的缓存复用与计算存储协同提供了新思路。",
+      "llm_tldr": "端侧大模型服务受限于移动NPU计算图需静态编译、内存容量与I/O带宽紧张的现实，而现有KV缓存方案主要针对动态执行、带宽充裕的云端GPU。本文提出面向移动端的计算-存储协同设计，先给出图内机制来映射序列以实现前缀与非前缀KV复用。该方案缓解了移动NPU上长上下文推理的缓存瓶颈，提升了端侧LLM服务的效率，为NPU架构下的缓存复用与计算存储协同提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.29219v1",
+      "source": "arxiv",
+      "title": "Schedules Are Solvable Symbols: Tuning-Free Compilation of Tile Programs on Dataflow Architectures",
+      "abstract": "Modern AI and HPC accelerators increasingly expose dataflow features: software-visible mechanisms for data movement and overlap, such as inter-core communication through the on-chip network and intra-core asynchronous pipelining. These features shift scheduling responsibility from hardware to the compiler, and because placement, movement, and synchronization become software-visible, they also make the performance of static schedules predictable. Yet high performance on such hardware still relies on vendor-engineered kernel libraries or profile-based auto-tuning, whose embedded expert knowledge transfers poorly across architectures and algorithms.   We present Loom, a tuning-free symbolic compiler framework for tile-based SPMD programs on spatial dataflow architectures. The central idea is to treat tile-based SPMD compilation as a hardware-explicit static optimization problem. Loom enumerates discrete spatial-mapping and communication candidates while keeping value parameters, such as tiling factors and pipeline knobs, symbolic within each candidate.   From an explicit hardware description, it derives symbolic legality constraints and latency expressions, formulates one CP-SAT problem per schedule candidate, and jointly solves inter-core dataflow, intra-core asynchronous scheduling, and block sizes at compile time.   On two Tenstorrent generations, Wormhole and Blackhole, Loom matches or exceeds the vendor-optimized TTNN library on GEMM, Flash Attention, and Flash Decode, out of the box and without per-shape profiling or profile-based platform-specific schedule tuning. These results suggest that hardware-derived symbolic compilation provides a retargetable alternative to profiling-based tuning for spatial dataflow architectures while remaining interpretable by keeping optimization decisions traceable to source-level symbols.",
+      "authors": [
+        "Heru Wang",
+        "Wei Li",
+        "Zhenyu Bai",
+        "Tulika Mitra"
+      ],
+      "primary_category": "cs.PL",
+      "categories": [
+        "cs.PL"
+      ],
+      "published": "2026-09-24T08:27:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.29219v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "compilation for dataflow AI accelerators with on-chip network communication",
+      "llm_evidence_cn": "面向带片上网络通信的数据流AI加速器的编译",
+      "llm_evidence": "面向带片上网络通信的数据流AI加速器的编译",
+      "canonical_evidence": "面向带片上网络通信的数据流AI加速器的编译",
+      "llm_tldr_en": "Dataflow AI accelerators expose on-chip-network communication and async pipelining, shifting scheduling to compilers; Loom is a tuning-free symbolic compiler producing predictable static schedules without vendor libraries.",
+      "llm_tldr_cn": "现代AI加速器暴露数据流特性，如通过片上网络进行核间通信与核内异步流水，使调度责任从硬件转向编译器。但高性能仍依赖厂商内核库或基于剖析的自动调优，专家知识难以迁移。本文提出免调优符号编译器Loom，将Tile程序编译为可预测的静态调度。其以符号方式求解调度问题，在多种数据流架构上无需调优即取得有竞争力的性能，提升了可移植性。",
+      "llm_tldr": "现代AI加速器暴露数据流特性，如通过片上网络进行核间通信与核内异步流水，使调度责任从硬件转向编译器。但高性能仍依赖厂商内核库或基于剖析的自动调优，专家知识难以迁移。本文提出免调优符号编译器Loom，将Tile程序编译为可预测的静态调度。其以符号方式求解调度问题，在多种数据流架构上无需调优即取得有竞争力的性能，提升了可移植性。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.34351v1",
+      "source": "arxiv",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "abstract": "Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integration of computational logic directly within memory arrays. However, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compilation framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently representing both diverse DNN workloads and digital CIM architectures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM architectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to $4\\times$ improvement in macro utilization and $3.2\\times$ speedup, effectively bridging the gap between modern DNN operators and CIM architectures.",
+      "authors": [
+        "Yingjie Qi",
+        "Cenlin Duan",
+        "Yiou Wang",
+        "Yikun Wang",
+        "Xiaolin He",
+        "Weisheng Zhao",
+        "Jianlei Yang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-28T05:24:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.34351v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "AI accelerator hardware architecture and DNN accelerator mapping with digital CIM",
+      "llm_evidence_cn": "AI加速器硬件架构与数字CIM的DNN加速器映射",
+      "llm_evidence": "AI加速器硬件架构与数字CIM的DNN加速器映射",
+      "canonical_evidence": "AI加速器硬件架构与数字CIM的DNN加速器映射",
+      "llm_tldr_en": "Digital CIM accelerators suffer array underutilization because rigid arrays constrain data reuse to axis-aligned patterns. PolyCIM, a polyhedral compilation framework, exposes and realigns non-axial hyperplane reuse to improve DNN mapping efficiency on CIM hardware.",
+      "llm_tldr_cn": "数字存内计算（CIM）通过在存储阵列内集成计算逻辑来加速深度神经网络，但刚性阵列结构带来的严格数据复用约束常导致阵列利用率低下。作者观察到现代DNN的数据复用呈现沿非轴向的超平面结构，传统仅利用轴向复用的映射方法无法捕捉。为此提出PolyCIM多面体编译框架，系统性地暴露并重对齐这些超平面以提升数据复用。结果表明该框架能显著缓解阵列未充分利用问题，为CIM加速器的DNN映射提供了新的编译优化思路。",
+      "llm_tldr": "数字存内计算（CIM）通过在存储阵列内集成计算逻辑来加速深度神经网络，但刚性阵列结构带来的严格数据复用约束常导致阵列利用率低下。作者观察到现代DNN的数据复用呈现沿非轴向的超平面结构，传统仅利用轴向复用的映射方法无法捕捉。为此提出PolyCIM多面体编译框架，系统性地暴露并重对齐这些超平面以提升数据复用。结果表明该框架能显著缓解阵列未充分利用问题，为CIM加速器的DNN映射提供了新的编译优化思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.34612v1",
+      "source": "arxiv",
+      "title": "SPIMOE: Exploiting Hybrid Sparsity for Reasoning MoE Inference on Heterogeneous PIM Architectures",
+      "abstract": "Long-reasoning Mixture-of-Experts (MoE) models expose two coupled inference bottlenecks: growing KV caches shift the critical path toward attention, while sparse expert activation causes load imbalance and low hardware utilization. Although Processing-in-Memory (PIM) offers a promising way to mitigate data movement overhead, existing PIM-based accelerators typically optimize attention or FFNs in isolation. We propose SPIMOE, the first co-design framework that exploits hybrid sparsity for efficient MoE inference on heterogeneous PIM architectures. SPIMOE combines adaptive expert routing with block-sparse attention and physical KV-cache eviction, and disaggregates attention and FFNs across SRAM-PIM and HBM-PIM. Static expert mapping and dynamic sub-batch scheduling further balance channel loads and overlap the two paths. Evaluations show that SPIMOE achieves up to $8.35\\times$ end-to-end speedup over an NVIDIA A100 GPU and $3.33\\times$ speedup in MoE FFN execution over PIMoE, while preserving reasoning accuracy comparable to full-attention baselines.",
+      "authors": [
+        "Rubing Yang",
+        "Cenlin Duan",
+        "Yingjie Qi",
+        "Xiaolin He",
+        "Xiao Ma",
+        "Jianlei Yang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-28T08:40:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.34612v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "heterogeneous PIM accelerator architecture co-design for AI MoE inference",
+      "llm_evidence_cn": "面向AI MoE推理的异构PIM加速器架构协同设计",
+      "llm_evidence": "面向AI MoE推理的异构PIM加速器架构协同设计",
+      "canonical_evidence": "面向AI MoE推理的异构PIM加速器架构协同设计",
+      "llm_tldr_en": "Long-reasoning MoE inference is bottlenecked by growing KV caches and imbalanced sparse expert activation; SPIMOE co-designs adaptive expert routing, block-sparse attention and KV eviction across SRAM-PIM and HBM-PIM.",
+      "llm_tldr_cn": "长推理MoE模型面临KV缓存膨胀与稀疏专家激活导致的负载不均两大瓶颈，现有存内计算加速器往往只单独优化注意力或前馈网络。本文提出SPIMOE，首个面向异构PIM的协同设计框架，结合自适应专家路由、块稀疏注意力与物理KV缓存驱逐，并把注意力与前馈网络拆分到SRAM-PIM与HBM-PIM。实验表明该方法提升硬件利用率并加速推理，为AI加速器架构设计提供新方案。",
+      "llm_tldr": "长推理MoE模型面临KV缓存膨胀与稀疏专家激活导致的负载不均两大瓶颈，现有存内计算加速器往往只单独优化注意力或前馈网络。本文提出SPIMOE，首个面向异构PIM的协同设计框架，结合自适应专家路由、块稀疏注意力与物理KV缓存驱逐，并把注意力与前馈网络拆分到SRAM-PIM与HBM-PIM。实验表明该方法提升硬件利用率并加速推理，为AI加速器架构设计提供新方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.37828v1",
+      "source": "arxiv",
+      "title": "Joint Effects of GPU Server Topology, Parallelism, and Congestion Control on MoE Inference: A Controlled Simulation Study",
+      "abstract": "Mixture-of-experts (MoE) models expand capacity via sparse activation, but inference across GPUs introduces tensor-parallel (TP) collectives and expert-parallel (EP) dispatch and combine operations. Completion time depends not just on communication volume but on how logical groups map onto intra-server interconnects, GPU--NIC connections, and the inter-node network. Using ASTRA-sim with the NS-3 discrete-event backend, we build a controlled matrix of 32 GPU ranks with data and pipeline parallelism fixed at one. Workloads are fixed-length 4096-token prefill-like synthetic Chakra traces from four MoE configurations. Experiments cover six server topologies, four TP/EP partitions, two TP collective algorithms, and four network/congestion-control modes, yielding 768 deterministic simulations. In the 144-configuration feedback-enabled subset per model, exposed communication accounts for 89.9%--95.8% of mean completion time. TP16EP2 requires 3.68--4.35x the mean completion time of TP2EP16. With fixed rank mapping, ASTRA-sim Double Binary Tree (DBT) incurs 28.3%--83.2% more time than Ring. InfiniBand-like High Precision Congestion Control (HPCC) is ~0.9% lower than HPCC over RDMA over Converged Ethernet (RoCE), whereas RoCE with Data Center Quantized Congestion Notification (DCQCN) is 23.8%--35.7% slower than RoCE HPCC. Topology effects are conditional: Topology~6 leads at low TP degrees but loses its advantage at high TP degrees, and additional GPUs or NICs help only when rank mapping balances traffic across injection paths. Under uniform 32-way sharding, the largest checkpoint-weight shard is ~48.75 GB per rank, so all configurations meet a 64 GB per-accelerator weight-residency criterion. Within the evaluated workload and simulator semantics, server topology, parallelism, collective implementation, and congestion control jointly determine exposed communication and completion time.",
+      "authors": [
+        "Kaikai Yuan",
+        "Rui Xi",
+        "Yu Liu"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-09-29T15:34:39+00:00",
+      "link": "https://arxiv.org/pdf/2609.37828v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "GPU server topology, interconnect, and parallelism for MoE inference",
+      "llm_evidence_cn": "面向MoE推理的GPU服务器拓扑与互连网络",
+      "llm_evidence": "面向MoE推理的GPU服务器拓扑与互连网络",
+      "canonical_evidence": "面向MoE推理的GPU服务器拓扑与互连网络",
+      "llm_tldr_en": "The paper uses ASTRA-sim with NS-3 to study how GPU server topology, TP/EP parallelism, and congestion control jointly affect Mixture-of-Experts inference completion time across interconnects.",
+      "llm_tldr_cn": "论文针对MoE模型跨GPU推理时通信与拓扑影响完成时间的问题，研究服务器拓扑、并行策略与拥塞控制的联合效应。作者基于ASTRA-sim与NS-3事件后端构建32卡受控实验矩阵，固定数据与流水并行，使用合成Chakra负载覆盖六种服务器拓扑、四种TP/EP划分与两种集合通信算法。结果揭示逻辑分组如何映射到服务器内互连、GPU-NIC连接与跨节点网络并影响推理时延，为AI集群互连设计提供参考。",
+      "llm_tldr": "论文针对MoE模型跨GPU推理时通信与拓扑影响完成时间的问题，研究服务器拓扑、并行策略与拥塞控制的联合效应。作者基于ASTRA-sim与NS-3事件后端构建32卡受控实验矩阵，固定数据与流水并行，使用合成Chakra负载覆盖六种服务器拓扑、四种TP/EP划分与两种集合通信算法。结果揭示逻辑分组如何映射到服务器内互连、GPU-NIC连接与跨节点网络并影响推理时延，为AI集群互连设计提供参考。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
