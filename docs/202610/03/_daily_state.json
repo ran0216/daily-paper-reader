@@ -1,0 +1,57 @@
+{
+  "date": "20261003",
+  "date_label": "",
+  "generated_at": "2026-10-03 22:18:40 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.35254v1",
+      "route": "202610/03/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向边缘生成式AI的存内计算与RISC-V神经处理单元片上系统",
+      "first_seen_at": "2026-10-03 22:18:40 UTC",
+      "updated_at": "2026-10-03 22:18:40 UTC"
+    },
+    {
+      "paper_id": "2609.34351v1",
+      "route": "202610/03/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向DNN的数字存内计算加速器编译映射优化",
+      "first_seen_at": "2026-10-03 22:18:40 UTC",
+      "updated_at": "2026-10-03 22:18:40 UTC"
+    },
+    {
+      "paper_id": "2609.34727v1",
+      "route": "202610/03/2609.34727v1-dynamic-flow-static-graph-kv-cache-reuse-for-efficient-llm-serving-on-mobile-npus",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向端侧LLM推理的NPU架构",
+      "first_seen_at": "2026-10-03 22:18:40 UTC",
+      "updated_at": "2026-10-03 22:18:40 UTC"
+    }
+  ]
+}
