@@ -1,9 +1,39 @@
 {
   "label": "2026-10-06",
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T00:39:42",
-  "count": 5,
+  "generated_at": "2026-10-06T22:51:03",
+  "count": 7,
   "papers": [
+    {
+      "paper_id": "202610/06/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "section": "deep",
+      "title_en": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "authors": "Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, Jianlei Yang",
+      "date": "2026-09-28",
+      "pdf": "https://arxiv.org/pdf/2609.34351v1",
+      "score": "7.0",
+      "evidence": "面向数字存内计算DNN加速器的编译框架",
+      "tldr": "数字存内计算（CIM）可将计算逻辑嵌入存储阵列，是加速深度神经网络（DNN）的有前景方案。但现代DNN算子中的数据复用常呈非轴向超平面结构，传统仅利用轴向复用的映射方法难以识别，导致CIM阵列利用率低。PolyCIM提出基于多面体编译的框架，通过仿射变换系统暴露并重对齐这些超平面，统一表达DNN负载与数字CIM架构，并优化计算映射与数据移动。实验表明，宏利用率最高提升4倍，加速比达3.2倍，有效弥合现代DNN算子与CIM架构间的鸿沟。",
+      "tags": "query:chip-design",
+      "abstract_en": "Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integration of computational logic directly within memory arrays. However, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compilation framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently representing both diverse DNN workloads and digital CIM architectures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM architectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to $4\\times$ improvement in macro utilization and $3.2\\times$ speedup, effectively bridging the gap between modern DNN operators and CIM architectures.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/06/2609.34727v1-dynamic-flow-static-graph-kv-cache-reuse-for-efficient-llm-serving-on-mobile-npus",
+      "section": "deep",
+      "title_en": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "authors": "Zhengxiang Huang, Shengheng Chen, Chaoyue Niu, Yujie Sun, Zhaode Wang, Zeyu Zhao, Chengfei Lv, Fan Wu, Guihai Chen",
+      "date": "2026-09-28",
+      "pdf": "https://arxiv.org/pdf/2609.34727v1",
+      "score": "8.0",
+      "evidence": "移动NPU上LLM服务的KV缓存复用，面向AI推理的NPU架构",
+      "tldr": "移动端LLM服务依赖KV缓存降低长上下文延迟，但云端GPU的动态执行和充足带宽假设不适用于需静态编译、内存与I/O受限的移动NPU。本文提出计算-存储协同设计：图内机制将选择性KV重计算映射到静态NPU图，图间调度器用动态规划优化块合并与填充，分层KV管理器采用树-哈希-语义混合结构及成本感知预取/淘汰，并用二维流水线重叠KV加载、重旋转、存储与NPU执行。实验表明，相比无复用和仅前缀缓存，TTFT降低40-60%。",
+      "tags": "query:chip-design",
+      "abstract_en": "On-device large language model (LLM) serving is a cornerstone of local-first personal intelligence, offering users data sovereignty, strong privacy guarantees, and freedom from cloud API latency and cost. Although KV caching is widely used to reduce latency in long-context inference, existing designs were primarily optimized for cloud GPUs with dynamic execution environments and abundant memory bandwidth. These architectural assumptions do not hold on mobile NPUs, where computation graphs must be statically compiled and both memory capacity and I/O bandwidth are severely constrained. In this work, we present a compute-storage co-design for mobile-centric prefix and non-prefix KV reuse. We first propose an intra-graph mechanism that maps selective KV recomputation onto static NPU graphs, reconciling algorithmic dynamicity with NPU staticity. We further develop an inter-graph scheduler to optimize chunk merging and minimize padding with dynamic programming. To address mobile bandwidth limitations, we introduce a hierarchical KV manager featuring a tree-hash-semantic hybrid structure, along with cost-aware prefetching and eviction policies. We also build a two-dimensional pipeline that overlaps KV loading, rerotation, and storage with NPU execution, hiding data-movement latency. Experiments across representative on-device workloads and LLMs show that our design reduces time-to-first-token (TTFT) by $40-60\\%$ compared with no reuse and prefix-only caching.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
     {
       "paper_id": "202610/06/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
       "section": "deep",
@@ -20,17 +50,17 @@
       "selection_source": "fresh_fetch"
     },
     {
-      "paper_id": "202610/06/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "paper_id": "202610/06/2610.03061v1-divide-and-conquer-scalable-performance-and-energy-in-mcm-gpus",
       "section": "quick",
-      "title_en": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
-      "authors": "Yingjie Qi, Cenlin Duan, Yiou Wang, Yikun Wang, Xiaolin He, Weisheng Zhao, Jianlei Yang",
-      "date": "2026-09-28",
-      "pdf": "https://arxiv.org/pdf/2609.34351v1",
-      "score": "7.0",
-      "evidence": "面向数字存内计算DNN加速器的编译框架",
-      "tldr": "数字存内计算（CIM）可将计算逻辑嵌入存储阵列，是加速深度神经网络（DNN）的有前景方案。但现代DNN算子中的数据复用常呈非轴向超平面结构，传统仅利用轴向复用的映射方法难以识别，导致CIM阵列利用率低。PolyCIM提出基于多面体编译的框架，通过仿射变换系统暴露并重对齐这些超平面，统一表达DNN负载与数字CIM架构，并优化计算映射与数据移动。实验表明，宏利用率最高提升4倍，加速比达3.2倍，有效弥合现代DNN算子与CIM架构间的鸿沟。",
+      "title_en": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "authors": "Mario Ibáñez Bolado, Borja Pérez Pavón, Jose Luis Bosque Orero, Julio Ramón Beivide",
+      "date": "2026-10-02",
+      "pdf": "https://arxiv.org/pdf/2610.03061v1",
+      "score": "6.0",
+      "evidence": "MCM GPU架构的芯粒间互连网络扩展",
+      "tldr": "多芯粒模块（MCM）GPU 有望突破单片设计扩展瓶颈，但将计算与存储分散到多个芯粒后，性能可扩展性与能耗影响尚不明确。本文系统探索芯粒数量、每芯粒 SM 数与互连拓扑等设计维度，重点分析芯粒间网络对扩展性的作用。结果表明，采用 16 芯粒 Torus 与 256 个 SM 的配置，在相同算力下较先进 MCM 架构性能提升 2.40 倍，能耗降低 4.45 倍。该工作证明解聚合是一阶架构因素，为下一代 GPU 的性能与能效扩展提供关键指导。",
       "tags": "query:chip-design",
-      "abstract_en": "Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integration of computational logic directly within memory arrays. However, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compilation framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently representing both diverse DNN workloads and digital CIM architectures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM architectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to $4\\times$ improvement in macro utilization and $3.2\\times$ speedup, effectively bridging the gap between modern DNN operators and CIM architectures.",
+      "abstract_en": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     },
@@ -50,6 +80,21 @@
       "selection_source": "fresh_fetch"
     },
     {
+      "paper_id": "202610/06/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "section": "quick",
+      "title_en": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "authors": "Nathaniel Kaye Mellor, Shreejith Shanker, George Floros",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.06138v1",
+      "score": "6.0",
+      "evidence": "基于FPGA的GCN加速器硬件设计",
+      "tldr": "GCN在边缘平台部署受稀疏图聚合的计算与访存开销制约。本文在AMD Kria KV260上联合DSpar图稀疏化、8比特量化与近似乘法器，构建FPGA GCN推理加速器。实验覆盖Cora、LastFM Asia与Amazon Photo，发现近似算术效果由GCN聚合深度决定。二者互补，最高取得9.88倍加速且Amazon Photo精度86.6%，总功耗低于1W。",
+      "tags": "query:chip-design",
+      "abstract_en": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
       "paper_id": "202610/06/2610.01918v1-timing-driven-logic-remapping-with-local-physical-context",
       "section": "quick",
       "title_en": "Timing-Driven Logic Remapping with Local Physical Context",
@@ -61,21 +106,6 @@
       "tldr": "映射后电路的时序取决于逻辑实现与物理环境，现有方法在布局后重访映射决策时难以兼顾周边约束。本文提出局部重映射框架，将离散映射搜索与物理实现反馈耦合：用有界窗口隔离时序关键区域并保留接口上下文，在窗口内以混合整数规划联合选择逻辑割、信号极性和库单元，并利用连续松弛筛选候选。经合法化、布线寄生估计与时序分析验证的改进被写回设计，更新上下文指导后续搜索。该方法能系统性地在已有布局下重访局部逻辑实现，兼顾与周边互连和负载的交互。",
       "tags": "query:chip-design",
       "abstract_en": "The timing behavior of a mapped circuit depends on both its logic implementation and the physical environment in which that implementation is realized. Revisiting mapping decisions after placement therefore requires a search procedure that accounts for surrounding timing constraints, fanout loads, and interconnect effects. We study local remapping in this setting and develop a framework that couples discrete mapping search with physical implementation feedback. Timing-critical regions are isolated through bounded windows whose interfaces retain the context of the surrounding circuit. Within each window, a mixed-integer formulation jointly selects logic cuts, signal polarities, and library cells under a delay model informed by estimated locations and interconnect parasitics. A continuous relaxation filters the search space before discrete optimization produces alternative implementations with similar modeled timing and different structural choices. These implementations are reconstructed and assessed through legalization, routing-based parasitic estimation, and timing analysis. Physically validated improvements are incorporated into the design, and the updated context guides subsequent searches. The framework provides a systematic way to revisit local logic implementations while accounting for their interaction with an existing placement.",
-      "source": "arxiv",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "paper_id": "202610/06/2610.03061v1-divide-and-conquer-scalable-performance-and-energy-in-mcm-gpus",
-      "section": "quick",
-      "title_en": "Divide and conquer: Scalable performance and energy in MCM GPUs",
-      "authors": "Mario Ibáñez Bolado, Borja Pérez Pavón, Jose Luis Bosque Orero, Julio Ramón Beivide",
-      "date": "2026-10-02",
-      "pdf": "https://arxiv.org/pdf/2610.03061v1",
-      "score": "6.0",
-      "evidence": "MCM GPU架构的芯粒间互连网络扩展",
-      "tldr": "多芯粒模块（MCM）GPU 有望突破单片设计扩展瓶颈，但将计算与存储分散到多个芯粒后，性能可扩展性与能耗影响尚不明确。本文系统探索芯粒数量、每芯粒 SM 数与互连拓扑等设计维度，重点分析芯粒间网络对扩展性的作用。结果表明，采用 16 芯粒 Torus 与 256 个 SM 的配置，在相同算力下较先进 MCM 架构性能提升 2.40 倍，能耗降低 4.45 倍。该工作证明解聚合是一阶架构因素，为下一代 GPU 的性能与能效扩展提供关键指导。",
-      "tags": "query:chip-design",
-      "abstract_en": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     }

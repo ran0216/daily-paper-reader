@@ -51,14 +51,14 @@
       <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 5 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 00:39:38 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 22:50:59 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>10月6日AI硬件日报：5篇中精读1篇，聚焦边缘GenAI的28nm模拟PCM存算一体芯片与数字CIM编译优化。</p>
-<p>最值得看：MEGATRON以57.5 TOPS/W、1.52 Mparam/mm²展示边缘GenAI能效潜力，PolyCIM用多面体编译提升数字CIM数据复用。</p>
-<p>普通读者可先读MEGATRON，再按兴趣跟进PolyCIM等速读，重点关注能效与数据复用两条主线。</p>
+<p>今天日报成功处理7篇，精读3篇、速读4篇，重点聚焦CIM数据复用与移动NPU上的KV Cache复用。</p>
+<p>最值得看的是两篇8分精读：PolyCIM用多面体编译提升数字CIM数据复用，以及移动NPU上为高效LLM服务做KV Cache复用。</p>
+<p>普通读者建议先读这两篇精读，抓住</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">1 篇</strong>
+    <strong class="dpr-home-dashboard-count">3 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$">MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation">PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs">Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$">MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>1</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -96,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation">PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-level optimizations in high-level HDLs: Is there a benefit?">Low-level optimizations in high-level HDLs: Is there a benefit?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Timing-Driven Logic Remapping with Local Physical Context">Timing-Driven Logic Remapping with Local Physical Context</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Divide and conquer: Scalable performance and energy in MCM GPUs">Divide and conquer: Scalable performance and energy in MCM GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-level optimizations in high-level HDLs: Is there a benefit?">Low-level optimizations in high-level HDLs: Is there a benefit?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>

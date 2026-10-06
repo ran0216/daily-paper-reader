@@ -1,17 +1,101 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-06T00:36:25.310808+00:00",
+  "generated_at": "2026-10-06T22:48:51.217386+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 1,
+    "deep_divecandidates": 3,
     "deep_cap": 6,
-    "deep_selected": 1,
-    "quick_candidates": 4,
+    "deep_selected": 3,
+    "quick_candidates": 3,
     "quick_skim_target": 11,
-    "quick_selected": 4
+    "quick_selected": 3
   },
   "deep_dive": [
+    {
+      "id": "2609.34351v1",
+      "source": "arxiv",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "abstract": "Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integration of computational logic directly within memory arrays. However, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compilation framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently representing both diverse DNN workloads and digital CIM architectures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM architectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to $4\\times$ improvement in macro utilization and $3.2\\times$ speedup, effectively bridging the gap between modern DNN operators and CIM architectures.",
+      "authors": [
+        "Yingjie Qi",
+        "Cenlin Duan",
+        "Yiou Wang",
+        "Yikun Wang",
+        "Xiaolin He",
+        "Weisheng Zhao",
+        "Jianlei Yang"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-09-28T05:24:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.34351v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "digital CIM accelerator architecture for DNN acceleration, AI accelerator hardware",
+      "llm_evidence_cn": "面向DNN加速的数字存内计算加速器架构，AI加速器硬件",
+      "llm_evidence": "面向DNN加速的数字存内计算加速器架构，AI加速器硬件",
+      "canonical_evidence": "面向DNN加速的数字存内计算加速器架构，AI加速器硬件",
+      "llm_tldr_en": "Introduces PolyCIM, a polyhedral compilation framework that exposes and realigns non-axial reuse hyperplanes to improve array utilization in digital CIM accelerators.",
+      "llm_tldr_cn": "数字存内计算通过在存储阵列内集成计算逻辑来加速深度神经网络，但刚性阵列结构导致DNN算子映射时阵列利用率严重不足。本文提出多面体编译框架PolyCIM，系统性地暴露并重对齐DNN数据复用形成的非轴向超平面结构。该方法显著提升CIM阵列的数据复用与利用率，为AI加速器架构与编译协同设计提供了新途径。",
+      "llm_tldr": "数字存内计算通过在存储阵列内集成计算逻辑来加速深度神经网络，但刚性阵列结构导致DNN算子映射时阵列利用率严重不足。本文提出多面体编译框架PolyCIM，系统性地暴露并重对齐DNN数据复用形成的非轴向超平面结构。该方法显著提升CIM阵列的数据复用与利用率，为AI加速器架构与编译协同设计提供了新途径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.34727v1",
+      "source": "arxiv",
+      "title": "Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs",
+      "abstract": "On-device large language model (LLM) serving is a cornerstone of local-first personal intelligence, offering users data sovereignty, strong privacy guarantees, and freedom from cloud API latency and cost. Although KV caching is widely used to reduce latency in long-context inference, existing designs were primarily optimized for cloud GPUs with dynamic execution environments and abundant memory bandwidth. These architectural assumptions do not hold on mobile NPUs, where computation graphs must be statically compiled and both memory capacity and I/O bandwidth are severely constrained. In this work, we present a compute-storage co-design for mobile-centric prefix and non-prefix KV reuse. We first propose an intra-graph mechanism that maps selective KV recomputation onto static NPU graphs, reconciling algorithmic dynamicity with NPU staticity. We further develop an inter-graph scheduler to optimize chunk merging and minimize padding with dynamic programming. To address mobile bandwidth limitations, we introduce a hierarchical KV manager featuring a tree-hash-semantic hybrid structure, along with cost-aware prefetching and eviction policies. We also build a two-dimensional pipeline that overlaps KV loading, rerotation, and storage with NPU execution, hiding data-movement latency. Experiments across representative on-device workloads and LLMs show that our design reduces time-to-first-token (TTFT) by $40-60\\%$ compared with no reuse and prefix-only caching.",
+      "authors": [
+        "Zhengxiang Huang",
+        "Shengheng Chen",
+        "Chaoyue Niu",
+        "Yujie Sun",
+        "Zhaode Wang",
+        "Zeyu Zhao",
+        "Chengfei Lv",
+        "Fan Wu",
+        "Guihai Chen"
+      ],
+      "primary_category": "cs.OS",
+      "categories": [
+        "cs.OS",
+        "cs.AI",
+        "cs.DB"
+      ],
+      "published": "2026-09-28T09:29:25+00:00",
+      "link": "https://arxiv.org/pdf/2609.34727v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "KV cache reuse for LLM serving on mobile NPUs, NPU architecture for AI inference",
+      "llm_evidence_cn": "移动NPU上LLM服务的KV缓存复用，面向AI推理的NPU架构",
+      "llm_evidence": "移动NPU上LLM服务的KV缓存复用，面向AI推理的NPU架构",
+      "canonical_evidence": "移动NPU上LLM服务的KV缓存复用，面向AI推理的NPU架构",
+      "llm_tldr_en": "Proposes a compute-storage co-design for KV cache reuse in LLM serving on mobile NPUs, addressing static graph compilation and tight memory bandwidth constraints.",
+      "llm_tldr_cn": "设备端大模型服务面临移动NPU计算图静态编译与内存带宽受限的约束，现有KV缓存方案主要针对云端GPU设计。本文提出面向移动端的计算-存储协同设计，通过图内机制映射并复用前缀与非前缀KV缓存。该方案缓解了移动NPU内存容量与I/O带宽瓶颈，为端侧大模型推理架构提供了新思路。",
+      "llm_tldr": "设备端大模型服务面临移动NPU计算图静态编译与内存带宽受限的约束，现有KV缓存方案主要针对云端GPU设计。本文提出面向移动端的计算-存储协同设计，通过图内机制映射并复用前缀与非前缀KV缓存。该方案缓解了移动NPU内存容量与I/O带宽瓶颈，为端侧大模型推理架构提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    },
     {
       "id": "2609.35254v1",
       "source": "arxiv",
@@ -45,13 +129,13 @@
         "query:noc-arch"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Edge GenAI System-on-Chip integrating analog PCM compute-in-memory engine with RISC-V neural processing unit",
-      "llm_evidence_cn": "面向边缘生成式AI的片上系统，集成模拟PCM存内计算引擎与RISC-V神经处理单元",
-      "llm_evidence": "面向边缘生成式AI的片上系统，集成模拟PCM存内计算引擎与RISC-V神经处理单元",
-      "canonical_evidence": "面向边缘生成式AI的片上系统，集成模拟PCM存内计算引擎与RISC-V神经处理单元",
-      "llm_tldr_en": "Edge GenAI needs high energy efficiency and weight density. MEGATRON combines a 4Mi-cell analog PCM compute-in-memory engine with a digital RISC-V NPU in 28nm FD-SOI, reaching 57.5 TOPS/W and 1.52 Mparam/mm2 at 4-bit weights.",
-      "llm_tldr_cn": "边缘生成式AI推理对能效与权重密度要求严苛，现有数字加速器难以兼顾。MEGATRON在28nm FD-SOI工艺下提出异构片上系统，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。实测在4比特权重精度下，PCiM能效达57.5 TOPS/W，存储密度1.52 Mparam/mm²，RISC-V路径为3.5 TOPS/W。该工作为边缘AI加速器的存内计算与数字混合架构设计提供了可行方案。",
-      "llm_tldr": "边缘生成式AI推理对能效与权重密度要求严苛，现有数字加速器难以兼顾。MEGATRON在28nm FD-SOI工艺下提出异构片上系统，将基于4Mi单元相变存储器的模拟存内计算引擎与RISC-V数字神经处理单元集成。实测在4比特权重精度下，PCiM能效达57.5 TOPS/W，存储密度1.52 Mparam/mm²，RISC-V路径为3.5 TOPS/W。该工作为边缘AI加速器的存内计算与数字混合架构设计提供了可行方案。",
+      "llm_evidence_en": "edge GenAI SoC combining PCM in-memory computing and RISC-V NPU",
+      "llm_evidence_cn": "结合PCM存内计算与RISC-V NPU的边缘生成式AI片上系统",
+      "llm_evidence": "结合PCM存内计算与RISC-V NPU的边缘生成式AI片上系统",
+      "canonical_evidence": "结合PCM存内计算与RISC-V NPU的边缘生成式AI片上系统",
+      "llm_tldr_en": "Edge generative AI needs efficient accelerator hardware. MEGATRON is a 28nm FD-SOI heterogeneous SoC pairing a 4Mi-cell analog PCM in-memory-computing engine with a digital RISC-V neural processing unit, reaching 57.5 TOPS/W with PCiM.",
+      "llm_tldr_cn": "边缘生成式AI对高能效、高集成度的加速器硬件提出迫切需求。本文提出MEGATRON，一款28nm FD-SOI异构边缘GenAI片上系统，将基于4Mi单元相变存储器阵列的非易失模拟存内计算引擎与基于RISC-V的灵活神经处理单元集成于同一芯片。测试表明其RISC-V处理器路径可达3.5 TOPS/W，而PCiM路径高达57.5 TOPS/W，存储密度为1.52 M参数每平方毫米，采用4比特有效权重精度。该工作属于面向AI推理的边缘NPU与AI加速器芯片架构设计，与数字集成电路及AI加速器主题高度契合。",
+      "llm_tldr": "边缘生成式AI对高能效、高集成度的加速器硬件提出迫切需求。本文提出MEGATRON，一款28nm FD-SOI异构边缘GenAI片上系统，将基于4Mi单元相变存储器阵列的非易失模拟存内计算引擎与基于RISC-V的灵活神经处理单元集成于同一芯片。测试表明其RISC-V处理器路径可达3.5 TOPS/W，而PCiM路径高达57.5 TOPS/W，存储密度为1.52 M参数每平方毫米，采用4比特有效权重精度。该工作属于面向AI推理的边缘NPU与AI加速器芯片架构设计，与数字集成电路及AI加速器主题高度契合。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
@@ -63,37 +147,34 @@
   ],
   "quick_skim": [
     {
-      "id": "2609.34351v1",
+      "id": "2610.03061v1",
       "source": "arxiv",
-      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
-      "abstract": "Digital Compute-in-Memory (CIM) presents a promising solution for accelerating deep neural networks (DNNs) through the integration of computational logic directly within memory arrays. However, mapping modern DNN operators to CIM accelerators often results in severe array underutilization, due to the strict data reuse constraints imposed by the rigid CIM array structure. We observe that data reuse in modern DNNs forms hyperplane structures often oriented along non-axial directions, rendering them invisible to conventional mapping methods that only exploit axis-aligned reuse. In this work, we propose PolyCIM, a polyhedral-based compilation framework for CIM architectures that systematically exposes and realigns these hyperplanes through affine transformations. PolyCIM provides a unified abstraction capable of efficiently representing both diverse DNN workloads and digital CIM architectures. Through data reuse exposure, computation mapping, and data movement optimization, PolyCIM generates mappings for CIM architectures that achieve superior array utilization and performance. Experimental results show that PolyCIM delivers up to $4\\times$ improvement in macro utilization and $3.2\\times$ speedup, effectively bridging the gap between modern DNN operators and CIM architectures.",
+      "title": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "abstract": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
       "authors": [
-        "Yingjie Qi",
-        "Cenlin Duan",
-        "Yiou Wang",
-        "Yikun Wang",
-        "Xiaolin He",
-        "Weisheng Zhao",
-        "Jianlei Yang"
+        "Mario Ibáñez Bolado",
+        "Borja Pérez Pavón",
+        "Jose Luis Bosque Orero",
+        "Julio Ramón Beivide"
       ],
       "primary_category": "cs.AR",
       "categories": [
         "cs.AR"
       ],
-      "published": "2026-09-28T05:24:06+00:00",
-      "link": "https://arxiv.org/pdf/2609.34351v1",
+      "published": "2026-10-02T09:45:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.03061v1",
       "tags": [
         "keyword:noc-arch",
         "query:noc-arch"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "compilation framework for digital CIM DNN accelerators",
-      "llm_evidence_cn": "面向数字存内计算DNN加速器的编译框架",
-      "llm_evidence": "面向数字存内计算DNN加速器的编译框架",
-      "canonical_evidence": "面向数字存内计算DNN加速器的编译框架",
-      "llm_tldr_en": "The paper tackles severe array underutilization when mapping DNN operators to digital compute-in-memory accelerators. It proposes PolyCIM, a polyhedral-based compilation framework that exposes and realigns non-axial hyperplane data reuse, improving utilization of CIM arrays.",
-      "llm_tldr_cn": "该文针对现代DNN算子映射到数字存内计算加速器时因阵列结构刚性约束导致严重利用率低下的问题展开研究。作者观察到DNN数据复用形成沿非轴向的超平面结构，据此提出基于多面体编译的PolyCIM框架，系统性地暴露并重对齐这些复用超平面。实验表明该方法能提升CIM阵列的利用率与加速器性能。其贡献在于为存内计算AI加速器的编译映射提供了新的优化视角。",
-      "llm_tldr": "该文针对现代DNN算子映射到数字存内计算加速器时因阵列结构刚性约束导致严重利用率低下的问题展开研究。作者观察到DNN数据复用形成沿非轴向的超平面结构，据此提出基于多面体编译的PolyCIM框架，系统性地暴露并重对齐这些复用超平面。实验表明该方法能提升CIM阵列的利用率与加速器性能。其贡献在于为存内计算AI加速器的编译映射提供了新的优化视角。",
+      "llm_evidence_en": "inter-chiplet interconnection network for scalable MCM GPU design",
+      "llm_evidence_cn": "面向可扩展多芯片模块GPU的芯粒间互连网络",
+      "llm_evidence": "面向可扩展多芯片模块GPU的芯粒间互连网络",
+      "canonical_evidence": "面向可扩展多芯片模块GPU的芯粒间互连网络",
+      "llm_tldr_en": "Multi-chip-module GPUs can scale beyond monolithic designs, but the performance and energy impact of disaggregation is unclear, and the inter-chiplet network is critical. This work explores the design space of SMs per chiplet, chiplet count, and interconnect to guide scaling.",
+      "llm_tldr_cn": "多芯片模块GPU被视为突破单片芯片算力上限的重要路径，但芯片拆分对性能可扩展性与能耗的影响尚不明确，其中芯粒间互连网络尤为关键。本文系统研究了每芯粒SM数量、芯粒数量与互连网络等设计维度，构建并评估多芯粒GPU的性能与能耗权衡。结果表明互连能力直接决定新增算力能否转化为实际性能增益，为工业界与学术界进行MCM GPU规模扩展设计提供了量化指导，属于GPU架构与互连网络设计的重要工作。",
+      "llm_tldr": "多芯片模块GPU被视为突破单片芯片算力上限的重要路径，但芯片拆分对性能可扩展性与能耗的影响尚不明确，其中芯粒间互连网络尤为关键。本文系统研究了每芯粒SM数量、芯粒数量与互连网络等设计维度，构建并评估多芯粒GPU的性能与能耗权衡。结果表明互连能力直接决定新增算力能否转化为实际性能增益，为工业界与学术界进行MCM GPU规模扩展设计提供了量化指导，属于GPU架构与互连网络设计的重要工作。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
@@ -125,13 +206,13 @@
         "query:noc-arch"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "ASIC design via HDL, digital integrated circuit implementation techniques",
-      "llm_evidence_cn": "HDL实现ASIC，属数字集成电路设计实现技术",
-      "llm_evidence": "HDL实现ASIC，属数字集成电路设计实现技术",
-      "canonical_evidence": "HDL实现ASIC，属数字集成电路设计实现技术",
-      "llm_tldr_en": "This paper studies whether low-level optimizations in high-level HDLs benefit ASIC design. It implements a bit-serial MAC in 16 Clash configurations, comparing high-level constructs against bit-manipulation to assess area and implementation effort tradeoffs.",
-      "llm_tldr_cn": "高层次硬件描述语言能否兼顾设计效率与电路面积，是数字集成电路设计的关键问题。本文以函数式HDL Clash实现无符号位串行乘累加单元，构造16种高低层次优化配置进行对比。实验分析了低层位操作优化对综合电路面积的影响及其实现代价。结论为高层次与低层优化之间的取舍提供了量化依据，服务于数字IC设计与实现技术。",
-      "llm_tldr": "高层次硬件描述语言能否兼顾设计效率与电路面积，是数字集成电路设计的关键问题。本文以函数式HDL Clash实现无符号位串行乘累加单元，构造16种高低层次优化配置进行对比。实验分析了低层位操作优化对综合电路面积的影响及其实现代价。结论为高层次与低层优化之间的取舍提供了量化依据，服务于数字IC设计与实现技术。",
+      "llm_evidence_en": "ASIC design and implementation using HDLs",
+      "llm_evidence_cn": "使用HDL进行ASIC设计与实现",
+      "llm_evidence": "使用HDL进行ASIC设计与实现",
+      "canonical_evidence": "使用HDL进行ASIC设计与实现",
+      "llm_tldr_en": "The paper asks whether low-level optimizations are worthwhile when designing ASICs in high-level functional HDLs, implementing bit-serial MAC units in 16 Clash configurations.",
+      "llm_tldr_cn": "该文关注高层次函数式HDL设计ASIC时是否值得采用低层优化这一实际问题。作者用函数式硬件描述语言Clash实现了16种配置的无符号位串行乘累加单元，并混合使用位操作技巧与高层电路构造。实验比较了面积等综合结果，分析低层优化带来的收益与实现代价。研究为数字集成电路设计方法与硬件描述语言选择提供了经验性依据。",
+      "llm_tldr": "该文关注高层次函数式HDL设计ASIC时是否值得采用低层优化这一实际问题。作者用函数式硬件描述语言Clash实现了16种配置的无符号位串行乘累加单元，并混合使用位操作技巧与高层电路构造。实验比较了面积等综合结果，分析低层优化带来的收益与实现代价。研究为数字集成电路设计方法与硬件描述语言选择提供了经验性依据。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
@@ -142,72 +223,34 @@
       "quick_tier": "6"
     },
     {
-      "id": "2610.01918v1",
+      "id": "2610.06138v1",
       "source": "arxiv",
-      "title": "Timing-Driven Logic Remapping with Local Physical Context",
-      "abstract": "The timing behavior of a mapped circuit depends on both its logic implementation and the physical environment in which that implementation is realized. Revisiting mapping decisions after placement therefore requires a search procedure that accounts for surrounding timing constraints, fanout loads, and interconnect effects. We study local remapping in this setting and develop a framework that couples discrete mapping search with physical implementation feedback. Timing-critical regions are isolated through bounded windows whose interfaces retain the context of the surrounding circuit. Within each window, a mixed-integer formulation jointly selects logic cuts, signal polarities, and library cells under a delay model informed by estimated locations and interconnect parasitics. A continuous relaxation filters the search space before discrete optimization produces alternative implementations with similar modeled timing and different structural choices. These implementations are reconstructed and assessed through legalization, routing-based parasitic estimation, and timing analysis. Physically validated improvements are incorporated into the design, and the updated context guides subsequent searches. The framework provides a systematic way to revisit local logic implementations while accounting for their interaction with an existing placement.",
+      "title": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "abstract": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
       "authors": [
-        "Zijian Jiang",
-        "Hongyang Pan",
-        "Cunqing Lan",
-        "Keren Zhu"
+        "Nathaniel Kaye Mellor",
+        "Shreejith Shanker",
+        "George Floros"
       ],
-      "primary_category": "cs.AR",
+      "primary_category": "cs.LG",
       "categories": [
+        "cs.LG",
         "cs.AR"
       ],
-      "published": "2026-10-01T15:56:10+00:00",
-      "link": "https://arxiv.org/pdf/2610.01918v1",
+      "published": "2026-10-05T11:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2610.06138v1",
       "tags": [
         "keyword:noc-arch",
         "query:noc-arch"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "logic remapping and interconnect effects in digital circuit design",
-      "llm_evidence_cn": "逻辑重映射与互连效应，属数字电路设计",
-      "llm_evidence": "逻辑重映射与互连效应，属数字电路设计",
-      "canonical_evidence": "逻辑重映射与互连效应，属数字电路设计",
-      "llm_tldr_en": "Post-placement remapping must account for timing constraints, fanout loads and interconnect effects. This work proposes a local remapping framework coupling discrete mapping search with physical feedback, using mixed-integer optimization over bounded windows.",
-      "llm_tldr_cn": "映射后的时序行为既依赖逻辑实现又受物理环境影响，因此需要结合布局反馈重新决策。本文研究局部重映射，提出将离散映射搜索与物理实现反馈耦合的框架，用有界窗口隔离时序关键区域，并在窗口内以混合整数规划联合选择逻辑割、极性与库单元。基于估算位置与互连参数的延迟模型指导优化，提升了时序质量。该工作服务于数字集成电路物理设计中的时序驱动逻辑优化。",
-      "llm_tldr": "映射后的时序行为既依赖逻辑实现又受物理环境影响，因此需要结合布局反馈重新决策。本文研究局部重映射，提出将离散映射搜索与物理实现反馈耦合的框架，用有界窗口隔离时序关键区域，并在窗口内以混合整数规划联合选择逻辑割、极性与库单元。基于估算位置与互连参数的延迟模型指导优化，提升了时序质量。该工作服务于数字集成电路物理设计中的时序驱动逻辑优化。",
-      "llm_tags": [
-        "query:chip-design:composite"
-      ],
-      "matched_query_tag": "query:chip-design:composite",
-      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
-      "matched_requirement_id": "req-composite-chip-design",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "6"
-    },
-    {
-      "id": "2610.03061v1",
-      "source": "arxiv",
-      "title": "Divide and conquer: Scalable performance and energy in MCM GPUs",
-      "abstract": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
-      "authors": [
-        "Mario Ibáñez Bolado",
-        "Borja Pérez Pavón",
-        "Jose Luis Bosque Orero",
-        "Julio Ramón Beivide"
-      ],
-      "primary_category": "cs.AR",
-      "categories": [
-        "cs.AR"
-      ],
-      "published": "2026-10-02T09:45:01+00:00",
-      "link": "https://arxiv.org/pdf/2610.03061v1",
-      "tags": [
-        "keyword:noc-arch",
-        "query:noc-arch"
-      ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "inter-chiplet interconnection network scaling for MCM GPU architectures",
-      "llm_evidence_cn": "MCM GPU架构的芯粒间互连网络扩展",
-      "llm_evidence": "MCM GPU架构的芯粒间互连网络扩展",
-      "canonical_evidence": "MCM GPU架构的芯粒间互连网络扩展",
-      "llm_tldr_en": "Investigates performance and energy trade-offs of multi-chip-module GPUs, showing the inter-chiplet interconnection network is critical to whether added compute resources translate into gains.",
-      "llm_tldr_cn": "该文针对多芯粒模块GPU在性能与能效扩展性方面理解不足的问题，系统研究将计算与存储能力分散到多个芯粒的影响。作者在每芯粒SM数量、芯粒数目与互连网络等设计维度上探索空间，重点分析决定额外算力能否转化为性能收益的芯粒间互连网络。结果给出了MCM GPU扩展的性能与能耗权衡指导，对面向AI加速的多芯粒互连架构设计具有直接参考价值。",
-      "llm_tldr": "该文针对多芯粒模块GPU在性能与能效扩展性方面理解不足的问题，系统研究将计算与存储能力分散到多个芯粒的影响。作者在每芯粒SM数量、芯粒数目与互连网络等设计维度上探索空间，重点分析决定额外算力能否转化为性能收益的芯粒间互连网络。结果给出了MCM GPU扩展的性能与能耗权衡指导，对面向AI加速的多芯粒互连架构设计具有直接参考价值。",
+      "llm_evidence_en": "FPGA-based GCN accelerator hardware design",
+      "llm_evidence_cn": "基于FPGA的GCN加速器硬件设计",
+      "llm_evidence": "基于FPGA的GCN加速器硬件设计",
+      "canonical_evidence": "基于FPGA的GCN加速器硬件设计",
+      "llm_tldr_en": "Deploying GCNs on edge platforms is hard due to sparse graph aggregation cost; this paper builds an FPGA GCN accelerator combining sparsification, 8-bit quantization and approximate multipliers.",
+      "llm_tldr_cn": "图卷积网络在资源受限边缘平台上部署困难，主要受稀疏图聚合的计算与访存开销制约。作者在AMD Kria KV260上构建FPGA加速器，结合DSpar图稀疏化、8位量化与近似乘法器。在Cora、LastFM Asia与Amazon Photo上评估，覆盖密度差异较大的图。结果表明近似算术的有效性受GCN计算中累加深度支配。该工作为边缘AI加速器的稀疏化与近似计算协同设计提供了依据。",
+      "llm_tldr": "图卷积网络在资源受限边缘平台上部署困难，主要受稀疏图聚合的计算与访存开销制约。作者在AMD Kria KV260上构建FPGA加速器，结合DSpar图稀疏化、8位量化与近似乘法器。在Cora、LastFM Asia与Amazon Photo上评估，覆盖密度差异较大的图。结果表明近似算术的有效性受GCN计算中累加深度支配。该工作为边缘AI加速器的稀疏化与近似计算协同设计提供了依据。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
