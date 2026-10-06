@@ -1,0 +1,89 @@
+{
+  "date": "20261006",
+  "date_label": "",
+  "generated_at": "2026-10-06 00:39:38 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.35254v1",
+      "route": "202610/06/2609.35254v1-megatron-a-28nm-analog-pcm-cimdigital-system-on-chip-for-edge-genai-at-575-topsw-and-152-mparammm2",
+      "title": "MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向边缘生成式AI的片上系统，集成模拟PCM存内计算引擎与RISC-V神经处理单元",
+      "first_seen_at": "2026-10-06 00:39:38 UTC",
+      "updated_at": "2026-10-06 00:39:38 UTC"
+    },
+    {
+      "paper_id": "2609.34351v1",
+      "route": "202610/06/2609.34351v1-polycim-improving-data-reuse-in-digital-cim-accelerators-with-polyhedral-based-compilation",
+      "title": "PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向数字存内计算DNN加速器的编译框架",
+      "first_seen_at": "2026-10-06 00:39:38 UTC",
+      "updated_at": "2026-10-06 00:39:38 UTC"
+    },
+    {
+      "paper_id": "2609.37021v1",
+      "route": "202610/06/2609.37021v1-low-level-optimizations-in-high-level-hdls-is-there-a-benefit",
+      "title": "Low-level optimizations in high-level HDLs: Is there a benefit?",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "HDL实现ASIC，属数字集成电路设计实现技术",
+      "first_seen_at": "2026-10-06 00:39:38 UTC",
+      "updated_at": "2026-10-06 00:39:38 UTC"
+    },
+    {
+      "paper_id": "2610.01918v1",
+      "route": "202610/06/2610.01918v1-timing-driven-logic-remapping-with-local-physical-context",
+      "title": "Timing-Driven Logic Remapping with Local Physical Context",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "逻辑重映射与互连效应，属数字电路设计",
+      "first_seen_at": "2026-10-06 00:39:38 UTC",
+      "updated_at": "2026-10-06 00:39:38 UTC"
+    },
+    {
+      "paper_id": "2610.03061v1",
+      "route": "202610/06/2610.03061v1-divide-and-conquer-scalable-performance-and-energy-in-mcm-gpus",
+      "title": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "MCM GPU架构的芯粒间互连网络扩展",
+      "first_seen_at": "2026-10-06 00:39:38 UTC",
+      "updated_at": "2026-10-06 00:39:38 UTC"
+    }
+  ]
+}

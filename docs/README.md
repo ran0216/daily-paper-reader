@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-04</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-06</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 5 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>1</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-04 22:17:46 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 00:39:38 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精选5篇AI硬件加速论文，精读1篇、速读4篇，聚焦边缘生成式AI与存内计算。最值得关注MEGATRON的28nm模拟PCM存内计算芯片，达57.5 TOPS/W，以及MoE推理与移动端KV Cache复用两个高效方向。普通读者可先看精读那篇了解边缘GenAI芯片能效新标杆，再按需速读其余三篇。</p>
+<p>10月6日AI硬件日报：5篇中精读1篇，聚焦边缘GenAI的28nm模拟PCM存算一体芯片与数字CIM编译优化。</p>
+<p>最值得看：MEGATRON以57.5 TOPS/W、1.52 Mparam/mm²展示边缘GenAI能效潜力，PolyCIM用多面体编译提升数字CIM数据复用。</p>
+<p>普通读者可先读MEGATRON，再按兴趣跟进PolyCIM等速读，重点关注能效与数据复用两条主线。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -94,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="SPIMOE: Exploiting Hybrid Sparsity for Reasoning MoE Inference on Heterogeneous PIM Architectures">SPIMOE: Exploiting Hybrid Sparsity for Reasoning MoE Inference on Heterogeneous PIM Architectures</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs">Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation">PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation">PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-level optimizations in high-level HDLs: Is there a benefit?">Low-level optimizations in high-level HDLs: Is there a benefit?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Timing-Driven Logic Remapping with Local Physical Context">Timing-Driven Logic Remapping with Local Physical Context</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>
