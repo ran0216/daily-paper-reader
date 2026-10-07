@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-06</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-07</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-06 22:50:59 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-07 23:27:33 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天日报成功处理7篇，精读3篇、速读4篇，重点聚焦CIM数据复用与移动NPU上的KV Cache复用。</p>
-<p>最值得看的是两篇8分精读：PolyCIM用多面体编译提升数字CIM数据复用，以及移动NPU上为高效LLM服务做KV Cache复用。</p>
-<p>普通读者建议先读这两篇精读，抓住</p>
+<p>2026-10-07 共筛出4篇论文，精读0篇、速读4篇，聚焦GPU、边缘SoC与FPGA推理优化。最值得看的是MCM GPU的“分而治之”性能与能耗扩展（7.0分），以及异构边缘SoC上AI推理的硬件配置与映射联合探索（7.0分）。普通读者可优先从这两篇切入，了解算力效率与能耗优化的最新思路。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation">PolyCIM: Improving Data Reuse in Digital CIM Accelerators with Polyhedral-Based Compilation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs">Dynamic Flow, Static Graph: KV Cache Reuse for Efficient LLM Serving on Mobile NPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$">MEGATRON: a 28nm Analog PCM CiM/Digital System-on-Chip for Edge GenAI at 57.5 TOPS/W and 1.52 Mparam/mm${}^2$</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>3</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -96,7 +94,7 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Divide and conquer: Scalable performance and energy in MCM GPUs">Divide and conquer: Scalable performance and energy in MCM GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Low-level optimizations in high-level HDLs: Is there a benefit?">Low-level optimizations in high-level HDLs: Is there a benefit?</span></li><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Divide and conquer: Scalable performance and energy in MCM GPUs">Divide and conquer: Scalable performance and energy in MCM GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs">Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>
