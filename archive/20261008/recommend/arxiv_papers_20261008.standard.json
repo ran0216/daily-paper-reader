@@ -1,0 +1,249 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-08T23:34:01.846416+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 4,
+    "quick_skim_target": 11,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2610.03061v1",
+      "source": "arxiv",
+      "title": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "abstract": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
+      "authors": [
+        "Mario Ibáñez Bolado",
+        "Borja Pérez Pavón",
+        "Jose Luis Bosque Orero",
+        "Julio Ramón Beivide"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-02T09:45:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.03061v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "inter-chiplet network in MCM GPUs",
+      "llm_evidence_cn": "MCM GPU中的芯片间互连网络",
+      "llm_evidence": "MCM GPU中的芯片间互连网络",
+      "canonical_evidence": "MCM GPU中的芯片间互连网络",
+      "llm_tldr_en": "This study explores the MCM GPU design space across SMs per chiplet, chiplet count and the inter-chiplet network, showing that the interconnect determines whether added compute translates into scalable performance and energy efficiency.",
+      "llm_tldr_cn": "多芯片模块GPU通过在封装内集成多个芯粒来突破单片设计的算力上限，但解耦对性能可扩展性与能耗的影响尚不清楚，其中芯片间互连网络尤为关键，它决定新增算力能否真正转化为性能增益。作者针对每芯粒SM数、芯粒数量与互连网络等维度构成的庞大设计空间展开系统研究，评估跨芯粒分布计算与存储的权衡。结果揭示了MCM GPU扩展的性能与能效规律，为多芯粒GPU架构与互连设计提供指导。",
+      "llm_tldr": "多芯片模块GPU通过在封装内集成多个芯粒来突破单片设计的算力上限，但解耦对性能可扩展性与能耗的影响尚不清楚，其中芯片间互连网络尤为关键，它决定新增算力能否真正转化为性能增益。作者针对每芯粒SM数、芯粒数量与互连网络等维度构成的庞大设计空间展开系统研究，评估跨芯粒分布计算与存储的权衡。结果揭示了MCM GPU扩展的性能与能效规律，为多芯粒GPU架构与互连设计提供指导。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07191v1",
+      "source": "arxiv",
+      "title": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "abstract": "Modern edge Systems-on-Chip (SoCs) integrate heterogeneous processing units (PUs) such as CPUs, GPUs, and NPUs, each with distinct performance and energy characteristics. Deploying AI inference workloads on them under real-time latency and energy constraints requires jointly mapping workloads to PUs and configuring each PU (e.g., selecting the number of active cores and the operating frequency). This joint space grows combinatorially, making exhaustive search infeasible. Most prior work on design space exploration (DSE) applies black-box optimization (BBO) such as evolutionary search, where each evaluation returns only aggregate metrics such as latency and energy. Recent LLM-guided DSE relies on the same sparse feedback. We observe that this limits its efficiency: it offers no insight into the design space or the reasons a design choice performs the way it does, and it leaves the reasoning abilities of LLMs largely unused. We present TraceDSE, an agentic DSE flow that performs joint workload mapping and PU configuration selection for AI inference on heterogeneous SoCs. TraceDSE is an iterative proposer-critic loop driven by richer feedback in the form of system execution traces. The LLM proposer agent generates candidate mappings and PU configurations for hardware evaluation. The LLM critic agent, equipped with programmatic trace-analysis tools, analyzes the traces to identify bottlenecks and suggest targeted refinements. This loop yields deeper insight into each design point, higher-quality decisions, and a more effective search. Across four AI inference workloads (models of varying complexity and a multi-model pipeline) on an Intel Meteor Lake SoC, TraceDSE consistently outperforms two state-of-the-art BBO tools, improving Pareto frontier hypervolume by up to 35% over NSGA-II and up to 68% over Bayesian optimization, while requiring ~6-9x fewer hardware evaluations.",
+      "authors": [
+        "Geetha Prasuna Yarramneni",
+        "Surya Selvam",
+        "Wilfried Haensch",
+        "Anand Raghunathan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-10-05T18:08:58+00:00",
+      "link": "https://arxiv.org/pdf/2610.07191v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "DSE mapping AI inference on CPU GPU NPU edge SoCs",
+      "llm_evidence_cn": "CPU/GPU/NPU边缘SoC上AI推理的映射设计空间探索",
+      "llm_evidence": "CPU/GPU/NPU边缘SoC上AI推理的映射设计空间探索",
+      "canonical_evidence": "CPU/GPU/NPU边缘SoC上AI推理的映射设计空间探索",
+      "llm_tldr_en": "An agentic, LLM-guided design-space exploration jointly selects hardware configurations and maps AI inference workloads onto heterogeneous edge SoCs with CPU, GPU and NPU, handling a combinatorially large space under latency and energy constraints.",
+      "llm_tldr_cn": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时延迟与能耗约束下部署AI推理，需联合将工作负载映射到各PU并配置其核心数与频率，该联合空间随规模组合爆炸，穷举不可行。现有设计空间探索多采用仅返回延迟与能耗聚合指标的黑盒优化。作者提出智能体式（LLM引导）设计空间探索方法，联合选择硬件配置与映射。实验表明其在巨大联合空间中高效搜索并兼顾多目标约束，为边缘AI芯片软硬件协同设计提供新范式。",
+      "llm_tldr": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时延迟与能耗约束下部署AI推理，需联合将工作负载映射到各PU并配置其核心数与频率，该联合空间随规模组合爆炸，穷举不可行。现有设计空间探索多采用仅返回延迟与能耗聚合指标的黑盒优化。作者提出智能体式（LLM引导）设计空间探索方法，联合选择硬件配置与映射。实验表明其在巨大联合空间中高效搜索并兼顾多目标约束，为边缘AI芯片软硬件协同设计提供新范式。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.06138v1",
+      "source": "arxiv",
+      "title": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "abstract": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "authors": [
+        "Nathaniel Kaye Mellor",
+        "Shreejith Shanker",
+        "George Floros"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AR"
+      ],
+      "published": "2026-10-05T11:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2610.06138v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "FPGA-based deep learning accelerator architecture and optimization",
+      "llm_evidence_cn": "基于FPGA的深度学习加速器架构与优化",
+      "llm_evidence": "基于FPGA的深度学习加速器架构与优化",
+      "canonical_evidence": "基于FPGA的深度学习加速器架构与优化",
+      "llm_tldr_en": "Builds an FPGA GCN accelerator on AMD Kria KV260 combining DSpar sparsification, 8-bit quantization and approximate multipliers, showing that the benefit of approximate arithmetic depends on accumulation depth across graphs of varying density.",
+      "llm_tldr_cn": "针对图卷积网络在资源受限边缘平台部署时计算与内存开销大的问题，本文在AMD Kria KV260上构建FPGA GCN推理加速器。方法将DSpar图稀疏化、8位量化与近似乘法器协同使用，并在Cora、LastFM Asia和Amazon Photo等不同密度图上探索稀疏化与近似计算的相互作用。结果表明近似算术的收益由GCN计算中的累加深度决定，为边缘AI加速器的能效优化提供协同设计依据。",
+      "llm_tldr": "针对图卷积网络在资源受限边缘平台部署时计算与内存开销大的问题，本文在AMD Kria KV260上构建FPGA GCN推理加速器。方法将DSpar图稀疏化、8位量化与近似乘法器协同使用，并在Cora、LastFM Asia和Amazon Photo等不同密度图上探索稀疏化与近似计算的相互作用。结果表明近似算术的收益由GCN计算中的累加深度决定，为边缘AI加速器的能效优化提供协同设计依据。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.07098v1",
+      "source": "arxiv",
+      "title": "T-CCL: Resource Efficient and Performant Collective Communication using Tensor Memory Accelerator",
+      "abstract": "Large transformer-based models increasingly depend on multi-GPU execution, which requires frequent collective communication among GPUs. Existing communication libraries often rely on many GPU threads to achieve high bandwidth or low latency, resulting in a large streaming multiprocessor (SM)-side resource footprint. This footprint can limit the resources available to other GPU work, particularly when communication and computation execute concurrently. Thus, efficient collective communication should not only achieve high collective performance but also reduce its SM-side resource usage. This paper presents T-CCL, a resource-efficient collective communication library based on the Tensor Memory Accelerator (TMA) for intra-node communication. T-CCL offloads both data movement and reduction operations to TMA and executes each collective as a pipelined series of asynchronous TMA operations, reducing the SM resources required for collective communication while maintaining high bandwidth. Evaluated across AllReduce, AllGather, and ReduceScatter collectives, T-CCL outperforms NCCL by up to 2.4x with unrestricted communication resources and up to 3.42x under restricted resource budgets, remains competitive with NCCL's recent symmetric-memory kernels, and occupies the same or fewer SMs in profiled cases. In a GEMM-collective overlap case study, switching the communication backend from NCCL to T-CCL raises the average operator-level speedup over a sequential baseline from 1.12x to 1.25x on two GPUs and from 1.04x to 1.14x on four GPUs, as T-CCL uses fewer SMs for communication, leaving more SMs available to the overlapped GEMM. Integrated into vLLM as a communication backend, T-CCL improves end-to-end inference throughput over vLLM's automatic backend dispatch by up to 1.31x, outperforming it at every evaluated batch size on both the conversation and decode-heavy workloads.",
+      "authors": [
+        "Keyvan Dadashzadeh",
+        "Yuehong Zhou",
+        "Minyu Cui",
+        "Miquel Pericas"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.AI"
+      ],
+      "published": "2026-10-05T14:19:11+00:00",
+      "link": "https://arxiv.org/pdf/2610.07098v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "GPU architecture and multi-GPU communication for large models",
+      "llm_evidence_cn": "GPU架构与大模型多GPU通信",
+      "llm_evidence": "GPU架构与大模型多GPU通信",
+      "canonical_evidence": "GPU架构与大模型多GPU通信",
+      "llm_tldr_en": "Presents T-CCL, a resource-efficient collective communication library built on the Tensor Memory Accelerator for intra-node multi-GPU communication, cutting streaming-multiprocessor-side resource usage while keeping high bandwidth and low latency.",
+      "llm_tldr_cn": "针对大模型多GPU执行需频繁集合通信、而现有通信库依赖大量GPU线程导致SM侧资源占用过大的问题，本文提出基于张量内存加速器TMA的集合通信库T-CCL。该方法面向节点内通信，利用TMA卸载数据搬运以降低流式多处理器侧资源开销。结果表明T-CCL在保持高带宽与低延迟的同时显著减少SM资源占用，使通信与计算可更高效地并发执行，对AI加速系统的GPU通信架构设计具有参考价值。",
+      "llm_tldr": "针对大模型多GPU执行需频繁集合通信、而现有通信库依赖大量GPU线程导致SM侧资源占用过大的问题，本文提出基于张量内存加速器TMA的集合通信库T-CCL。该方法面向节点内通信，利用TMA卸载数据搬运以降低流式多处理器侧资源开销。结果表明T-CCL在保持高带宽与低延迟的同时显著减少SM资源占用，使通信与计算可更高效地并发执行，对AI加速系统的GPU通信架构设计具有参考价值。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.08688v1",
+      "source": "arxiv",
+      "title": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "abstract": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "authors": [
+        "Ajay Kumar M",
+        "Vishnu PS",
+        "Yike Li",
+        "Shreejith Shanker",
+        "Dimitrios S. Nikolopoulos",
+        "Bo Ji",
+        "Hans Vandierendonck",
+        "Deepu John"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-06T17:06:11+00:00",
+      "link": "https://arxiv.org/pdf/2610.08688v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "AI accelerator framework with ISA extensions for edge transformer inference",
+      "llm_evidence_cn": "面向边缘Transformer推理的AI加速器框架与ISA扩展",
+      "llm_evidence": "面向边缘Transformer推理的AI加速器框架与ISA扩展",
+      "canonical_evidence": "面向边缘Transformer推理的AI加速器框架与ISA扩展",
+      "llm_tldr_en": "Deploying transformer language models on IoT devices is constrained by compute and power. This framework derives lightweight ISA extensions and a custom instruction, gaining 15-21% speedup at low overhead.",
+      "llm_tldr_cn": "在资源受限的物联网设备上部署Transformer语言模型受制于算力与功耗，通用指令集难以高效匹配其计算模式。本文提出面向边缘AI的加速框架，针对BERT-Tiny、MobileBERT等紧凑模型推导轻量指令集扩展，并引入加速批量矩阵乘地址生成的自定义指令。结果显示性能提升15.39%至21.74%，面积与功耗开销仅6.79%与2.33%。该方案为边缘端Transformer推理提供了低开销的ISA扩展路径。",
+      "llm_tldr": "在资源受限的物联网设备上部署Transformer语言模型受制于算力与功耗，通用指令集难以高效匹配其计算模式。本文提出面向边缘AI的加速框架，针对BERT-Tiny、MobileBERT等紧凑模型推导轻量指令集扩展，并引入加速批量矩阵乘地址生成的自定义指令。结果显示性能提升15.39%至21.74%，面积与功耗开销仅6.79%与2.33%。该方案为边缘端Transformer推理提供了低开销的ISA扩展路径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.09999v1",
+      "source": "arxiv",
+      "title": "ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators",
+      "abstract": "Analog ReRAM-based process-in-memory (PIM) accelerators provide high parallelism and energy efficiency for deep convolutional neural networks (CNNs) inference. However, their susceptibility to permanent faults, such as stuck-at high (SaH) and stuck-at low (SaL) resistance states, poses a major challenge by permanently corrupting the CNN weights mapped to conductance values of ReRAM cells and degrading inference accuracy, which leads to system unreliability in safety-critical applications. In this paper, we propose a fault-tolerant scheme for analog ReRAM-based PIM accelerators to tackle stuck-at faults (SAFs) with minimal redundancy overhead to recover classification accuracy degradation. The proposed scheme contains a redundancy-based hardware solution alongside fault-aware mapping method for ensuring reliable analog computation in ReRAM crossbar. We analyze the impact of varying number of redundant rows and columns on accuracy and design metrics. Subsequently, a multi-objective optimization (MOO) problem is formulated and solved to efficiently determine the number of redundant rows and columns, considering trade-offs among various design metrics. Furthermore, a fault-aware weight mapping is proposed for dual-crossbar structures to further compensate for the accuracy degradation caused by SAFs. Simulation results show that, for the SimpleNet model using the MNIST dataset, the inference accuracy is recovered by approximately 22.39%, on average, across four configurations of optimal solutions, each offering a trade-off between reliability and area, energy consumption, and latency overheads. The mean-time-tofailure (MTTF) improves by about 61x on average compared to the baseline. These selected configurations also reduce energy and area overheads by 32%, on average, in comparison to row-only and column-only configurations.",
+      "authors": [
+        "Aniseh Dorostkar",
+        "Hamed Farbeh",
+        "Hamid R. Zarandi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-07T12:56:03+00:00",
+      "link": "https://arxiv.org/pdf/2610.09999v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "fault-tolerant scheme for ReRAM-based process-in-memory CNN accelerators",
+      "llm_evidence_cn": "面向ReRAM存内计算CNN加速器的容错方案",
+      "llm_evidence": "面向ReRAM存内计算CNN加速器的容错方案",
+      "canonical_evidence": "面向ReRAM存内计算CNN加速器的容错方案",
+      "llm_tldr_en": "Proposes ReSAFT, a stuck-at fault-tolerant scheme for analog ReRAM-based process-in-memory accelerators that recovers CNN inference accuracy with minimal redundancy overhead.",
+      "llm_tldr_cn": "针对模拟ReRAM存内计算加速器易受固定高/低阻态永久故障影响、导致CNN权重被破坏与推理精度下降的问题，本文提出容错方案ReSAFT，通过冗余设计与权重补偿以最小冗余开销恢复分类精度。该方案提升了存内计算AI加速器在安全关键应用中的可靠性，为深度学习加速器硬件的容错设计提供了可复用思路。",
+      "llm_tldr": "针对模拟ReRAM存内计算加速器易受固定高/低阻态永久故障影响、导致CNN权重被破坏与推理精度下降的问题，本文提出容错方案ReSAFT，通过冗余设计与权重补偿以最小冗余开销恢复分类精度。该方案提升了存内计算AI加速器在安全关键应用中的可靠性，为深度学习加速器硬件的容错设计提供了可复用思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
