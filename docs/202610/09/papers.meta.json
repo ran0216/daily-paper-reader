@@ -1,0 +1,69 @@
+{
+  "label": "2026-10-09",
+  "date": "2026-10-09",
+  "generated_at": "2026-10-09T23:17:18",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202610/09/2610.03061v1-divide-and-conquer-scalable-performance-and-energy-in-mcm-gpus",
+      "section": "quick",
+      "title_en": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "authors": "Mario Ibáñez Bolado, Borja Pérez Pavón, Jose Luis Bosque Orero, Julio Ramón Beivide",
+      "date": "2026-10-02",
+      "pdf": "https://arxiv.org/pdf/2610.03061v1",
+      "score": "7.0",
+      "evidence": "多芯片模块GPU扩展与芯片间互连网络",
+      "tldr": "MCM GPU 通过多芯粒封装扩展算力，但算力/内存拆分对性能与能耗的影响尚不清晰，且受芯粒数量、SM 配置和互连拓扑共同影响。本文系统研究将计算与内存分布到多芯粒是否比集中资源更具可扩展性，并量化互连拓扑在不同规模下的作用。结果显示，16 芯粒 Torus、256 SM 配置相比同算力先进 MCM 架构性能提升 2.40 倍，能耗降低 4.45 倍。该工作表明拆分式设计是一阶架构因素，对下一代 GPU 的性能与能效扩展至关重要。",
+      "tags": "query:chip-design",
+      "abstract_en": "Multi-chip-module (MCM) GPUs offer a promising path to scale compute capability beyond monolithic designs by integrating multiple chiplets on a common package. However, the impact of disaggregation on performance scalability and energy consumption remains underexplored. The design space grows rapidly across dimensions such as SMs per chiplet, chiplet count, and interconnection network. The inter-chiplet network is particularly critical, as it determines whether additional compute resources translate into performance gains. This limited understanding leaves industry and research without clear guidance on the performance and energy trade-offs of MCM GPU scaling. In this work, we investigate whether distributing compute and memory capability across multiple chiplets offers a more scalable alternative to concentrating resources. We quantify their effects on performance, energy, and efficiency and examine how inter-chiplet topology influences scalability at different system sizes. Our results demonstrate that a 16 chiplet Torus configuration with 256 SMs delivers a remarkable $2.40\\times$ performance improvement over a state-of-the-art MCM architecture with the same compute capability, while simultaneously reducing energy consumption by $4.45\\times$. These substantial gains provide evidence that disaggregation is a first-order architectural factor and will be critical to unlocking the performance and energy-efficiency potential of next-generation GPUs.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/09/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "section": "quick",
+      "title_en": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "authors": "Nathaniel Kaye Mellor, Shreejith Shanker, George Floros",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.06138v1",
+      "score": "6.0",
+      "evidence": "面向GCN推理的FPGA人工智能加速器硬件架构",
+      "tldr": "图卷积网络在边缘平台部署时，稀疏图聚合的计算与访存开销制约推理效率。本文在边缘FPGA平台上构建加速器，联合图稀疏化、8位量化与近似乘法器，并在三个不同密度图上评估二者交互。实验表明近似算术效果由聚合深度决定，稀疏聚合最受益，稀疏化降低聚合深度并进一步提升可行性。联合方案最高达9.88倍加速且分类精度86.6%，总功耗低于1 W，证明二者互补可支撑低功耗边缘GCN推理。",
+      "tags": "query:chip-design",
+      "abstract_en": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/09/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
+      "section": "quick",
+      "title_en": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "authors": "Geetha Prasuna Yarramneni, Surya Selvam, Wilfried Haensch, Anand Raghunathan",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.07191v1",
+      "score": "6.0",
+      "evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射设计空间探索",
+      "tldr": "异构边缘SoC需联合映射AI推理负载并配置PU，搜索空间组合爆炸，现有黑盒优化反馈稀疏、效率低。TraceDSE用LLM提议者-批评者循环，借助系统执行轨迹和程序化轨迹分析工具，迭代生成并精化映射与配置。在Intel Meteor Lake SoC上四类AI推理负载中，Pareto前沿超体积较NSGA-II最高提升35%、较贝叶斯优化最高提升68%，硬件评估次数减少约6-9倍。贡献意义：以更丰富反馈提升DSE洞察与决策质量。",
+      "tags": "query:chip-design",
+      "abstract_en": "Modern edge Systems-on-Chip (SoCs) integrate heterogeneous processing units (PUs) such as CPUs, GPUs, and NPUs, each with distinct performance and energy characteristics. Deploying AI inference workloads on them under real-time latency and energy constraints requires jointly mapping workloads to PUs and configuring each PU (e.g., selecting the number of active cores and the operating frequency). This joint space grows combinatorially, making exhaustive search infeasible. Most prior work on design space exploration (DSE) applies black-box optimization (BBO) such as evolutionary search, where each evaluation returns only aggregate metrics such as latency and energy. Recent LLM-guided DSE relies on the same sparse feedback. We observe that this limits its efficiency: it offers no insight into the design space or the reasons a design choice performs the way it does, and it leaves the reasoning abilities of LLMs largely unused. We present TraceDSE, an agentic DSE flow that performs joint workload mapping and PU configuration selection for AI inference on heterogeneous SoCs. TraceDSE is an iterative proposer-critic loop driven by richer feedback in the form of system execution traces. The LLM proposer agent generates candidate mappings and PU configurations for hardware evaluation. The LLM critic agent, equipped with programmatic trace-analysis tools, analyzes the traces to identify bottlenecks and suggest targeted refinements. This loop yields deeper insight into each design point, higher-quality decisions, and a more effective search. Across four AI inference workloads (models of varying complexity and a multi-model pipeline) on an Intel Meteor Lake SoC, TraceDSE consistently outperforms two state-of-the-art BBO tools, improving Pareto frontier hypervolume by up to 35% over NSGA-II and up to 68% over Bayesian optimization, while requiring ~6-9x fewer hardware evaluations.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/09/2610.08688v1-a-framework-for-accelerating-transformer-inference-on-risc-v-for-edge-ai",
+      "section": "quick",
+      "title_en": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "authors": "Ajay Kumar M, Vishnu PS, Yike Li, Shreejith Shanker, Dimitrios S. Nikolopoulos, Bo Ji, Hans Vandierendonck, Deepu John",
+      "date": "2026-10-06",
+      "pdf": "https://arxiv.org/pdf/2610.08688v1",
+      "score": "6.0",
+      "evidence": "面向边缘AI的RISC-V指令集扩展与自定义指令加速Transformer推理",
+      "tldr": "面向资源受限IoT设备，论文提出在RISC-V上加速紧凑Transformer语言模型推理的框架，覆盖BERT-Tiny、MobileBERT、MiniLM、Electra、DeBERTa等模型。方法包括定制轻量指令集扩展，并为批量矩阵乘的地址生成阶段引入自定义指令，辅以编译器导向的循环展开。自定义指令使批量矩阵乘地址生成阶段性能提升15.39%–21.74%，ASIC额外面积与功耗仅6.79%和2.33%。实验在Synopsys trv32p3f RISC-V核上取得最高2.19倍推理加速，FPGA与ASIC实现面积开销分别为32.94%和21.08%。该工作为边缘AI中Transformer部署提供了软硬件协同加速方案。",
+      "tags": "query:chip-design",
+      "abstract_en": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

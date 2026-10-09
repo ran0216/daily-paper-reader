@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-08</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-09</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 6 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-08 23:37:08 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-09 23:17:16 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-10-08 日报精选 6 篇论文，精读 MCM GPU 性能能耗与异构边缘 SoC 的软硬件协同设计探索。最值得关注的是两篇 8 分工作：GPU 分治策略兼顾性能与能效，以及 Agentic 设计空间探索自动联合选择硬件配置与映射 AI 推理负载。建议普通读者优先从这两篇精读入手，理解边缘 AI 场景下&quot;算法—硬件&quot;协同优化的思路。</p>
+<p>今日完成 4 篇论文速读，聚焦 GPU 性能能耗、FPGA 上 GCN 推理与异构边缘 SoC 的 AI 工作负载映射。</p>
+<p>最值得看的是《Divide and conquer: Scalable performance and energy in MCM GPUs》（7.0/10），多芯片模块 GPU 的&quot;分而治之&quot;思路在性能与能耗上的权衡；其次可关注 GCN 图稀疏化与近似计算的协同优化方向。</p>
+<p>普通读者若时间有限，可先读 MCM GPU 那篇了解硬件扩展趋势，再按兴趣挑 GCN 或边缘 SoC 方向跟进。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Divide and conquer: Scalable performance and energy in MCM GPUs">Divide and conquer: Scalable performance and energy in MCM GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs">Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>2</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -94,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Framework for Accelerating Transformer Inference on RISC-V for Edge AI">A Framework for Accelerating Transformer Inference on RISC-V for Edge AI</span></li><li><span class="dpr-home-dashboard-paper-title" title="T-CCL: Resource Efficient and Performant Collective Communication using Tensor Memory Accelerator">T-CCL: Resource Efficient and Performant Collective Communication using Tensor Memory Accelerator</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Divide and conquer: Scalable performance and energy in MCM GPUs">Divide and conquer: Scalable performance and energy in MCM GPUs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs">Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>

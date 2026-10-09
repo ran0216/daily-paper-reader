@@ -1,0 +1,73 @@
+{
+  "date": "20261009",
+  "date_label": "",
+  "generated_at": "2026-10-09 23:17:16 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.03061v1",
+      "route": "202610/09/2610.03061v1-divide-and-conquer-scalable-performance-and-energy-in-mcm-gpus",
+      "title": "Divide and conquer: Scalable performance and energy in MCM GPUs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "多芯片模块GPU扩展与芯片间互连网络",
+      "first_seen_at": "2026-10-09 23:17:16 UTC",
+      "updated_at": "2026-10-09 23:17:16 UTC"
+    },
+    {
+      "paper_id": "2610.06138v1",
+      "route": "202610/09/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "title": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向GCN推理的FPGA人工智能加速器硬件架构",
+      "first_seen_at": "2026-10-09 23:17:16 UTC",
+      "updated_at": "2026-10-09 23:17:16 UTC"
+    },
+    {
+      "paper_id": "2610.07191v1",
+      "route": "202610/09/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
+      "title": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射设计空间探索",
+      "first_seen_at": "2026-10-09 23:17:16 UTC",
+      "updated_at": "2026-10-09 23:17:16 UTC"
+    },
+    {
+      "paper_id": "2610.08688v1",
+      "route": "202610/09/2610.08688v1-a-framework-for-accelerating-transformer-inference-on-risc-v-for-edge-ai",
+      "title": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘AI的RISC-V指令集扩展与自定义指令加速Transformer推理",
+      "first_seen_at": "2026-10-09 23:17:16 UTC",
+      "updated_at": "2026-10-09 23:17:16 UTC"
+    }
+  ]
+}
