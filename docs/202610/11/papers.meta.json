@@ -1,0 +1,69 @@
+{
+  "label": "2026-10-11",
+  "date": "2026-10-11",
+  "generated_at": "2026-10-11T23:24:00",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202610/11/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
+      "section": "quick",
+      "title_en": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "authors": "Geetha Prasuna Yarramneni, Surya Selvam, Wilfried Haensch, Anand Raghunathan",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.07191v1",
+      "score": "7.0",
+      "evidence": "异构边缘SoC上CPU、GPU、NPU的AI推理联合映射与配置",
+      "tldr": "边缘异构SoC部署AI推理需联合映射负载与配置PU，设计空间组合爆炸；传统黑盒优化仅用延迟/能耗聚合反馈，LLM推理能力未被充分利用。TraceDSE用执行轨迹提供丰富反馈，LLM提议者生成候选，LLM批评者借轨迹分析工具定位瓶颈并定向改进。在Intel Meteor Lake四类负载上，其Pareto超体积较NSGA-II最高提升35%、较贝叶斯优化提升68%，评估次数减少6-9倍。该工作证明轨迹驱动智能体循环可提升DSE质量与可解释性。",
+      "tags": "query:chip-design",
+      "abstract_en": "Modern edge Systems-on-Chip (SoCs) integrate heterogeneous processing units (PUs) such as CPUs, GPUs, and NPUs, each with distinct performance and energy characteristics. Deploying AI inference workloads on them under real-time latency and energy constraints requires jointly mapping workloads to PUs and configuring each PU (e.g., selecting the number of active cores and the operating frequency). This joint space grows combinatorially, making exhaustive search infeasible. Most prior work on design space exploration (DSE) applies black-box optimization (BBO) such as evolutionary search, where each evaluation returns only aggregate metrics such as latency and energy. Recent LLM-guided DSE relies on the same sparse feedback. We observe that this limits its efficiency: it offers no insight into the design space or the reasons a design choice performs the way it does, and it leaves the reasoning abilities of LLMs largely unused. We present TraceDSE, an agentic DSE flow that performs joint workload mapping and PU configuration selection for AI inference on heterogeneous SoCs. TraceDSE is an iterative proposer-critic loop driven by richer feedback in the form of system execution traces. The LLM proposer agent generates candidate mappings and PU configurations for hardware evaluation. The LLM critic agent, equipped with programmatic trace-analysis tools, analyzes the traces to identify bottlenecks and suggest targeted refinements. This loop yields deeper insight into each design point, higher-quality decisions, and a more effective search. Across four AI inference workloads (models of varying complexity and a multi-model pipeline) on an Intel Meteor Lake SoC, TraceDSE consistently outperforms two state-of-the-art BBO tools, improving Pareto frontier hypervolume by up to 35% over NSGA-II and up to 68% over Bayesian optimization, while requiring ~6-9x fewer hardware evaluations.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/11/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "section": "quick",
+      "title_en": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "authors": "Nathaniel Kaye Mellor, Shreejith Shanker, George Floros",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.06138v1",
+      "score": "6.0",
+      "evidence": "基于FPGA的GCN推理加速器，结合量化与近似计算",
+      "tldr": "图卷积网络在资源受限的边缘平台部署时，稀疏图聚合带来高昂的计算与内存开销。本文面向FPGA推理，在AMD Kria KV260上协同优化DSpar图稀疏化、8比特量化与近似乘法器，探索稀疏化与近似计算的交互作用。实验覆盖Cora、LastFM Asia和Amazon Photo等不同密度图，发现近似算术收益主要由GCN聚合深度决定：近似乘法器更适合稀疏聚合，而图稀疏化通过降低聚合深度进一步提升其可行性。最终在Amazon Photo上实现最高9.88倍加速并保持86.6%分类精度，Cora上为1.52倍与77.0%，总功耗低于1瓦。结果表明二者互补，协同优化可支撑低功耗边缘GCN推理。",
+      "tags": "query:chip-design",
+      "abstract_en": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/11/2610.08688v1-a-framework-for-accelerating-transformer-inference-on-risc-v-for-edge-ai",
+      "section": "quick",
+      "title_en": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "authors": "Ajay Kumar M, Vishnu PS, Yike Li, Shreejith Shanker, Dimitrios S. Nikolopoulos, Bo Ji, Hans Vandierendonck, Deepu John",
+      "date": "2026-10-06",
+      "pdf": "https://arxiv.org/pdf/2610.08688v1",
+      "score": "6.0",
+      "evidence": "面向边缘AI的加速器与定制指令扩展及ASIC开销",
+      "tldr": "面向资源受限的物联网边缘设备，本文提出一个在 RISC-V 处理器上加速紧凑型 Transformer 语言模型推理的框架。研究针对 BERT-Tiny、MobileBERT、MiniLM、Electra 和 DeBERTa 等模型的计算模式，定制轻量级指令集扩展，并引入批矩阵乘法地址生成专用指令，同时采用编译器导向的循环展开策略。实验显示，在 trv32p3f 核上可获得最高 2.19 倍推理加速，地址生成指令带来 15.39–21.74% 性能提升，FPGA 面积开销为 32.94%，ASIC 面积开销为 21.08%。该框架以有限硬件代价提升边缘 AI 场景下 Transformer 推理效率，为 RISC-V 边缘部署提供可行方案。",
+      "tags": "query:chip-design",
+      "abstract_en": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/11/2610.09999v1-resaft-an-efficient-stuck-at-fault-tolerant-scheme-for-reram-based-process-in-memory-accelerators",
+      "section": "quick",
+      "title_en": "ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators",
+      "authors": "Aniseh Dorostkar, Hamed Farbeh, Hamid R. Zarandi",
+      "date": "2026-10-07",
+      "pdf": "https://arxiv.org/pdf/2610.09999v1",
+      "score": "6.0",
+      "evidence": "面向ReRAM存内计算AI加速器的容错设计",
+      "tldr": "模拟ReRAM存内计算加速器能高效并行推理CNN，但阻变单元永久性 stuck-at 高/低故障会损坏权重并降低精度。本文提出ReSAFT容错方案：冗余行列硬件结合故障感知映射，并用多目标优化确定冗余规模。仿真显示SimpleNet/MNIST精度平均恢复约22.39%，MTTF提升约61倍，能耗面积开销较仅行/列方案平均降32%。",
+      "tags": "query:chip-design",
+      "abstract_en": "Analog ReRAM-based process-in-memory (PIM) accelerators provide high parallelism and energy efficiency for deep convolutional neural networks (CNNs) inference. However, their susceptibility to permanent faults, such as stuck-at high (SaH) and stuck-at low (SaL) resistance states, poses a major challenge by permanently corrupting the CNN weights mapped to conductance values of ReRAM cells and degrading inference accuracy, which leads to system unreliability in safety-critical applications. In this paper, we propose a fault-tolerant scheme for analog ReRAM-based PIM accelerators to tackle stuck-at faults (SAFs) with minimal redundancy overhead to recover classification accuracy degradation. The proposed scheme contains a redundancy-based hardware solution alongside fault-aware mapping method for ensuring reliable analog computation in ReRAM crossbar. We analyze the impact of varying number of redundant rows and columns on accuracy and design metrics. Subsequently, a multi-objective optimization (MOO) problem is formulated and solved to efficiently determine the number of redundant rows and columns, considering trade-offs among various design metrics. Furthermore, a fault-aware weight mapping is proposed for dual-crossbar structures to further compensate for the accuracy degradation caused by SAFs. Simulation results show that, for the SimpleNet model using the MNIST dataset, the inference accuracy is recovered by approximately 22.39%, on average, across four configurations of optimal solutions, each offering a trade-off between reliability and area, energy consumption, and latency overheads. The mean-time-tofailure (MTTF) improves by about 61x on average compared to the baseline. These selected configurations also reduce energy and area overheads by 32%, on average, in comparison to row-only and column-only configurations.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

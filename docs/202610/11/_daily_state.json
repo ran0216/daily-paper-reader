@@ -1,0 +1,73 @@
+{
+  "date": "20261011",
+  "date_label": "",
+  "generated_at": "2026-10-11 23:23:57 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.07191v1",
+      "route": "202610/11/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
+      "title": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "异构边缘SoC上CPU、GPU、NPU的AI推理联合映射与配置",
+      "first_seen_at": "2026-10-11 23:23:57 UTC",
+      "updated_at": "2026-10-11 23:23:57 UTC"
+    },
+    {
+      "paper_id": "2610.06138v1",
+      "route": "202610/11/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "title": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基于FPGA的GCN推理加速器，结合量化与近似计算",
+      "first_seen_at": "2026-10-11 23:23:57 UTC",
+      "updated_at": "2026-10-11 23:23:57 UTC"
+    },
+    {
+      "paper_id": "2610.08688v1",
+      "route": "202610/11/2610.08688v1-a-framework-for-accelerating-transformer-inference-on-risc-v-for-edge-ai",
+      "title": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向边缘AI的加速器与定制指令扩展及ASIC开销",
+      "first_seen_at": "2026-10-11 23:23:57 UTC",
+      "updated_at": "2026-10-11 23:23:57 UTC"
+    },
+    {
+      "paper_id": "2610.09999v1",
+      "route": "202610/11/2610.09999v1-resaft-an-efficient-stuck-at-fault-tolerant-scheme-for-reram-based-process-in-memory-accelerators",
+      "title": "ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "chip-design"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向ReRAM存内计算AI加速器的容错设计",
+      "first_seen_at": "2026-10-11 23:23:57 UTC",
+      "updated_at": "2026-10-11 23:23:57 UTC"
+    }
+  ]
+}
