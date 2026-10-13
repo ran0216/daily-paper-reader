@@ -1,8 +1,8 @@
 {
   "label": "2026-10-13",
   "date": "2026-10-13",
-  "generated_at": "2026-10-13T01:15:52",
-  "count": 3,
+  "generated_at": "2026-10-13T23:07:59",
+  "count": 4,
   "papers": [
     {
       "paper_id": "202610/13/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
@@ -46,6 +46,21 @@
       "tldr": "面向资源受限物联网设备的Transformer推理，现有RISC-V核缺乏针对性加速支持。本文提出面向边缘AI的加速框架，选取BERT-Tiny等紧凑语言模型，提取其非显然计算模式并定制轻量指令集扩展。进一步加入批矩阵乘法地址生成定制指令，并采用编译器导向循环展开策略，以代码尺寸换取执行时间降低。在trv32p3f核上最高取得2.19倍推理加速，ASIC面积开销为21.08%@250MHz，FPGA面积开销为32.94%@75MHz。",
       "tags": "query:chip-design",
       "abstract_en": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/13/2610.09999v1-resaft-an-efficient-stuck-at-fault-tolerant-scheme-for-reram-based-process-in-memory-accelerators",
+      "section": "quick",
+      "title_en": "ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators",
+      "authors": "Aniseh Dorostkar, Hamed Farbeh, Hamid R. Zarandi",
+      "date": "2026-10-07",
+      "pdf": "https://arxiv.org/pdf/2610.09999v1",
+      "score": "6.0",
+      "evidence": "面向CNN推理的ReRAM存内计算加速器容错",
+      "tldr": "模拟阻变存储器存内计算加速器为卷积神经网络推理带来高并行度和能效，但固定高/低阻故障会永久篡改映射权重，导致精度下降与安全关键场景可靠性不足。ReSAFT提出冗余行/列硬件与故障感知权重映射相结合的容错方案，并通过多目标优化在可靠性、面积、能耗和延迟间确定冗余规模。针对双交叉阵列的故障感知映射进一步补偿固定故障影响。在MNIST/SimpleNet上，平均推理精度恢复约22.39%，平均无故障时间提升约61倍，且相比仅行/仅列冗余，面积与能耗开销平均降低32%。",
+      "tags": "query:chip-design",
+      "abstract_en": "Analog ReRAM-based process-in-memory (PIM) accelerators provide high parallelism and energy efficiency for deep convolutional neural networks (CNNs) inference. However, their susceptibility to permanent faults, such as stuck-at high (SaH) and stuck-at low (SaL) resistance states, poses a major challenge by permanently corrupting the CNN weights mapped to conductance values of ReRAM cells and degrading inference accuracy, which leads to system unreliability in safety-critical applications. In this paper, we propose a fault-tolerant scheme for analog ReRAM-based PIM accelerators to tackle stuck-at faults (SAFs) with minimal redundancy overhead to recover classification accuracy degradation. The proposed scheme contains a redundancy-based hardware solution alongside fault-aware mapping method for ensuring reliable analog computation in ReRAM crossbar. We analyze the impact of varying number of redundant rows and columns on accuracy and design metrics. Subsequently, a multi-objective optimization (MOO) problem is formulated and solved to efficiently determine the number of redundant rows and columns, considering trade-offs among various design metrics. Furthermore, a fault-aware weight mapping is proposed for dual-crossbar structures to further compensate for the accuracy degradation caused by SAFs. Simulation results show that, for the SimpleNet model using the MNIST dataset, the inference accuracy is recovered by approximately 22.39%, on average, across four configurations of optimal solutions, each offering a trade-off between reliability and area, energy consumption, and latency overheads. The mean-time-tofailure (MTTF) improves by about 61x on average compared to the baseline. These selected configurations also reduce energy and area overheads by 32%, on average, in comparison to row-only and column-only configurations.",
       "source": "arxiv",
       "selection_source": "fresh_fetch"
     }

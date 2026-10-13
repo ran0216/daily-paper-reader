@@ -1,0 +1,1500 @@
+Title: ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators
+
+URL Source: https://arxiv.org/pdf/2610.09999v1
+
+Published Time: Thu, 08 Oct 2026 01:45:35 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+## ReSAFT: An E ffi cient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators 
+
+Aniseh Dorostkar, Hamed Farbeh ∗, Hamid R. Zarandi 
+
+> Department of Computer Engineering, Amirkabir University of Technology (Tehran Polytechnic)
+
+Abstract 
+
+Analog ReRAM-based process-in-memory (PIM) accelerators provide high parallelism and energy e ffi ciency for deep convolu-tional neural networks (CNNs) inference. However, their susceptibility to permanent faults, such as stuck-at high (SaH ) and 
+
+stuck-at low (SaL ) resistance states, poses a major challenge by permanently corrupting the CNN weights mapped to conductance values of ReRAM cells and degrading inference accuracy, which leads to system unreliability in safety-critical applications. In this paper, we propose a fault-tolerant scheme for analog ReRAM-based PIM accelerators to tackle stuck-at faults (SAFs) with minimal redundancy overhead to recover classification accuracy degradation. The proposed scheme contains a redundancy-based hardware solution alongside fault-aware mapping method for ensuring reliable analog computation in ReRAM crossbar. We analyze the impact of varying number of redundant rows and columns on accuracy and design metrics. Subsequently, a multi-objective opti-mization (MOO) problem is formulated and solved to e ffi ciently determine the number of redundant rows and columns, considering trade-o ff s among various design metrics. Furthermore, a fault-aware weight mapping is proposed for dual-crossbar structures to further compensate for the accuracy degradation caused by SAFs. Simulation results show that, for the SimpleNet model using the 
+
+MNIST dataset, the inference accuracy is recovered by approximately 22.39%, on average, across four configurations of optimal solutions, each o ff ering a trade-o ff between reliability and area, energy consumption, and latency overheads. The mean-time-to-failure (MTTF) improves by about 61 × on average compared to the baseline. These selected configurations also reduce energy and area overheads by 32%, on average, in comparison to row-only and column-only configurations. 
+
+Keywords: Convolutional neural networks (CNNs), fault-tolerant, hardware accelerators, process-in-memory (PIM), resistive random-access memory (ReRAM) 
+
+1. Introduction 
+
+Deep neural networks (DNNs), particularly convolutional neural networks (CNNs), have greatly impacted applications such as healthcare, autonomous vehicles, space missions, and other safety-critical systems [1]. Their remarkable performance in classification, detection, and recognition comes from deep, multi-layered architectures that extract features through vector-matrix multiplication (VMM) operations. However, increas-ing network complexity to achieve higher accuracy also sig-nificantly raises computational cost, memory /storage require-ments, and energy consumption. To meet the demanding computational needs of CNNs, con-ventional computing platforms based on CPUs, graph pro-cessing units (GPUs) and field-programmable gate arrays (FP-GAs) are increasingly facing performance bottlenecks such as the memory wall and the power wall. Due to these limita-tions, processing-in-memory (PIM) paradigm have gained at-tention, which integrate computation directly within memory      
+
+> ∗Corresponding author
+> Email addresses: a_dorostkar@aut.ac.ir (Aniseh Dorostkar),
+> farbeh@aut.ac.ir (Hamed Farbeh), h_zarandi@aut.ac.ir (Hamid R. Zarandi)
+
+arrays, thereby reducing data movement and energy consump-tion. Among various memory technologies enabling PIM, Re-sistive Random-Access Memory (ReRAM) has emerged as a promising candidate due to its non-volatility, high density, low power consumption, and capability to perform analog PIM. Us-ing the ReRAM crossbar structure, ReRAM-based PIM accel-erators such as ISAAC [2], PRIME [3], and PipeLayer [4] can perform massively memory-intensive VMM operations in par-allel, making them highly e ffi cient for CNN inference. Despite the mentioned advantages, due to the limitation of fabrication technology, ReRAM-based PIM accelerators suf-fer from process variations (PVs) [5, 6], limited write en-durance [6, 7], sources of noises [8], and nonlinearity of cur-rent–voltage characteristics [9] and hardware faults [9–12]. ReRAM faults are categorized into transient and permanent types based on their temporal characteristics [13], and arise either in fabrication phase or operational phase. Transient faults are temporary and non-destructive which typically caused by disturbances like high energy particle hitting the electri-cal device, resistance drift, PVs, temperature fluctuations, or read /write disturbance [1, 14, 15]. These faults change the re-sistance of the cells without physically damage the ReRAM cells as they can still function, because the resistance of the cell can change.   
+
+> 0167-739X /©2026 Elsevier B.V. All rights are reserved, including those for text and data mining, AI training, and similar technologies. The final published version is available at: https: // doi. org/ 10. 1016/ j. future. 2026. 108685 arXiv:2610.09999v1 [cs.AR] 7 Oct 2026
+
+In contrast, permanent faults are persistent over time and the resistance of cell is unchangeable. These faults are due to irre-versible physical damage, often introduced by fabrication lim-itations (oxide layer thickness, process fluctuations, or reduced feature sizes [16, 17]) or limitation in endurance [7, 8]. Defects such as short defects and overforming stage defects [17], cause the resistance of a cell to stuck-at a resistance value ( stuck-at high (SaH ), stuck-at low (SaL ) or stuck-at value (SaV ) resistant state). SaH faults are commonly caused by short defects that force the cell to remain in high resistance state (HRS), while 
+
+SaL faults may result from permanent cell failures, broken se-lectors, or damaged interconnects that force the cell to remain in low resistance state (LRS). Regardless of passing the man-ufacturing tests of ReRAM cells, permanent faults can occur over lifetime due to limited write endurance, excessive write-0 (or write-1) pulses [6, 18], or by damages to the device or transistor (e.g., due to wear out [19]). Since NN parameters are mapped to the conductance val-ues of ReRAM cells, any faults in ReRAM cells can easily corrupt these learned values, directly impact the outcomes of VMM, leading to computational inaccuracies. Consequently, process variations (PVs) and faults in ReRAM technology not only lower the yield of memory arrays but also impair the infer-ence accuracy of CNNs executed on PIM accelerators [20]. The vulnerability of ReRAM-based PIM accelerators in executing CNNs is highly sensitive to factors such as the type and depth of network layers, the location of learning parameters within each layer, as well as the value and types of the faults [21]. To address the reliability limitations of ReRAM-based PIM systems against faults, various software- and hardware-based fault-tolerant methods including mapping-based methods [14, 22–26], fault-aware training methods [5, 14, 16, 27, 28], error detection and correction codes [29–34], and redundancy-based methods [35], have been proposed. Although software-based methods are cost-e ff ective, most of them are not applicable to permanent faults due to the unchangeable resistance of faulty cells or become ine ffi cient under high fault rates. Conversely, existing hardware redundancy solutions, primar-ily designed for digital memory-centric applications, are not directly applicable to analog ReRAM-based PIM systems. In PIM crossbars, the fundamental computational unit is a col-umn performing VMM; consequently, a single faulty cell can compromise the functionality of the entire column. Although 1T1R structures allow faulty cells to be isolated by control-ling their associated access transistors [36]. this approach in-troduces substantial routing overhead. Furthermore, conven-tional redundancy-based methods typically rely solely on re-dundant rows or columns and deactivate an entire row or col-umn once a fault is detected. However, these methods are often too coarse-grained for analog computing, resulting in substan-tial ine ffi ciencies in area, power consumption, and latency that diminish the inherent energy and throughput advantages of PIM accelerators. Consequently, there is a critical need for a solution that bal-ances the trade-o ff between hardware cost, reliability, and in-ference accuracy in CNN models through integrated hardware-software-based solutions. Specifically, leveraging an optimal level of hardware and software redundancy mechanisms can ef-fectively compensate for accuracy loss caused by SAFs. This work is motivated by trading o ff the reliability, cost, and inference accuracy in analog ReRAM-based PIM accelera-tors. Our goal is to design a fault-tolerant architecture that tack-les SAFs with minimal redundancy overhead while preserving CNN classification accuracy. To this end, we propose ReSAFT, a fault-tolerant scheme for analog ReRAM-based PIM acceler-ators that combines a redundancy-based ReRAM crossbar ar-chitecture with fault-aware mapping and remapping methods to tolerate SAF e ffi ciently. The proposed fault-tolerant cross-bar architecture integrates a combination of redundant rows and columns into the ReRAM crossbar structure with signif-icantly fewer redundant resources compared to conventional redundancy schemes. We evaluate the impact of varying the number of redundant rows and columns on CNNs classification accuracy and design metrics, including reliability, energy con-sumption, area overhead, and latency. We then formulated and solved an architecture-level optimization problem to determine the adequate number of redundant rows and columns, a prob-lem that requires solving complex multi-dimensional trade-o ff samong these design metrics. To e ffi ciently utilize resources, we further propose software-level mapping and input schedul-ing across redundant rows and columns, and a dual-crossbar remapping method, which are applied at runtime. The main contributions of this article are as follows: 1. We propose a hardware redundancy-based fault-tolerant crossbar architecture for analog ReRAM-based PIM ac-celerators. Unlike conventional methods that rely solely on either row or column redundancy, the proposed ar-chitecture employs a combination of redundant rows and columns that uses the strengths of both to tolerate SaH and 
+
+SaL faults Specifically, redundant columns are used to tol-erate both SaL and SaH faults, while redundant rows toler-ate SaH faults via current adjustment, significantly reduc-ing area overhead compared to column-only methods. 2. A multi-objective optimization (MOO) problem is formu-lated and solved to determine the adequate number of re-dundant rows and columns in ReRAM-based crossbars. The formulation considers trade-o ff s among design met-rics including MTTF, energy consumption, latency, and area while satisfying a classification accuracy constraint. 3. To e ffi ciently use the hardware redundancy, a fault-aware mapping algorithm is proposed to su ffi ciently map faulty cells to appropriate redundant cells based on the specific fault type and location. This is an algorithmic enhance-ment to the PIM controller that works with the proposed redundant-based crossbar. 4. A complementary and low-cost fault-aware weight remap-ping is applied at runtime across dual ReRAM crossbars (contain positive and negative crossbars) for the remain-ing faults that cannot be tolerated by ReFTC architecture. This method ensures reliable computation while minimiz-ing overhead and compensates for the accuracy degrada-tion caused by SAFs. 2The rest of this article is organized as follows. Section 2 provides the background on NNs, ReRAM devices, and accel-erator and a comprehensive review of related work. Section 3 describes the process of the proposed fault-tolerant scheme and details the redundancy-based crossbar design along with the proposed mapping and scheduling methods and evaluates the impact of varying the number of redundant rows and columns on design parameters. The simulation results and analysis of our methos are provided in section 4. Finally, section 5 con-cludes the article. 
+
+2. Preliminaries and Related Work 
+
+2.1. Convolutional Neural Networks 
+
+CNNs are typically composed of a sequence of convolutional (CONV ) layers, pooling ( POOL ) layers, fully-connected ( FC )layers, and optionally, custom layers such as Batch Normaliza-tion ( BatchNorm ) [2]. Trainable parameters, such as weights, kernels, and biases, are mainly in the CONV , FC , and Batch-Norm layers, and are adjusted during training phase. The main computations in CNNs involve multi-dimensional convolution and VMM. In particular, FC layers are based on the VMM op-eration, which is performed at each neuron and represented by: 
+
+y j = σ
+
+
+
+> n−1
+
+X
+
+> i=0
+
+xiwi j + b j
+
+ (1) where y j denotes the output of the j-th neuron, xi is the input of the neuron (the output from i-th neuron in the preceding layer), 
+
+wi j refers to the synaptic weight associated with each input, and 
+
+b j is the bias applied to each neuron. The weighted sum of in-puts and bias is passed through an activation function σ, which can be sigmoid , ReLU , or tanh function to compute the final neuron output. Additionally, in the CONV layers, a convolution operation is applied between each kernel and its correspond-ing input feature map ( IFM ) to generate the output feature map (OFM ), as defined by: OFM n(x, y) = σ
+
+> Cin
+
+X
+
+> i=0
+
+ KWX
+
+> dx =0
+
+ KHX
+
+> dy =0
+
+IF M (i, x + dx , y + dy )∗
+
+Wn(i, dx , dy )
+
+
+
++ Bi
+
+
+
+, 1 ≤ n ≤ Cout (2) where IF M is the input feature map, Cin is the number of input channels (feature maps), Cout is the number of output channels, 
+
+W denotes the kernel matrix, Wn(i, dx , dy ) specifies n-th kernel weights applied to the i-th input channel, and Bi is the bias array associated with each kernel. 
+
+2.2. ReRAM-based PIM Accelerators 
+
+ReRAM is a type of nonvolatile memory technology that stores data by utilizing variable resistance states in memory cells based on a metal–insulator–metal (MIM) structure. The resistance of each cell can be modulated by applying external voltages, allowing it to switch between di ff erent states. These resistance changes are controlled by the formation and rupture Top Electrode                
+
+> Conductive Filament
+> Dielectric layer
+> Bottom Electrode
+> RESET
+> SET
+> (a) Word -lines
+> Bit -lines
+> V1
+> V2
+> V3
+> V4
+> I1I2I3I4
+> G1,1G1,2G1,3G1,4
+> G1,2G2,2G2,3 G2,4
+> G3,2 G3,3G3,4
+> G4,1G4,2G4,3G4,4
+> G3,1 (b)
+
+Figure 1: ReRAM structure. a) a single ReRAM cell and b) ReRAM crossbar structure performing analog VMM operation. Gmin    
+
+> Gmax
+> -
+> 1+1 0
+> Gij
+> Wij
+> Weight
+> Conductance
+> Gmin
+> Gmax
+> -
+> 1+1 0
+> Gij
+> Wij
+> Weight
+> Conductance
+> Weights/Kernels
+> Unroll
+> Matrix
+> Partitioning
+> Mapping Weight to
+> Conductance G
+> Scale Input
+> to Voltage
+> Placement
+> Input Feature Map
+> Gmin
+> Gmax
+> -
+> 1+1 0
+> Gij
+> Wij
+> Weight
+> Conductance
+> Weights/Kernels
+> Unroll
+> Matrix
+> Partitioning
+> Mapping Weight to
+> Conductance G
+> Scale Input
+> to Voltage
+> Placement
+> Input Feature Map
+
+Figure 2: Overview of the mapping and placement process of learning parame-ters onto ReRAM-based Accelerator. 
+
+of conductive filaments within the insulating layer, as shown in Fig. 1(a). To read the stored data, a small read voltage is applied that is low enough to avoid disturbing the cell’s current state. By arranging ReRAM cells in a crossbar structure, the sys-tem can naturally perform VMM in the analog domain. In this configuration, matrix elements are encoded as conductance val-ues within the crossbar and input vectors are applied as voltage signals across the word-lines. According to Kirchho ff ’s law , the resulting currents collected on the bit-lines represent the output of the VMM operation, enabling e ffi cient parallel computation in-memory (Fig. 1(b)). Fig. 2 illustrates the overall procedure for mapping and placement of learning parameters, such as weight or kernel matrices and bias vectors, onto ReRAM-based PIM accelera-tors. Initially, the weights and biases from FC layers, as well as the kernels and biases from CONV layers, are transformed into suitable matrix formats to enable accurate VMM within the crossbar architecture. These formatted matrices are then mapped into corresponding conductance values for ReRAM cells and then placed in a suitable ReRAM crossbar, taking into account the hierarchy of crossbars, tiles, and memory banks. Learning parameters are mapped to conductance values of ReRAM crossbar cells as [10]: 
+
+gi, j = (gmax − gmin ) × wi, j − wmin 
+
+wmax − wmin 
+
++ gmin (3) where, w represents the weight /kernel parameters and g denotes the conductance of the ReRAM cells. gmax and gmin are the maximum and the minimum conductance values, respectively. Since the conductance of ReRAM cells is inherently non-negative, signed NN weights cannot be directly represented in 3...                       
+
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> Bl 0Bl 1Bl m
+> Sl 0Sl 1Sl m
+> Wl 0
+> Wl n
+> Wl 1
+> Positive Crossbar
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> Bl 0Bl 1Bl m
+> Sl 0Sl 1Sl m
+> Wl 0
+> Wl n
+> Wl 1
+> Negative Crossbar
+> Subtractor Subtractor
+> ... ...
+> ...
+> output 0output m
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> Bl 0Bl 1Bl m
+> Sl 0Sl 1Sl m
+> Wl 0
+> Wl n
+> Wl 1
+> Positive Crossbar
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> Bl 0Bl 1Bl m
+> Sl 0Sl 1Sl m
+> Wl 0
+> Wl n
+> Wl 1
+> Negative Crossbar
+> Subtractor Subtractor
+> ... ...
+> ...
+> output 0output mFigure 3: Dual crossbar architecture to store both positive and negative values of learning parameters.
+
+a single crossbar. Therefore, a dual-crossbar structure consist-ing of separate positive and negative crossbars has been pro-posed [3, 37] (as illustrated in Fig. 3). Each weight is encoded in di ff erential form as gi, j = g+  
+
+> i,j
+
+− g− 
+
+> i,j
+
+, where the absolute con-ductance value is programmed in the corresponding crossbar while the dual cell is set to gmin . The conductance of each cell is calculated by: 
+
+g+  
+
+> i,j
+
+=
+
+
+
+gi, j if wi, j ≥ 0
+
+gmin if wi, j < 0 , g−  
+
+> i,j
+
+=
+
+
+
+gi, j if wi, j ≤ 0
+
+gmin if wi, j > 0 (4) 
+
+2.3. Related Work 
+
+Several studies have investigated the reliability and vulner-ability of CNNs to both permanent and transient faults across a variety of hardware platforms, including CPUs, GPUs, ten-sor processing units (TPUs), FPGAs, application-specific in-tegrated circuits (ASICs) [1, 13, 38], and ReRAM-based PIM accelerators [21, 23, 39]. To recover the degraded accuracy of CNNs caused by faults in ReRAM-based accelerators, several software- and hardware-based methods have been proposed. Software-based methods typically focus on algorithmic strategies to mitigate the impact of both transient faults (e.g., re-sistance drift and process variation) and permanent faults. No-table methods include parameter mapping or remapping [22– 26], retraining [5, 12, 22, 25, 36, 40], fault- and variation-aware online training [5, 14, 16, 27, 28], and matrix transformation methods, e.g., row flipping, matrix permutation and value range transformation [41], all of which have been proposed to im-prove the reliability of the inference phase in NNs. While these methods can improve fault tolerance without modifying the hardware architecture, they often introduce additional com-putational cost or memory overhead. In particular, retraining and online training approaches require frequent weight updates, resulting in a large number of write operations in ReRAM de-vices. Prior studies report that the number of training iterations for on-device training can reach on the order of 10 4 −10 8, while the average endurance of a memristor cell is about 10 10 write cycles [20], potentially accelerating device wear-out. More-over, the e ff ectiveness of software-based fault-tolerant methods significantly degrades under high fault rates and large device variations. Prior study reports that when the fault rate exceeds approximately 10%-15% of crossbar cells, the classification ac-curacy of CNN models may drop by more than 20%–40% with remapping methods [42]. To specifically address faults in analog vector–matrix mul-tiplication, several architecture-aware approaches have been proposed. For instance, a row shu ffl ing method is introduced in [43], followed by post-processing computations to compen-sate the output errors. Several studies exploit the di ff erential property of the hardware structure (the presence of two cur-rent paths used to generate signed weights, such as in dual-crossbar structure with positive and negative crossbars or dif-ferential column structures) as an opportunity for fault com-pensation without requiring additional hardware [20, 23, 42]. In [23], a fault-aware weight decomposition (FAWD) method is proposed to mitigate the impact of stuck-at faults (SAFs) in binary ReRAM crossbars, while [42] extends this approach to analog ReRAM crossbars. In addition, the forward parameter tuning (FPT) scheme proposed in [44] exploits the statistical properties of DNN computations to update network parameters in binary ReRAM devices. Although these approaches can re-duce accuracy degradation caused by device-level faults, they often introduce additional computational overhead or require iterative parameter updates. In contrast, hardware-based methods improve system relia-bility by introducing redundancy or modifying peripheral cir-cuits [16, 35, 45]. A common approach is the use of er-ror detection and correction codes (ECC) [29–34], which em-ploy additional encoder and decoder circuits to detect and cor-rect errors. These circuits introduce extra hardware complex-ity and may result in approximately 15%-40% additional area and power overhead, depending on the coding scheme and im-plementation, while improve accuracy about 50%-60%. Re-dundancy can also be implemented through additional ReRAM cells [35], redundant rows or columns, or redundant computa-tion modules. For example, triple modular redundancy (TMR) replicates hardware modules three times and determines the final output using majority voting [45], which increases the hardware cost by nearly 200% compared with the baseline design. Other redundancy-based methods employ redundant columns or crossbars to replace faulty ReRAM columns [35]. A distribution-aware redundancy scheme was proposed in [35], which utilizes redundant ReRAM columns or crossbars to toler-ate SAFs, while redundancy ratios ranging from approximately 200% and 40% to 60% additional cells. However, applying redundancy in analog PIM accelerators is more challenging than in conventional memory designs. Consequently, conven-tional redundancy approaches, such as disabling entire rows or columns, may be too coarse-grained for analog computation and can lead to ine ffi ciencies in area, energy consumption, and latency. Hardware compensation methods have also been pro-posed, such as modified transimpedance amplifier (TIA) cir-cuits to compensate for SAF-induced error currents in ReRAM crossbar arrays [35, 46]. Despite extensive research on fault-tolerant techniques, most existing solutions are either designed for digital ReRAM cross-bars or focus on memory-oriented applications. These ap-proaches may not be directly suitable for analog ReRAM-based PIM accelerators that require accurate analog VMMs. Further-more, purely algorithm-level methods often become less ef-fective under high fault rates or large device variations, while 4hardware-based redundancy inevitably introduces additional hardware cost and power consumption. Therefore, combining hardware redundancy with software-based methods can provide a more balanced trade-o ff among reliability, hardware over-head, and classification accuracy. In this work, we investigate the impact of redundancy ratio on classification accuracy, mean time to failure (MTTF), en-ergy consumption, and area overhead in ReRAM-based PIM accelerators. We further optimize redundancy allocation to en-hance the reliability of ReRAM crossbars in the presence of SAFs. In addition, a fault-aware mapping algorithm is proposed to further reduce the accuracy loss caused by SAFs. Compared with prior studies, the proposed scheme jointly considers redun-dancy design and fault-aware weight remapping, enabling more effi cient and reliable computation in analog ReRAM-based ac-celerators. While prior work proposes valuable contributions, none provides a similar level of integration and e ffi ciency in tolerating SAFs in analog ReRAM-based accelerators. 
+
+3. ReSAFT: Fault-Tolerant Scheme for Analog ReRAM-Based PIM Accelerator 
+
+The proposed Stuck-At Fault-Tolerant scheme for ReRAM crossbar, called ReSAFT , proposes a hardware- software-based solutions to tolerate SAFs occurs in ReRAM crossbars that performs analog VMMs for CNNs. ReSAFT utilize a redundancy-based architecture with runtime fault-aware map-ping and remapping method to tolerate SaH and SaL faults e ffi -ciently. The overall workflow of the proposed ReSAFT is illus-trated in Fig. 4. The redundancy-based fault-tolerant ReRAM crossbar ( ReFTC ) architecture integrates a combination of re-dundant rows and columns into the ReRAM crossbar struc-ture to tolerate SAFs with minimal redundancy overhead. Un-like traditional methods that allocate redundancy heuristically, the ReFTC solution comprises two main stages: 1) employ-ing a Multi-Objective Optimization (MOO) approach at design time to determine an adequate number of redundant rows and columns by considering reliability, MTTF, energy consump-tion, latency, area, and the classification accuracy of CNNs, and 2) Once the hardware configuration is fabricated and the specific fault map of each crossbar is identified, a mapping and scheduling algorithm (called RMap) is applied at runtime to ef-ficiently utilize the available redundant rows and columns. The RMap maps faulty cells between redundant rows and columns and schedules the corresponding input voltages for redundant rows accordingly. To further enhance the fault tolerance of the accelerator, a Fault-Aware Dual crossbar Mapping ( FADM ) method is em-ployed at runtime to remap the conductance value of faulty cells to their corresponding dual cells in the positive or nega-tive ReRAM crossbars. we apply FADM specifically as a com-plementary and low-cost remapping method for the remaining faults that are not tolerated by the ReFTC architecture, as well as faults occurring in redundant rows and columns. Determine Number of Redundant Rows and Columns 
+
+> Determine Fault Map
+> Mapping to Redundant Rows and Column (RMap) and Scheduling Inputs of Redundant Rows
+> Dual Crossbar Fault-aware Mapping
+> Controller
+> Pre-trained
+> CNN
+> Design-time
+> Runtime
+> FADM
+> ReFTC
+> ReSAFT Scheme
+> Determine Number of Redundant Rows and Columns
+> Determine Fault Map
+> Mapping to Redundant Rows and Column (RMap) and Scheduling Inputs of Redundant Rows Dual Crossbar Fault-aware Mapping Controller
+> Pre-trained
+> CNN Design-time
+> Runtime
+> FADM ReFTC ReSAFT Scheme
+> Figure 4: The overall flow of the ReSAFT scheme.
+
+3.1. ReFTC: Redundancy-Based Fault-Tolerant ReRAM Cross-bar Architecture 
+
+The proposed redundancy-based fault-tolerant ReRAM crossbar architecture enhances the fault tolerance of ReRAM-based PIM accelerators against SaH and SaL faults by incor-porating redundant rows and columns into the ReRAM cross-bar architecture. The resulting design, referred to as the redundancy-based fault-tolerant ReRAM crossbar ( ReFTC ), ar-chitecture is illustrated in Fig. 5. As depicted in the figure, the conventional 1T1R structure is employed as the basic cell for both the main crossbar and the redundant rows and columns. To tolerate faulty cells within the main crossbar, the architecture includes r redundant rows and c redundant columns. Further-more, r × c auxiliary redundant cells are placed at the intersec-tions of the redundant rows and redundant columns (as shown in Fig. 5) to tolerate possible faults occurring in the redundant columns themselves. In the proposed ReFTC architecture, a combination of redun-dant rows and columns is employed to enhance fault tolerance. If only redundant columns are used in the architecture, a re-dundant column is required for each faulty column in the main crossbar. However, when multiple faults occur within a sin-gle column, all of them can be tolerated using just one redun-dant column. Conversely, if multiple faults occur in a single row of the main crossbar, multiple redundant columns would be needed to tolerate these faults. while, the same faults can be handled using just one redundant row. A similar principle ap-plies when only redundant rows are utilized. If a high number of faults occur in a single column of the main crossbar, multiple redundant rows would be necessary, whereas a single redun-dant column would su ffi ce. Therefore, our fault-tolerant archi-tecture utilizing a combination of redundant rows and columns can achieve higher e ffi ciency compared to using only redundant rows or columns. Additionally, the redundant row, which can perform analog VMMs, a higher number of faults occurring in di ff erent rows of the main crossbar can be tolerated by introducing additional cy-cles with fewer additional rows. However, this method incurs a time overhead. For example, if five faults occur in various rows and columns of the main crossbar, all the faults can be tolerated for within five additional cycles using only one addi-tional row. The more rows are added, the less significant this 5...                                                               
+
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> ...
+> g1,1 g1,2 g1,m
+> g2,1 g2,2 g2,m
+> gn,1 gn,2 gn,m
+> Bl 1Bl 2Bl m
+> Sl 1Sl 2Sl m
+> Wl 1
+> Wl n
+> Wl 2
+> ...
+> cg ’1,1
+> CSl ’1
+> cg ’2,1
+> cg ’n,1
+> Main Crossbar
+> ...
+> cg ’1, c
+> CSl ’c
+> cg ’2, c
+> cg ’n,c
+> ...
+> ...
+> ...
+> Redundant Columns
+> Redundant Rows
+> c: Number of Redundant Columns
+> r: Number of Redundant Rows
+> SL: Main Crossbar Select-Line
+> BL: Main Crossbar Bit-Line
+> WL: Main Crossbar Word-Line
+> BL ’: Redundant Column Bit-Line
+> WL ’: Redundant Row Word-Line
+> ...
+> ...
+> ...
+> Bl 1Bl 2Bl m
+> Wl ’n
+> Wl ’1
+> ...
+> ...
+> ...
+> rg ’1,1 rg ’1,2
+> Sl ’1Sl ’2Sl ’m
+> rg ’1, m
+> rg ’r,m rg ’r,2 rg ’r,1
+> ...
+> ...
+> ...
+> ag ’1,1
+> ag ’r,1
+> ...
+> ag ’1, c
+> ag ’r,c
+> ...
+> ...
+> ...
+> ... ASl ’cAsl ’1
+> Auxiliary Redundant Row/Column
+> Bl ’1Bl ’2
+> Bl ’1Bl ’2
+> g: Conductance of Main Cells
+> rg ’: Conductance of Redundant Row Cells
+> cg ’: Conductance of Redundant Column Cells
+> ag ’: Conductance of Auxiliary Redundant Cells
+> SL ’: Redundant Row Select-Line
+> CSL ’: Redundant Column Select-Line
+> ASL ’: Auxiliary Redundant Select-Line
+> ... ...
+> ...
+> ... ... ... ... ...
+> ...
+> g1,1 g1,2 g1,m
+> g2,1 g2,2 g2,m
+> gn,1 gn,2 gn,m
+> Bl 1Bl 2Bl m
+> Sl 1Sl 2Sl m
+> Wl 1
+> Wl n
+> Wl 2
+> ...
+> cg ’1,1
+> CSl ’1
+> cg ’2,1
+> cg ’n,1
+> Main Crossbar
+> ...
+> cg ’1, c
+> CSl ’c
+> cg ’2, c
+> cg ’n,c
+> ... ... ...
+> Redundant Columns Redundant Rows
+> c: Number of Redundant Columns
+> r: Number of Redundant Rows
+> SL: Main Crossbar Select-Line
+> BL: Main Crossbar Bit-Line
+> WL: Main Crossbar Word-Line
+> BL ’: Redundant Column Bit-Line
+> WL ’: Redundant Row Word-Line
+> ...
+> ...
+> ...
+> Bl 1Bl 2Bl m
+> Wl ’n
+> Wl ’1
+> ... ...
+> ...
+> rg ’1,1 rg ’1,2
+> Sl ’1Sl ’2Sl ’m
+> rg ’1, m
+> rg ’r,m rg ’r,2 rg ’r,1
+> ...
+> ... ...
+> ag ’1,1
+> ag ’r,1
+> ...
+> ag ’1, c
+> ag ’r,c
+> ... ... ... ... ASl ’cAsl ’1
+> Auxiliary Redundant Row/Column
+> Bl ’1Bl ’2
+> Bl ’1Bl ’2
+> g: Conductance of Main Cells
+> rg ’: Conductance of Redundant Row Cells
+> cg ’: Conductance of Redundant Column Cells
+> ag ’: Conductance of Auxiliary Redundant Cells
+> SL ’: Redundant Row Select-Line
+> CSL ’: Redundant Column Select-Line
+> ASL ’: Auxiliary Redundant Select-Line
+
+Figure 5: The proposed structure for redundancy-based fault-tolerant ReRAM crossbar (ReFTC). 
+
+overhead becomes. However, if multiple faults occur in di ff er-ent columns of the main crossbar, there should be a su ffi cient number of additional columns corresponding to the number of faulty columns. If the number of additional columns is fewer than the number of faulty columns, it will not be possible to tolerate all faults, even with additional cycles. 
+
+3.1.1. Mapping and Scheduling of Faulty Cells to Redundant Rows and Columns 
+
+Prior to the mapping stage, a fault detection procedure is ap-plied to the entire crossbar, including the redundant rows, re-dundant columns, and auxiliary cells, using algorithms such as March-C [7, 47, 48] and Squeeze-search [7] to generate a fault map. If faults are detected in the crossbar, the proposed map-ping method, called RMap , is applied to map faulty cells of the main crossbar to the available redundant rows or columns, as well as to map faults in redundant columns to the available auxiliary redundant cells. Using redundant columns, both SaH 
+
+and SaL faults occurring in a column of the main crossbar can be tolerated. However, SaL faults occurring in the main cross-bar or redundant columns cannot be tolerated using redundant rows, since a large current flows through the faulty cell and can-not be mitigated by the redundant rows. Therefore, redundant columns are prioritized for handling SaL faults during mapping. During the mapping stage, the proposed RMap algorithm considers not only faulty cells in the main crossbar but also faults occurring in the redundancy resources. If a fault is de-tected in a cell of a redundant column, the appropriate auxil-iary cell is used as a replacement. Faults occurring in redun-dant rows can often be tolerated through the proposed mapping and scheduling algorithm across the remaining redundant rows. Auxiliary cells are primarily used when a faulty cell appears in the redundancy structure and cannot be handled through remap-ping. When auxiliary cells are not used for replacement, they are programmed to the minimum conductance value ( gmin ) to avoid contributing current during VMM operations. In the proposed RMap method, the original conductance val-ues, denoted as gi, j, are mapped to redundant columns. The conductance values g′
+
+i, j of the redundant rows are configured such that the sum of the current from any column of the main crossbar ( Imain ) and the current from the corresponding redun-dant row Iredundant match the golden current value, Igolden . The fault tolerated current of j-th column ( IFT , j) is calculated by: 
+
+Ift , j ≈ Imain,j + Iredundant,j =
+
+n−1X
+
+i=0
+
+Vi · gi, j +
+
+n−1X
+
+i=0
+
+Vi · g′
+
+i, j,
+
+∀ j ∈ [0 , m] where g′
+
+i, j ∈ stuck-at cells (5) Therefore, if a SaH fault occurs in a cell, the conductance value mapped to the corresponding redundant row cell is calcu-lated by: 
+
+rg ′
+
+i, j = min ngi, j − gmin , gmin 
+
+o (6) where rg ′
+
+i, j represents the conductance of the redundant row for SaH faults. Moreover, a recent study of ReRAM crossbars reported that 9.04% of the cells exhibit SaH resistance states, whereas 1.75% exhibit SaL resistance states [17]. This finding indicates that SaH faults are more prevalent in ReRAM cross-bar arrays compared to SaL faults. Accordingly, the proposed ReFTC architecture prioritizes the use of redundant columns for tolerating columns containing SaL faults, followed by columns with a high density of SaH and SaL faults, while redundant rows are primarily utilized for tolerating distributed SaH faults. If the number of available redundant rows and columns is insu ffi cient to tolerate all detected faults, the remaining untolerated faults are further mitigated using the proposed FADM method. Since the redundant resources in ReFTC are limited, the proposed framework provides bounded fault tolerance depending on the allocated redundancy budget determined during the design-time optimization stage. Consequently, the e ff ectiveness of fault tol-erance depends on both the available redundancy resources and the remapping capability of FADM. The proposed RMap method follows several steps to map faulty cells to redundant rows and columns: 1. If the number of faulty cells within a specific column (row) of the main crossbar surpasses a predefined threshold, the conductance values of that entire column are mapped to a redundant column (row), and the original faulty column (row) is deactivated. 2. While there are unused redundant columns, columns with SaL faults are deactivated and mapped to redundant columns. 3. In cases where the fault count does not exceed the thresh-old, SaH faulty cells are instead mapped to redundant rows. 4. SaH faulty cells are mapped to the same column in redun-dant rows as their original positions in the main crossbar, ensuring the index alignment is preserved. 65. Columns of redundant rows that contain no faulty cells are deactivated, and their cells are programmed to the mini-mum conductance value, gmin .It is important to note that when the number of redundant rows is less than the number of rows in the main crossbar, faults from di ff erent rows of the main crossbar may be mapped to a single redundant row. In this scenario, di ff erent input voltage values must be applied to that row in successive cycles to ensure accurate computations, which causes serialization overhead. To mitigate the latency overhead of serialization, the RMap pri-oritizes redundant columns for mapping (Steps 1 and 2), and the algorithm maps only the remaining, distributed faults to re-dundant rows. To e ffi ciently manage the mapping of remaining faults in redundant rows, we propose a mapping and schedul-ing strategy that determines which input should be applied to each row during each cycle and which columns of the redundant rows should be activated. The proposed scheduling strategy is given in Algorithm 1. This algorithm is designed to map and schedule SaH faults from main crossbar rows to the available redundant rows. It begins by sorting the main crossbar rows in descending order based on the number of SaH faults, obtaining both the sorted fault counts and their corresponding indices. Then, while there are still unmapped SaH faults, the algorithm iteratively selects a main-crossbar row x, which has the highest number of un-mapped faults (and is non-zero), and assigns it to cycle col for the current redundant row r. This value of x serves as the in-put index for the current cycle (line 9). It then attempts to map faults from row x to the redundant row r (line 10 to 12). The input scheduling for each cycle is recorded in a list called cy-cle col , which is later added to the overall cycle list to track the input sequence for each redundant row. If there are remaining faults and only a few rows left, a final mapping cycle is per-formed to ensure all faults are addressed (lines 14 to 17). The output includes: 1) redundant row , a list of size r × m that indi-cates the mapping of SaH faults in redundant rows and 2) cycle, a list that indicates the sequence of inputs that should be applied to each row in each cycle. We explain the proposed structure with an example. Fig. 6 shows a faulty 10 × 10 crossbar with three redundant rows and one redundant column. A total of ten SaH faults and three SaL 
+
+faults are randomly distributed across the crossbar. The thresh-old for fault replacement is set to four. The column with in-dex 8 in the main crossbar contains three SaH faults and one 
+
+SaL fault. All conductance values in this faulty column are remapped to the redundant column which contain one SaH, and the same input voltages corresponding to their original rows are applied. After mapping to the redundant column, five rows still contain SaH and SaL faults. Based on the mapping and scheduling procedure of Algorithm 1, these faults are mapped to cells in the redundant rows, while the fault in the redundant column is mapped to an auxiliary redundant cell. Since the number of faulty rows is fewer than the number of redundant rows, faulty cells from multiple columns of the main crossbar can be mapped to a single redundant row. Therefore, di ff erent voltages are applied to the word-line of that redundant row in 
+
+Algorithm 1: Mapping and scheduling to redundant rows 
+
+Input: Row, Number or redundant rows, fault map 
+
+Output: redundant row (HRS fault mappings), cycle (to track the cycle mapping sequence)  
+
+> 1
+
+redundant row ← a 2D list initialized with ’ off ’ values;  
+
+> 2
+
+cycle ← [ ];  
+
+> 3
+
+Sort number of SaH faults in main rows in descending order, getting both sorted values and their corresponding indices;  
+
+> 4
+
+while all SaH faults are not yet mapped do  
+
+> 5
+
+cycle col ← a list of ’ off ’ values to represent the current mapping cycle;  
+
+> 6
+
+for each r in row do  
+
+> 7
+
+Retrieve the main row index x with the next highest number of SaH faults;  
+
+> 8
+
+if the fault count is greater than zero then  
+
+> 9
+
+cycle col [r] ← x;  
+
+> 10
+
+for each y in column do  
+
+> 11
+
+if an SaH fault exists at position [x, y] then  
+
+> 12
+
+redundant row[r, y] ← [x, y];  
+
+> 13
+
+Append cycle col to cycle ; 
+
+> 14
+
+if there are still faults to map and only a few rows left then  
+
+> 15
+
+Create a final mapping cycle cycle col last ; 
+
+> 16
+
+Map and schedule the remaining faults similarly;  
+
+> 17
+
+Append cycle col last to cycle ; 
+
+> 18
+
+return redundant row, cycle; g0,0  g0,1  g0,2  g0,3  g0,4  g0,5  g0,6  g0,7  g0,8  g0,9                                                                                                                                                                                                          
+
+> g1,0 g1,1 g1,2 g1,3 g1,4 g1,5 g1,6 g1,7 g1,8 g1,9
+> g2,0 g2,1 g2,2 g2,3 g2,4 g2,5 g2,6 g2,7 g2,8 g2,9
+> g3,0 g3,1 g3,2 g3,3 g3,4 g3,5 g3,6 g3,7 g3,8 g3,9
+> g4,0 g4,1 g4,2 g4,3 g4,4 g4,5 g4,6 g4,7 g4,8 g4,9
+> g5,0 g5,1 g5,2 g5,3 g5,4 g5,5 g5,6 g5,7 g5,8 g5,9
+> g6,0 g6,1 g6,2 g6,3 g6,4 g6,5 g6,6 g6,7 g6,8 g6,9
+> g7,0 g7,1 g7,2 g7,3 g7,4 g7,5 g7,6 g7,7 g7,8 g7,9
+> g8,0 g8,1 g8,2 g8,3 g8,4 g8,5 g8,6 g8,7 g8,8 g8,9
+> g9,0 g9,1 g9,2 g9,3 g9,4 g9,5 g9,6 g9,7 g9,8 g9,9
+> V0
+> V1
+> V2
+> V3
+> V4
+> V5
+> V6
+> V7
+> V8
+> V9
+> gmin g' 5,1 g' 4,6 g' 5,9
+> g' 8,0 gmin gmin g' 3,9
+> gmin gmin g' 2,6 gmin
+> V5V4
+> V8V3
+> V2off
+> C1C2
+> g0,8
+> g1,8
+> g2,8
+> g3,8
+> g4,8
+> g5,8
+> g6,8
+> g7,8
+> g8,8
+> g9,8
+> SaH cells
+> SaL cells
+> Ciith cycle
+> Off cells
+> gmin
+> gmin
+> g’8,8
+> g0,0 g0,1 g0,2 g0,3 g0,4 g0,5 g0,6 g0,7 g0,8 g0,9
+> g1,0 g1,1 g1,2 g1,3 g1,4 g1,5 g1,6 g1,7 g1,8 g1,9
+> g2,0 g2,1 g2,2 g2,3 g2,4 g2,5 g2,6 g2,7 g2,8 g2,9
+> g3,0 g3,1 g3,2 g3,3 g3,4 g3,5 g3,6 g3,7 g3,8 g3,9
+> g4,0 g4,1 g4,2 g4,3 g4,4 g4,5 g4,6 g4,7 g4,8 g4,9
+> g5,0 g5,1 g5,2 g5,3 g5,4 g5,5 g5,6 g5,7 g5,8 g5,9
+> g6,0 g6,1 g6,2 g6,3 g6,4 g6,5 g6,6 g6,7 g6,8 g6,9
+> g7,0 g7,1 g7,2 g7,3 g7,4 g7,5 g7,6 g7,7 g7,8 g7,9
+> g8,0 g8,1 g8,2 g8,3 g8,4 g8,5 g8,6 g8,7 g8,8 g8,9
+> g9,0 g9,1 g9,2 g9,3 g9,4 g9,5 g9,6 g9,7 g9,8 g9,9
+> V0
+> V1
+> V2
+> V3
+> V4
+> V5
+> V6
+> V7
+> V8
+> V9
+> gmin g' 5,1 g' 4,6 g' 5,9
+> g' 8,0 gmin gmin g' 3,9
+> gmin gmin g' 2,6 gmin
+> V5V4
+> V8V3
+> V2off
+> C1C2
+> g0,8
+> g1,8
+> g2,8
+> g3,8
+> g4,8
+> g5,8
+> g6,8
+> g7,8
+> g8,8
+> g9,8
+> SaH cells
+> SaL cells
+> Ciith cycle
+> Off cells
+> gmin
+> gmin
+> g’8,8
+
+Figure 6: An example of the proposed redundancy-based fault tolerance struc-ture. 
+
+di ff erent cycles. In Fig. 6, the voltages V5, V8, and V2 are ap-plied to the word line of redundant rows in the first cycle, while the voltages V4 and V3 are applied in the second cycle. The area and latency overheads of the proposed structure de-pend on the number of redundant rows and columns. In the worst case, the overhead can be in the order of O(N), while in the best case, it can be reduced to O(1). 
+
+3.1.2. Determining Number of Redundant Rows and Columns 
+
+The relationship between temporal and spatial redundancies as well as the number of rows and columns, involves a trade-o ff 
+
+that should be carefully analyzed and optimized to balance the effi ciency and accuracy. The goal is to select the number of re-dundant rows and columns that minimize energy consumption, latency, and area, while maximizing the MTTF. At the same 7time, the degradation in CNN accuracy due to faults should re-main within a given threshold. This section presents a com-prehensive analysis and model of how varying the number of redundant rows and columns a ff ects reliability, MTTF, energy consumption, latency, area, and CNN classification accuracy. Based on this analysis, an optimization algorithm is proposed to determine the optimal redundancy configuration. 
+
+3.1.2.1 Reliability of ReRAM Crossbar 
+
+Calculating the reliability of the proposed ReFTC is challeng-ing because redundant rows and columns operate independently and simultaneously. If fault occurs, a redundant column re-places an entire faulty column. However, if the mapping in-volves a redundant row, only the faulty cell is mapped to one of the redundant cells in the same column as the location in the main crossbar, allowing both rows to remain active simultane-ously. If redundant rows are fewer than main rows, multiple faults may share a single redundant row. The ReFTC system can tolerate SaH using either redundant rows or columns. However, SaL faults can be tolerated only with redundant columns, which are exclusively e ff ective for 
+
+SaH faults. The memory can operate as long as there are still usable cells in both main and redundant cells. Let n and m be the number of rows and columns in the ReRAM main crossbar, respectively, with c redundant columns and r redundant rows. The reliability of ReFTC depends on the reliability of redun-dant columns denoted as Rcols −FT and redundant rows, denoted as Rrows −FT .By considering redundant columns, the crossbar is reliable if at least m out of ( m + c) columns, the total columns of ReFTC (the sum of main and redundant columns) are opera-tional. Thus, the reliability of ReFTC based on the redundant columns can be expressed as: 
+
+Rcols-FT (t) =
+
+> m+c
+
+X
+
+> i=m
+
+m + ci
+
+! 
+
+Rcol (t)
+
+i
+
+1 − Rcol (t)
+
+m+c−i
+
+(7) where, Rcol is the reliability of a single column, which repre-sents the probability that a column remains operational over time t. Each column contains n independent cells with failure rate of λ. If a failure in any individual cell instantly causes the column to fail, the failure rate of a single column is λcol = nλ
+
+and the reliability of the column is Rcol (t) = e−λcol t = e−nλt.If we assume that a column fails only when at least j out of 
+
+n cells fail, the reliability of the column can be expressed us-ing the binomial distribution. The column remains functional if fewer than j cells fail. Therefore, the reliability of the column is given by: 
+
+Rcol- j cells fails (t) = 1 −
+
+> n
+
+X 
+
+> k=j
+
+nk
+
+! 1 − e−λtk e−λtn−k
+
+(8) MTTF is the expected value of time to fail, which is defined as MTTF col-FT = R ∞ 
+
+> 0
+
+Rcols (t) dt . MTTF of redundant columns when at least m columns operate correctly can be calculated as [49]: MTTF col-FT = 1
+
+λcol 
+
+> m+c
+
+X
+
+> i=m
+
+1
+
+i (9) By considering redundant rows, a maximum of r faults in a column of the main crossbar can be tolerated, allowing the crossbar to function correctly. However, if the number of faults in any columns of the main crossbar exceeds r, these faults cannot be masked using the redundant columns, and the sys-tem will fail. Therefore, the reliability and MTTF of redundant rows can be calculated as: 
+
+Rrows-FT (t) =
+
+ rX
+
+> k=0
+
+nk
+
+!
+
+(1 − e−λt)k(e−λt)n−k
+
+m
+
+(10) MTTF rows-FT =
+
+Z ∞
+
+> 0
+
+Rrows-FT (t) dt (11) The MTTF of a single crossbar is given by: MTTF crossbar =
+
+MTTF rows + MTTF cols . The MTTF of the whole system with 
+
+N crossbars is: MTTF system = min MTTF crossbar ,i , i =
+
+1, 2, . . . , N, where MTTF crossbar ,i denotes the MTTF of the i − th crossbar. When a CNN is deployed on ReRAM-based PIM accelerator, the system is considered to have failed if the CNN classification error in the presence of faults in the ReRAM crossbar cells ex-ceeds a predefined threshold ε, compared to the error when the system is fault-free. Consequently, once all redundant rows or columns are fully utilized, it is no longer possible to tolerate additional faults, resulting in a degradation of the CNN’s accu-racy. In order to validate the mathematical modeling of MTTF for this complex system, a Monte Carlo simulation was performed. Each simulation used the proposed ReFTC architecture with a 256 × 256 crossbar array and up to 256 redundant rows and columns. Both SaH and SaL faults were randomly injected into the crossbar using an exponential distribution with failure rates of λSaH = λSaL = 10 −5. The faulty cells were remapped to appropriate cells in the redundant rows and columns accord-ing to the proposed RMap method. The system was tracked over time to detect the earliest occurrence of an intolerable fault, i.e., when no redundant resources remained to tolerate new faults. MTTF was then calculated as the average failure time over 10,000 Monte Carlo iterations. Fig. 7 shows the MTTF of the proposed ReFTC with di ff er-ent numbers of redundant rows and columns, normalized to a non-redundant 256 × 256 crossbar, evaluated using mathemati-cal modeling and Monte Carlo simulation. Both mathematical modeling and Monte Carlo simulation demonstrate a consistent trend. As the number of redundant rows and columns increases, the MTTF improves significantly. The increase in MTTF is greater when adding redundant columns rather than redundant rows, because they can tolerate both SaH and SaL faults, while redundant rows can only tolerate SaH faults. The analytical surface in Fig. 7(a) is smooth and continu-ous, reflecting the deterministic nature of the mathematical for-mulation. Compared to the analytical model, the Monte Carlo 8Number of Redundant Rows    
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+> 032 64 96 128 160 192 224 256
+> Normalized MTTF
+> 025 50 75 100 125 150 175 200
+> 025 50 75 100 125 150 175 200
+
+(a) Number of Redundant Rows     
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+> 032 64 96 128 160 192 224 256
+> Normalized MTTF
+> 025 50 75 100 125 150 175 200
+> 025 50 75 100 125 150 175 200
+
+(b) 
+
+Figure 7: MTTF of the ReFTC with di ff erent number of redundant rows /columns, normalized to that of a 256 × 256 main-crossbar, a) Mathemath-ical modeling, b) Monte Carlo Simulation. 
+
+surface in Fig. 7(a) is less smooth and exhibits local fluctua-tions due to the stochastic nature of the simulation. These vari-ations are more significant in configurations with low redun-dancy, where the system is more sensitive to the fault distribu-tion. Monte Carlo simulation provides a more accurate estimation of the MTTF of the crossbar than the analytical model. A com-parison between the analytical MTTF model and Monte Carlo simulation reveals a mean relative error (MRE) of 19.58% and a Pearson correlation coe ffi cient (PCC) of 0.9569. Although the high and close-to-1 PCC indicates a strong positive correlation between the two methods, the MRE is moderate and some vi-sual deviations between the two curves are observable in Fig. 7, especially in low-redundancy configurations. These deviations reflect the approximation error in the analytical model. Never-theless, the model successfully captures the overall trend and behavior of the system and o ff ers su ffi cient accuracy for fast and scalable MTTF estimation. 
+
+3.1.2.2 Energy Consumption 
+
+In general, adding redundant rows /columns increases the size of crossbar, which consequently leads to an increase in both its latency and energy consumption. The energy consumption of a crossbar can be calculated as the sum of the power consumption of read and write operations, multiplied by the latency of each operation, along with the leakage power during idle states as: 
+
+Ecrossbar = Pread ×latency read +Pwrite ×latency write +Pleakage ×Tidle 
+
+(12) where Pread , Pwrite , and Pleakage represent the power consump-tion of read operations, write operations, and leakage power, respectively. Additionally, latency read , latency write , and Tidle de-note the latency of read and write operations and the idle state duration, respectively. The latency of read and write operations depends on the dimensions of the crossbar as well as the wiring delays. Therefore, as the crossbar size increases, the latency also increases due to the extended length of communication lines. In an accelerator operating in the inference phase, the number of write operations is typically much lower than that of read operations. Therefore, the majority of system power and energy is consumed by read operations. To compute the power consumption of read operations in a crossbar, the power of individual cells can be calculated and Number of Redundant Rows   
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+> 0 32 64 96 128 160 192 224 256
+> Crossbar read Latency Overhead (%)
+> 0.000 0.001 0.002 0.003 0.004 0.005 0.006
+> 0.000 0.002 0.004 0.006 0.008 0.010
+
+(a) Number of Redundant Rows    
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+> 0 32 64 96 128 160 192 224 256
+> Crossbar read Energy Overhead (%)
+> 050 100 150 200 250 300
+> 050 100 150 200 250 300 350 400
+
+(b) 
+
+Figure 8: The impact of the number of redundant rows and columns on a) the latency and b) the energy consumption of the read operation in a 256 ×256 main crossbar. 
+
+summed. The read operation power is generally derived by: 
+
+Pread =
+
+nrX
+
+i=1
+
+mrX
+
+j=1
+
+V2
+
+i × Gi j (13) where Vi is the applied voltage to the row and Gi j represents the conductance of the cell at row i and column j. The vari-ables nr and mr indicate the number of active rows and columns where read operations occur, respectively. To simplify the esti-mation of total power consumption in the crossbar during a read operation, an approximate model can be utilized as Eq. 14, as-suming that all cells have an identical resistance ( R) (equivalent resistance) and all rows receive an identical input voltage ( V)(equivalent voltage). This behavioral model is not exact but can be employed to analyze and compare the impact of redundant rows and columns on energy consumption: 
+
+Pread-est = nr × mr × V2
+
+R (14) The power consumption equation for write operations is sim-ilar to that of read operations and can be generally derived as Eq. 15 and be approximated as Eq. 16. 
+
+Pwrite =
+
+nwX
+
+i=1
+
+mwX
+
+j=1
+
+V2prog ,i × Gi j (15) 
+
+Pwrite-est = nw × mw × V2prog 
+
+R (16) where Vprog is the voltage applied to a cell during the write operation. The parameters nw and mw represent the number of cells in the rows and columns where write operations occur. The impact of the number of redundant rows and columns on the read latency and energy consumption of the read operation in a 256 × 256 main crossbar are shown in Figs. 8(a) and 8(b), respectively. 
+
+3.1.2.3 Latency 
+
+The number of redundant columns does not a ff ect the number of cycles required for performing VMM operations. However, the number of redundant rows can alter the number of required cycles. Since cells from di ff erent rows of the main crossbar may be mapped to a single redundant row, inputs from two dif-ferent rows of the main crossbar should be provided to that row 90 32 64 96 128 160 192 224 256   
+
+> Number of Redundant Rows
+> 032 64 96 128 160 192 224 256
+> Latency Overhead (Cycles) Figure 9: Worst-case latency overhead for di ff erent numbers of redundant rows in a 256 ×256 main crossbar.
+
+in successive cycles. According to the fault distribution, as the number of redundant rows increases, the number of required cycles will decrease, while a smaller number of redundant rows may result in more required cycles. In the worst case, the maxi-mum number of required cycles is roughly related to l nr
+
+m, under the assumption of exclusive row redundancy. However, in prac-tice, the actual latency overhead is highly dependent on factors such as the number of redundant rows and columns, the fault distribution, and the e ffi ciency of the mapping algorithm. By employing both row and column redundancy in the ReFTC ar-chitecture, and applying the RMap algorithm, faulty cells are distributed across both dimensions. Consequently, the need to map multiple faulty rows into a single redundant row is signifi-cantly reduced. Therefore, the real latency overhead is expected to be significantly lower than the worst-case bound. The worst-case number of required cycles to perform VMM operation with di ff erent number of redundant rows in a 256 ×
+
+256 main crossbar is shown in Fig. 9. As shown in this figure, there is an inverse relationship between the number of redun-dant rows and the number of required cycles to perform VMM operations. A small number of redundant rows can drastically increase the latency overhead. In a 256 × 256 main crossbar with fewer than 16 redundant rows, more than 16 additional cy-cles are required to perform VMM operations. whereas, with more than 64 redundant rows, fewer than four additional cycles is added to performing VMM operation. 
+
+3.1.2.4 Area 
+
+Let n and m be the number of rows and columns in the main crossbar, respectively. The total area of the ReRAM crossbar without redundancy can be calculated as: 
+
+Amain-crossbar = n × m × Acell (17) where Acell is the area of a single memory cell, and for a 1T1R 
+
+ReRAM structure, it can be estimated as [50]: 
+
+Acell = 3
+
+ WL + 1
+
+
+
+× F2 (18) where W/L is the transistor technology parameter, and F is the feature size. By adding r redundant rows and t redundant columns, the total area of the FT-crossbar can be calculated as Eq. 19. The redundant rows and columns occupy the same area per cell as the main crossbar cells. Number of Redundant Rows        
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+> 032 64 96 128 160 192 224 256
+> Area Overhead (%)
+> 050 100 150 200 250 300
+> 050 100 150 200 250 300
+> Figure 10: Area overhead for di ff erent numbers of redundant rows and columns in a 256 ×256 main crossbar.
+
+Aredundant = [( r × n) + (c × m) + (r × c)] × Acell (19) The total area of the crossbar memory, including both the main crossbar and the redundancy, is the sum of the areas calcu-lated by Eqs. 17 and 19. In addition to the memory cells them-selves, there is also some area overhead associated with logic circuits that manage the remapping of faulty rows or columns to redundant ones. The area overhead with di ff erent number of redundant rows and columns in a 256 × 256 main crossbar is shown in Fig. 10. 
+
+3.1.2.5 Accuracy 
+
+Top-1 accuracy measures the proportion of correct predictions and is a proper metric to evaluate the impact of faults on CNNs and the e ff ectiveness of the ReSAFT scheme under faulty con-ditions. Exhaustively evaluating the accuracy of CNNs under all pos-sible combinations of redundant rows and columns is time and resource expensive. For example, for a 256 × 256 main cross-bar, considering 257 possible values (ranging from 0 to 256) for each redundancy types leads to over 65 , 000 configurations. Computing the accuracy of CNNs for all these combinations is not practical, especially for deeper networks or larger cross-bars. To address this challenge, we first evaluated the classifi-cation accuracy of CNNs under varying numbers of redundant rows and columns separately, and fitted two independent mod-els, Accuracy row (r) and Accuracy col (c), respectively. This ap-proach required only 514 simulations in total (257 for rows and 257 for columns), in contrast to over 65 , 000 simulations needed for all possible combinations. However, these one-dimensional models cannot directly estimate the accuracy for arbitrary ( r, c)combinations. Therefore, we propose an approximation model in which the total redundancy r + c is used as the input to both functions, and their outputs are averaged as: Accuracy FT (r, c) = Accuracy row (r + c) + Accuracy col (r + c)2 (20) This approach provides a good balance between accuracy and computational e ffi ciency, reducing the need for exhaustive simulations while maintaining acceptable estimation error. 10 3.1.3. Optimization Problem 
+
+In this section, an optimization algorithm is presented to de-termine the optimal values for the number of redundant rows ( r)and columns ( c), aiming to optimize multiple objective func-tions, including MTTF, energy consumption, area, and latency. This problem falls into the category of MOO, as it involves con-flicting objectives: while energy consumption, latency, and area should be minimized, the MTTF, which corresponds to the min-imum MTTF among all crossbars, should be maximized. Additionally, classification accuracy is considered as a constraint, ensuring that the accuracy deviation be-tween the proposed redundancy-based fault-tolerant acceler-ator ( Accuracy FT ) and the baseline classification accuracy (Accuracy Baseline ) remains less than a predefined threshold ε.The value of ε depends on the CNN model and its application, directly a ff ecting the number of optimal solutions. The range of redundant rows and columns is defined as [0 , n] and [0 , m], respectively. We can formulate this problem as Eqs. 21 to 25. min Energy system =
+
+> Ncrossbar
+
+X
+
+> i=1
+
+Energy crossbar ,i (21) min Latency system = max nLatency crossbar ,i
+
+o , 1 < i < Ncrossbar 
+
+(22) min Area system = Ncrossbar × Area crossbar (23) max MTTF system = min MTTF crossbar ,i , 1 < i < Ncrossbar 
+
+(24) 
+
+Accuracy Baseline − Accuracy FT ≤ ε
+
+0 ≤ r ≤ n, r ∈ N
+
+0 ≤ c ≤ m, c ∈ N
+
+(25) 
+
+3.2. FADM: Fault-Aware Weight Mapping in Dual ReRAM Crossbar 
+
+In the dual-crossbar architecture, which is originally em-ployed to store positive and negative weight values, faulty ReRAM cells can also be tolerated using their corresponding cells in the opposite crossbar. Since two types of faults ( SaH 
+
+and SaL ) may occur in both positive and negative crossbars, each crossbar can be in one of three states: fault-free, SaH ,or SaL . Therefore, a pair of dual crossbars can experience nine possible fault cases. Among these cases, one corresponds to the fault-free condition, four cases occur when faults a ff ect a cell in both crossbars simultaneously (representing double faults) and are therefore intolerable. The remaining four cases involve a fault in only one crossbar (representing single faults) and can be tolerated using the proposed FADM method by exploiting the complementary dual-crossbar structure. The proposed FADM method is particularly e ff ective for tolerating SaL faults in the positive crossbar, SaH faults in the negative crossbar, as well as faults located in redundant rows and columns. For the weight matrix illustrated in Fig. 11(a), the ideal (fault-free) condutance mapping in dual crossbars are shown in Fig. 11(b). Meanwhile, Fig. 11(c) demonstrates the tolerance of 
+
+SaL faults in the positive crossbar and SaH in negative crossbar, achieved by utilizing their corresponding cells in the opposite crossbar. Eqs. 26 to 29 calculate the required conductivity values for the proposed mapping to mitigate the e ff ect of faults. In these equations, g+  
+
+> (i,j)
+
+and g−  
+
+> (i,j)
+
+represent the original conductivity val-ues that should be programmed in cell ( i, j) of the positive and negative crossbars, respectively, in the absence of faults. Con-versely, g+  
+
+> (i,j)
+> ∗
+
+and g−  
+
+> (i,j)
+> ∗
+
+denote the fault-aware conductivity val-ues that should be programmed in the corresponding cells when faults occur. It should be noted that these conductance values should fall within the range of [ gmin , gmax ]. In the first case, if cell ( i, j) in positive crossbar is in the SaH 
+
+resistance state, then the conductance value in that cell will be equal to minimum conductance value ( g+∗  
+
+> (i,j)
+
+= gmin ). The fault-aware value that should be mapped to relevant cell in negative crossbar will be given as: 
+
+g−∗   
+
+> (i,j)
+
+= g−  
+
+> (i,j)
+
++ gmin − g+  
+
+> (i,j)
+
+(26) In the second case, if cell ( i, j) in the positive crossbar is in the SaL resistance state, then the conductance value in that cell will be equal to maximum conductance value ( g+∗  
+
+> (i,j)
+
+= gmax ). The fault-aware value that should be mapped to relevant cell in negative crossbar will be given as: 
+
+g−∗   
+
+> (i,j)
+
+= g−  
+
+> (i,j)
+
++ gmax − g+  
+
+> (i,j)
+
+(27) In the third case, if cell ( i, j) in negative crossbar is in the SaH 
+
+resistance state, then the conductance value in that cell will be equal to minimum conductance value ( g−∗   
+
+> (i,j)
+
+= gmin ). The fault-aware value that should be mapped to relevant cell in positive crossbar will be given as: 
+
+g+∗  
+
+> (i,j)
+
+= g+  
+
+> (i,j)
+
++ gmin − g−  
+
+> (i,j)
+
+(28) In the fourth case, if cell ( i, j) in negative crossbar is in the 
+
+SaL resistance state, then the conductance value in that cell will be equals to maximum conductance value ( g−∗   
+
+> (i,j)
+
+= gmax ). The fault-aware value that should be mapped to relevant cell in pos-itive crossbar will be given as: 
+
+g+∗  
+
+> (i,j)
+
+= g+  
+
+> (i,j)
+
++ gmax − g−  
+
+> (i,j)
+
+(29) Depending on whether the NN weight is positive or nega-tive, and the location of SaH and SaL faults in the positive or negative crossbar, the faults can either be tolerated or not. The corresponding fault-aware conductance values for the positive and negative crossbar cells are presented in Table 1. When the weight is positive and an SaH occurs in the positive crossbar cell, the value of Eq. 26 will be less than gmin , and it cannot be tolerated. Similarly, in the intolerable states, when the weight is positive and a SaL fault occurs in the negative crossbar cell, or when the weight is negative and an SaL fault occurs in the positive crossbar cell, or when an SaH fault occurs in the neg-ative crossbar cell, or in cases where the corresponding cells in both crossbars experience faults, these faults cannot be toler-ated. Symmetric intolerable double fault cases, such as ( SaH ,
+
+SaH ) and ( SaL , SaL ), functionally act as ideal states when the target weight is zero ( wi, j = 0). 11 0.12  -0.05  -0.35                     
+
+> 0.8 -0.2 0.18
+> -0.23 0.4 0
+> 0.12 -0.05 -0.35
+> 0.8 -0.2 0.18
+> -0.23 0.4 0
+> Weight Matrix
+> 0.12 -0.05 -0.35
+> 0.8 -0.2 0.18
+> -0.23 0.4 0
+> Weight Matrix (a) Positive Crossbar Negative Crossbar
+> gmin
+> gmin
+> gmin gmin gmin
+> gmin
+> gmin gmin
+> gmin
+
+Ideal Crossbar                        
+
+> g+
+> 12 g+
+> 12
+> g-
+> 02 g-
+> 02 g-
+> 01 g-
+> 01
+> g-
+> 11 g-
+> 11
+> g-
+> 20 g-
+> 20
+> g+
+> 00 g+
+> 00
+> g+
+> 10 g+
+> 10
+> g+
+> 21 g+
+> 21 g+
+> 22 g+
+> 22
+> Positive Crossbar Negative Crossbar
+> gmin
+> gmin
+> gmin gmin gmin
+> gmin
+> gmin gmin
+> gmin
+
+Ideal Crossbar              
+
+> g+
+> 12
+> g-
+> 02 g-
+> 01
+> g-
+> 11
+> g-
+> 20
+> g+
+> 00
+> g+
+> 10
+> g+
+> 21 g+
+> 22 (b) Positive Crossbar Negative Crossbar
+> gmin
+> gmin
+> gmin gmin
+> gmin
+> gmin gmin
+
+Faulty Crossbar                      
+
+> gmax
+> SaH
+> SaL
+> gmin
+> g-
+> 20 g-
+> 20
+> g-
+> 02 g-
+> 02 g+
+> 00 g+
+> 00 g+
+> 01 *g+
+> 01 *
+> g+
+> 10 g+
+> 10
+> g+
+> 21 g+
+> 21 g+
+> 22 g+
+> 22
+> g-
+> 11 g-
+> 12 *
+> Positive Crossbar Negative Crossbar
+> gmin
+> gmin
+> gmin gmin
+> gmin
+> gmin gmin
+
+Faulty Crossbar              
+
+> gmax
+> SaH
+> SaL
+> gmin
+> g-
+> 20
+> g-
+> 02 g+
+> 00 g+
+> 01 *
+> g+
+> 10
+> g+
+> 21 g+
+> 22
+> g-
+> 11 g-
+> 12 *(c)
+
+Figure 11: An example of fault-aware weight mapping (FADM) in a dual crossbar, (a) weight matrix, (b) ideally mapped dual-crossbar, and (c) fault-tolerant dual-crossbar for SaL and SaH in positive and negative crossbars. respectively. Table 1: Fault-aware conductance values in the positive and negative crossbar cells 
+
+Weight value Fault location Positive crossbar conductance Negative crossbar conductance State 
+
+W > 0Fault-free g+  
+
+> (i,j)
+
+gmin Ideal 
+
+SaH in the positive crossbar gmin g−∗   
+
+> (i,j)
+
+= gmin Intolerable faults 
+
+SaL in the positive crossbar gmax g−∗   
+
+> (i,j)
+
+= gmax − g+  
+
+> (i,j)
+
++ gmin Tolerable faults 
+
+SaH in the negative crossbar g+∗  
+
+> (i,j)
+
+= g+  
+
+> (i,j)
+
+gmin Tolerable faults 
+
+SaL in the negative crossbar g+∗  
+
+> (i,j)
+
+= gmax gmax Intolerable faults 
+
+W < 0Fault-free gmin g−  
+
+> (i,j)
+
+Ideal 
+
+SaH in the positive crossbar gmin g−∗   
+
+> (i,j)
+
+= g−  
+
+> (i,j)
+
+Tolerable faults 
+
+SaL in the positive crossbar gmax g−∗   
+
+> (i,j)
+
+= gmax Intolerable faults 
+
+SaH in the negative crossbar g+∗  
+
+> (i,j)
+
+= gmin gmin Intolerable faults 
+
+SaL in the negative crossbar g+∗  
+
+> (i,j)
+
+= gmax + gmin − g−  
+
+> (i,j)
+
+gmax Tolerable faults Although FADM does not provide high fault coverage, it sig-nificantly improves reliability with negligible hardware over-head. The reason for proposing FADM is to combine it with the ReFTC architecture (and other methods) to improve accu-racy while reducing both hardware and software overhead. 
+
+4. Evaluation and Analysis 
+
+4.1. Experiment Setup 
+
+To evaluate the performance of our proposed methods, we conducted a set of experiments using well-known CNN models, including SimpleNet [51], LeNet5 [52], VGG8 [53], 
+
+VGG11 [53], and ResNet18 [54]. SimpleNet and LeNet5 were trained on the MNIST dataset, which consists of handwritten digits, while VGG8 and ResNet18 were trained on the CIFAR-10 [55] dataset, a collection of small, color images. Both 
+
+MNIST [52] and CIFAR-10 datasets contain 60,000 images for training and 10,000 images for testing, classified into ten di ff er-ent classes. The specifications of the CNN models evaluated in this study are presented in Table 2. PyTorch with the MemTorch 
+
+library are used to model ReRAM-based DNNs and evaluate classification accuracy of faulty and non-faulty crossbars. All ReRAM devices were simulated using the VTEAM model [56], with RON = 1.4 × 10 4 and ROFF = 1.4 × 10 7.To estimate metrics such as accuracy, energy consump-tion, latency, and area utilization, the ReRAM-based PIM ar-chitecture was built using MNSIM2.0 [50], an open-source behavioral-level modeling tool for memristor-based PIM archi-tectures. We modified the crossbar architectures and add re-dundant rows /columns and peripheral circuit. For the ReRAM-based crossbar array (RCA) configuration, we adopted a 256 ×
+
+256 dual-crossbar tile structure. This configuration includes positive and negative crossbars to store the positive and neg-ative CNN learning parameters, respectively. The RCA was implemented using a 1T1R structure with redundant rows and columns, as well as CMOS-based peripheral circuits, fabricated using TSMC 45nm device technology. Moreover, to solve the proposed MOO problem, we use the Non-dominated Sorting Genetic Algorithm-II (NSGA-II) [57] algorithm, and its implementation was conducted us-ing the Python Multi-Objective Optimization (PYMOO) frame-work [58], a dedicated Python library for multi-objective opti-mization. PYMOO provides a comprehensive set of tools for analyzing and managing trade-o ff s among competing objec-tives. 
+
+4.2. Classification Accuracy of CNN Models on ReFTC Archi-tecture 
+
+To analyze the impact of the number of redundant rows and columns on the fault tolerance of the proposed ReFTC archi-tecture, the learning parameters of two CNNs, LeNet5 and Sim-pleNet , were mapped onto ReRAM crossbars. Each row and column can tolerate a certain number of faults without a ff ecting the classification accuracy. However, if the number of faults ex-ceeds a specific threshold, the redundant rows and columns are not able to tolerate all of faults. Therefore, the classification ac-curacy degrades as the number of faults increases. Accordingly, when the fault count is low, the classification accuracy does not 12 Table 2: Specifications of the CNN models under study 
+
+CNNs Dataset Baseline Accuracy Accuracy in HW # of CONV Layers # of FC Layers Total Parameters Total Size ( MB )SimpleNet MNIST 99.42% 99.36% 2 2 431,080 1.76 LeNet5 MNIST 99.26% 99.19% 2 3 44,426 0.3 VGG8 Cifar-10 93.45% 93.36% 6 3 13,499,530 62.54 VGG11 Cifar-10 86.14% 85.39% 8 1 9,231,114 38.94 ResNet18 Cifar-10 89.42% 88.76% 20 1 11,173,962 53.89 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256                        
+
+> Number of Redundant Rows
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+> 032 64 96 128 160 192 224 256
+> Max Latency Overhead (Cycle)
+> LeNet5
+> Faulty Crossbar ReFTC Baseline Crossbar Latency
+> (a) 016 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256
+> Number of Redundant Columns
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+> LeNet5
+> Faulty Crossbar ReFTC Baseline Crossbar (b)
+
+Figure 12: Classification accuracy and latency of ReFTC for the LeNet5 model with varying numbers of (a) redundant rows and (b) redundant columns. 
+
+change. A recent study reported that approximately 9.04% and 1.75% of ReRAM cells are a ff ected by SaH and SaL faults, re-spectively [17]. Therefore, SaL and SaH faults were randomly injected into 2% and 10% of the cells in a 256 × 256 crossbar with 65,536 cells, corresponding to 1310 and 6553 faulty cells, respectively. The classification accuracy of the LeNet5 and Sim-pleNet , after being mapped onto a fault-free ReRAM accelera-tor, was 99.19% and 99.36%, respectively. However, after in-jecting faults into the ReRAM cells, the accuracy dropped to 43.34% and 75.66%, respectively. The proposed mapping and scheduling algorithms were executed for redundant rows and columns ranging from 0 to 256. The classification accuracy and maximum delay across 1000 experimental iterations of the pro-posed method for LeNet5 and SimpleNet , with varying numbers of rows and columns, are presented in Figs. 12 and 13, respec-tively. As shown in Figs. 12(a) and 13(a), by increasing the num-ber of redundant rows, the classification accuracy of LeNet5 
+
+and SimpleNet increases gradually. The maximum accuracy increments for SimpleNet and LeNet5 are about 13.36% and 38.01%, respectively. Moreover, the worst-case latency over-head of VMM operation decreases proportionally to the inverse of the number of rows. As shown in Figs. 12(b) and 13(b), by increasing the number of redundant columns, the classification accuracy increases more than with redundant rows. Because, redundant columns can be utilized to tolerate both types of SaH 
+
+and SaL faults. The maximum accuracy increment is about 17.49% for SimpleNet and 45.77% for LeNet5 . Since redun-dant columns introduce no latency overhead, they are excluded from Figs. 12(b) and 13(b). Various linear and nonlinear regression models were ex-amined to analyze the relationship between the number of rows /columns and classification accuracy and model 
+
+Accuracy row (r) and Accuracy col (c). The appropriate regression model for the relationship between the number of rows and classification accuracy is a nonlinear quadratic regression, with coe ffi cient of determination ( R2) values of 0.98 and 0.96 for the 
+
+SimpleNet and LeNet5 models, respectively, indicating that the model fits the data well. The appropriate regression model for the relationship between the number of columns and classifi-cation accuracy is a nonlinear logarithmic regression, with an 
+
+R2 value of 0.86 for both models. In Fig. 14, the quadratic and logarithmic regression models for the relationship between the number of redundant rows and columns in the SimpleNet and 
+
+LeNet5 models are shown. The fault-tolerant accuracy model 
+
+Accuracy FT (r, c), defined in Eq. 20, was used to estimate the classification accuracy of SimpleNet and LeNet5 running on the ReFTC architecture. The average estimation error was about 5.23% for SimpleNet and 4.78% for LeNet5 compared to simu-lation result of 100 random configurations of ( r, c). 
+
+4.3. Evaluation of Fault-Aware Weight Mapping in Dual ReRAM Crossbar (FADM) 
+
+To evaluate the e ffi ciency of the proposed FADM method in a dual positive and negative crossbar, varying number of SaH 
+
+and SaL faults are injected into positive and negative ReRAM crossbars. Then, the fault-aware conductance values for faulty cells are calculated based on Eqs. 26 to 29 and remapped to their corresponding dual cells. Variations and faults in memory cells can cause discrepan-cies between the e ff ective conductance value and the ideal con-ductance we want to program. To measure the deviation in weight storage and programming, the summed weight varia-tions ( S WV ) metric is employed. S WV quantifies the dif-ference between the ideal weight value ( W) and the e ff ective weight value ( We f f ) [24]. It is computed by, SWV =
+
+> N
+
+X
+
+> i=1
+> M
+
+X
+
+> j=1
+
+weff   
+
+> i,j
+
+− wi, j (30) 13 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256     
+
+> Number of Redundant Rows
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+> 032 64 96 128 160 192 224 256
+> Max Latency Overhead (Cycle)
+> SimpleNet
+> Faulty Crossbar ReFTC Baseline Crossbar Latency
+
+(a) 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256    
+
+> Number of Redundant Columns
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+> SimpleNet
+> Faulty Crossbar ReFTC Baseline Crossbar
+
+(b) 
+
+Figure 13: Classification accuracy and latency of the ReFTC for the SimpleNet model with varying numbers of (a) redundant rows and (b) redundant columns. 0 32 64 96 128 160 192 224 256 Number of Redundant Rows 50 55 60 65 70 75 80 Accuracy (%) 
+
+> y = -0.0004x² + 0.24x + 46.60
+> Regression Models Fit for LeNet5
+> Actual Data Quadratic Fit
+
+(a) 0 32 64 96 128 160 192 224 256 Number of Redundant Columns 40 50 60 70 80 90 Accuracy (%)  
+
+> y = 8.54 log(x) + 39.12
+> Regression Models Fit for LeNet5
+> Actual Data Logarithmic fit
+
+(b) 0 32 64 96 128 160 192 224 256 Number of Redundant Rows 76 78 80 82 84 86 88 Accuracy (%) 
+
+> y = -0.0002x² + 0.09x + 77.43
+> Regression Models Fit for SimpleNet
+> Actual Data Quadratic Fit
+
+(c) 0 32 64 96 128 160 192 224 256 Number of Redundant Columns 78 80 82 84 86 88 90 92 Accuracy (%)  
+
+> y = 2.73 log(x) + 77.20
+> Regression Models Fit for SimpleNet
+> Actual Data Logarithmic fit
+
+(d) 
+
+Figure 14: Regression models for the relationship between the number of a) redundant rows in LeNet5 , b) redundant columns in LeNet5 , c) redundant rows in SimpleNet and d) redundant columns in SimpleNet .
+
+where w(i, j) represents the weight value at position ( i, j) in the weight matrix W. A higher S WV value indicates a greater de-viation from the ideal weights, leading to increased errors and, consequently, a more significant accuracy loss. The results of 20,000 fault injection iterations are presented in Fig. 15, covering various fault percentages. These experi-ments involve randomly assigned weight matrix values and the injection of SaH and SaL faults at random locations. The re-sults of normalized S WV for conventional mapping method, Fault-Aware Weight Decomposition for analog ReRAM arrays (FAWD-A) mapping method [42], and our proposed FADM are reported in Fig. 15. On average, our proposed FADM can fur-ther reduce S WV by 82% (5 times) compared to conventional mapping method, while FAWD-A reduce SWV by 75%. Additionally, we evaluated the fault coverage capability of FADM under various fault rates by measuring the ratio of tol-erable and intolerable fault cases in the dual-crossbar structure, as reported in Table 3. The results show that although FADM is constrained by the weight sign, fault type, and fault distribu-
+
+Table 3: The percentages of tolerable vs intolerable fault cases of dual crossbar. 
+
+Fault Rates (%) SaH:1, SaL:1 SaH:1, SaL:2 SaH:10, SaL:1 SaH:10, SaL:2 SaH:10, SaL:20 SaH:20, SaL:20 Tolerable States 50.35% 50.78% 52.85% 53.18% 58.18% 60.96% Intolerable States 49.64% 49.22% 47.15% 46.82% 41.82% 39.04% tion, it can still e ff ectively tolerate approximately 50%–60% of all fault cases. At low fault rates (e.g., SaH : 1%, SaL : 1%), most non-ideal cases correspond to single faults. Since the distribu-tions of positive and negative weights in the neural network are approximately balanced, a single fault has nearly equal proba-bilities of resulting in either a tolerable state or an intolerable state. As a result, the tolerable ratio remains close to 50%, which is consistent with the reported value of 50.35% in Ta-ble 3. As the fault rates increase (e.g., 20%), the probability of simultaneous double faults increases significantly. In the dif-ferential dual-crossbar structure, symmetric double faults such as ( SaH , SaH ) and ( SaL , SaL ) naturally compensate for each other, resulting in an e ff ective di ff erential conductance close to zero. Since a large portion of the weights in trained CNNs are either exactly zero or close to zero, these symmetric double-fault conditions become functionally aligned with the intended weight values and are therefore classified as ideal or e ff ectively tolerable states. Consequently, although the absolute number of faulty cells increases, the proportion of tolerable states also rises, reaching 60.96% at the 20% fault rate. These results demonstrate that FADM can maintain substantial fault coverage even under severe fault conditions, making it a practical com-plementary technique that can be e ff ectively integrated with other fault-tolerant methods to further improve system reliabil-ity. To evaluate the proposed FADM on classification accuracy of CNNs, varying numbers of SaH and SaL faults were injected into the ReRAM crossbar. The accuracy of the non-faulty cross-bar, faulty accuracy, and accuracy incremented after applying the proposed method are shown Fig. 16. As the number of faults increases, the classification accuracy decreases; however, the proposed method e ff ectively mitigates the impact of SaH 
+
+and SaL faults. On average, FADM increases the accuracy of 
+
+SimpleNet and LeNet5 by approximately 17.04% and 19.9%, and for VGG8 , VGG11 , and ResNet18 , the accuracy increases by about 17.48%, 14.91%, and 21.16%, respectively. 14 SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20 Average   
+
+> Fault Rate (%)
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Normalized SWV
+> Conventional Mapping FAWD-A Mapping FADM
+
+Figure 15: The result of SWV in di ff erent fault rates in a 256 × 256 ReRAM crossbar. Baseline SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20 Baseline SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20 Baseline SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20 Baseline SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20 Baseline SaL:1, SaH:1 SaL:1, SaH:10 SaL:2, SaH:1 SaL:2, SaH:10 SaL:20, SaH:10 SaL:20, SaH:20       
+
+> Fault Rates (%) per Model
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+> SimpleNet LeNet5 VGG8 VGG11 ResNet18
+> Faulty Crossbar FADM Baseline Crossbar
+
+Figure 16: Classification Accuracy of FADM mapping to a 256 × 256 main crossbar for di ff erent fault rate per model. 
+
+In the next step, the proposed FADM method is applied to the redundancy-based fault-tolerant ReRAM crossbar, referred to as the ReSAFT. The results of classification accuracy for 
+
+LeNet5 and SimpleNet after FADM with varying numbers of redundant rows and columns are shown in Figs. 17 and 18. The average, minimum, and maximum percentages of accuracy in-crement based on the faulty crossbar, as well as the accuracy of the multi-FT-crossbar, are reported in Table 4. As shown in Figs. 17(a) and 18(a)) and reported in Ta-ble 4, applying the FADM mapping in the redundancy-based FT-crossbar has significantly increased classification accuracy. Even in cases where a small number of rows or columns could not increase the accuracy, the FADM mapping still increased the accuracy to a greater extent. The average classification ac-curacy for di ff erent numbers of redundant rows and columns in the multi-FT-crossbar is 89.17% and 89.02% for LeNet5 , and 95.02% and 95.55% for SimpleNet , respectively. 
+
+4.4. MOO Problem Analysis 
+
+To solve the proposed MOO problem, the NSGA-II is uti-lized, which is a widely used evolutionary algorithm for multi-objective optimization. This algorithm e ffi ciently explores the design space and identifies a set of optimal solutions, known as the Pareto front, for the number of redundant rows and columns, ensuring an e ff ective trade-o ff among all objectives. The result of optimal number of rows and columns for dif-ferent value of ε on SimpleNet model, based on NSGA-II algo-rithm, is shown in Fig. 19. As mentioned above, there is no best solution but a set of semi-optimal solutions are provided by the algorithm that cover as much as the objective space as possible. 
+
+Table 4: Classification accuracy results of the FADM mapping applied to the ReFTC. 
+
+LeNet5 SimpleNet Redundant Row Redundant Column Redundant Row Redundant Column Baseline Crossbar Accuracy 99.19% 99.19% 99.36% 99.36% Faulty Crossbar Accuracy 43.34% 43.34% 75.66% 75.66% ReFTC Accuracy Increment Average 25.59% 34.69% 9.58% 13.98% Min 3.69% 2.69% 0.69% 1.41% Max 38.01% 45.77% 13.37% 17.49% FADM Accuracy Increment Average 20.24% 10.98% 9.78% 5.91% Min 13.37% 4.41% 6.57% 3.52% Max 31.05% 28.04% 15.97% 15.22% ReSAFT Accuracy Average 89.17% 89.02% 95.02% 95.55% Min 73.67% 72.65% 91.60% 92.08% Max 95.23% 94.92% 95.67% 96.96% 
+
+Table 5: The number of optimal solutions for redundant rows and columns for 
+
+SimpleNet and LeNet5 .
+
+Model ε = 9% ε = 10% ε = 15% ε = 20% SimpleNet 23 41 73 88 LeNet5 18 38 79 91 For example, a 256 × 256 main crossbar, and the constraint of 
+
+r, c ∈ [0 , 256], the design space contains 66,049 possible so-lutions that only limited number of them satisfy the objective functions. The number of semi-optimal solutions shown in Ta-ble 5. Since ε is a constraint in the problem, smaller values of ε
+
+make the problem more challenging, leading to fewer optimal solutions. Conversely, as ε increases, the number of solutions grows, and they better fulfill the problem’s objectives. There-fore, the designer should select a solution from the Pareto front based on the specific application requirements and the relative importance of each objective. We compared the proposed method with two representative baseline configurations with just 256 redundant rows (rows-only) or 256 redundant columns (columns-only), same as the size of main crossbar. These configurations represent the fun-damental row-wise and column-wise redundancy strategies and serve as fair baselines for evaluation. Fig. 20 illustrates the nor-malized results of MTTF improvement and energy consump-tion, area, and latency overhead for four di ff erent optimized ReFTC configurations, compared to two baseline configura-tions. The results are normalized to an ideal fault-free ReRAM without any redundancy. We assume that the accuracy con-straint is ε = 15%. Each configuration o ff ers a distinct trade-o ff 
+
+between reliability and overheads, allowing designers to select the most suitable option based on the system requirements. For instance, using 87 redundant rows and 19 redundant columns yields a 56 × improvement in MTTF with a 43% increase in energy consumption compare to the baseline. The area and en-ergy overheads are reduced by approximately 28% compared to rows-only or columns-only configurations, while the latency overhead increases by about 3 ×. In contrast, a configuration with 163 redundant rows and 16 redundant columns achieves a higher MTTF improvement of 127 ×, at the cost of a 169% in-crease in energy consumption. Since redundant columns mask 15 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256 
+
+Number of Redundant Rows 
+
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+
+LeNet5     
+
+> Faulty-Crossbar ReFTC FADM ReSaFT Baseline Crossbar
+
+(a) 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256 
+
+Number of Redundant Columns 
+
+> 010 20 30 40 50 60 70 80 90 100
+> Classification Accuracy (%)
+
+LeNet5      
+
+> Faulty-Crossbar ReFTC FADM ReSaFT Baseline Crossbar
+
+(b) 
+
+Figure 17: Classification accuracy of FADM applied to the ReFTC for the LeNet5 model with varying numbers of (a) redundant rows and (b) redundant columns. 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256 
+
+Number of Redundant Rows 
+
+> 65 70 75 80 85 90 95 100
+> Classification Accuracy (%)
+
+SimpleNet     
+
+> Faulty-Crossbar ReFTC FADM ReSaFT Baseline Crossbar
+
+(a) 0 16 32 48 64 80 96 112 128 144 160 176 192 208 224 240 256 
+
+Number of Redundant Columns 
+
+> 65 70 75 80 85 90 95 100
+> Classification Accuracy (%)
+
+SimpleNet      
+
+> Faulty-Crossbar ReFTC FADM ReSaFT Baseline Crossbar
+
+(b) 
+
+Figure 18: Classification accuracy of FADM applied to the ReFTC for the SimpleNet model with varying numbers of (a) redundant rows and (b) redundant columns. 0 32 64 96 128 160 192 224 256 
+
+Number of Redundant Rows 
+
+> 032 64 96 128 160 192 224 256
+> Number of Redundant Columns
+
+= 9% 
+
+= 10% 
+
+= 15% 
+
+= 20% 
+
+Figure 19: Semi-optimal combinations of redundant rows and columns for Sim-pleNet .
+
+both SaH and SaL faults, columns-only configuration achieves higher MTTF, but has more area and energy overhead. Table 6 presents the classification accuracy of the SimpleNet 
+
+model for four optimized ReFTC configurations with FADM. While faults reduce the baseline accuracy from 99.33% to 75.66%, by applying the proposed ReFTC, the accuracy im-proves by an average of 18.71%. Furthermore, incorporating the FADM algorithm yields an additional average improvement of 2.98%, resulting in a total accuracy enhancement of 21.7% achieved by the proposed ReSAFT scheme. 
+
+5. Conclusion 
+
+This work addresses a critical reliability bottleneck in ana-log ReRAM-based PIM accelerators for CNN inference by tar-r:4, c:69 r:46, c:33 r:87, c:19 r:163, c:16 columns only rows only 020 40 60 80 100 120 140 
+
+> Normalized MTTF
+
+(a) r:4, c:69 r:46, c:33 r:87, c:19 r:163, c:16 columns only rows only 0.0 0.5 1.0 1.5 2.0 2.5 3.0  
+
+> Normalized Energy Overhead
+
+(b) r:4, c:69 r:46, c:33 r:87, c:19 r:163, c:16 columns only rows only 0.0 0.5 1.0 1.5 2.0 2.5 3.0 
+
+> Normalized Area Overhead
+
+(c) r:4, c:69 r:46, c:33 r:87, c:19 r:163, c:16 columns only rows only 010 20 30 40 50 60 70  
+
+> Normalized Latency Overhead
+
+(d) 
+
+Figure 20: Normalized (a) MTTF improvement, (b) energy overhead, (c) area overhead, and (d) latency overhead for four optimized ReFTC configurations compared to the baseline ReRAM crossbar under ε = 15%. 
+
+geting SAFs. We present fault-tolerant ReRAM crossbar ar-chitecture that combines hardware redundancy, through both redundant rows and columns, with adaptive mapping and in-put voltage scheduling methods. This architecture e ff ectively mitigates both SaH and SaL faults with minimal impact on de-sign overhead and without sacrificing inference accuracy. We conducted a comprehensive evaluation to investigate how vary-16 Table 6: Classification accuracy for optimized ReFTC configurations and two baseline model with FADM on the SimpleNet model.                             
+
+> Baseline Faulty Crossbar ReFTC ReSAFT r:4, c:69 99.33% 75.66% 93.59% 96.82% r:46, c:33 99.33% 75.66% 93.84% 97.23% r:87, c:19 99.33% 75.66% 94.33% 97.69% r:163, c:165 99.33% 75.66% 95.72% 97.86% columns-only 99.33% 75.66% 91.07% 95.96% rows-only 99.33% 75.66% 88.03% 94.65%
+> r: number of redundant rows, c: number of redundant columns
+
+ing the number of redundant rows and columns a ff ects key de-sign metrics of ReRAM Accelerator, such as MTTF, energy consumption, latency, area, and the classification accuracy of CNNs. Based on the modeling of these metrics, an optimiza-tion problem with NSGA-II algorithm was presented to find the optimal number of redundant rows and columns that cover as much as the objective space as possible. Additionally, a fault-aware mapping and input scheduling to redundant rows and columns was performed. Furthermore, the incorporation of a fault-aware weight mapping within both positive and neg-ative crossbars ensures further compensating for the accuracy degradation caused by SAFs. Based on the Pareto front de-rived from the optimization problem, four distinct configura-tions that fulfill the problem’s objectives, were analyzed, re-sulting in an improvement of approximately 22.39% in the in-ference accuracy of the SimpleNet model. Overall, our pro-posed ReSAFT scheme substantially improves the reliability and computational e ffi ciency of analog ReRAM-based accel-erators, making them more suitable for deployment in safety-critical and high-precision deep learning applications. 
+
+References 
+
+[1] Y. Ibrahim, et al., Soft errors in DNN accelerators: A comprehensive review, Microelectron. Reliab. 115 (2020) 113969. [2] A. Shafiee, et al., ISAAC: a convolutional neural network accelerator with in-situ analog arithmetic in crossbars, in: ACM /IEEE Int. Symp. Comput. Archit. (ISCA), 2016, pp. 14–26. [3] P. Chi, et al., PRIME: A novel processing-in-memory architecture for neural network computation in ReRAM-based main memory, in: ACM /IEEE Int. Symp. Comput. Archit. (ISCA), 2016, pp. 27–39. [4] L. Song, et al., Pipelayer: A pipelined ReRAM-based accelerator for deep learning, in: IEEE Int. Symp. High Perform. Comput. Archit. (HPCA), 2017, pp. 541–552. [5] B. Liu, et al., Vortex: Variation-aware training for memristor x-bar, in: ACM /EDAC /IEEE Des. Autom. Conf. (DAC), 2015, pp. 1–6. [6] A. Grossi, et al., Resistive RAM endurance: Array-level characteriza-tion and correction techniques targeting deep learning applications, IEEE Trans. Electron Devices 66 (2019) 1281–1288. [7] K. Beckmann, et al., Nanoscale hafnium oxide rram devices exhibit pulse dependent behavior and multi-level resistance capability, MRS Adv. 1 (2016) 3355–3360. [8] Z. He, et al., Noise injection adaption: End-to-end ReRAM crossbar non-ideal e ff ect adaption for neural network mapping, in: ACM /IEEE Des. Autom. Conf. (DAC), 2019, pp. 1–6. [9] I. Chakraborty, et al., GENIEx: A generalized approach to emulating non-ideality in memristive xbars using neural networks, in: ACM /IEEE Des. Autom. Conf. (DAC), 2020, pp. 1–6. [10] C. Lammie, M. R. Azghadi, MemTorch: A simulation framework for deep memristive crossbar architectures, in: IEEE Int. Symp. Circuits Syst. (ISCAS), 2020, pp. 1–5. [11] J. Li, M. Mao, C. Chakrabarti, Improving reliability of reram-based DNN implementation through novel weight distribution, in: IEEE Int. Work-shop Signal Process. Syst. (SiPS), 2019, pp. 189–194. [12] G. Charan, et al., Accurate inference with inaccurate RRAM devices: A joint algorithm-design solution, IEEE J. Explor. Solid-State Comput. De-vices Circuits 6 (2020) 27–35. [13] G. Gambardella, et al., E ffi cient error-tolerant quantized neural network accelerators, in: IEEE Int. Symp. Defect Fault Toler. Nanotechnol. Syst. (DFT), 2019, pp. 1–6. [14] L. Xia, et al., Fault-tolerant training enabled by on-line fault detection for RRAM-based neural computing systems, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 38 (2019) 1611–1624. [15] E. Cheshmikhani, H. Farbeh, H. Asadi, A system-level framework for analytical and empirical reliability exploration of STT-MRAM caches, IEEE Trans. Reliab. 69 (2020) 594–610. [16] I. Yeo, et al., Stuck-at-fault tolerant schemes for memristor crossbar array-based neural networks, IEEE Trans. Electron Devices 66 (2019) 2937– 2945. [17] C.-Y. Chen, et al., RRAM defect modeling and failure analysis based on march test and a novel squeeze-search scheme, IEEE Trans. Comput. 64 (2015) 180–190. [18] S. Mittal, A survey of ReRAM-based architectures for processing-in-memory and neural networks, Mach. Learn. Knowl. Extr. 1 (2018) 75– 114. [19] R. V. W. Putra, M. A. Hanif, M. Shafique, RescueSNN: Enabling reli-able executions on spiking neural network accelerators under permanent faults, Front. Neurosci. 17 (2023) 1159440. [20] Z. Song, et al., ITT-RNA: Imperfection tolerable training for RRAM-crossbar-based deep neural-network accelerator, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 40 (2021) 129–142. [21] A. Dorostkar, H. Farbeh, H. R. Zarandi, An empirical fault vulnerabil-ity exploration of ReRAM-based process-in-memory CNN accelerators, IEEE Trans. Reliab. 74 (2024) 2290–2304. [22] C. Liu, et al., Rescuing memristor-based neuromorphic design with high defects, in: ACM /EDAC /IEEE Des. Autom. Conf. (DAC), 2017, pp. 1–6. [23] H. Shin, M. Kang, L. S. Kim, Fault-free: A framework for analysis and mitigation of stuck-at-fault on realistic ReRAM-based DNN accelerators, IEEE Trans. Comput. 72 (2023) 2011–2024. [24] Y. Ma, L. Zheng, P. Zhou, A mapping method tolerating SAF and varia-tion for memristor crossbar array based neural network inference on edge devices, ACM J. Emerg. Technol. Comput. Syst. 19 (2023) 1–21. [25] Y. Huang, et al., Bit-aware fault-tolerant hybrid retraining and remapping schemes for rram-based computing-in-memory systems, IEEE Trans. Cir-cuits Syst. II: Express Briefs 69 (2022) 3144–3148. [26] C.-H. Tung, et al., Dynamic task remapping for reliable CNN training on ReRAM crossbars, in: Des. Autom. Test Eur. Conf. Exhib. (DATE), 2023, pp. 1–6. [27] S. Wang, et al., Fault-tolerant deep neural networks for processing-in-memory based autonomous edge systems, in: Des. Autom. Test Eur. Conf. Exhib. (DATE), 2022, pp. 424–429. [28] P. Dhingra, et al., FARe: Fault-aware GNN training on ReRAM-based PIM accelerators, in: Des. Autom. Test Eur. Conf. Exhib. (DATE), 2024, pp. 1–6. [29] M. Liu, et al., Fault tolerance for rram-based matrix operations, in: IEEE Int. Test Conf. (ITC), 2018, pp. 1–10. [30] Q. Lou, et al., Embedding error correction into crossbars for reliable ma-trix vector multiplication using emerging devices, in: ACM /IEEE Int. Symp. Low Power Electron. Des. (ISLPED), 2020, pp. 139–144. [31] M. Wang, et al., Theory study and implementation of configurable ECC on RRAM memory, in: Non-Volatile Mem. Technol. Symp. (NVMTS), 2015, pp. 1–3. [32] X. Peng, et al., DNN +NeuroSim v2.0: An end-to-end benchmarking framework for compute-in-memory accelerators for on-chip training, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 40 (2021) 2306– 2319. [33] K. X. Pinto, et al., Double adjacent error correction in RRAM matrix multiplication using weighted checksums, in: IEEE Int. Symp. On-Line Test. Robust Syst. Des. (IOLTS), 2024, pp. 1–5. [34] M. Liu, et al., Algorithmic fault detection for rram-based matrix opera-tions, ACM Trans. Des. Autom. Electron. Syst. 25 (2020) 1–31. [35] L. Xia, et al., Stuck-at fault tolerance in RRAM computing systems, IEEE 
+
+17 J. Emerg. Sel. Top. Circuits Syst. 8 (2018) 102–115. [36] L. Chen, et al., Accelerator-friendly neural-network training: Learning variations and defects in RRAM crossbar, in: Des. Autom. Test Eur. Conf. Exhib. (DATE), 2017, pp. 19–24. [37] Y. Sun, et al., Unary coding and variation-aware optimal mapping scheme for reliable ReRAM-based neuromorphic computing, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 40 (2021) 2495–2507. [38] J. J. Zhang, K. Basu, S. Garg, Fault-tolerant systolic array based accelera-tors for deep neural network execution, IEEE Des. Test 36 (2019) 44–53. [39] V. Sawal, H. Y. Wong, Stuck-at faults in ReRAM neuromorphic circuit array and their correction through machine learning, in: IEEE Latin Am. Electron Devices Conf. (LAEDC), 2024, pp. 1–4. [40] W. Li, et al., RRAMedy: Protecting ReRAM-based neural network from permanent and soft faults during its lifetime, in: IEEE Int. Conf. Comput. Des. (ICCD), 2019, pp. 91–99. [41] B. Zhang, et al., Handling stuck-at-fault defects using matrix transfor-mation for robust inference of DNNs, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 39 (2020) 2448–2460. [42] H. Bang, et al., DCR: Decomposition-aware column re-mapping for stuck-at-fault tolerance in ReRAM arrays, in: IEEE Int. Conf. Comput. Des. (ICCD), 2023, pp. 491–494. [43] F. Zhang, M. Hu, Defects mitigation in resistive crossbars for analog vec-tor matrix multiplication, in: Asia South Pac. Des. Autom. Conf. (ASP-DAC), 2020, pp. 187–192. [44] C. Quan, et al., Training-free stuck-at fault mitigation for ReRAM-based deep learning accelerators, IEEE Trans. Comput.-Aided Des. Integr. Cir-cuits Syst. 42 (2023) 2174–2186. [45] C.-F. Lee, et al., A 1.4Mb 40-nm embedded reram macro with 0 .07 um 2
+
+bit cell, 2.7mA /100MHz low-power read and hybrid write verify for high endurance application, in: IEEE Asian Solid-State Circuits Conf. (A-SSCC), 2017, pp. 9–12. [46] C. Huang, et al., E ffi cient and optimized methods for alleviating the im-pacts of ir-drop and fault in rram based neural computing systems, IEEE J. Electron Devices Soc. 9 (2021) 645–652. [47] Y.-X. Chen, J.-F. Li, Fault modeling and testing of 1t1r memristor mem-ories, in: IEEE VLSI Test Symp. (VTS), 2015, pp. 1–6. [48] A. J. V. D. Goor, Y. Zorian, E ff ective march algorithms for testing single-order addressed memories, J. Electron. Test. 5 (1994) 337–345. [49] W. Kuo, M. J. Zuo, Optimal Reliability Modeling: Principles and Appli-cations, 1st Edition, John Wiley & Son, 2003. [50] Z. Zhu, et al., MNSIM 2.0: A behavior-level modeling tool for processing-in-memory architectures, IEEE Trans. Comput.-Aided Des. Integr. Circuits Syst. 42 (2023) 4112–4125. [51] Examples /mnist at master · pytorch /examples, 17 February 2023. URL https://github.com/pytorch/examples 
+
+[52] Y. Lecun, et al., Gradient-based learning applied to document recognition, Proc. IEEE 86 (1998) 2278–2324. [53] K. Simonyan, A. Zisserman, Very deep convolutional networks for large-scale image recognition, in: Int. Conf. Learn. Represent. (ICLR), 2015. [54] K. He, et al., Deep residual learning for image recognition, in: IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2016, pp. 770–778. [55] A. Krizhevsky, et al., Learning multiple layers of features from tiny im-ages (2009) 7. [56] S. Kvatinsky, et al., VTEAM: A general model for voltage-controlled memristors, IEEE Trans. Circuits Syst. II: Express Briefs 62 (2015) 786– 790. [57] K. Deb, et al., A fast and elitist multiobjective genetic algorithm: NSGA-II, IEEE Trans. Evol. Comput. 6 (2002) 182–197. [58] J. Blank, K. Deb, Pymoo: Multi-objective optimization in python, IEEE Access 8 (2020) 89497–89509. 
+
+18

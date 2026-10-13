@@ -1,15 +1,15 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-13T01:15:01.942497+00:00",
+  "generated_at": "2026-10-13T23:07:05.656566+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
     "deep_divecandidates": 0,
     "deep_cap": 6,
     "deep_selected": 0,
-    "quick_candidates": 3,
+    "quick_candidates": 4,
     "quick_skim_target": 11,
-    "quick_selected": 3
+    "quick_selected": 4
   },
   "deep_dive": [],
   "quick_skim": [
@@ -36,13 +36,13 @@
         "query:noc-arch"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "joint hardware configuration and mapping of AI inference on CPU/GPU/NPU edge SoCs",
-      "llm_evidence_cn": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
-      "llm_evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
-      "canonical_evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
-      "llm_tldr_en": "Targeting heterogeneous edge SoCs with CPUs, GPUs and NPUs, this paper proposes an agentic design space exploration flow that jointly selects hardware configurations and maps AI inference workloads, outperforming black-box search under latency and energy constraints.",
-      "llm_tldr_cn": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时时延与能耗约束下联合映射AI推理负载并配置各单元的组合空间呈爆炸式增长，穷举搜索不可行。本文提出基于智能体的设计空间探索方法，联合完成硬件配置选择与工作负载映射。相比进化搜索等黑箱优化，该方法能更高效地在庞大搜索空间中找到满足约束的配置。该工作为异构边缘SoC上AI推理的软硬件协同优化提供了新思路。",
-      "llm_tldr": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时时延与能耗约束下联合映射AI推理负载并配置各单元的组合空间呈爆炸式增长，穷举搜索不可行。本文提出基于智能体的设计空间探索方法，联合完成硬件配置选择与工作负载映射。相比进化搜索等黑箱优化，该方法能更高效地在庞大搜索空间中找到满足约束的配置。该工作为异构边缘SoC上AI推理的软硬件协同优化提供了新思路。",
+      "llm_evidence_en": "design space exploration mapping AI inference on CPU GPU NPU edge SoCs",
+      "llm_evidence_cn": "面向CPU/GPU/NPU边缘SoC的AI推理设计空间探索",
+      "llm_evidence": "面向CPU/GPU/NPU边缘SoC的AI推理设计空间探索",
+      "canonical_evidence": "面向CPU/GPU/NPU边缘SoC的AI推理设计空间探索",
+      "llm_tldr_en": "Mapping AI inference onto heterogeneous edge SoCs with CPUs, GPUs and NPUs is a combinatorial joint hardware-config problem. This work uses agentic LLM-guided design space exploration to jointly select PUs and configurations under latency and energy constraints.",
+      "llm_tldr_cn": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，各有不同性能与能耗特性；在实时时延与能耗约束下部署AI推理，需联合完成工作负载到PU的映射及每个PU的配置（活跃核数、频率等），该联合空间组合爆炸，穷举不可行。现有设计空间探索多采用进化搜索等黑盒优化，每次评估仅返回时延、能耗等聚合指标。本文提出基于智能体的设计空间探索方法，借助LLM引导进行联合硬件配置选择与映射。该工作推进了面向AI加速的异构芯片架构协同优化。",
+      "llm_tldr": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，各有不同性能与能耗特性；在实时时延与能耗约束下部署AI推理，需联合完成工作负载到PU的映射及每个PU的配置（活跃核数、频率等），该联合空间组合爆炸，穷举不可行。现有设计空间探索多采用进化搜索等黑盒优化，每次评估仅返回时延、能耗等聚合指标。本文提出基于智能体的设计空间探索方法，借助LLM引导进行联合硬件配置选择与映射。该工作推进了面向AI加速的异构芯片架构协同优化。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
@@ -75,12 +75,12 @@
       ],
       "llm_score": 6.0,
       "llm_evidence_en": "FPGA-based GCN accelerator with sparsification and approximate computing",
-      "llm_evidence_cn": "结合稀疏化与近似计算的FPGA图卷积加速器",
-      "llm_evidence": "结合稀疏化与近似计算的FPGA图卷积加速器",
-      "canonical_evidence": "结合稀疏化与近似计算的FPGA图卷积加速器",
-      "llm_tldr_en": "This work builds an FPGA-based GCN accelerator on AMD Kria KV260 combining DSpar sparsification, 8-bit quantization and approximate multipliers, showing that the benefit of approximate arithmetic is governed by accumulation depth across graphs of varying density.",
-      "llm_tldr_cn": "图卷积网络在资源受限边缘平台上部署困难，稀疏图聚合带来沉重计算与访存负担。本文在AMD Kria KV260上构建FPGA GCN加速器，融合DSpar图稀疏化、8比特量化与近似乘法器进行协同优化。在Cora、LastFM Asia和Amazon Photo等不同密度图上评估，结果表明近似算术的收益取决于GCN计算中的累加深度。该工作揭示了稀疏化与近似计算的交互规律，为边缘端图神经网络能效加速提供设计参考。",
-      "llm_tldr": "图卷积网络在资源受限边缘平台上部署困难，稀疏图聚合带来沉重计算与访存负担。本文在AMD Kria KV260上构建FPGA GCN加速器，融合DSpar图稀疏化、8比特量化与近似乘法器进行协同优化。在Cora、LastFM Asia和Amazon Photo等不同密度图上评估，结果表明近似算术的收益取决于GCN计算中的累加深度。该工作揭示了稀疏化与近似计算的交互规律，为边缘端图神经网络能效加速提供设计参考。",
+      "llm_evidence_cn": "FPGA图卷积网络加速器与近似计算",
+      "llm_evidence": "FPGA图卷积网络加速器与近似计算",
+      "canonical_evidence": "FPGA图卷积网络加速器与近似计算",
+      "llm_tldr_en": "GCN deployment on edge platforms is limited by sparse graph aggregation cost. This work builds an FPGA GCN accelerator combining DSpar sparsification, 8-bit quantization, and approximate multipliers. Results show approximate arithmetic effectiveness is governed by accumulation depth, improving energy efficiency.",
+      "llm_tldr_cn": "图卷积网络在资源受限边缘平台上部署受稀疏图聚合的计算与存储开销制约。本文在AMD Kria KV260上构建FPGA图卷积加速器，结合DSpar图稀疏化、8位量化与近似乘法器，并在多个不同密度的图上评估稀疏化与近似的交互作用。结果显示近似算术的有效性由累积深度决定，为节能GCN加速器的稀疏化与近似协同设计提供依据。",
+      "llm_tldr": "图卷积网络在资源受限边缘平台上部署受稀疏图聚合的计算与存储开销制约。本文在AMD Kria KV260上构建FPGA图卷积加速器，结合DSpar图稀疏化、8位量化与近似乘法器，并在多个不同密度的图上评估稀疏化与近似的交互作用。结果显示近似算术的有效性由累积深度决定，为节能GCN加速器的稀疏化与近似协同设计提供依据。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
@@ -116,13 +116,50 @@
         "query:noc-arch"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "Accelerating transformer inference on RISC-V for edge AI chips",
-      "llm_evidence_cn": "面向边缘AI芯片的RISC-V Transformer推理加速",
-      "llm_evidence": "面向边缘AI芯片的RISC-V Transformer推理加速",
-      "canonical_evidence": "面向边缘AI芯片的RISC-V Transformer推理加速",
-      "llm_tldr_en": "A framework derives lightweight ISA extensions and a custom address-generation instruction to accelerate compact transformers on RISC-V edge devices with low ASIC overhead.",
-      "llm_tldr_cn": "在资源受限的IoT设备上加速Transformer语言模型面临算力与功耗限制。本文提出一套加速框架，针对BERT-Tiny、MobileBERT、MiniLM等紧凑模型非显然的计算模式推导轻量级指令集扩展，并引入定制指令加速批量矩阵乘的地址生成阶段。实验表明性能提升15.39%至21.74%，ASIC面积与功耗开销仅6.79%与2.33%。该工作直接服务于边缘AI加速器与处理器架构设计，与数字集成电路AI加速主题高度相关。",
-      "llm_tldr": "在资源受限的IoT设备上加速Transformer语言模型面临算力与功耗限制。本文提出一套加速框架，针对BERT-Tiny、MobileBERT、MiniLM等紧凑模型非显然的计算模式推导轻量级指令集扩展，并引入定制指令加速批量矩阵乘的地址生成阶段。实验表明性能提升15.39%至21.74%，ASIC面积与功耗开销仅6.79%与2.33%。该工作直接服务于边缘AI加速器与处理器架构设计，与数字集成电路AI加速主题高度相关。",
+      "llm_evidence_en": "edge AI accelerator with RISC-V ISA extensions and ASIC overhead analysis",
+      "llm_evidence_cn": "面向边缘AI的RISC-V加速框架与ASIC开销分析",
+      "llm_evidence": "面向边缘AI的RISC-V加速框架与ASIC开销分析",
+      "canonical_evidence": "面向边缘AI的RISC-V加速框架与ASIC开销分析",
+      "llm_tldr_en": "Deploying transformer LMs on resource-constrained IoT devices is hard due to their computational patterns. This framework derives lightweight ISA extensions on RISC-V, adds a custom address-generation instruction, achieving 15-22% speedup at 6.79% area and 2.33% power overhead.",
+      "llm_tldr_cn": "在资源受限的物联网设备上部署Transformer类语言模型面临算力与功耗约束。本文提出一套在RISC-V上加速紧凑语言模型（BERT-Tiny、MobileBERT等）的框架，针对其非直观计算模式设计轻量指令集扩展，并引入专用指令加速批量矩阵乘的地址生成。结果显示性能提升15.39%至21.74%，而ASIC面积与功耗开销仅为6.79%和2.33%。该工作为边缘AI加速器的指令集与硬件协同设计提供了可行路径。",
+      "llm_tldr": "在资源受限的物联网设备上部署Transformer类语言模型面临算力与功耗约束。本文提出一套在RISC-V上加速紧凑语言模型（BERT-Tiny、MobileBERT等）的框架，针对其非直观计算模式设计轻量指令集扩展，并引入专用指令加速批量矩阵乘的地址生成。结果显示性能提升15.39%至21.74%，而ASIC面积与功耗开销仅为6.79%和2.33%。该工作为边缘AI加速器的指令集与硬件协同设计提供了可行路径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.09999v1",
+      "source": "arxiv",
+      "title": "ReSAFT: An Efficient Stuck-at Fault-Tolerant Scheme for ReRAM-based Process-in-Memory Accelerators",
+      "abstract": "Analog ReRAM-based process-in-memory (PIM) accelerators provide high parallelism and energy efficiency for deep convolutional neural networks (CNNs) inference. However, their susceptibility to permanent faults, such as stuck-at high (SaH) and stuck-at low (SaL) resistance states, poses a major challenge by permanently corrupting the CNN weights mapped to conductance values of ReRAM cells and degrading inference accuracy, which leads to system unreliability in safety-critical applications. In this paper, we propose a fault-tolerant scheme for analog ReRAM-based PIM accelerators to tackle stuck-at faults (SAFs) with minimal redundancy overhead to recover classification accuracy degradation. The proposed scheme contains a redundancy-based hardware solution alongside fault-aware mapping method for ensuring reliable analog computation in ReRAM crossbar. We analyze the impact of varying number of redundant rows and columns on accuracy and design metrics. Subsequently, a multi-objective optimization (MOO) problem is formulated and solved to efficiently determine the number of redundant rows and columns, considering trade-offs among various design metrics. Furthermore, a fault-aware weight mapping is proposed for dual-crossbar structures to further compensate for the accuracy degradation caused by SAFs. Simulation results show that, for the SimpleNet model using the MNIST dataset, the inference accuracy is recovered by approximately 22.39%, on average, across four configurations of optimal solutions, each offering a trade-off between reliability and area, energy consumption, and latency overheads. The mean-time-tofailure (MTTF) improves by about 61x on average compared to the baseline. These selected configurations also reduce energy and area overheads by 32%, on average, in comparison to row-only and column-only configurations.",
+      "authors": [
+        "Aniseh Dorostkar",
+        "Hamed Farbeh",
+        "Hamid R. Zarandi"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-07T12:56:03+00:00",
+      "link": "https://arxiv.org/pdf/2610.09999v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "ReRAM process-in-memory accelerator for CNN inference with fault tolerance",
+      "llm_evidence_cn": "面向CNN推理的ReRAM存内计算加速器容错",
+      "llm_evidence": "面向CNN推理的ReRAM存内计算加速器容错",
+      "canonical_evidence": "面向CNN推理的ReRAM存内计算加速器容错",
+      "llm_tldr_en": "Analog ReRAM process-in-memory accelerators offer high parallelism and efficiency for CNN inference but suffer from permanent stuck-at faults that corrupt weights and degrade accuracy. This work proposes ReSAFT, a fault-tolerant scheme with minimal redundancy that recovers classification accuracy and system reliability.",
+      "llm_tldr_cn": "模拟ReRAM存内计算加速器为卷积神经网络推理提供高并行与高能效，但易受固定高阻与低阻故障影响，永久性破坏映射权重并降低推理精度。本文提出ReSAFT容错方案，以最小冗余开销恢复精度。结果表明该方案能有效应对固定故障，保障安全关键应用中的系统可靠性，为存内计算AI加速器提供容错支撑。",
+      "llm_tldr": "模拟ReRAM存内计算加速器为卷积神经网络推理提供高并行与高能效，但易受固定高阻与低阻故障影响，永久性破坏映射权重并降低推理精度。本文提出ReSAFT容错方案，以最小冗余开销恢复精度。结果表明该方案能有效应对固定故障，保障安全关键应用中的系统可靠性，为存内计算AI加速器提供容错支撑。",
       "llm_tags": [
         "query:chip-design:composite"
       ],
