@@ -1,0 +1,54 @@
+{
+  "label": "2026-10-13",
+  "date": "2026-10-13",
+  "generated_at": "2026-10-13T01:15:52",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202610/13/2610.07191v1-agentic-design-space-exploration-for-joint-hardware-configuration-selection-and-mapping-of-ai-inference-workloads-on-heterogeneous-edge-socs",
+      "section": "quick",
+      "title_en": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "authors": "Geetha Prasuna Yarramneni, Surya Selvam, Wilfried Haensch, Anand Raghunathan",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.07191v1",
+      "score": "7.0",
+      "evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
+      "tldr": "边缘SoC部署AI推理需联合映射工作负载并配置PU核心数、频率等参数，搜索空间组合爆炸。TraceDSE提出智能体式流程，由LLM提议者生成候选，LLM批评者用程序化执行轨迹分析工具定位瓶颈并迭代精化。在Meteor Lake上覆盖四类负载，Pareto前沿超体积较NSGA-II最高提升35%、较贝叶斯优化最高提升68%，硬件评估减少约6-9倍。该工作表明，执行轨迹反馈能显著提升LLM引导设计空间探索的决策质量、高效搜索效率与可解释洞察。",
+      "tags": "query:chip-design",
+      "abstract_en": "Modern edge Systems-on-Chip (SoCs) integrate heterogeneous processing units (PUs) such as CPUs, GPUs, and NPUs, each with distinct performance and energy characteristics. Deploying AI inference workloads on them under real-time latency and energy constraints requires jointly mapping workloads to PUs and configuring each PU (e.g., selecting the number of active cores and the operating frequency). This joint space grows combinatorially, making exhaustive search infeasible. Most prior work on design space exploration (DSE) applies black-box optimization (BBO) such as evolutionary search, where each evaluation returns only aggregate metrics such as latency and energy. Recent LLM-guided DSE relies on the same sparse feedback. We observe that this limits its efficiency: it offers no insight into the design space or the reasons a design choice performs the way it does, and it leaves the reasoning abilities of LLMs largely unused. We present TraceDSE, an agentic DSE flow that performs joint workload mapping and PU configuration selection for AI inference on heterogeneous SoCs. TraceDSE is an iterative proposer-critic loop driven by richer feedback in the form of system execution traces. The LLM proposer agent generates candidate mappings and PU configurations for hardware evaluation. The LLM critic agent, equipped with programmatic trace-analysis tools, analyzes the traces to identify bottlenecks and suggest targeted refinements. This loop yields deeper insight into each design point, higher-quality decisions, and a more effective search. Across four AI inference workloads (models of varying complexity and a multi-model pipeline) on an Intel Meteor Lake SoC, TraceDSE consistently outperforms two state-of-the-art BBO tools, improving Pareto frontier hypervolume by up to 35% over NSGA-II and up to 68% over Bayesian optimization, while requiring ~6-9x fewer hardware evaluations.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/13/2610.06138v1-co-optimizing-graph-sparsification-and-approximate-computing-for-energy-efficient-fpga-based-gcn-inference",
+      "section": "quick",
+      "title_en": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "authors": "Nathaniel Kaye Mellor, Shreejith Shanker, George Floros",
+      "date": "2026-10-05",
+      "pdf": "https://arxiv.org/pdf/2610.06138v1",
+      "score": "6.0",
+      "evidence": "结合稀疏化与近似计算的FPGA图卷积加速器",
+      "tldr": "面向边缘FPGA的GCN推理受稀疏图聚合的计算与访存开销制约。该工作在AMD Kria KV260上联合DSpar图稀疏化、8位量化与近似乘法器，并分析稀疏度与近似计算的交互。实验表明近似算术效果由累加深度主导，稀疏化通过降低聚合深度提升其适用性。在Amazon Photo上最高取得9.88倍加速且保持86.6%精度，Cora上1.52倍加速与77.0%精度，总功耗低于1W。",
+      "tags": "query:chip-design",
+      "abstract_en": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202610/13/2610.08688v1-a-framework-for-accelerating-transformer-inference-on-risc-v-for-edge-ai",
+      "section": "quick",
+      "title_en": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "authors": "Ajay Kumar M, Vishnu PS, Yike Li, Shreejith Shanker, Dimitrios S. Nikolopoulos, Bo Ji, Hans Vandierendonck, Deepu John",
+      "date": "2026-10-06",
+      "pdf": "https://arxiv.org/pdf/2610.08688v1",
+      "score": "6.0",
+      "evidence": "面向边缘AI芯片的RISC-V Transformer推理加速",
+      "tldr": "面向资源受限物联网设备的Transformer推理，现有RISC-V核缺乏针对性加速支持。本文提出面向边缘AI的加速框架，选取BERT-Tiny等紧凑语言模型，提取其非显然计算模式并定制轻量指令集扩展。进一步加入批矩阵乘法地址生成定制指令，并采用编译器导向循环展开策略，以代码尺寸换取执行时间降低。在trv32p3f核上最高取得2.19倍推理加速，ASIC面积开销为21.08%@250MHz，FPGA面积开销为32.94%@75MHz。",
+      "tags": "query:chip-design",
+      "abstract_en": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "source": "arxiv",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

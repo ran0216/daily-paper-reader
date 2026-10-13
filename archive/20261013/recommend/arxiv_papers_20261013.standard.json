@@ -1,0 +1,136 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-13T01:15:01.942497+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2610.07191v1",
+      "source": "arxiv",
+      "title": "Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs",
+      "abstract": "Modern edge Systems-on-Chip (SoCs) integrate heterogeneous processing units (PUs) such as CPUs, GPUs, and NPUs, each with distinct performance and energy characteristics. Deploying AI inference workloads on them under real-time latency and energy constraints requires jointly mapping workloads to PUs and configuring each PU (e.g., selecting the number of active cores and the operating frequency). This joint space grows combinatorially, making exhaustive search infeasible. Most prior work on design space exploration (DSE) applies black-box optimization (BBO) such as evolutionary search, where each evaluation returns only aggregate metrics such as latency and energy. Recent LLM-guided DSE relies on the same sparse feedback. We observe that this limits its efficiency: it offers no insight into the design space or the reasons a design choice performs the way it does, and it leaves the reasoning abilities of LLMs largely unused. We present TraceDSE, an agentic DSE flow that performs joint workload mapping and PU configuration selection for AI inference on heterogeneous SoCs. TraceDSE is an iterative proposer-critic loop driven by richer feedback in the form of system execution traces. The LLM proposer agent generates candidate mappings and PU configurations for hardware evaluation. The LLM critic agent, equipped with programmatic trace-analysis tools, analyzes the traces to identify bottlenecks and suggest targeted refinements. This loop yields deeper insight into each design point, higher-quality decisions, and a more effective search. Across four AI inference workloads (models of varying complexity and a multi-model pipeline) on an Intel Meteor Lake SoC, TraceDSE consistently outperforms two state-of-the-art BBO tools, improving Pareto frontier hypervolume by up to 35% over NSGA-II and up to 68% over Bayesian optimization, while requiring ~6-9x fewer hardware evaluations.",
+      "authors": [
+        "Geetha Prasuna Yarramneni",
+        "Surya Selvam",
+        "Wilfried Haensch",
+        "Anand Raghunathan"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "published": "2026-10-05T18:08:58+00:00",
+      "link": "https://arxiv.org/pdf/2610.07191v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "joint hardware configuration and mapping of AI inference on CPU/GPU/NPU edge SoCs",
+      "llm_evidence_cn": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
+      "llm_evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
+      "canonical_evidence": "面向CPU/GPU/NPU异构边缘SoC的AI推理映射与配置探索",
+      "llm_tldr_en": "Targeting heterogeneous edge SoCs with CPUs, GPUs and NPUs, this paper proposes an agentic design space exploration flow that jointly selects hardware configurations and maps AI inference workloads, outperforming black-box search under latency and energy constraints.",
+      "llm_tldr_cn": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时时延与能耗约束下联合映射AI推理负载并配置各单元的组合空间呈爆炸式增长，穷举搜索不可行。本文提出基于智能体的设计空间探索方法，联合完成硬件配置选择与工作负载映射。相比进化搜索等黑箱优化，该方法能更高效地在庞大搜索空间中找到满足约束的配置。该工作为异构边缘SoC上AI推理的软硬件协同优化提供了新思路。",
+      "llm_tldr": "现代边缘SoC集成CPU、GPU、NPU等异构处理单元，在实时时延与能耗约束下联合映射AI推理负载并配置各单元的组合空间呈爆炸式增长，穷举搜索不可行。本文提出基于智能体的设计空间探索方法，联合完成硬件配置选择与工作负载映射。相比进化搜索等黑箱优化，该方法能更高效地在庞大搜索空间中找到满足约束的配置。该工作为异构边缘SoC上AI推理的软硬件协同优化提供了新思路。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.06138v1",
+      "source": "arxiv",
+      "title": "Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference",
+      "abstract": "Graph Convolutional Networks (GCNs) have emerged as a powerful framework for learning from graph-structured data, yet their deployment on resource-constrained edge platforms remains challenging due to the computational and memory demands of sparse graph aggregation. This work presents an FPGA-based GCN accelerator that combines DSpar graph sparsification, 8-bit quantization, and approximate multipliers on the AMD Kria KV260. Evaluated on Cora, LastFM Asia, and Amazon Photo, the design explores the interaction between sparsification and approximation across graphs with widely varying densities. Results show that the effectiveness of approximate arithmetic is governed by accumulation depth within GCN computations. Approximate multipliers are most effective when applied to sparse aggregation operations, while graph sparsification further improves their viability by reducing aggregation depth. The combined approach achieves up to 9.88$\\times$ speedup while maintaining 86.6\\% classification accuracy on Amazon Photo, and 1.52$\\times$ speedup with 77.0\\% accuracy on Cora, with total power consumption below 1 W. These results demonstrate that graph sparsification and approximate computing are complementary techniques whose co-optimization enables efficient low-power GCN inference on edge FPGA platforms.",
+      "authors": [
+        "Nathaniel Kaye Mellor",
+        "Shreejith Shanker",
+        "George Floros"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AR"
+      ],
+      "published": "2026-10-05T11:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2610.06138v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "FPGA-based GCN accelerator with sparsification and approximate computing",
+      "llm_evidence_cn": "结合稀疏化与近似计算的FPGA图卷积加速器",
+      "llm_evidence": "结合稀疏化与近似计算的FPGA图卷积加速器",
+      "canonical_evidence": "结合稀疏化与近似计算的FPGA图卷积加速器",
+      "llm_tldr_en": "This work builds an FPGA-based GCN accelerator on AMD Kria KV260 combining DSpar sparsification, 8-bit quantization and approximate multipliers, showing that the benefit of approximate arithmetic is governed by accumulation depth across graphs of varying density.",
+      "llm_tldr_cn": "图卷积网络在资源受限边缘平台上部署困难，稀疏图聚合带来沉重计算与访存负担。本文在AMD Kria KV260上构建FPGA GCN加速器，融合DSpar图稀疏化、8比特量化与近似乘法器进行协同优化。在Cora、LastFM Asia和Amazon Photo等不同密度图上评估，结果表明近似算术的收益取决于GCN计算中的累加深度。该工作揭示了稀疏化与近似计算的交互规律，为边缘端图神经网络能效加速提供设计参考。",
+      "llm_tldr": "图卷积网络在资源受限边缘平台上部署困难，稀疏图聚合带来沉重计算与访存负担。本文在AMD Kria KV260上构建FPGA GCN加速器，融合DSpar图稀疏化、8比特量化与近似乘法器进行协同优化。在Cora、LastFM Asia和Amazon Photo等不同密度图上评估，结果表明近似算术的收益取决于GCN计算中的累加深度。该工作揭示了稀疏化与近似计算的交互规律，为边缘端图神经网络能效加速提供设计参考。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.08688v1",
+      "source": "arxiv",
+      "title": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "abstract": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "authors": [
+        "Ajay Kumar M",
+        "Vishnu PS",
+        "Yike Li",
+        "Shreejith Shanker",
+        "Dimitrios S. Nikolopoulos",
+        "Bo Ji",
+        "Hans Vandierendonck",
+        "Deepu John"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-06T17:06:11+00:00",
+      "link": "https://arxiv.org/pdf/2610.08688v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Accelerating transformer inference on RISC-V for edge AI chips",
+      "llm_evidence_cn": "面向边缘AI芯片的RISC-V Transformer推理加速",
+      "llm_evidence": "面向边缘AI芯片的RISC-V Transformer推理加速",
+      "canonical_evidence": "面向边缘AI芯片的RISC-V Transformer推理加速",
+      "llm_tldr_en": "A framework derives lightweight ISA extensions and a custom address-generation instruction to accelerate compact transformers on RISC-V edge devices with low ASIC overhead.",
+      "llm_tldr_cn": "在资源受限的IoT设备上加速Transformer语言模型面临算力与功耗限制。本文提出一套加速框架，针对BERT-Tiny、MobileBERT、MiniLM等紧凑模型非显然的计算模式推导轻量级指令集扩展，并引入定制指令加速批量矩阵乘的地址生成阶段。实验表明性能提升15.39%至21.74%，ASIC面积与功耗开销仅6.79%与2.33%。该工作直接服务于边缘AI加速器与处理器架构设计，与数字集成电路AI加速主题高度相关。",
+      "llm_tldr": "在资源受限的IoT设备上加速Transformer语言模型面临算力与功耗限制。本文提出一套加速框架，针对BERT-Tiny、MobileBERT、MiniLM等紧凑模型非显然的计算模式推导轻量级指令集扩展，并引入定制指令加速批量矩阵乘的地址生成阶段。实验表明性能提升15.39%至21.74%，ASIC面积与功耗开销仅6.79%与2.33%。该工作直接服务于边缘AI加速器与处理器架构设计，与数字集成电路AI加速主题高度相关。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
