@@ -1,0 +1,180 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-14T22:08:46.514917+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 0,
+    "deep_cap": 6,
+    "deep_selected": 0,
+    "quick_candidates": 4,
+    "quick_skim_target": 11,
+    "quick_selected": 4
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2610.08688v1",
+      "source": "arxiv",
+      "title": "A Framework for Accelerating Transformer Inference on RISC-V for Edge AI",
+      "abstract": "This work presents a framework for accelerating transformer-based language models (LMs) on resource-constrained IoT devices. The framework targets compact LMs: BERT-Tiny (B-Ty), MobileBERT (M-Bt), MiniLM (M-Lm), Electra (E-Lt) and DeBERTa (D-Bt) -- selected for their architectural diversity and use in edge inference scenarios. The proposed flow derives lightweight instruction set extensions tailored to the non-obvious computational patterns of these models. In addition, a custom instruction is introduced to accelerate the address generation stage of batch matrix multiplication, achieving a performance improvement of 15.39--21.74% with modest ASIC overheads of 6.79% in area and 2.33% in power. To further enhance performance without incurring additional processor core hardware cost, an optional compiler-directed loop unrolling strategy is employed, trading increased code size for overall reduced execution time. Evaluation on the Synopsys trv32p3f RISC-V core demonstrates inference speedups of up to 2.19x, and FPGA implementation on the AMD Zynq UltraScale+ ZCU102 shows a 32.94% area overhead at 75 MHz, whereas the ASIC implementation using the TSMC 28 nm library incurs a 21.08% area overhead while operating at 250 MHz.",
+      "authors": [
+        "Ajay Kumar M",
+        "Vishnu PS",
+        "Yike Li",
+        "Shreejith Shanker",
+        "Dimitrios S. Nikolopoulos",
+        "Bo Ji",
+        "Hans Vandierendonck",
+        "Deepu John"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-06T17:06:11+00:00",
+      "link": "https://arxiv.org/pdf/2610.08688v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "ISA extensions to accelerate transformer inference on RISC-V for edge AI",
+      "llm_evidence_cn": "面向边缘AI的RISC-V Transformer推理加速指令扩展",
+      "llm_evidence": "面向边缘AI的RISC-V Transformer推理加速指令扩展",
+      "canonical_evidence": "面向边缘AI的RISC-V Transformer推理加速指令扩展",
+      "llm_tldr_en": "This framework derives lightweight RISC-V ISA extensions and a custom address-generation instruction to accelerate compact transformer LMs on edge IoT devices.",
+      "llm_tldr_cn": "在资源受限的IoT设备上运行Transformer语言模型面临算力与能耗约束。本文提出面向边缘AI的加速框架，针对BERT-Tiny、MobileBERT等紧凑模型的计算模式设计轻量级RISC-V指令集扩展，并引入加速批量矩阵乘地址生成的自定义指令。实验显示性能提升15.39%至21.74%，面积与功耗开销仅6.79%与2.33%。该工作属于面向AI推理的处理器架构与加速器设计，契合AI加速器硬件主题。",
+      "llm_tldr": "在资源受限的IoT设备上运行Transformer语言模型面临算力与能耗约束。本文提出面向边缘AI的加速框架，针对BERT-Tiny、MobileBERT等紧凑模型的计算模式设计轻量级RISC-V指令集扩展，并引入加速批量矩阵乘地址生成的自定义指令。实验显示性能提升15.39%至21.74%，面积与功耗开销仅6.79%与2.33%。该工作属于面向AI推理的处理器架构与加速器设计，契合AI加速器硬件主题。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.13067v1",
+      "source": "arxiv",
+      "title": "TPCS: A Cycle-Level Simulation Paradigm with Native Execution Semantics for RTL Modeling and Generation",
+      "abstract": "The growing diversity of domain-specific architectures and microarchitectural designs demands fast and accurate evaluation methods during early design stages. However, existing approaches suffer from a fundamental trade-off: high-level simulators offer speed but lack fidelity, while RTL-based tools provide accuracy at the cost of significant simulation overhead. This gap limits efficient pre-RTL microarchitecture exploration. Therefore, we propose Transaction-Pruned Cycle Simulation (TPCS), a novel modeling and simulation framework. It serves as a unified intermediate abstraction spanning microarchitecture modeling, cycle-accurate simulation, and synthesizable RTL implementation. TPCS organizes combinational logic as transaction-based function invocations and leverages host CPU control flow to naturally prune inactive logic, eliminating the need for explicit event scheduling or signal tracking. This enables cycle-accurate simulation with significantly improved performance. TPCS preserves structural correspondence with RTL and supports automatic generation of synthesizable designs. TPCS achieves 36$\\times$-42$\\times$ speedups over parallel Verilator on SMP systems and 3.4$\\times$-7.2$\\times$ over single-threaded Verilator on accelerators, with cycle-level waveform agreement on the evaluated traces. The generated RTL demonstrates comparable timing and area to handcrafted implementations, with relative changes of -4.7\\% to +2.6\\% in clock period and -3.3\\% to +4.0\\% in standard-cell area. By bridging the abstraction gap between high-level modeling and RTL design, TPCS enables a unified and agile pre-RTL workflow, allowing efficient microarchitecture exploration with both high performance and implementation fidelity.",
+      "authors": [
+        "Chengzhen Meng",
+        "Xiaoyu Li",
+        "Chen Bai",
+        "Zhenyu Zhang",
+        "Hongjun Dai"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-10-09T06:27:44+00:00",
+      "link": "https://arxiv.org/pdf/2610.13067v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "cycle-level simulation and RTL modeling for microarchitecture design",
+      "llm_evidence_cn": "面向微架构设计的周期级仿真与RTL建模",
+      "llm_evidence": "面向微架构设计的周期级仿真与RTL建模",
+      "canonical_evidence": "面向微架构设计的周期级仿真与RTL建模",
+      "llm_tldr_en": "TPCS is a transaction-pruned cycle simulation framework acting as a unified abstraction spanning microarchitecture modeling, cycle-accurate simulation and synthesizable RTL, enabling fast pre-RTL design exploration.",
+      "llm_tldr_cn": "针对领域专用架构与微架构设计多样、早期评估难以兼顾仿真速度与RTL精度的问题，本文提出事务剪枝周期仿真TPCS。该框架作为统一中间抽象，将组合逻辑组织为事务并进行剪枝，贯通微架构建模、周期精确仿真与可综合RTL生成。它弥合了高层仿真与RTL工具之间的鸿沟，在保持周期精度的同时显著降低仿真开销。该工作为数字集成电路设计中的高效预RTL微架构探索提供了新范式。",
+      "llm_tldr": "针对领域专用架构与微架构设计多样、早期评估难以兼顾仿真速度与RTL精度的问题，本文提出事务剪枝周期仿真TPCS。该框架作为统一中间抽象，将组合逻辑组织为事务并进行剪枝，贯通微架构建模、周期精确仿真与可综合RTL生成。它弥合了高层仿真与RTL工具之间的鸿沟，在保持周期精度的同时显著降低仿真开销。该工作为数字集成电路设计中的高效预RTL微架构探索提供了新范式。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.14612v1",
+      "source": "arxiv",
+      "title": "LLM-Augmented Bayesian Optimization with Adaptive Policies for Chiplet Design Space Exploration",
+      "abstract": "Chiplet technology is a key approach for extending Moore's Law. However, its design process is constrained by two primary challenges: the scarcity of early-stage platforms for rapidly evaluating chiplet-based heterogeneous systems, and the complex relationships between design parameters and optimization metrics. To address these challenges, we propose a synergistic framework that integrates a Large Language Model (LLM) with Bayesian Optimization (BO), enabling architectural-level simulation and automated optimization for the 2.5D/3D CPU-GPU heterogeneous chiplets. We extend the open-source chiplet simulator to evaluate 3D designs by supporting graph topologies. Further, to enhance the exploration efficiency of BO, we introduce an LLM that generates high-quality policies to guide the optimization process, enabled by our proposed adaptive directional policy reasoning (ADPR) and an exploration gain-aware fine-tuning method. Finally, we use the policy-guided BO to perform an automated and efficient exploration of the complex chiplet design space. Experiments on 2.5D and 3D chiplet reveal that our framework improves design space exploration efficiency.",
+      "authors": [
+        "Hang Liu",
+        "Zhengfei Chen",
+        "Zhengrui Chen",
+        "Hao Geng",
+        "Yu Li",
+        "Qi Sun"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-10T05:55:09+00:00",
+      "link": "https://arxiv.org/pdf/2610.14612v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Architectural-level design space exploration of CPU-GPU heterogeneous chiplets",
+      "llm_evidence_cn": "CPU-GPU异构芯粒的架构级设计空间探索",
+      "llm_evidence": "CPU-GPU异构芯粒的架构级设计空间探索",
+      "canonical_evidence": "CPU-GPU异构芯粒的架构级设计空间探索",
+      "llm_tldr_en": "A framework coupling LLM with Bayesian Optimization enables architectural-level simulation and automated optimization of 2.5D/3D CPU-GPU heterogeneous chiplets, extending a chiplet simulator to 3D graph topologies.",
+      "llm_tldr_cn": "该文针对芯粒设计中早期评估平台稀缺、设计参数与优化指标关系复杂两大难题。作者提出将大语言模型与贝叶斯优化结合的协同框架，实现2.5D/3D CPU-GPU异构芯粒的架构级仿真与自动优化，并扩展开源芯粒模拟器以支持三维图拓扑。借助自适应策略提升贝叶斯优化的探索效率，加快设计空间搜索。该工作为异构芯粒架构的自动化设计探索提供了可行路径。",
+      "llm_tldr": "该文针对芯粒设计中早期评估平台稀缺、设计参数与优化指标关系复杂两大难题。作者提出将大语言模型与贝叶斯优化结合的协同框架，实现2.5D/3D CPU-GPU异构芯粒的架构级仿真与自动优化，并扩展开源芯粒模拟器以支持三维图拓扑。借助自适应策略提升贝叶斯优化的探索效率，加快设计空间搜索。该工作为异构芯粒架构的自动化设计探索提供了可行路径。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.17099v1",
+      "source": "arxiv",
+      "title": "LocalTrain: Integer-Only Local Learning for Energy-Efficient CNN Training on Edge FPGAs",
+      "abstract": "Local learning reduces cross-layer training dependencies, but an efficient accelerator must still retain operands, accumulate gradients, and select quantization scales. We present an FPGA system that trains a CNN and its regional auxiliary classifiers using a shared integer matrix engine. Compact errors are expanded on chip, gradients are folded tile by tile, and historical scales permit direct output conversion. At 200 MHz, the KV260 prototype achieves 76.57% accuracy on CIFAR-10 and 91.85% on SVHN at approximately 4.20 W mean module power. Effective matrix throughput is 31.22 and 31.57 GMAC/s, respectively. Against the same integer method on Jetson Orin Nano, measured training energy is 40.4% and 42.1% lower, with $1.86\\times$ and $1.82\\times$ longer runtime; measurements use the respective platform power domains. Selected state checks and matching complete-run prediction counts support functional agreement with the software reference.",
+      "authors": [
+        "Shiqi Ding",
+        "Xuanyu Liang",
+        "Xinyang Liu",
+        "Boyang Li",
+        "Zhiqiang Que",
+        "Guosheng Hu",
+        "Jiayang Li"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR",
+        "cs.LG"
+      ],
+      "published": "2026-10-12T16:57:15+00:00",
+      "link": "https://arxiv.org/pdf/2610.17099v1",
+      "tags": [
+        "keyword:noc-arch",
+        "query:noc-arch"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "FPGA accelerator for energy-efficient CNN training",
+      "llm_evidence_cn": "面向CNN训练能效的FPGA加速器",
+      "llm_evidence": "面向CNN训练能效的FPGA加速器",
+      "canonical_evidence": "面向CNN训练能效的FPGA加速器",
+      "llm_tldr_en": "An integer-only local-learning FPGA accelerator trains CNNs with a shared integer matrix engine, reaching 76.57% CIFAR-10 accuracy at 4.20 W and cutting training energy about 40% versus Jetson Orin Nano.",
+      "llm_tldr_cn": "针对边缘设备CNN训练能耗高、局部学习仍需高效加速器的问题，本文提出一种整数化的局部学习FPGA系统。该方法采用共享整数矩阵引擎，在片上展开紧凑误差并逐块折叠梯度，利用历史量化尺度直接完成输出转换。在KV260原型上，CIFAR-10和SVHN分别达到76.57%和91.85%的准确率，平均功耗约4.20W，训练能耗较Jetson Orin Nano降低约40%。该工作为边缘端AI训练加速器的能效优化提供了可行方案。",
+      "llm_tldr": "针对边缘设备CNN训练能耗高、局部学习仍需高效加速器的问题，本文提出一种整数化的局部学习FPGA系统。该方法采用共享整数矩阵引擎，在片上展开紧凑误差并逐块折叠梯度，利用历史量化尺度直接完成输出转换。在KV260原型上，CIFAR-10和SVHN分别达到76.57%和91.85%的准确率，平均功耗约4.20W，训练能耗较Jetson Orin Nano降低约40%。该工作为边缘端AI训练加速器的能效优化提供了可行方案。",
+      "llm_tags": [
+        "query:chip-design:composite"
+      ],
+      "matched_query_tag": "query:chip-design:composite",
+      "matched_query_text": "Papers central to 请帮我查找数字集成电路的设计/架构相关的论文，主要聚焦于CPU，GPU，NPU的架构，NOC互联芯片，重点关注人工智能加速器相关的, especially work that connects or combines: digital integrated circuit design and implementation techniques; neural processing unit architecture for AI inference and training; network-on-chip interconnect design and communication architecture; artificial intelligence accelerator hardware architecture; deep learning accelerator design and optimization; artificial intelligence chip design for edge and cloud computing; architecture design of CPU GPU and NPU for artificial intelligence acceleration; network on chip interconnect architecture for many core AI accelerator systems; hardware microarchitecture of deep learning accelerators with on chip networking; comparative analysis of digital chip architectures for neural processing and AI workloads.",
+      "matched_requirement_id": "req-composite-chip-design",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

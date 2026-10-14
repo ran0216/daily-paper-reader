@@ -1,0 +1,229 @@
+Title: LLM-Augmented Bayesian Optimization with Adaptive Policies for Chiplet Design Space Exploration
+
+URL Source: https://arxiv.org/pdf/2610.14612v1
+
+Published Time: Wed, 14 Oct 2026 00:40:30 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# LLM-Augmented Bayesian Optimization with Adaptive Policies for Chiplet Design Space Exploration 
+
+# Hang Liu 1,2, Zhengfei Chen 1, Zhengrui Chen 1,2, Hao Geng 3, Yu Li 1, Qi Sun 1,2,∗
+
+1Zhejiang University, Hangzhou, China; 2ChipFlux, Hangzhou, China; 
+
+3ShanghaiTech University, Shanghai, China; 
+
+∗Corresponding authors, email: qisunchn@zju.edu.cn 
+
+## Abstract 
+
+Chiplet technology is a key approach for extending Moore’s Law. However, its design process is constrained by two primary chal-lenges: the scarcity of early-stage platforms for rapidly evaluating chiplet-based heterogeneous systems, and the complex relation-ships between design parameters and optimization metrics. To address these challenges, we propose a synergistic framework that integrates a Large Language Model (LLM) with Bayesian Optimiza-tion (BO), enabling architectural-level simulation and automated optimization for the 2.5D/3D CPU-GPU heterogeneous chiplets. We extend the open-source chiplet simulator to evaluate 3D designs by supporting graph topologies. Further, to enhance the exploration efficiency of BO, we introduce an LLM that generates high-quality policies to guide the optimization process, enabled by our proposed adaptive directional policy reasoning (ADPR) and an exploration gain-aware fine-tuning method. Finally, we use the policy-guided BO to perform an automated and efficient exploration of the com-plex chiplet design space. Experiments on 2.5D and 3D chiplet reveal that our framework improves design space exploration efficiency. 
+
+## 1 Introduction 
+
+In the post-Moore era [16], where traditional scaling faces diminish-ing returns and rising costs, chiplet-based heterogeneous systems have emerged as a key paradigm to overcome monolithic SoC lim-itations [6]. This approach allows flexible integration of modular dies from diverse process nodes and functionalities, yielding su-perior performance at lower manufacturing costs. However, such high modularity and heterogeneity introduce inherent challenges in design complexity. A critical bottleneck in chiplet development is the lack of ad-equate early-stage evaluation tools for CPU-GPU heterogeneous chiplets. Existing simulators, such as HeteroGarnet [2] and Book-Sim2 [13], primarily focus on interconnect modeling and do not support the holistic simulation of 2.5D/3D heterogeneous chiplets. Therefore, we need a method that provides rapid and reliable perfor-mance evaluation early in the design cycle to guide design directions and avoid costly exploratory detours efficiently. Furthermore, the inherent heterogeneity of chiplet systems cre-ates a significant optimization challenge. Integrating various IPs from different process nodes establishes highly complex and non-linear relationships between architectural parameters and perfor-mance metrics. Traditional Design Space Exploration (DSE) meth-ods, while mathematically robust, struggle to handle this surging complexity efficiently. On one hand, chiplet-specific frameworks like RapidChiplet[12] and HISIM[25] rely on heuristic, formula-based analytical models, which do not provide DSE algorithmic optimization for automated architecture search. On the other hand, 
+
+Figure 1: Overview of our automated chiplet design frame-work, synergizing an extended simulator for architectural evaluation of 2.5D/3D chiplets with LLM-guided Bayesian Optimization for efficient design optimization. 
+
+advanced search strategies like XGBoost [27 ] and MCT-Explorer 
+
+[9] primarily focus on optimizing the exploration strategy itself, treating the system as a “black box” and relying on statistical corre-lations rather than underlying architectural logic. In the context of chiplet design, where cycle-accurate simulations are computa-tionally expensive, these data-driven methods face a severe small-sample constraint. So, incorporating microarchitectural expertise is important for improving sample efficiency, especially when costly cycle-accurate simulations provide only limited data. However, ex-isting approaches often introduce such domain knowledge into DSE in a relatively rigid manner. For example, BOOM-Explorer [1] biases initial sampling toward parameters considered important by experts, while SoC-Tuner [7] uses parameter importance mappings to prune or transform the design space. arXiv:2610.14612v1 [cs.LG] 10 Oct 2026 Recent advances in LLMs offer a new solution to this problem. By leveraging domain knowledge, LLMs can interpret complex architectural parameters of heterogeneous chiplets and guide op-timization in a knowledge-driven manner [4, 26]. Recent works have also started to apply LLMs to DSE. For instance, LLAMBO [17] and LEMOE [15] integrate LLMs into Bayesian optimization to accelerate the process via intelligent warm-starting, surrogate modeling, and candidate sampling. LLM-DSE [24] proposes a multi-agent framework for HLS design, ChatDSE [21] uses a zero-shot conversational approach to explore microarchitectures, and Yao et al. [29] use an LLM as both a feature extractor and an autonomous agent for HLS directive optimization. Despite their promise, these methods rely on a flawed assumption: the LLM is treated as an ora-cle that can predict the performance of any design and recommend the optimum. In practice, LLMs are unreliable for precise numeri-cal optimization and may generate biased recommendations when faced with unfamiliar chiplet designs, limiting their effectiveness and generalization. To address these challenges, we propose a framework for the ar-chitectural development and optimization of heterogeneous chiplets. We first extend the 2.5D simulator LegoSim [31] to support 3D archi-tectures by introducing a graph-based topology representation and routing. We then integrate the domain knowledge and reasoning of an LLM with the strategic exploration of Bayesian optimization, thereby improving the efficiency of DSE for heterogeneous chiplets. Our contributions are summarized as follows: 
+
+• We propose an LLM-augmented Bayesian optimization frame-work for the optimization of heterogeneous 2.5D/3D chiplets, where LLM-generated adaptive directional policies comple-ment BO-based numerical search. 
+
+• We introduce an adaptive policy reasoning mechanism and exploration gain-aware fine-tuning method to improve the quality of LLM-generated search policies. 
+
+• We propose a policy-guided Bayesian optimization using a novel P-EHVI acquisition function, which leverages LLM poli-cies to focus the exploration on more promising regions. 
+
+• We conduct experiments on both 3D and 2.5D chiplet datasets. Results demonstrate that our framework increases hypervol-ume by 13 .3% compared to the previous method on the primary 3D dataset, and achieves a 9 .3% improvement in hypervolume on the 2.5D dataset without retraining, demonstrating trans-ferability across related CPU-GPU chiplet tasks. 
+
+## 2 Preliminaries 2.1 Chiplet-based Heterogeneous Systems 
+
+Chiplet technology is an advanced paradigm for heterogeneous integration. This approach decomposes a conventional monolithic SoC into multiple independent chips, which enables flexible in-tegration across technology nodes and IP from different vendors and yields substantial benefits in performance, cost, and develop-ment time. Our work focuses on a representative heterogeneous 3D/2.5D chiplet system composed of a host CPU and multiple GPUs interconnected by an interposer for high-efficiency on-package communication. To perform architectural-level simulation, we use the LegoSim simulator [31], which integrates multiple standalone simulators, including Gem5[3] for CPUs and GPGPU-Sim[14] for GPUs, via a dedicated communication protocol. 
+
+## 2.2 Adaptive Policy for DSE 
+
+Traditional DSE methods, such as Bayesian optimization [18] and genetic algorithms [10], typically treat the design evaluator as a black box and infer promising configurations from observed sam-ples. Under limited simulation budgets, however, sparse observa-tions may be insufficient to efficiently identify beneficial parameter adjustments. In contrast, microarchitecture engineers use domain knowledge to identify performance bottlenecks and reason about the likely effects of adjusting related design parameters. Inspired by this process, we define an adaptive directional policy 
+
+𝜋 : S → A , which maps the current exploration state 𝒔 ∈ S to a directional action 𝒂 ∈ A . The state summarizes the current Pareto set, the selected anchor design, and feedback from previous itera-tions, while each element of 𝒂 specifies whether the corresponding parameter should be increased, decreased, or maintained. Unlike fixed heuristic rules, the LLM uses Adaptive Directional Policy Rea-soning (ADPR) to regenerate the policy at each iteration based on the current exploration state and previous feedback. The resulting policy adapts to changing bottlenecks and provides a qualitative search prior that biases BO toward promising parameter adjust-ments without replacing its uncertainty-based candidate selection. 
+
+## 2.3 Problem Formulation 
+
+The primary goal of Chiplet DSE is to identify the Pareto front, a set of non-dominated solutions that represents the optimal trade-offs among competing objectives. The quality of a discovered Pareto front Ω is quantified by the following metrics: 
+
+Definition 1 (Hypervolume) . Hypervolume (HV) captures both the convergence and diversity of the solution set by measuring the volume of the objective space it dominates[32], bounded by a worst-case reference point 𝑓 𝑟𝑒 𝑓 :HV (𝑓 𝑟𝑒 𝑓 , Ω) = Volume 
+
+Ø 
+
+> 𝒙 ∈Ω
+> 𝑚
+
+Ö
+
+> 𝑖 =1
+
+[𝑓 𝑖 (𝒙 ), 𝑓 𝑟𝑒 𝑓 𝑖 ]
+
+!
+
+, (1) where Î denotes the Cartesian product of the objective intervals, which defines an 𝑚 -dimensional hyperrectangle. 
+
+Definition 2 (ADRS) . Average distance to reference set[23] eval-uates the proximity of found front Ω to the true Pareto set Γ:ADRS (Γ, Ω) = 1
+
+|Γ|∑︁ 𝛾 ∈Γ
+
+min   
+
+> 𝜔 ∈Ω
+
+|| 𝛾 − 𝜔 || 2, (2) where || · || 2 denotes the Euclidean distance. 
+
+Problem 1 (Multi-Objective heterogeneous Chiplet DSE) . The pri-mary objective of chiplet DSE is to identify a Pareto-optimal set of configurations. In this work, we optimize power, cycles per instruc-tion (CPI), and interconnect delay while imposing an architectural-level thermal feasibility constraint. Given the per-chiplet power estimates and a fixed package floorplan, a lightweight steady-state thermal evaluator estimates the peak temperature 𝑇 peak [20]. Only thermally feasible designs are included in the feasible Pareto set. The thermal model is used for early-stage architectural screening rather than signoff-level thermal verification. Figure 2: Workflow of the LLM-augmented BO framework. Adaptive directional policy reasoning and exploration gain-aware fine-tuning enable the LLM to generate effective directional policies that guide BO. 
+
+## 3 LLM-Augmented Bayesian Optimization Framework 
+
+This section presents our LLM-augmented Bayesian optimization framework, as illustrated in Figure 2. The framework combines Adaptive Directional Policy Reasoning (ADPR), exploration gain-aware fine-tuning, and policy-guided Bayesian optimization. ADPR enables the LLM to use the current exploration state and simulation feedback to generate adaptive directional policies. The fine-tuning objective improves policy quality, while P-EHVI incorporates these policies as soft search priors into BO. 
+
+## 3.1 Why LLM-BO Synergy? 
+
+Chiplet DSE aims to identify Pareto designs under a limited sim-ulation budget. Traditional methods rely primarily on sampled data and usually incorporate prior knowledge through static rules or biased initialization, limiting their effectiveness in sparse-data regimes. LLMs can interpret design context and generate flexible qualitative search strategies, but they remain unreliable for precise numerical prediction and may introduce systematic search bias. We therefore combine their complementary strengths: the LLM gener-ates adaptive directional policies that bias the acquisition function toward promising regions, while BO remains the numerical opti-mization engine and balances exploitation with uncertainty-aware exploration. This division of roles improves search focus without replacing BO’s principled candidate selection. 
+
+## 3.2 Overall Optimization Flow 
+
+We extend LegoSim from 2.5D to 3D chiplet architectures by intro-ducing graph-based topology modeling and routing, together with a TSV power model. Based on the enhanced simulator, we construct representative 2.5D and 3D CPU-GPU chiplet design spaces and optimize three objectives: power, cycles per instruction (CPI), and interconnect delay. After each architectural simulation, the per-chiplet power estimates are mapped to the corresponding package floorplan, and HotSpot [30] estimates the peak steady-state tem-perature. Designs exceeding the temperature limit are marked as thermally infeasible and excluded from the feasible Pareto set. The optimization engine is decoupled from the architectural evaluator, allowing the framework to be extended to other target systems, such as DRAM, NPU, and CIM-based architectures, by integrating the corresponding simulators. Figure 3 shows the detailed workflow of a single optimization iteration within our synergistic DSE framework. The optimiza-tion loop proceeds as follows: first, our exploration gain-aware fine-tuned LLM generates adaptive policies for parameter optimiza-tion through engineer-like reasoning. Second, these policies guide Bayesian optimization to focus on promising subspaces, which enhances DSE efficiency and accelerates convergence. 
+
+## 3.3 Adaptive Directional Policy Reasoning 
+
+Directly using an LLM to predict optimal configurations is unre-liable because chiplet DSE involves complex numerical trade-offs. In practical design exploration, engineers instead follow an itera-tive process that identifies performance bottlenecks, reasons about suitable parameter adjustments, and revises the search direction according to observed outcomes. Inspired by this process, we propose Adaptive Directional Policy Reasoning (ADPR), a structured reasoning procedure that enables the LLM to generate qualitative search guidance rather than directly predict design performance. At each iteration, ADPR uses bench-mark information, the current exploration state, and feedback from the previous iteration to produce an adaptive directional policy. The procedure consists of three stages: Figure 3: Detailed optimization flow of our LLM-augmented Bayesian optimization framework. 1) Bottleneck Analysis: The LLM analyzes the benchmark in-formation and the current Pareto set Ω𝑡 to identify the primary bottleneck of the optimization anchor 𝒙 ∗ 
+
+> 𝑡
+
+. The anchor is selected as the design with the largest hypervolume contribution: 
+
+𝒙 ∗ 
+
+> 𝑡
+
+= arg max  
+
+> 𝒙 ∈Ω𝑡
+
+[HV (Ω𝑡 ) − HV (Ω𝑡 \ { 𝒙 })] . (3) 
+
+2) Adjustment Effect Prediction: Based on the identified bottle-neck, the LLM uses parameter descriptions, domain knowledge, and current observations to predict the effects of increasing, decreas-ing, or maintaining related parameters and determine promising adjustment directions. 
+
+3) Feedback Reflection: The LLM revises its reasoning using the previous state 𝒔 𝑡 −1, directional policy 𝒂 𝑡 −1, newly evaluated designs, and the resulting hypervolume change. The first ADPR iteration uses feedback from an initial standard BO step. Finally, ADPR generates an adaptive directional policy 𝒂 𝑡 , with each element specifying whether a parameter should be increased, decreased, or maintained. This policy is updated at each iteration and serves as a qualitative prior for the subsequent BO search. 
+
+## 3.4 Exploration Gain-Aware Fine-tuning 
+
+We propose an exploration gain-aware fine-tuning method to align the LLM’s reasoning with the adaptive directional policy reasoning procedure and improve directional policy generation. Conventional supervised fine-tuning (SFT) often encourages rigid imitation of training examples [19], limiting the model’s ability to discover ef-fective reasoning strategies for complex DSE tasks. We therefore adopt group relative policy optimization (GRPO) [11] with an ex-ploration gain-aware reward that aligns model training with the objective of improving the final Pareto front. The resulting reward, 
+
+𝑅 total , evaluates the LLM output in terms of structural validity and exploration effectiveness: 
+
+𝑅 total = 𝛼𝑅 think + 𝛽𝑅 answer + 𝛾𝑅 gain . (4) We set the weights 𝛼, 𝛽, 𝛾 to 0.2, 0.2, and 0.6, respectively. The components of the reward function are detailed below: 
+
+1) Reasoning Format Reward ( 𝑅 think ): This reward encourages compliance with the structured ADPR procedure. The reasoning is enclosed within <think> tags and organized using <analysis> ,
+
+<reflection> , and <strategy> tags: 
+
+𝑅 think = |𝑇 correct ||𝑇 req | , (5) where 𝑇 req is the set of all required tags, and 𝑇 correct ⊆ 𝑇 req is its subset containing tags correctly formatted in the model’s response. 
+
+2) Answer Format and Validity Reward ( 𝑅 answer ): This reward ensures that the adaptive directional policy generated by the LLM is correctly formatted and valid for downstream BO. We first check if the output policy is enclosed by <answer> tags. Then, we calculate the proportion of parameters that are assigned a valid directional instruction, defined as: 
+
+𝑅 answer =
+
+( 0, Incorrect Format    
+
+> |𝑃 valid ||𝑃 |
+
+, Otherwise (6) where 𝑃 is the set of all design parameters and 𝑃 valid ⊆ 𝑃 is the subset of parameters with a valid directional instruction. 
+
+3) Exploration Gain Reward ( 𝑅 gain ): This reward component is the core of our mechanism, as it directly quantifies a policy’s effectiveness by evaluating its expected contribution to the Pareto front. First, based on the current optimization anchor point 𝒙 ∗ 
+
+> 𝑡
+
+, we identify the set of all possible valid policy combinations A. For each candidate policy 𝒂 ∈ A , we define its corresponding constrained subspace D𝒂 = {X𝒂 , Y𝒂 }. For thermally infeasible configurations, we replace their objective values with penalized worst-case values, ensuring that they do not contribute to the theoretical maximum hypervolume improvement (TMHI) within the subspace: TMHI (𝒂 ) = HV (Ω𝑡 ∪ Y𝒂 ) − HV (Ω𝑡 ). (7) Finally, the exploration gain score for the LLM-generated policy 
+
+𝒂 LLM is given by its normalized TMHI: 
+
+𝑅 gain = TMHI (𝒂 LLM )
+
+max 𝒂 ′ ∈ A TMHI (𝒂 ′) . (8) 
+
+## 3.5 Policy-Guided Bayesian Optimization 
+
+To translate the LLM-generated directional policy into candidate se-lection, we propose a policy-guided Bayesian optimization method. As illustrated in Figure 3, the evaluated designs are used to train a Gaussian Process (GP) surrogate, while the LLM-generated policy provides directional guidance for the acquisition function. Given the current anchor point 𝒙 ∗ and directional policy 𝒂 , we construct a policy-consistent subspace X𝒂 . We then extend Ex-pected Hypervolume Improvement (EHVI) [8] to Policy-Boosted EHVI (P-EHVI), which softly increases the acquisition values of candidates within X𝒂 :EHVI (𝒙 |D) = E𝐺𝑃 [HV (D ∪ { 𝒙 }) − HV (D)] ,
+
+P-EHVI (𝒙 |D) = EHVI (𝒙 |D) · ( 1 + 𝜆 · 𝐼 (𝒙 ∈ X 𝒂 )) , (9) Table 1: Configurable parameters of the heterogeneous CPU-GPU chiplet architectures. 
+
+Module Parameters Candidates 
+
+GPU CoresPerCluster 1, 2 CacheModel 0, 1 
+
+CPU 
+
+DispatchWidth 1, 2, 3, 4 ROBSize 32, 64, 96, 128 ICacheSize 32, 64 ICacheAssociativity 4, 8 DCacheSize 32, 64, 128 DCacheAssociativity 4, 8 
+
+Network 
+
+RoutingBuffer 6, 12 FlitSize 2, 4, 8 NumVC 2, 4 where 𝐼 (·) is the indicator function and 𝜆 controls the policy boost. We set 𝜆 = 8 according to the empirical scale of EHVI scores. In our experiments, potentially valuable candidates, including those with high uncertainty or large expected objective improvement, typically have EHVI scores 15 to 20 times higher than clearly low value candidates. Since 𝜆 = 8 corresponds to a ninefold boost, poor candidates within X𝒂 generally cannot dominate strong candidates outside it, allowing BO to escape misleading LLM guidance. When 
+
+X𝒂 contains promising candidates, the uniform boost preserves their relative EHVI ranking while prioritizing the suggested region. Thus, P-EHVI introduces soft policy guidance without sacrificing BO’s exploration capability. 
+
+## 4 Experiment 4.1 Experimental Setup 
+
+Target Architectures and Benchmarks: As shown in Figure 1, we evaluate two heterogeneous chiplet architectures[28], both compris-ing an ARM-based host CPU and PTX-480 GPUs: a 1-CPU+3-GPU system with 3D packaging running a compute-intensive MLP infer-ence benchmark, and a 1-CPU+2-GPU system using 2.5D packaging, tasked with a parallel matrix multiplication benchmark. 
+
+Design Space and Simulation Environment: As shown in Table 1, our experimental setup defines a heterogeneous chiplet design space with 11 parameters (6 for CPU, 2 for GPU, and 3 for interconnect), totaling 18,432 configurations. Each configuration is evaluated for power, CPU CPI, and interconnect delay using our enhanced 2.5D/3D chiplet simulation platform. From the suite of simulators integrated within the platform, we select Sniper [5] for CPU simulation and GPGPU-Sim [14] for GPU simulation. We use HotSpot [30] as a lightweight steady-state thermal evaluator. Per-chiplet power estimates are mapped to fixed floorplan and package-stack models for steady-state thermal evaluation. Each individual design evaluation necessitates approximately 10 minutes of simulation time; consequently, the generation of the entire chiplet dataset consumed a total of 6,144 CPU core-hours. 
+
+Datasets: We randomly sample 2,000 configurations from the 3D chiplet design space and construct 6,000 prompts from exploration histories, each consisting of 10 to 40 evaluated designs. To cover 
+
+Figure 4: Comparison of hypervolume coverage for different methods over time on two datasets, left is 3D chiplet with MLP, and right is 2.5D chiplet with matrix multiplication. 
+
+diverse optimization outcomes, the histories follow a 30% /40% /30% distribution of high, moderate, and zero hypervolume gains. Each scenario is paired with a reference directional policy derived from the offline dataset. After deduplication and filtering, the prompts are divided into 4,800 training and 1,200 validation samples. 
+
+LLM Fine-Tuning: We fine-tune Qwen2.5-7B-Instruct [22] us-ing GRPO with the proposed exploration gain-aware reward func-tion. This one-time offline training is conducted on eight NVIDIA A800 GPUs and takes approximately 20 hours. It aligns the model with the structured policy reasoning procedure and improves its ability to generate valid directional policies for guiding subsequent BO-based exploration. 
+
+## 4.2 Comparison with SOTA Methods 
+
+We compare our method with three black-box DSE baselines, XG-Boost [27], BOOM-Explorer [1], and MCT-Explorer [9], and two LLM-based methods, LLAMBO [17] and LLM-DSE [24]. The LLM-based baselines use strong API-based models, including GPT-5.4 and Qwen-235B. All methods are evaluated using five random seeds, with the same 10 initial designs and 30-iteration budget shared across methods for each seed. To account for LLM output stochas-ticity, each LLM-based method is additionally repeated five times per seed, and the resulting HV and ADRS values are averaged. Table 2 shows that our method achieves the best average HV and ADRS on both chiplet design spaces. The 3D task evaluates in-domain policy-guided exploration, whereas the 2.5D task is ex-cluded from fine-tuning and used solely for transfer evaluation. Its strong performance without retraining demonstrates transferabil-ity across related architectures. We observe that pure LLM-driven search may achieve competitive HV but suffer from poor ADRS due to premature concentration on locally promising regions, whereas conventional black-box methods provide broader but less efficient exploration. Our framework combines LLM-generated directional guidance with BO’s uncertainty-aware search, improving both con-vergence and Pareto-front coverage. Figure 4 shows that our method achieves 97.22% of the refer-ence hypervolume derived from the complete 18,432-configuration Table 2: Comparison of DSE performance against state-of-the-art methods. The “Qwen” and “GPT” headers refer to the Qwen-235B and GPT-5.4 models. 
+
+Dataset Metric XGBoost BOOM Explorer MCT Explorer LLAMBO (w/Qwen) LLAMBO (w/GPT) LLM-DSE (w/Qwen) LLM-DSE (w/GPT) Ours 
+
+3D chiplet HV ↑ 0.7509 0.7466 0.7376 0.7881 0.7549 0.8210 0.8209 0.8356 ( ↑13.3%) 
+
+ADRS ↓ 0.1116 0.1028 0.1378 0.1129 0.0986 0.1405 0.1417 0.0983 ( ↓28.7%) 
+
+2.5D chiplet HV ↑ 0.7502 0.7630 0.7366 0.7732 0.7809 0.7564 0.7638 0.8051 ( ↑ 9.3%) 
+
+ADRS ↓ 0.1239 0.0859 0.1239 0.1175 0.1095 0.1315 0.1289 0.0835 ( ↓32.6%) 
+
+Figure 5: Comparison of runtime distribution and hypervol-ume across different methods on the MLP benchmark. Table 3: Thermal feasibility of designs from our method. 
+
+Dataset 𝑇 lim (◦C) Sampled 𝑇 peak (◦C) Pareto 𝑇 max peak (◦C) 2.5D chiplet 85 [42.3, 61.8] 57.9 3D chiplet 85 [45.6, 68.4] 63.7 design space during the early exploration stage on the 3D chiplet dataset, outperforming the baselines. This result indicates that adap-tive directional policies help BO prioritize promising subspaces and avoid unproductive evaluations. A similar early-stage advantage is observed on the related 2.5D architecture and workload without retraining, demonstrating effective transfer of ADPR-based search guidance across related CPU-GPU chiplet designs. Figure 5 compares the online runtime of each method, with sim-ulation and optimization costs reported separately. Simulation dom-inates the runtime, making the additional LLM inference overhead relatively small. The one-time offline fine-tuning cost is reported separately because it is not repeated during exploration and can be amortized across related DSE tasks. This adaptation enables the compact Qwen2.5-7B model to achieve better task-specific explo-ration performance than baselines using substantially larger API models. Overall, our method obtains a higher hypervolume with a shorter online runtime. Table 3 shows that all evaluated and Pareto-optimal designs re-main thermally feasible, with the 3D architecture exhibiting higher peak temperatures due to its stacked structure. 
+
+Table 4: Ablation study of our framework’s key components. Method Hypervolume ↑ ADRS ↓
+
+Standard BO 0.7428 0.1272 Base LLM 0.7764 0.1525 LLM w/ ADPR 0.8117 0.1486 LLM w/ Sim-FT 0.7979 0.1610 LLM w/ Sim-FT + ADPR 0.8247 0.1247 
+
+Ours (Gain-Aware FT + ADPR) 0.8356 0.0983 
+
+## 4.3 Ablation Studies 
+
+We conduct an ablation study on the 3D chiplet dataset to isolate the contributions of adaptive directional policy reasoning and ex-ploration gain-aware fine-tuning. Our full method is compared against standard BO using EHVI without LLM guidance and four LLM-based variants built on Qwen2.5-7B-Instruct [22] with P-EHVI. Among them, similarity-based fine-tuning (Sim-FT) adopts GRPO with a reward that measures the similarity between the generated and reference policies. As shown in Table 4, standard BO with EHVI provides a reference for evaluating the overall contribution of LLM-based policy guid-ance. The base LLM offers useful but limited directional guidance, whereas ADPR improves policy generation by structuring bottle-neck analysis, adjustment effect prediction, and feedback reflection. Moreover, exploration gain-aware fine-tuning outperforms Sim-FT by rewarding the potential exploration gain of a policy rather than imitation of a single reference policy, enabling the LLM to generate diverse and effective directional policies. 
+
+## 5 Conclusion 
+
+In this paper, we propose an LLM-augmented Bayesian optimiza-tion framework for chiplet DSE. The framework uses adaptive directional policy reasoning to enable the LLM to generate search policies from the current exploration state and simulation feedback, while BO remains responsible for uncertainty-aware candidate se-lection. Exploration gain-aware fine-tuning further aligns policy generation with the Pareto optimization objective. Experiments on 2.5D and 3D chiplet design spaces demonstrate improved ex-ploration efficiency over representative baselines and promising generalization across related architectures. References 
+
+[1] Chen Bai, Qi Sun, Jianwang Zhai, Yuzhe Ma, Bei Yu, and Martin DF Wong. 2021. BOOM-Explorer: RISC-V BOOM microarchitecture design space exploration framework. In 2021 IEEE/ACM International Conference On Computer Aided Design (ICCAD) . IEEE, 1–9. [2] Srikant Bharadwaj, Jieming Yin, Bradford Beckmann, and Tushar Krishna. 2020. Kite: A Family of Heterogeneous Interposer Topologies Enabled via Accurate Interconnect Modeling. In 2020 57th ACM/IEEE Design Automation Conference (DAC) . 1–6. doi:10.1109/DAC18072.2020.9218539 [3] Nathan Binkert, Bradford Beckmann, Gabriel Black, Steven K Reinhardt, Ali Saidi, Arkaprava Basu, Joel Hestness, Derek R Hower, Tushar Krishna, Somayeh Sardashti, et al. 2011. The gem5 simulator. ACM SIGARCH computer architecture news 39, 2 (2011), 1–7. [4] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. 2020. Language models are few-shot learners. Advances in neural information processing systems 33 (2020), 1877–1901. [5] Trevor E Carlson, Wim Heirman, and Lieven Eeckhout. 2011. Sniper: Exploring the level of abstraction for scalable and accurate parallel multi-core simulation. In Proceedings of 2011 International Conference for High Performance Computing, Networking, Storage and Analysis . 1–12. [6] Shixin Chen, Hengyuan Zhang, Zichao Ling, Jianwang Zhai, and Bei Yu. 2024. The survey of chiplet-based integrated architecture: An eda perspective. arXiv preprint arXiv:2411.04410 (2024). [7] Shixin Chen, Su Zheng, Chen Bai, Wenqian Zhao, Shuo Yin, Yang Bai, and Bei Yu. 2024. Soc-tuner: An importance-guided exploration framework for dnn-targeting soc design. In 2024 29th Asia and South Pacific Design Automation Conference (ASP-DAC) . IEEE, 207–212. [8] Samuel Daulton, Maximilian Balandat, and Eytan Bakshy. 2020. Differentiable expected hypervolume improvement for parallel multi-objective Bayesian op-timization. Advances in Neural Information Processing Systems 33 (2020), 9851– 9864. [9] Yuanhang Gao, Donger Luo, Chen Bai, Bei Yu, Hao Geng, Qi Sun, and Cheng Zhuo. 2024. Is Vanilla Bayesian Optimization Enough for High-Dimensional Architecture Design Optimization?. In Proceedings of the 43rd IEEE/ACM Interna-tional Conference on Computer-Aided Design . 1–9. [10] David E Golberg. 1989. Genetic algorithms in search, optimization, and machine learning. Addion wesley 1989, 102 (1989), 36. [11] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. 2025. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 (2025). [12] Patrick Iff, Benigna Bruggmann, Blaise Morel, Maciej Besta, Luca Benini, and Torsten Hoefler. 2025. RapidChiplet: A Toolchain for Rapid Design Space Explo-ration of Inter-Chiplet Interconnects. In Proceedings of the 22nd ACM International Conference on Computing Frontiers . 168–171. [13] Nan Jiang, Daniel U Becker, George Michelogiannakis, James Balfour, Brian Towles, David E Shaw, John Kim, and William J Dally. 2013. A detailed and flexible cycle-accurate network-on-chip simulator. In 2013 IEEE international symposium on performance analysis of systems and software (ISPASS) . IEEE, 86–96. [14] Mahmoud Khairy, Zhesheng Shen, Tor M Aamodt, and Timothy G Rogers. 2020. Accel-sim: An extensible simulation framework for validated gpu modeling. In 
+
+2020 ACM/IEEE 47th Annual International Symposium on Computer Architecture (ISCA) . IEEE, 473–486. [15] Jingyuan Li, Jianrong Zhang, Ye Li, Wenbo Yin, and Lingli Wang. 2025. LEMOE: LLM-Enhanced Multi-Objective Bayesian Optimization for Microarchitecture Exploration. In 2025 62nd ACM/IEEE Design Automation Conference (DAC) . IEEE, 1–7. [16] Tao Li, Jie Hou, Jinli Yan, Rulin Liu, Hui Yang, and Zhigang Sun. 2020. Chiplet heterogeneous integration technology—Status and challenges. Electronics 9, 4 (2020), 670. [17] Tennison Liu, Nicolás Astorga, Nabeel Seedat, and Mihaela van der Schaar. 2024. Large language models to enhance bayesian optimization. arXiv preprint arXiv:2402.03921 (2024). [18] Jonas Mockus. 1998. The Application of Bayesian Methods for Seeking the Extremum. Towards global optimization (1998). [19] Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al. 2022. Training language models to follow instructions with human feedback. Advances in neural information processing systems 35 (2022), 27730–27744. [20] Lukas Pfromm, Alish Kanani, Harsh Sharma, Parth Solanki, Eric Tervo, Jaehyun Park, Janardhan Doppa, Partha Pratim Pande, and Umit Ogras. 2025. MFIT: Multi-fidelity thermal modeling for 2.5 D and 3D multi-chiplet architectures. 
+
+ACM Transactions on Design Automation of Electronic Systems 31, 1 (2025), 1–27. [21] Mingxin Tang, Wei Chen, Lizhou Wu, Libo Huang, and Kun Zeng. 2025. ChatDSE: A Zero-Shot Microarchitecture Design Space Explorer Powered by GPT4. 0. ACM Transactions on Design Automation of Electronic Systems (2025). [22] Qwen Team et al. 2024. Qwen2 technical report. arXiv preprint arXiv:2407.10671 
+
+2, 3 (2024). [23] David Allen Van Veldhuizen. 1999. Multiobjective evolutionary algorithms: classi-fications, analyses, and new innovations . Air Force Institute of Technology. [24] Hanyu Wang, Xinrui Wu, Zijian Ding, Su Zheng, Chengyue Wang, Tony Nowatzki, Yizhou Sun, and Jason Cong. 2025. LLM-DSE: Searching Accelerator Parameters with LLM Agents. arXiv preprint arXiv:2505.12188 (2025). [25] Zhenyu Wang, Pragnya Sudershan Nalla, Jingbo Sun, A Alper Goksoy, Sumit K Mandal, Jae-Sun Seo, Vidya A Chhabria, Jeff Zhang, Chaitali Chakrabarti, Umit Y Ogras, et al. 2025. HISIM: Analytical performance modeling and design space exploration of 2.5 D/3D integration for AI computing. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems 44, 8 (2025), 3208– 3221. [26] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. 2022. Chain-of-thought prompting elicits reason-ing in large language models. Advances in neural information processing systems 
+
+35 (2022), 24824–24837. [27] Zhiyao Xie, Guan-Qi Fang, Yu-Hung Huang, Haoxing Ren, Yanqing Zhang, Brucek Khailany, Shao-Yun Fang, Jiang Hu, Yiran Chen, and Erick Carvajal Barboza. 2020. FIST: A feature-importance sampling and tree-based method for automatic design flow parameter tuning. In 2020 25th Asia and South Pacific Design Automation Conference (ASP-DAC) . IEEE, 19–25. [28] Zhuoping Yang, Shixin Ji, Xingzhen Chen, Jinming Zhuang, Weifeng Zhang, Dharmesh Jani, and Peipei Zhou. 2024. Challenges and opportunities to enable large-scale computing via heterogeneous chiplets. In 2024 29th Asia and South Pacific Design Automation Conference (ASP-DAC) . IEEE, 765–770. [29] Xufeng Yao, Wenqian Zhao, Qi Sun, Cheng Zhuo, and Bei Yu. 2025. High-level Synthesis Directives Design Optimization via Large Language Model. ACM Transactions on Design Automation of Electronic Systems 30, 5 (2025), 1–24. [30] Runjie Zhang, Mircea R Stan, and Kevin Skadron. 2015. Hotspot 6.0: Validation, acceleration and extension. University of Virginia, Tech. Rep 15, 4 (2015), 1–8. [31] Haocong Zhi, Xianuo Xu, Weijian Han, Zhilin Gao, Xiaohang Wang, Maurizio Palesi, Amit Kumar Singh, and Letian Huang. 2021. A methodology for sim-ulating multi-chiplet systems using open-source simulators. In Proceedings of the Eight Annual ACM International Conference on Nanoscale Computing and Communication . 1–6. [32] Eckart Zitzler. 1999. Evolutionary algorithms for multiobjective optimization: Methods and applications . Vol. 63. Shaker Ithaca.

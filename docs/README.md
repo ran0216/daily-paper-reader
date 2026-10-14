@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-13</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-14</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 4 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-13 23:07:56 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-14 22:10:05 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天速读4篇，全部聚焦边缘AI推理加速，其中异构边缘SoC的联合硬件配置与映射设计空间探索以7.0分领跑。最值得看的方向是Agentic设计空间探索如何协同优化硬件与映射，其次是GCN稀疏化与近似计算协同、RISC-V上的Transformer加速。普通读者可先读7分那篇，建立边缘AI软硬件协同优化的整体认知。</p>
+<p>今日速读 4 篇，全部集中在 AI 芯片与硬件设计方向，涵盖 RISC-V 边缘推理、RTL 周期级仿真和 Chiplet 设计空间探索，暂无精读。</p>
+<p>三篇入选（均 6.0/10）中，最值得看的是 RISC-V 上加速 Transformer 边缘推理的框架，以及用 LLM 增强贝叶斯优化做 Chiplet 设计空间探索的思路。</p>
+<p>普通读者可先挑与自己工作最贴近的一篇快速过一遍，重点看方法流程和实验设置，再决定是否深入复现。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -94,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">4 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs">Agentic Design Space Exploration for Joint Hardware Configuration Selection and Mapping of AI Inference Workloads on Heterogeneous Edge SoCs</span></li><li><span class="dpr-home-dashboard-paper-title" title="Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference">Co-Optimizing Graph Sparsification and Approximate Computing for Energy-Efficient FPGA-Based GCN Inference</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Framework for Accelerating Transformer Inference on RISC-V for Edge AI">A Framework for Accelerating Transformer Inference on RISC-V for Edge AI</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A Framework for Accelerating Transformer Inference on RISC-V for Edge AI">A Framework for Accelerating Transformer Inference on RISC-V for Edge AI</span></li><li><span class="dpr-home-dashboard-paper-title" title="TPCS: A Cycle-Level Simulation Paradigm with Native Execution Semantics for RTL Modeling and Generation">TPCS: A Cycle-Level Simulation Paradigm with Native Execution Semantics for RTL Modeling and Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="LLM-Augmented Bayesian Optimization with Adaptive Policies for Chiplet Design Space Exploration">LLM-Augmented Bayesian Optimization with Adaptive Policies for Chiplet Design Space Exploration</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">chip-design <strong>4</strong></span></div>
 </section>

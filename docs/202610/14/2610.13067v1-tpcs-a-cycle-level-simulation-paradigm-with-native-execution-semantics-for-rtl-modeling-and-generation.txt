@@ -1,0 +1,660 @@
+Title: TPCS: A Cycle-Level Simulation Paradigm with Native Execution Semantics for RTL Modeling and Generation
+
+URL Source: https://arxiv.org/pdf/2610.13067v1
+
+Published Time: Mon, 12 Oct 2026 00:52:25 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+1
+
+# TPCS: A Cycle-Level Simulation Paradigm with Native Execution Semantics for RTL Modeling and Generation 
+
+Chengzhen Meng ∗, Xiaoyu Li †, Chen Bai ‡, Zhenyu Zhang †, Hongjun Dai ∗∗ School of Software, Shandong University, Jinan, China † School of Integrated Circuits, Shandong University, Jinan, China ‡ Fudan University, Shanghai, China 
+
+Abstract —The growing diversity of domain-specific architec-tures and microarchitectural designs demands fast and accurate evaluation methods during early design stages. However, existing approaches suffer from a fundamental trade-off: high-level simu-lators offer speed but lack fidelity, while RTL-based tools provide accuracy at the cost of significant simulation overhead. This gap limits efficient pre-RTL microarchitecture exploration. Therefore, we propose Transaction-Pruned Cycle Simulation (TPCS), anovel modeling and simulation framework. It serves as a unified intermediate abstraction spanning microarchitecture modeling, cycle-accurate simulation, and synthesizable RTL implementa-tion. TPCS organizes combinational logic as transaction-based function invocations and leverages host CPU control flow to naturally prune inactive logic, eliminating the need for explicit event scheduling or signal tracking. This enables cycle-accurate simulation with significantly improved performance. TPCS pre-serves structural correspondence with RTL and supports auto-matic generation of synthesizable designs. TPCS achieves 36 ×-42 × speedups over parallel Verilator on SMP systems and 3.4 ×-7.2 × over single-threaded Verilator on accelerators, with cycle-level waveform agreement on the evaluated traces. The generated RTL demonstrates comparable timing and area to handcrafted implementations, with relative changes of -4.7% to +2.6% in clock period and -3.3% to +4.0% in standard-cell area. By bridging the abstraction gap between high-level modeling and RTL design, TPCS enables a unified and agile pre-RTL workflow, allowing efficient microarchitecture exploration with both high performance and implementation fidelity. 
+
+Index Terms —Microarchitecture Modeling, Cycle-Accurate Simulation, Hardware/Software Co-Design, Design Methodology. 
+
+I. I NTRODUCTION 
+
+Modern microarchitecture ( μarch) innovation extends be-yond conventional IP integration; fine-grained design has become equally critical, particularly in domain-specific pro-cessors and heterogeneous systems, where detailed μarch decisions significantly impact performance [1], [2]. Rapid ex-ploration of such designs requires efficient evaluation of μarch ideas before committing to error-prone and time-consuming Register-Transfer Level (RTL) implementation. Skipping this pre-RTL evaluation leads to high development costs, including long synthesis-simulation cycles, limited design-space cover-age, and costly rework when sub-optimal decisions are dis-
+
+Corresponding author: Hongjun Dai (email: dahogn@sdu.edu.cn) This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible. System-Level Modeling Tools Pre-RTL Microarchitecture Modeling        
+
+> RTL Implementation & Verification Tools
+> SystemC TLM GEM5/ZSim/... QEMU SystemC Non-Timing Software Teams
+> build high-level simulator for SoC evaluation Verilator VCS/Verdi Chisel/SpinalHDL SystemC Cycle-Level Hardware Teams
+> build low-level RTL implementation
+> Lack of Efficient Tools
+> ⚠Too abstract for μarch evaluation
+> ⚠Too slow for rapid design iteration
+
+(a) Lack of fine-grained μarch evaluation tools in conventional workflows. Proposed TPCS Model   
+
+> Software & Hardware Teams
+> iterate design together
+> Synthesizable RTL
+> Rapid evaluation Agile backend implementation Structural RTL Correspondence
+> Naturally aligned
+> Pre-RTL Design Evaluation & Iteration
+> Fast Cycle-Accurate Simulation
+> Native C++ Execution Semantics √Unified codebase √ Cycle-level fidelity √ High simulation speed
+> Generation & Feedback
+
+(b) Proposed workflow with TPCS enabling agile pre-RTL iteration. Fig. 1. A typical workflow in fine-grained μarch design. TPCS addresses the bottleneck caused by abstraction gap and models/tools isolation. 
+
+covered late [3]–[5]. Therefore, agile μarch iteration demands evaluation methods that are both fast for early exploration and sufficiently faithful to capture fine-grained hardware behavior. However, existing simulation or evaluation tools fall into two opposing abstraction levels (Fig. 1(a)). This polarization stems from a fundamental mismatch in design philosophies: high-level tools (e.g., GEM5, TLM) prioritize exploration agility over detailed hardware behavior, while RTL tools and hardware description languages (HDLs) prioritize low-level fidelity but incur substantial simulation overhead. As a result, neither supports efficient and accurate pre-RTL μarch evaluation. This mismatch forces prior approaches to trade off between efficiency and fidelity [6]–[9] or rely on complex multi-level workflows [10]–[13]. Consequently, the resulting design misalignment, time overhead, and engineering effort form key bottlenecks in agile μarch iteration. Addressing these challenges is fundamentally difficult, as they originate from the absence of an execution model bridging high-level programmability and low-level hardware behavior. This motivates a rethinking of how hardware execution is represented and simulated. The overhead of RTL simulation largely stems from signal-level evaluation, where even inactive computations incur un-necessary work. Prior studies reduce this overhead by tracking signal activity [14], [15], but they remain confined to the arXiv:2610.13067v1 [cs.AR] 9 Oct 2026 2
+
+signal-level abstraction. We observe that hardware behavior is inherently governed by control logic, which determines the activation of entire computation blocks. Based on this, we reformulate hardware simulation as an execution process based on behavioral descriptions. Inactive paths are naturally skipped via host-native control flow, eliminating the need for explicit activity tracking. This formulation not only improves simula-tion efficiency, but also provides an executable representation of hardware behavior prior to RTL realization. In this paper, we propose Transaction-Pruned Cycle Simu-lation (TPCS), a novel methodology for modeling and simu-lating deterministic cycle-synchronous hardware designs using native software descriptions. TPCS represents hardware exe-cution as transaction-level function invocations within each cycle, enabling control-flow-driven execution with implicit pruning of inactive logic. This design achieves three key properties (Fig. 1(b)): (1) cycle-level equivalence with RTL at module boundaries, (2) high simulation efficiency through na-tive execution, and (3) structural correspondence that supports automatic generation of synthesizable RTL. Together, these properties enable fast and accurate pre-RTL design evaluation for agile hardware development. We evaluate TPCS across designs with varying control intensity. TPCS achieves 36 ×–42 × speedups on SMP systems and 3.4 ×–7.2 × on accelerators against parallel and single-threaded Verilator baselines, respectively. Meanwhile, wave-form equivalence is preserved for key registers and module boundaries. In addition, the generated RTL achieves timing and area close to hand-written designs, with relative changes of -4.7% to +2.6% in clock period and -3.3% to +4.0% in standard-cell area. These results demonstrate that TPCS de-livers both high simulation performance and implementation-quality hardware. The main contributions of this paper are as follows:  
+
+> •
+
+We introduce a new hardware simulation paradigm that leverages host-native control flow to directly drive the control logic of the simulated target hardware.  
+
+> •
+
+We formalize this idea into TPCS, a novel hardware modeling method that combines native host-language ex-ecution, transaction-driven pruning, and systematic gener-ation of synthesizable RTL. The toolchain implementing TPCS is open-source 1. 
+
+> •
+
+We demonstrate TPCS on representative cycle-synchronous hardware designs, showing cycle-level waveform equivalence, up to 42 × speedup over parallel Verilator, and generated-RTL quality comparable to hand-written designs.  
+
+> •
+
+We show that TPCS enables an agile pre-RTL develop-ment workflow, allowing design issues to be identified and resolved earlier, thereby reducing iteration time and engineering effort compared to conventional workflows. II. R ELATED WORK 
+
+Prior work has extensively explored accelerating software-based RTL simulation through parallelization and signal-update pruning techniques [14]–[16], [22]–[24]. Representa-                                                                                                                              
+
+> 1https://github.com/meng-cz/vulsim TABLE I COMPARISON OF TPCS AND TYPICAL RELATED WORKS .
+> Work ABS 1GEN 2ACC 3SPD 4SIM 5EXE 6PAR 7RG 8
+> Verilator RTL ALL CYC ⋆⋆ CYC TRA YES N/A VCS RTL ALL GAT ⋆EVT TRA YES N/A GSIM [14] RTL ALL CYC ⋆ ⋆ ⋆ CYC TRA YES N/A MetroMPI [16] RTL ALL CYC ⋆ ⋆ ⋆ MIX TRA YES N/A SystemC-TLM [17] TLM PROC APX ⋆ ⋆ ⋆⋆ EVT SCH NO NO GEM5 [18] μARCH-APX PROC APX ⋆ ⋆ ⋆⋆ EVT SCH NO NO GEM5+RTL [10] μARCH-APX PROC APX ⋆ ⋆ ⋆ MIX TRA NO NO SystemC-Cycle RTL ALL CYC ⋆⋆ CYC SCH NO YES Chisel [19] RTL ALL CYC ⋆CYC TRA NO YES PyMTL [20] RTL ALL CYC ⋆CYC TRA NO YES Assassyn [21] μARCH-CYC PIPE CYC ⋆⋆ CYC TRA NO YES
+> TPCS μARCH-CYC GEN CYC ⋆ ⋆ ⋆⋆ CYC NAT YES YES
+> 1Abstraction Level, RTL: Register-transfer level, μARCH-APX: Latency-based μarch model, μARCH-CYC: Cycle-defined μarch model, TLM: Transaction-level model.
+> 2Hardware Generality, GEN: General cycle-synchronous hardware, PIPE: Pipeline-based hardware, PROC: Processor & SoC only.
+> 3Timing Accuracy, GAT: Gate-level, CYC: Cycle-level, APX: Approximate timing.
+> 4Simulation Speed.
+> 5Simulation Model, EVT: Event-driven, CYC: Cycle-driven, MIX: Mixed.
+> 6Executability, NAT: Natively executable with static scheduling, SCH: Dynamic scheduler required, TRA: Translation required before execution.
+> 7Parallel Simulation.
+> 8RTL Generation.
+
+tive efforts include GSIM [14], which is among the fastest reported RTL simulators with multi-level optimizations, and MetroMPI [16], which scales to large designs via distributed simulation by scheduling events across nodes using MPI, thereby exploiting parallelism at scale. However, RTL-based simulation faces a fundamental limitation: the mismatch be-tween RTL’s signal-driven semantics and the host CPU’s control-flow execution requires explicit scheduling or control logic, introducing inherent overhead. In contrast, TPCS is designed to map hardware behavior natively onto the host instruction stream, allowing control flow to be handled im-plicitly and eliminating this overhead. Verilator is used as the RTL simulation baseline due to its widespread adoption, robustness across general hardware designs, and consistent re-producibility, making it a reliable point of comparison despite the existence of newer, less mature alternatives. Mixed frameworks improve simulation efficiency by com-bining different modeling abstractions and selectively omitting low-level hardware details [10], [13], [17], [25]–[27]. Rep-resentative efforts include SystemC TLM [17] with multiple timing models and GEM5+RTL [10] integrating RTL compo-nents into an architectural simulator. While these approaches achieve higher performance with limited loss of accuracy, they do not fundamentally bridge abstraction levels. Hardware must still be re-implemented across layers, and additional interface overhead is unavoidable. In contrast, TPCS focuses on a unified intermediate representation of hardware rather than cross-level composition. Cycle-level synthesizable SystemC can describe hardware at RTL-like granularity and support synthesis, but its execution semantics remain mediated by the SystemC kernel through process scheduling and signal/event updates. TPCS targets a different point in this design space: it retains cycle-level state and structural RTL correspondence, while mapping hardware control flow directly onto native host-language function calls and control flow, without a runtime event scheduler. High-level RTL generation has become a key direction for agile hardware design, but it typically relies on well-explored architecture and parameterized generators, limiting 3Sec III.B. TPCS Model           
+
+> Key Features:
+> 1. Module Hierarchy 2. Across-Cycle States with
+> Non-Blocking Assignment 3. Transaction Interaction with
+> Readiness Condition 4. Per-Cycle Behavior 5. Priority and Order
+> State:
+> cnt =0;
+> Transaction Request:
+> bool send();
+> Per-Cycle Behavior:
+> if (send())
+> cnt.set(cnt+1);
+> State:
+> cycle =0;
+> Transaction Service recv :- Condition: (cycle==5)
+> - Behavior: cycle.set(0);
+> - Order: -1 (after per-cycle) Per-Cycle Behavior:
+> cycle.set(cycle+1);
+> module Producer module Consumer
+> Transaction Connection send > recv
+
+(a) Behavioral abstraction: a TPCS modeled producer-consumer example. bool send() {            
+
+> return ... ;}
+> void tick() {
+> if (send())
+> cnt_set(cnt+1);
+> }bool recv() {
+> bool rdy=(cycle==5);
+> if (rdy) cycle_set(0);
+> return rdy;
+> }void tick() {
+> cycle_set(cycle+1);
+> }
+> Naturally Pruned when Inactive
+> Direct Call Forwarding
+> Sec III.C. Execution
+> Mapping:
+> 2. Transactions > Member
+> Function Calls 1. Module > C++ Class 3. Simulation > Invoke tick() +
+> Commit States Per-Cycle
+> Key Insight:
+> Inactive Code Never Executed
+> class Producer class Consumer
+
+(b) Software-level: Executable C++ code assembled from the TPCS model. Registers Ports module Producer module Consumer Comb. Logic 
+
+> cnt cnt_next clk rst send_valid send_ready
+> Ports Comb. Logic Registers
+> recv_valid recv_ready
+> send_valid > recv_valid send_ready < recv_ready
+> Sec III.D. RTL Gen.
+> 1. Script-Based Gen. for RTL
+> Framework and Connection 2. Compiler-Based Gen. for
+> Comb. Logic
+
+(c) Hardware-level: Synthesizable RTL generated from the TPCS model. Fig. 2. Overview of TPCS modeling, execution, and RTL generation. 
+
+its applicability to specific domains such as CPUs [28]– [31], accelerators [12], [32], [33], and SoCs [31], [34]. More generally, high-level hardware design frameworks focus on generating RTL from software-like intermediate representa-tions such as Chisel [19], [20], [35], [36], improving design productivity but remaining signal-level construction. The work most closely related to TPCS is Assassyn [21], which introduces a unified ”C-like” pipeline stage represen-tation and can generate both cycle-accurate simulation and synthesizable RTL. However, it is limited to regular hardware structures based on pipelines and FIFOs, and its event-driven, single-threaded simulation model constrains performance. In contrast, TPCS adopts a native C++ representation and lever-ages transaction-based, control-flow-driven execution seman-tics, achieving broader hardware generality and simulation speed close to software simulators. TPCS represents a step toward reconciling software execution with cycle-accurate hardware semantics for modeling and simulating general synchronous hardware , enabling a more agile hardware design workflow. III. T RANSACTION -P RUNED CYCLE SIMULATION 
+
+A. Overview of TPCS 
+
+To bridge high-level modeling and RTL fidelity, we propose Transaction-Pruned Cycle Simulation (TPCS), a modeling and simulation paradigm with native execution semantics. The term “Transaction-Pruned” refers to the elimination of inactive code execution in each cycle via transaction-based control-flow conditions, thereby pruning unnecessary simulation work. TPCS comprises three aspects: (1) modeling abstraction (Section III-B), (2) execution semantics (Section III-C), and (3) RTL generation (Section III-D). Fig. 2 illustrates the TPCS workflow using a producer-consumer example, which will be referenced throughout this section. TPCS differs from traditional HDLs by focusing on behav-ior rather than construction (Fig. 2(a)). The key challenge is to give a precise and executable definition of behavior . To this end, TPCS defines each hardware module in three aspects: (1) A set of states representing cycle-boundary observable values, with non-blocking assignment effective at next cycle (pink-shaded texts). (2) Transactions capturing inter-module control and data interactions via request (caller) and service (callee), with transaction readiness condition (blue-shaded texts). (3) Behavioral procedures expressed as C++ code operating on states and transactions within a cycle. Together, these define the complete per-cycle semantics of a module as deterministic state transitions and interactions under given inputs. This unified abstraction forms a precise and executable pre-RTL representation that is both human-readable and structurally aligned with RTL. At the software level, TPCS models are directly executable: advancing one cycle corresponds to executing per-cycle be-haviors of all modules (Fig. 2(b)). The key challenge is to achieve high performance while preserving cycle accuracy. TPCS addresses this by statically resolving control flow. State assignments are mapped to C++ APIs, and transaction interac-tions are mapped to function calls. Therefore, the execution of a cycle is driven entirely by host-language semantics without global schedulers or event queues. Transaction conditions and control-flow branches naturally prune inactive code at runtime, incurring only minimal branch prediction cost and no additional activity tracking. As a result, TPCS achieves near high-level simulation performance while maintaining cycle-level fidelity. At the hardware level, the structured abstraction of TPCS enables systematic generation of synthesizable RTL (Fig. 2(c)). The key challenge is to translate behavior and trans-action into signal-level implementations while preserving se-mantics. TPCS adopts a structure-logic decoupled approach. Module hierarchy, state, and transactions are directly mapped to an RTL skeleton with modules, registers, and port con-nections. Behavioral procedures are translated into equivalent combinational logic via the dedicated TPCS compiler. This separation establishes a consistent mapping from high-level behavior to signal-level implementation, ensuring equivalence in state transitions and interactions between the TPCS model and generated RTL. 
+
+B. TPCS Modeling Semantics with RTL Correspondence 
+
+This section defines the modeling abstraction of TPCS. Ta-ble II summarizes the core elements and their correspondence to RTL (SystemVerilog) and C++ representations. As globally visible declarations, a constant is a compile-time value and a struct is a packed aggregate of named members with static types. The remaining elements fall into three categories. First, modules , together with their instances , parameters , and 
+
+states , define the hierarchical structure of a TPCS design. Second, request and service transaction ports model inter-module communication. Third, logic blocks describe intra-module combinational behavior. 4                                                                                                        
+
+> TABLE II TPCS, C++, AND RTL ELEMENT MAPPING .
+> Category TPCS Element C++ Element RTL Element
+> Declaration CONSTANT (Num, 16) constexpr int64 Num = 16; localparam longint Num =16;
+> STRUCT (Msg) {
+> uint8 data;
+> }
+> struct Msg {
+> uint8 data;
+> }
+> struct packed {
+> logic [7:0] data;
+> }Msg;
+> Module Definition (Sec. III-B1)
+> MODULE (Sender)
+> PARAMETER (WIDTH, 4)
+> template <int64 WIDTH =4>
+> class Sender {... };
+> module Sender #(
+> parameter longint WIDTH =4);
+> INSTANCE (Sender, send, WIDTH=8) unique_ptr <Sender<8>> send; Sender #(.WIDTH(8)) send (...);
+> PERSISTENT_STATE (Msg, buf, 2) // type, name, write port number PState<Msg, 2> buf;
+> void buf_set( const Msg &v,
+> const uint32 prio =0) {
+> buf.set(v, prio); }
+> reg [7:0] buf;
+> wire buf_wen0, buf_wen1;
+> wire [7:0] buf_wv0, buf_wv1; ...
+> EPHEMERAL_STATE (bool , busy, false) // type, name, reset value // reset after each cycle
+> bool busy = false; wire busy;
+> Transaction Definition (Sec. III-B2)
+> REQUEST_PORT (query, \
+> ARG (uint8 ) idx, \
+> RESP (uint32 ) d)
+> private: // locally invoked
+> bool query(
+> const uint8& idx,
+> uint32& d);
+> output wire query_valid,
+> output wire [7:0] query_idx,
+> input wire [31:0] query_d,
+> input wire query_ready
+> SERVICE_PORT (query, \
+> ARG (uint8 ) idx, \
+> RESP (uint32 ) d)
+> public: // externally invoked
+> bool query(
+> const uint8& idx,
+> uint32& d);
+> input wire query_valid,
+> input wire [7:0] query_idx,
+> output wire [31:0] query_d,
+> output wire query_ready
+> Logic Block (Sec. III-B3) LOGIC_BLOCK ([ PRIO (1)]) {c = a + b; }{c=a+b; }assign c = a+b;
+
+1) Module-Centric Abstraction: TPCS adopts a module-centric abstraction, representing hardware as a hierarchy of modules. Each module structurally corresponds to an RTL module or a C++ template class. An instance denotes aconcrete instantiation of a module within its parent module. Modules are parameterized, with parameters treated as local constants specified at instantiation. This design ensures struc-tural correspondence with both RTL and C++, enabling direct execution and systematic translation. State elements capture both stored and intermediate values and are categorized into two types. Persistent state represents cross-cycle values (analogous to registers) and is updated via deferred assignment, taking effect in the next cycle; it may have multiple assignment ports with different priority. 
+
+Ephemeral state represents intra-cycle temporary values (anal-ogous to wires), which are cleared each cycle and used for sharing intermediate results across logic blocks. For a persistent state r, let rt be its value in cycle t, and let Wt = {(p, d p)} denote all writes issued in that cycle with r.set<p>(d_p) , where p denotes the port priority, dp
+
+denotes the data. Reads always observe rt. If Wt̸ = ∅, the state transition is rt+1 = dp∗ , where p∗ = max {p | (p, d p) ∈ Wt}.Otherwise, rt+1 = rt. Hence, writes are deferred to the next cycle and conflicts are resolved deterministically by priority, corresponding to synchronous RTL non-blocking assignment with priority arbitration. 
+
+2) Transaction System: The transaction system is the cen-tral abstraction in TPCS. A transaction represents a single-cycle control and data interaction between modules. Trans-actions may be handshaked , where invocation takes effect only when the callee is ready, whereas a non-handshaked transaction is always accepted once invoked. Modules expose transaction ports that define invocable interactions. A request port initiates a transaction, while a ser-vice port responds. Each port optionally specifies exchanged data, including arguments from the request side and responses 
+
+from the service side. An invocation implicitly encodes a valid 
+
+signal, while the return value (for handshaked transactions) represents ready .Ports can be connected when their return types, arguments ,and responses match. Connections are directional: invoking the source port forwards this call to its destination, decoupling port declaration from execution while preserving RTL-style binding semantics. Connections must have neither multiple drivers nor dangling ports. Specifically, a child’s request port must be connected to a child’s service , a parent’s request , or bound to logic block(s); a parent’s service port must connect to a child’s service 
+
+or be bound to logic block(s). Broadcast is allowed only for transactions without handshake or responses ; otherwise, connections are one-to-one. 
+
+3) Logic Blocks: Combinational logic in TPCS is expressed as logic blocks , implemented as C++ functions. A logic block defines intra-module behavior, including state access, control flow, and transaction invocation. Logic blocks execute only when bound to triggering points, including service , triggered by transaction invocation, and tick , invoked once per cycle. This programmatic form is precise, deterministic, and exe-cutable, enabling pre-RTL validation at both module-level and system-level. TPCS imposes three constraints to define unambiguous model semantics for subsequent software execution and hard-ware generation. First, each block must terminate and produce deterministic results for all valid inputs, with fully defined control paths, statically bounded loops, statically allocated storage, and no undefined operations. Second, conflicting state updates require explicit resolution rules: order-independent blocks use priority-based deferred assignments, whereas ex-plicitly ordered blocks allow later updates to override earlier ones (as shown in Fig. 2(a)). Finally, each transaction may be invoked at most once per cycle, where a state assignment port is also treated as a special transaction. The single-invocation constraint is enforced at three stages. During static validation, all logic blocks within a module are 51: in(0x11..,0x0f..) > true 2: in(0x22..,0x0e..) > true 3: in(0x33..,0x0d..) > false 4: in(0x33..,0x0d..) > false ... 20: in(0x33..,0x0d..) > false 21: in(0x33..,0x0d..) > true 22: in(0x44..,0x0c..) > true 23: in(0x55..,0x0b..) > false ...  
+
+> Signal-Level Trace Transaction-Level Trace
+> Service Port: bool in(const uint128 d, const uint128 k)
+
+Fig. 3. Waveform consistency cross abstraction levels and transaction-to-signal correspondence. BP Fetch ICache Decode Execute Mem WB DCache1 DCache2 DCache3 Redirect Logic bpreq ireq bpu_train redirect regread bypass brres expt dreq dresp IMem Ports DMem Ports    
+
+> Figure Legends
+> mshr_wb/prober_update/amo_wb Name Child Instance Stall Propagation Transaction Connection enq deq clear Pipe Instance Handshaked No-buffer No-handshake No-buffer Handshaked Buffered Inst-Queue
+
+Fig. 4. TPCS representation of a simple 5-stage pipelined CPU design using built-in components. 
+
+parsed and examined to rule out any feasible execution path that invokes the same transaction more than once. During debug simulation, each transaction is guarded by an assert with a clear-on-cycle execution flag. During RTL generation, all output signals including transaction signals are checked for multiple drivers. These constraints define the hardware scope targeted by TPCS. Specifically, TPCS models a statically structured subset of deterministic cycle-synchronous hardware, where cycle boundaries and state transitions are explicit and intra-cycle behavior can be represented as terminating combinational computation. Asynchronous logic, analog behavior, X/Z states, and unrestricted cross-clock combinational interactions are outside this scope. 
+
+4) Debugging and Extensions: TPCS provides built-in trac-ing for both transactions and registers. As shown in Fig. 3, TPCS records traced transaction invocation, input arguments, response values, and return status. Traced register updates are captured after deferred assignments are committed. This establishes correspondence between transaction-level trace and signal-level waveform. TPCS also offers pre-built components for common hard-ware patterns. Pipe is a configurable queue instance with 
+
+enqueue , dequeue , and clear handshaked service ports, and is suitable for pipeline and interconnect modeling. Memory components such as BRAM support multi-port storage. Stall propagation provides a back-pressure mechanism where stall 
+
+transactions are propagated recursively to all connected in-stances. It generates a special transaction port pair together with helper functions that allow logic blocks to access the stall flag and invoke stall . Fig. 4 shows a 5-stage CPU example where stages are modularized and connected via Pipe , with 
+
+BRAM in the cache and stall propagation across the Decode, Execute, and Memory stages. TPCS supports statically-sized arrayed instances for scal-able structured modeling. Point-to-point transaction connec-Logic Block      
+
+> Producer::tick
+> Request Port Func
+> send(d);
+> Dispatch Wrapper Func
+> static bool _A_send_wrap(
+> void* top, const uint8 d); param.req_send( param.top, d);
+> Service Port Func
+> ((TopModule*)top)->B .serv_recv(d);
+> Logic Block
+> Consumer::recv
+> recv(d);
+> Producer AConsumer B
+> class TopModule
+> Legends
+> TPCS-Gen Code User Code Direct Inline Call Indirect Call Runtime Binding
+> Binding Logic in TopModule's Constructor Compilable C++ TPCS Modules
+> TopModule
+> Producer
+> Child-instance A
+> Consumer
+> Child-instance B A.send > B.recv Transaction Connection
+> TPCS Code Mapping Constructor param in A Request port function in A Dispatch wrapper in TopModule A.send port A.send > B.recv Service port function in B B.recv port
+> A.param.top = this; A.param.req_send = _A_send_wrap;
+> Binding logic in TopModule
+
+Fig. 5. Transforming transaction connection into runtime-bound C++ function pointer call. 
+
+tions for them implicitly carry index parameters, and bulk con-nections among adjacent instances can be concisely specified by dimension. 
+
+C. TPCS Native Execution Semantics 
+
+This section describes the execution of TPCS models as native C++ programs. This section describes transaction invo-cation, execute-commit simulation, and deterministic parallel execution. Static execution ordering that allows native control-flow execution without runtime dependency resolution. Transaction connections are realized via C++ function calls, eliminating scheduling and activity detection. The evaluation order of logic blocks is fixed at construction time, removing runtime dependency resolution. Due to avoiding global structures such as event queues, TPCS eliminates unnecessary ordering con-straints and enables efficient cycle-level parallel simulation. 
+
+1) Transaction Calls and Connections: Transaction con-nections underpin TPCS execution semantics. As shown in Fig. 5, transactions are implemented as C++ function calls via function-pointer-based binding. Both request and service ports are member functions. The request invoked by logic blocks forwards this call through a function pointer, while service 
+
+acts as the entry point. Connection is realized by a generated static wrapper function whose pointer is bound to the request side. The wrapper function dispatches this call to connected child instance service or bound logic blocks. These codes are automatically derived from the structural specification, requiring only port and connection declarations. Without devirtualization, each connection incurs an indirect call that limits inlining. When a module type is instantiated under different parents, a shared call site may target different wrappers; optional wrapper duplication trades code size for execution efficiency. For arrayed child instances, frequent wrapper invocation increases overhead. TPCS mitigates this with an optional aggregation optimization that inlines the child module into parent module, enabling direct calls across siblings. This preserves functional equivalence while trading code size for speedup, and is particularly effective for regular arrays of small processing elements. 6                                                                                              
+
+> Algorithm 1. Hierarchical Execution Ordering
+> Input :Hierarchy H, dependencies {D[i]}, connections
+> Output :Local execution orders {S[i]}, or FAIL func LCA(u, v):
+> return argmax H.Depth(i) |u, vin H.Subtree(i)
+> func Project(p, u):
+> if p=ureturn Tick(p)
+> return Exec(c) |cin H.Children(p) and uin H. Subtree(c) owner <-Map reachable block to its initiating Tick’ sinstance Fail on multiple Tick owners
+> for each iin Hdo
+> G[i] <-Edgeless graph on Tick(i) and immediate-child Execs
+> for each iin Hdo for each (a, b) in D[i] do
+> u, v<-owner[a], owner[b]; fail if u=vp <-LCA(u, v) Add edge {Project(p, u) >Project(p, v)} to G[p]
+> return {TopologicalSort(G[i])}
+
+2) Dual-Stage Cycle-Driven Simulation: Each simulation cycle consists of an execute stage and a commit stage. During the execute stage, the tick port of each module is invoked, and logic blocks recursively trigger additional request ports as needed to evaluate dependent combinational logic. The result-ing call structure follows the host’s native control flow and directly captures hardware control semantics. In the commit 
+
+stage, all deferred assignments are applied and prepared for the next cycle. Execution naturally follows an ordered traversal of the mod-ule hierarchy. Each module provides an exec entry function, which invokes its own tick and all children’s exec in the order constructed from logic block priorities. The exec function of the top instance is the entry point of the execute stage. In contrast, the commit stage is order-independent, as state elements are updated individually. The execution-order construction based on call ownership and hierarchical projection is shown in Algorithm 1. Variables follow the convention that i denotes an instance, p a parent or ancestor, and c an immediate child. Here, H denotes the instance hierarchy, D[i] contains the precedence pairs of logic blocks within i, and S[i] is the resulting local execution sequence in i. The algorithm assumes resolved, nonrecur-sive calls without repeated block invocation, and dependency pairs whose endpoints both have owners. Unresolved calls, conflicting ownership, or cyclic ordering constraints cause a design fatal. Logic blocks without specified priority impose no additional ordering. Algorithm 1 takes O(B + C + N + Dh )
+
+time with visited-node tracking and parent-pointer traversal, where B, C, N , D, and h denote the numbers of logic blocks, call edges, module instances, dependency pairs, and the hierarchy depth, respectively. Correctness rests on projecting each block dependency to the lowest common ancestor of its owning instances. Because child Execs execute indivisibly, recursive composition of the local topological orders preserves all declared dependencies. Dependencies within a single Tick are conservatively rejected, as external scheduling cannot alter its internal order. This Producer           
+
+> Instance A
+> Consumer
+> Instance B enq deq
+> Thread 0 Thread 1
+> Pipe 0
+> TPCS Modules Execution Timeline T0 T1
+> exec A&Pipe0 exec B
+> sync
+> cmmt A&Pipe0 exec A&Pipe0 exec B cmmt B Execute Stage Commit Stage Cycle N
+> sync
+> Cycle N+1 Execute Stage
+> EnqBuf DeqBuf EnqBuf DeqBuf EnqBuf DeqBuf
+> T0 T0
+> Fig. 6. TPCS multi-thread parallel execution and synchronization.
+
+ordering ensures that the actual execution respects the declared logic-block precedence in every module instance, thereby making software execution consistent with the model’s de-clared semantics. 
+
+3) Parallel Execution: TPCS adopts static parallelization at component boundaries (Fig. 6). Only order-free instances may be assigned to different worker threads, and the partition is fixed before simulation and remains unchanged during exe-cution. All persistent and ephemeral states of an instance are exclusively owned and written by its assigned thread. Cross-thread interactions are restricted to pipe or side-effect-free ser-vices that only read persistent states; ordinary service/request interactions with cross-thread side effects are disallowed. Cross-thread pipe communication follows the execute– commit semantics. During execute , the producer and con-sumer independently update thread-local enqueue and dequeue buffers, while persistent pipe state remains unchanged. After an acquire/release spin barrier, the enqueue-side owner de-terministically commits both endpoints to the canonical pipe state. A second barrier separates commit from the next execute stage, so transferred data becomes visible only in the following cycle. Therefore, worker interleaving cannot introduce data races or affect cycle-boundary state: each thread writes only private state during execution, while all cross-thread effects are applied at deterministic synchronization points. The per-thread execution order and instance-to-thread map-ping are fully static, with no work stealing, randomized scheduling, or runtime arbitration; hence no simulator-side random mechanism is required for determinism. Thread pin-ning is used only to reduce performance variance and is not required for correctness. The half-cycle barriers introduce syn-chronization overhead, so parallel execution is most effective for sufficiently large designs and fewer cross-thread pipes. 
+
+D. Synthesizable RTL Generation from TPCS 
+
+The goal of RTL generation in TPCS is to translate a high-level model into synthesizable RTL while preserving structural correspondence and execution semantics. Accordingly, TPCS adopts a generation strategy that decouples structural compo-nents from logic code. Module hierarchy, state elements, and transaction ports can be directly translated to form the RTL skeleton. In contrast, logic blocks and transaction invocations are transformed into signal-level combinational logic via a dedicated LLVM-based compiler. 
+
+1) RTL Generation Workflow: RTL generation in TPCS is performed per module following the model hierarchy. As shown in Fig. 7, each module is decomposed into three compo-nents: (1) a Register sub-module encapsulating persistent state 7TPCS Module Transaction Ports & Conn Sequential Components Logic Blocks RTL Skeleton                                                                                            
+
+> port definition & sub-modules
+> Wrapper Funcs
+> map func calls to signal variable assignments
+> Register Sub-Module
+> register & arbiter
+> Aggregated Logic Func
+> Statically Analyzed & Concatenated
+> Func Signature Comb. Logic
+> Function Body
+> Inlined & Fused Port Signals
+> Child-Instances Comb. Logic Sub-Module Dedicated Compiler Synthesizable Module RTL Integrated & Connected
+> Legends: TPCS Element C++ Code Verilog Code Script-Based Gen Compiler-Based Gen
+> void main_logic (/* Logic Sub-Module Ports Here */ ){
+> /* Wrapper Funcs Here */
+> /* Initiate Output Signals in Ports */
+> tick ();
+> bool recv_rdy =recv_cond (srv_recv_d);
+> srv_recv_rdy =recv_rdy;
+> if (recv_rdy && srv_recv_vld) recv_impl (srv_recv_d); }
+> (I) TPCS Module
+> Persistent State:
+> - uint8 cycle
+> Request Port:
+> - void pass(uint8)
+> Service Port:
+> - bool recv(uint8)
+> COND: cycle&1
+> SERV_IMPL(...) {
+> pass(d); }
+> TICK_IMPL() {
+> cycle_set(
+> cycle +1); }
+> (II) Wrapper Functions (C++ Lambdas)
+> pass =[&]( const uint8 d){
+> req_pass_vld =true;
+> req_pass_d =d; };
+> cycle_set =[&]( const uint8 v){
+> reg_cycle_wen =true;
+> reg_cycle_v =v; };
+> tick =[&](){
+> cycle_set (cycle+1); };
+> recv_cond =[&]( const uint8 d){
+> return (cycle&1); };
+> recv_impl =[&]( const uint8 d){
+> pass (d); };
+> bool& req_ pass _vld, //output
+> uint8& req_ pass _d, //output[7:0]
+> const bool srv_ recv _vld, //input
+> const uint8 srv_ recv _d,//input[7:0]
+> bool& srv_ recv _rdy, //output
+> const uint8 cycle ,//input[7:0]
+> bool& reg_ cycle _wen, //output
+> uint8& reg_ cycle _v //output[7:0]
+> (III) Module Ports (C++ Arguments)
+> ①Gen Wrappers & Ports
+> (IV) Main Function of Comb. Logic
+> ②Gen Function Body
+> ③Concat
+> ③Concat
+> User-Defined Priorities Order: tick > recv
+
+Fig. 7. RTL Generation Flow for the TPCS Model. 
+
+with write arbitration, (2) a Logic sub-module implementing combinational behavior, and (3) an RTL skeleton with module port definitions, child-instances, and interconnections. Only the Logic sub-module is generated via dedicated compiler; all other structures are derived directly from the TPCS spec-ification. This decomposition separates sequential and com-binational logic, aligning with TPCS dual-stage execution semantics. For Logic sub-module, to unify interactions as port-level interfaces, a void-return function is constructed where all ports are explicit arguments. (1) TPCS elements are transformed into wrapper functions and port definitions, where wrappers pre-serve APIs but translate calls into port accesses (e.g., xxx set 
+
+sets register write signals). (2) Logic blocks are invoked sequentially in user-defined priorities. Tick -bound blocks al-ways execute, while service -bound blocks are conditionally triggered by valid and ready signals. (3) All components are composed into a single function, whose execution aggregates all port-level reads and writes within one cycle. 
+
+2) Dedicated Compiler for Combinational Logic Genera-tion: The TPCS compiler translates combinational C++ func-tions into synthesizable SystemVerilog. It supports Boolean and fixed-width integer operations, static arrays and aggre-gates, conditional control flow, fully unrollable loops, and statically resolved, nonrecursive calls. Dynamic allocation, runtime dispatch, native floating-point operations, and unsup-ported library calls are excluded. State and cycle boundaries remain explicit in TPCS. Fig. 8 illustrates six stages: semantic normalization using LLVM, statementization and Control Flow Graph (CFG) con-struction, expansion and inlining, aggregate and bit-vector lowering, Static Single Assignment (SSA) construction and (1) Code parsing and normalization (LLVM) (2) Statementization and CFG construction (3) Static expansion and inlining (4) Aggregate and bit-vector lowering (5) SSA construction and predication (6) Optimization and RTL emission (CIRCT)                
+
+> if (c) x=a+b; else x=b;
+> If (c, Assign (x, Add (a,b)) ,Assign (x,b))
+> branch (c,T,F);
+> T:x1=a+b;
+> F:x1=b;
+> J:x=x1
+> ... T:x1= add8 (a,b) x2= phi ([x1, T],[b, F]) x2= mux (c,x1,b) x1=a+b; x2=c?x1:b;
+> for (k=0;k<2;++k) x=inc(x);
+> For (k=0;k<2;++k,
+> Assign (x, Call (inc,x)))
+> H:branch (k<2,B,J);
+> B:t= call inc(x); x=t; ++k; t0=x+1; x=t0; t1=x+1; x=t1; x= add8 (x,1); x= add8 (x,1); x1= add8 (x0,1); x2= add8 (x1,1); x1=x0+8'd1; x2=x1+8'd1; array<u8,2> A{a,b}; A[k]=d;
+> Construct (A,a,b);
+> FieldWrite (A,k,d); A0=a; A1=b;
+> LookupWrite (k,d, [A0,A1]); A0=(k==0)?d:a; A1=(k==1)?d:b; A0= mux (k==0,d,a); A1= mux (k==1,d,b);
+> Synthesizable C++
+> Synthesizable RTL
+
+Fig. 8. Representative transformations through the six stages in TPCS compiler. 
+
+predication, and optimized RTL emission using CIRCT 2.These stages expose data dependencies, preserve evaluation order and width semantics, and eliminate loops and calls without introducing additional state. Predication converts control flow into value selection. Let 
+
+gB denote block reachability and eB,J the predicate for traversing edge B → J. For a branch on c,
+
+gentry = 1 , gJ = _
+
+B∈Pred( J)
+
+eB,J ,eB,T = gB ∧ c, eB,F = gB ∧ ¬ c. 
+
+(1) An SSA merge pairs each value with its predecessor and lowers to 
+
+ϕ([ v1, B 1], [v2, B 2]) ⇝ mux( eB1,J , v 1, v 2), (2) where ⇝ denotes lowering and mux( s, u, v ) selects u if 
+
+s holds and v otherwise. Incoming predicates are mutu-ally exclusive and cover execution of J. A guarded write 
+
+if (g) A[k] := d similarly becomes 
+
+Anew 
+
+j = mux( g ∧ (k = j), d, A old 
+
+j ), 0 ≤ j < N. (3) SSA versions preserve sequential updates as combinational dependencies, while predicate checks enforce valid uses and complete output coverage. These rules preserve values along the acyclic dependency graph, making settled RTL outputs equivalent to one C++ execution for valid inputs. 
+
+3) Predicate Sinking Optimization: A key challenge in lowering TPCS C++ combinational logic into synthesizable RTL is the serial predicate chain introduced by nested control flow. After predication, intermediate values may be repeatedly guarded by accumulated branch conditions, increasing control dependence and combinational depth. In handwritten RTL, similar logic is often expressed in an always comb block, where data computation and predicate evaluation proceed largely in parallel and predicates are applied only near observ-able boundaries. To recover this structure, the TPCS compiler introduces a demand-guided predicate-sinking optimization before entering the CIRCT back-end. The procedure is shown in Algorithm 2. For a candidate 
+
+x = Mux( g, t, f ), F IRST GATING PREDICATES follows each 
+
+2https://github.com/llvm/circt 8
+
+Algorithm 2. Demand-Guided Predicate Sinking 
+
+Input : SSA signal-driving DAG G
+
+Output : Optimized DAG G
+
+func FirstGatingPredicates(x): P <- {}; Q <- ConsumerEdges(x) while Q is not empty do 
+
+// visited check are omitted here e <- Pop(Q); u <- Consumer(e) 
+
+if u is output node return FAIL if u is Mux and u gates e then 
+
+P <- P union {DemandPredicate(u, e)} 
+
+else 
+
+Q <- Q union ConsumerEdges(u) 
+
+return P
+
+for each x = Mux(g, t, f) in RevTopoOrder(G) do 
+
+P <- FirstGatingPredicates(x) 
+
+if P = FAIL continue for each q in BFS(PredicateCone(g)) do if forall p in P: p => q then 
+
+g’ <- (Clone(g) where [q <- True]) x <- Mux(g’, t, f); break if forall p in P: p => not q then 
+
+g’ <- (Clone(g) where [q <- False]) x <- Mux(g’, t, f); break return G
+
+consumer path to the first Mux that conditionally requires 
+
+x and collects its demand predicate into P . A true-arm use contributes g′, while a false-arm use contributes ¬g′. If any path reaches an observable boundary without such gating, the candidate is rejected. Condition uses and uses through both data arms are likewise treated as ungated. The predicate cone of g is then searched for a node q such that ∀p ∈ P ; p ⇒ q or ∀p ∈ P ; p ⇒ ¬ q. In these cases, q
+
+is constant whenever x is demanded and can be replaced by 
+
+True or False in a cloned guard cone, followed by Boolean simplification. The original cone is preserved for shared uses. With visited-edge tracking, one pass takes O(V + E +
+
+M [( V +E)+ KRC proof +Cclone ]) time, where V, E bound the DAG size during the pass, M counts candidate muxes, K, R 
+
+bound predicate-cone and demand-set sizes, and Cclone bounds cloning and simplification. An exhaustive implication check on 
+
+s nodes and k Boolean inputs costs Cproof = O(s2k); practical proof budgets bound search effort, with unproven candidates left unchanged. This is especially useful for temporaries inside nested if 
+
+statements. For example, if a temporary is guarded by a ∧ b,but every downstream use already occurs under a condition implying a, then a is redundant at that temporary. Predicate sinking specializes the guard from a ∧ b to b, removing branch conditions already enforced downstream and shortening the resulting predicate chain without changing observable output. Before predicate sinking, Boolean signal networks are normalized into And-Inverter Graphs (AIGs) and simplified using structural rules and truth-table-based reduction, which reduces the cost of predicate proofs. Other common opti-mizations are performed by circt-opt , with the same configuration as Chisel release-mode, including canonicaliza-tion, common-subexpression elimination, dead-code elimina-tion, and hardware-level cleanup passes. IF & BP DEC & REG EXE MEM MUL & DIV Unit (MDU) Floating Point Unit (FPU) WB DTLB & DCache ITLB & ICache PTW Core 0 Core 1 ...  
+
+> Coherency FSM Flat Memory L1 Directory Simple Memory Controller
+> Raw Pipeline for HDL Comparison and RTL Backend
+
+(a) RISC-V SMP system. Data Key Round Stage1 SubBytes + KeyGen + ShiftRows Data Key Round Stage2 MixColumns + AddRoundKey Input Data&Key Output Data&Key Round+=1 Round=1 R<10 
+
+> SrvPort ReqPort
+
+(b) AES Enc unit. B[15:0] A[15:0] AInit C[15:0] MADD 
+
+> Unit(0,0)
+> BIn[0] AIn[0] AInit[0] BIn[1]
+> Unit(1,0)
+
+...   
+
+> Unit(0,1)
+> ...
+> C0 C Column Select
+> Unit(1,1)
+> ...
+> AIn[1] AInit[1] COut[0] COut[1] Latency Alignment Unit
+> (Shift Register Based)
+> SrvPort ReqPort SrvPort
+
+(c) Systolic array. Fig. 9. Representative target μarch designs used in evaluation. 
+
+IV. E XPERIMENT AND VALIDATION 
+
+We evaluate TPCS through four complementary experi-ments:  
+
+> •
+
+Cross-abstraction correctness (Section IV-B) : Compare waveforms and workload results between direct execu-tion and generated RTL to verify that simulation gains preserve the evaluated cycle behavior.  
+
+> •
+
+System-level performance (Section IV-C) : Measure SMP simulation speed, parallel scalability, and overheads to assess efficiency on large-scale practical systems.  
+
+> •
+
+Direct HDL comparison (Section IV-D) : Hold microar-chitecture constant to compare simulation speed and RTL quality across existing HDL workflows, and use ablation to assess dedicated compiler optimization.  
+
+> •
+
+Hardware applicability (Section IV-E) : Evaluate AES and systolic-array designs under different input activity and transaction granularity to test effectiveness beyond CPU pipelines. 
+
+A. Experiment Setup 1) Platforms and Toolchain: All experiments are conducted on a PC equipped with a Intel i9-14900K processor and 128 GB of DDR5 memory, running Ubuntu 22.04. Verilator 5.036 is used as the baseline in all experiments. Both TPCS code and Verilator-based simulation code are compiled using g++ 11.4 with the C++20 standard and -O3 optimization. The TPCS RTL generation scripts are executed on Python 3.11, with LLVM/clang 18.0 as TPCS compiler front-end. 9
+
+2) Target Hardware Design: Fig. 9 illustrates the μarch de-tails of the three target hardware designs. The scalable RISC-V SMP system adopts a standard 5-stage in-order pipeline, similar to Rocket [31], with BTB, BHT, RAS predictors and a 32KB 4-way L1 cache. A lightweight atomic cache system is used as the memory subsystem. The ASIC targets, including an AES encryption unit and a systolic array, follow conventional dataflow architectures. The AES unit is implemented with one or two pipeline stages (denoted as AES1 and AES2 ), while the systolic array is instantiated in two sizes, 8x8 and 16x16 (denoted as SA8 and SA16 ). The RISC-V SMP system executes workloads pre-loaded into memory, while the accelerator designs are driven by a test harness providing streaming inputs and collecting outputs. The harness is shared between TPCS and Verilator, differing only at the transaction or signal interface. For the SMP and accelerator simulation experiments, TPCS execution is compared with Verilator simulation of RTL generated from the same model. Handcrafted SystemVerilog implementations provide references for RTL quality evalu-ation, preserving the same module hierarchy and register definitions. Section IV-D additionally compares handcrafted SV and Chisel, SystemC, PyMTL, and TPCS implementations of the same CPU pipeline in both simulation performance and RTL quality. 
+
+3) Workloads: For the RISC-V SMP system, CoreMark 
+
+and RISC-V bmarks bare-metal benchmarks are used. A custom checkpoint instruction signals workload start and end, implemented as a dedicated pull-up signal (or transaction) connected to the top-level module. This mechanism is used only for timing measurement. For the accelerator targets, two input patterns are evaluated. In the Full mode, data is continuously supplied to fully utilize the pipeline. In the Burst mode, input is periodically stalled to emulate intermittent availability: after every 10 input batches, the stream pauses for an equal duration. For example, pauses last 100 cycles for AES (10 cycles per batch) and 80 cycles for an 8x8 SA (8 cycles per matrix). Identical input patterns are applied across all implementations. 
+
+4) Simulation Configuration: For correctness validation, waveform-level comparisons are performed. In the RISC-V core, valid signals and PCs of each pipeline stage are traced, while for accelerators, top-level I/O ports are monitored. Simulation speed is measured in simulated cycles per sec-ond, with waveform dumping disabled during performance measurements. The SMP experiments measure benchmark execution phases using checkpoint timing; the direct pipeline comparison follows the fixed-workload protocol in Section IV-D, and accelerator measurements use continuous 10-minute execution windows. Each comparison uses identical work-loads, inputs, and initial states across implementations. For multithreaded RISC-V SMP simulation, Verilator uses its default parallel strategy, while TPCS evenly distributes cores across threads. The simplified memory controller is assigned to the first TPCS worker thread. All threads are pinned to physical cores to reduce scheduling overhead. 
+
+5) RTL Backend Flow: RTL quality is evaluated after routing using OpenROAD and ASAP7, reporting minimum                      
+
+> TABLE III CYCLE -L EVEL EQUIVALENCE BETWEEN TPCS E XECUTION AND
+> GENERATED RTL S IMULATION .
+> Design & Workload Observed Registers & Signals Simulated Cycles Waveform Equivalence
+> RISC-V 1-Core CoreMark 1-Iter PCReg of each stage & IReq & DReq 453.6K Exact AES Enc (2-Piped) Full Mode 1K Packs InData & Inkey & InRdy & OutData 10.0K Exact AES Enc (2-Piped) Burst Mode 1K Packs InData & Inkey & InRdy & OutData 18.2K Exact Systolic Array 8x8 Full Mode 1K Matrices AIn & AInit & BIn & InRdy & COut 8.0K Exact Systolic Array 8x8 Burst Mode 1K Matrices AIn & AInit & BIn & InRdy & COut 15.3K Exact 40k 45k 50k Verilator(1C) TPCS(1C) Verilator(4C) TPCS(4C) CM100 Dhr500 Mcpy Mul QSort RSort SpMV Benchmarks 050 100 150 200 250 Simulated KCycles
+> Fig. 10. Simulated cycle numbers for running each workload on target RISC-V systems. 4C denotes 4-core SMP systems running 4 copies of the workload.
+
+clock period and standard-cell area excluding filler cells. Clock constraints are selected through timing sweeps and held identical across implementations of each target, together with the remaining backend settings. Multiple clock constraints are explored, and the minimum achievable clock period after place-and-route is reported. For the RISC-V SMP system, only the isolated pipeline is synthesized to avoid bias from large memory structures. This ensures the evaluation focuses on logic quality rather than memory-dominated effects. 
+
+B. Validation on Cross-Abstraction-Level Correctness 
+
+Table III compares module-interface signals and selected registers cycle by cycle between direct TPCS execution and Verilator simulation of its generated RTL. All observed values match throughout the traced CPU, AES, and systolic-array executions. RTL tracing begins after reset, with corresponding TPCS states initialized through C++ object construction. Fig. 10 further shows identical workload cycle counts for TPCS and RTL simulation on single-core and four-core SMP systems. Both reproduce the limited scaling of memory-intensive workloads such as memcpy and spmv under con-tention in the simplified memory system. These observations validate agreement at both signal and workload levels for the evaluated configurations. All subsequent comparative experiments require matching cycle counts and identical architecturally visible states across implementations as baseline acceptance criteria. Cycle-by-cycle register-waveform agreement is checked directly in experiments without performance measurements and in ad-ditional untimed runs with waveform tracing enabled for performance experiments. 10 1T 2T 3T 4T 8T Simulation Thread Number 1e1 1e2 1e3 1e4 Simulated KCycles/s     
+
+> 3979.9 32.2 60.2 97.1 99.3
+> TPCS Verilator
+
+(a) 1-core. 40 × speedup. 1T 2T 3T 4T 8T Simulation Thread Number 1e1 1e2 1e3 1e4 Simulated KCycles/s  4846.4 3042.8 2309.8 1424.9 1674.1 1428.2 1425.8 10.4 18.5 32.0 39.5   
+
+> TPCS Parallel Ideal TPCS Verilator
+
+(b) 4-cores. 42 × speedup. 1T 2T 3T 4T 8T Simulation Thread Number 1e1 1e2 1e3 1e4 Simulated KCycles/s  4846.4 3042.8 2309.8 813.3 1075.9 1172.6 1110.2 6.1 11.9 19.8 32.4   
+
+> TPCS Parallel Ideal TPCS Verilator
+
+(c) 8-cores. 36 × speedup. Fig. 11. Simulation speed comparison on different target μarch configurations with N-copies CoreMark workloads. 
+
+C. Validation on System-Level Simulation Performance 
+
+Fig. 11 compares the simulation speed of TPCS and Ver-ilator on RISC-V SMP systems with varying numbers of cores. The consistency of output results, cycle counts, and architectural states are checked for each run across simulation thread numbers. Simulation speed is measured as the number of simulated cycles per second when running 100 iterations of CoreMark, and speedup is reported based on the maxi-mum performance achieved under different simulation thread numbers. Results with 1-8 simulation threads are shown, as both TPCS and Verilator exhibit limited scalability beyond this range. The dashed line indicates the theoretical upper bound of TPCS parallel simulation speed, constrained by synchronization overhead. Overall, TPCS achieves a 36 ×-42 × speedup over the RTL simulation baseline on this control-flow-dominated CPU target hardware. For 4-core and 8-core configurations, peak perfor-mance of parallel TPCS is reached at 2 and 3 threads, respec-tively, indicating that faster per-thread execution increases the relative cost of synchronization. The speedup mainly arises from the significant amount of inactive logic in CPU pipelines. Pipeline stalls may be 1C1T 4C1T 4C2T 4C3T 4C4T 8C1T 8C2T 8C3T 8C4T Core Number and Simulation Thread Number 0.0 0.2 0.4 0.6 0.8 1.0 Logic Wrapper Commit Sync 
+
+Fig. 12. Overhead composition of TPCS execution on RISC-V SMP target. TABLE IV QUALITATIVE COMPARISON WITH PRIOR SIMULATION FRAMEWORKS .Framework GSIM TPCS Assassyn GEM5 Abstraction Level RTL sim SW-modeled HW Arch sim 
+
+Target CPU Design RV64 5-pipelined RV32 5-pipelined 
+
+Speedup to Single-Threaded Verilator ∼20 × ∼100 × ∼3× ∼40 ×
+
+Speedup to Parallel Verilator ∼6× ∼40 × Not reported 
+
+Cycle Error Rate 0 0 0 2-20% 
+
+Data Reported By GSIM [14] This work Assassyn [21] 
+
+caused by memory accesses or branch mispredictions, and each instruction activates only a subset of functional units in each stage, which creates substantial opportunities for pruning in TPCS. In contrast, dataflow-driven ASIC designs exhibit more regular execution with higher utilization, resulting in smaller speedups. Fig. 12 further presents a breakdown of TPCS simulation overhead on the RISC-V SMP system. Measurements are col-lected using the perf tool with call tracing enabled, excluding initialization and teardown phases. The execution phase is further divided into logic evaluation and transaction wrapper overhead, where ”Logic” accounts for the execution of logic blocks and ”Wrapper” captures the cost of transaction interface handling. ”Commit” represents the commit stage, and ”Sync” represents the synchronization at each half-cycle. As the thread count increases, the ratio between the commit and execution stages rises because inter-thread pipes reduce data locality and introduce additional cache transfer overhead in the commit stage. At the same time, the proportion of synchronization time grows significantly because the per-cycle computation time after task partitioning does not substantially exceed the synchronization cost. Table IV provides performance data reported from published GSIM, Assassyn, and GEM5 results [14], [21] for qualitative comparison. Differences in target designs, modeling scope, and baseline configurations preclude direct performance rank-ing; Section IV-D provides a controlled comparison on an identical pipeline cross synthesizable modeling methods. 
+
+D. Direct Comparison with Existing Synthesizable HDLs 
+
+Table V compares implementations of the same RV64GC pipeline extracted from the SMP system, including branch prediction but excluding the memory subsystem, with priv-ileged and exception handling disabled. All implementations preserve identical register definitions and cycle behavior, using idiomatic descriptions and timing-oriented optimizations at the 11 
+
+TABLE V DIRECT COMPARISON WITH EXISTING SYNTHESIZABLE HDL S.  
+
+> Language Sim Speed (MCycles/s) Minimum Clock Period (ps) Standard-Cell Area (umˆ2) Direct Sim RTLGen+ Verilator Full Pipeline MDU-Only FPU-Only Full Pipeline MDU-Only FPU-Only
+> Handcrafted SV 2.384 (ref 1.0) 1310.39 (ref 1.0) 1028.30 (ref 1.0) 1092.35 (ref 1.0) 20438 (ref 1.0) 1192 (ref 1.0) 6498 (ref 1.0) Chisel with GSIM 4.218 (x1.8) 2.027 (x0.85) 1296.70 (-1.05%) 988.23 (-3.90%) 1217.23 (+11.4%) 19842 (-2.92%) 1190 (-0.17%) 6513 (+0.23%) Synthesizable SystemC 0.772 (x0.32) 2.329 (x0.98) 1331.24 (+1.59%) 1061.63 (+3.24%) 1307.12 (+19.7%) 22792 (+11.5%) 1282 (+7.55%) 7901 (+21.6%) PyMTL <0.01 (<x0.01) 2.130 (x0.89) 1329.20 (+1.44%) 1073.39 (+4.39%) 1137.83 (+4.16%) 20263 (-0.86%) 1183 (-0.76%) 6386 (-1.72%)
+> TPCS Native C++ 11.37 (x4.77) 2.168 (x0.91) 1269.84 (-3.09%) 979.58 (-4.74%) 1120.50 (+2.58%) 19761 (-3.31%) 1212 (+1.68%) 6743 (+3.77%)
+
+modeling level. Chisel 7.15.0 uses CHIRRTL-GSIM 3 simu-lation and CIRCT RTL generation; SystemC uses libsystemc 3.0.1 and the Intel Compiler for SystemC (ICSC); PyMTL 3.1.17 uses pure-Python simulation under Python 3.11. 
+
+1) On Simulation Speed: All implementations execute ten bare-metal CoreMark iterations under the same harness, taking 8,970,967 cycles and retiring 3,681,166 instructions, timed from reset completion to program completion. Simulations are single-threaded with C++ compiled using -O3 ; results average ten runs with less than 1% variation, except for pure-Python PyMTL, measured once. TPCS reaches 11.37 MCycles/s, outperforming handcrafted SV under Verilator, Chisel under GSIM, and native SystemC by 4.77 ×, 2.70 ×, and 14 .73 ×,respectively. As reference, generated RTL achieves 2.027– 2.329 MCycles/s under the same Verilator version. The isolated pipeline simulates faster but shows a smaller relative speedup than the SMP system. Removing caches and multicore interactions reduces simulation work, while single-cycle memory accesses increase pipeline utilization and limit pruning opportunities. Conversely, SMP introduces more conditionally inactive logic that TPCS can skip, while addi-tional signal-level dependencies increase Verilator’s evaluation costs. This is consistent with TPCS benefiting from inactive computation, although the reported speedups also use different RTL baselines and thread configurations. 
+
+2) On Generated RTL Quality: TPCS achieves the shortest clock periods for the full pipeline and MDU, improving on handcrafted SV by 3.09% and 4.74%, with area changes of −3.31% and +1 .68% , respectively. FPU timing and area overheads are 2.58% and 3.77%, although PyMTL achieves a smaller area. The relatively modest timing differences on the full pipeline and MDU are consistent with differences in low-ering: the evaluated PyMTL and SystemC flows retain more readable control structures in RTL, whereas TPCS and Chisel apply more aggressive lowering and optimization through CIRCT. Relative to Chisel, TPCS has shorter clock periods but slightly larger MDU and FPU areas, consistent with an area-timing tradeoff. Across targets, similar MDU critical paths limit variation, whereas the FPU’s multiple complex arithmetic paths amplify differences in generated logic. These results show competitive RTL quality, with differences reflecting the generated logic structures. Disabling predicate sinking raises the full-pipeline min-imum clock period to 32.7% above the handcrafted refer-ence; simplifying only whole predicates leaves a 10.9% over-
+
+> 3
+
+GSIM commit ed45bc9, September 22, 2026 AES1 Full AES1 Burst AES2 Full AES2 Burst SA8 Full SA8 Burst SA16 Full SA16 Burst   
+
+> Target Design & Input Mode 0510 15 20 25 30 Simulated MCycles/s
+> 3.5x 5.9x 4.4x 7.2x 3.4x 4.6x 3.4x 4.8x
+> Verilator TPCS-NoAggr TPCS
+
+Fig. 13. Simulation speed comparison on dataflow-oriented accelerator target with different input mode. AES1 Full AES1 Burst AES2 Full AES2 Burst SA8 Full SA8 Burst SA16 Full SA16 Burst SA8 Aggr Full SA8 Aggr Burst SA16 Aggr Full SA16 Aggr Burst   
+
+> Target Design & Input Mode 0.0 0.2 0.4 0.6 0.8 1.0 Logic Wrapper Commit
+
+Fig. 14. Overhead composition of TPCS execution on accelerator target. 
+
+head. Including subexpression simplification instead yields the 3.09% reduction in Table V. The degraded configura-tions contain serial Boolean dependencies from nested predi-cates along FMA carry-update and EXU-bypass–branch–BPU-update paths. Despite the shared CIRCT backend with Chisel, this ablation specifically establishes the timing benefit of predicate sinking within TPCS. 
+
+E. Validation on Dataflow-Oriented Accelerators 
+
+Fig. 13 compares TPCS execution with Verilator simulation of its generated RTL on AES and systolic-array accelerators. Both use identical inputs and test harnesses over continuous 10-minute windows, following the Full and Burst modes defined in Section IV-A3. TPCS achieves speedups of 3.4 ×-4.4 × in Full mode and 4.6 ×-7.2 × in Burst mode. Continuous input limits pruning opportunities in these regular datapaths, whereas input gaps increase the benefit of skipping inactive logic. The Full-mode results demonstrate efficient execution under sustained activity, consistent with native compilation and the absence of runtime event scheduling, although they do not isolate these benefits from pruning. Fig. 14 shows that transaction granularity also affects per-formance. Without array aggregation, frequent calls across small systolic-array instances introduce substantial wrapper overhead, reducing performance toward the Verilator baseline. Aggregation largely removes this overhead, leaving logic eval-uation and register commitment as the dominant costs. Fig. 15 extends the RTL quality evaluation to these regular datapaths. Under the same OpenROAD/ASAP7 flow, TPCS-generated RTL has timing within approximately 2% of the handcrafted references and standard-cell area overheads of approximately 0%–4%. Together with the CPU results in Section IV-D, these measurements show that the TPCS com-piler maintains comparable RTL quality across both control-oriented pipelines and dataflow-oriented accelerators. 12 AES1 AES2 SA8 SA16    
+
+> Target Design 0.0 0.2 0.4 0.6 0.8 1.0 Minimum Clock Period (ns)
+> -2% +0% -0% -0%
+> Handcrafted TPCS-Generated
+
+(a) Minimum clock period. AES1 AES2 SA8 SA16     
+
+> Target Design 0k 5k 10k 15k 20k 25k Area (um^2)  +0% +4% +1% +1%
+> Handcrafted TPCS-Generated
+
+(b) Standard-cell area. Fig. 15. Timing and area performance comparison of handcrafted RTL and TPCS-generated RTL. 
+
+V. D ISCUSSION AND LIMITATIONS 
+
+The experiments show that TPCS combines cycle-level agreement on the evaluated workloads with faster direct ex-ecution and competitive RTL quality. Simulation gains de-pend on input activity, transaction granularity, and parallel synchronization costs, while compiler ablation demonstrates the importance of predicate sinking for timing quality. These results support fast pre-RTL exploration using an executable model structurally aligned with its implementation. Explicit register boundaries and cycle semantics help relate backend results to modeling decisions, potentially reducing manual reimplementation and enabling earlier diagnosis of microar-chitectural bottlenecks. TPCS nevertheless has three limitations. First, usability depends on infrastructure that is not yet mature, since large-scale development requires stronger modeling diagnostics, debugging support, and reusable libraries. The native C++ representation also offers opportunities for AI-driven devel-opment, but reliable use requires dedicated validation and debugging infrastructure in the future. Second, hardware coverage remains to be extended be-yond the evaluated cycle-synchronous designs. The current TPCS semantics provide a sufficient foundation for syn-chronous composition, but broader applicability requires stan-dardized clock-domain-crossing (CDC) components, explicitly defined asynchronous primitives, and gated clocks. Although faithfully capturing physical metastability at this abstraction level is impractical, configurable-delay models may sup-port asynchronous-synchronous behavioral equivalence anal-ysis under explicit timing assumptions. Third, the compiler currently emphasizes combinational timing optimization, with limited support for automatic pipelining and systematic area-timing exploration. A future pipelining extension could let users specify the latency from block activation to output transactions, reducing practical development efforts. Closer integration with gate-level and physical-design optimization could further improve RTL qual-ity. VI. C ONCLUSION 
+
+This paper presents Transaction-Pruned Cycle Simulation (TPCS), a modeling and simulation methodology for cycle-synchronous hardware. TPCS maps hardware control flow onto native C++ execution to prune inactive computation without explicit event scheduling, while a dedicated compiler gener-ates structurally corresponding RTL. Experiments show up to 42 × speedup over parallel Verilator on SMP systems, 4.77 ×
+
+over handcrafted SV simulation on an isolated CPU pipeline, and 3.4 ×–7.2 × on accelerators. The evaluated designs retain cycle-level waveform agreement and achieve RTL timing and area comparable to handcrafted implementations. These results support a unified representation for fast pre-RTL exploration, validation, and hardware implementation. Future work will improve tooling and AI-assisted infras-tructure, broaden hardware coverage through standardized CDC components and asynchronous primitives, and extend the compiler with latency-aware automatic pipelining, gate-level optimization, and systematic area–timing exploration. ACKNOWLEDGMENT 
+
+This work is supported by a series of significant research projects, including the National Natural Science Foundation of China (Grant No. U25A6023), ”New Intelligent Processing Architecture and System Based on RISC-V Artificial Intel-ligence Instruction Set Extension”, the National Key R&D Program of China (Grant No. 2023YFB4503901), ”Research on RISC-V Based Software Ecosystem Technologies for Data Centers”, and the Jinan ”New Universities 20” Initiative, especially the ”Autonomous Controllable High-Performance RISC-V Chip Innovation Team” (Grant No. 202333041). REFERENCES [1] V. J. Reddi and A. Yazdanbakhsh, “Architecture 2.0: Challenges and opportunities,” in 2023 60th ACM/IEEE Design Automation Conference (DAC) , pp. 1–2, 2023. [2] Y. Xu, Z. Yu, D. Tang, G. Chen, L. Chen, L. Gou, Y. Jin, Q. Li, X. Li, Z. Li, J. Lin, T. Liu, Z. Liu, J. Tan, H. Wang, H. Wang, K. Wang, C. Zhang, F. Zhang, L. Zhang, Z. Zhang, Y. Zhao, Y. Zhou, Y. Zhou, J. Zou, Y. Cai, D. Huan, Z. Li, J. Zhao, Z. Chen, W. He, Q. Quan, X. Liu, S. Wang, K. Shi, N. Sun, and Y. Bao, “Towards developing high performance risc-v processors using agile methodology,” in 2022 55th IEEE/ACM International Symposium on Microarchitecture (MICRO) ,pp. 1178–1199, 2022. [3] X. Yi, J. Lu, X. Xiong, D. Xu, L. Shang, and F. Yang, “Graph representation learning for microarchitecture design space exploration,” in 2023 60th ACM/IEEE Design Automation Conference (DAC) , pp. 1–6, 2023. [4] D. Wang, M. Yan, X. Liu, M. Zou, T. Liu, W. Li, X. Ye, and D. Fan, “A high-accurate multi-objective exploration framework for design space of cpu,” in 2023 60th ACM/IEEE Design Automation Conference (DAC) ,pp. 1–6, 2023. [5] M. B. Petersen, “Ripes: A visual computer architecture simulator,” in 2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE) , pp. 1–8, 2021. [6] C. Bai, Q. Sun, J. Zhai, Y. Ma, B. Yu, and M. D. Wong, “Boom-explorer: Risc-v boom microarchitecture design space exploration framework,” in 
+
+2021 IEEE/ACM International Conference On Computer Aided Design (ICCAD) , pp. 1–9, 2021. [7] C. E. Giles, C. L. Peterson, and M. A. Heinrich, “Knightsim: A fast discrete event-driven simulation methodology for computer architectural simulation,” IEEE Transactions on Computers , vol. 69, no. 1, pp. 65–71, 2020. [8] C. Ram´ ırez, C. A. Hern´ andez, O. Palomar, O. Unsal, M. A. Ram´ ırez, and A. Cristal, “A risc-v simulator and benchmark suite for designing and evaluating vector architectures,” ACM Trans. Archit. Code Optim. ,vol. 17, Nov. 2020. [9] H. Brais, R. Kalayappan, and P. R. Panda, “A survey of cache simula-tors,” ACM Comput. Surv. , vol. 53, Feb. 2020. [10] G. L´ opez-Parad´ ıs, A. Armejach, and M. Moret´ o, “gem5 + rtl: A frame-work to enable rtl models inside a full-system simulator,” in Proceedings of the 50th International Conference on Parallel Processing , ICPP ’21, (New York, NY, USA), Association for Computing Machinery, 2021. 13 
+
+[11] S. Rogers, J. Slycord, M. Baharani, and H. Tabkhi, “gem5-salam: A system architecture for llvm-based accelerator modeling,” in 2020 53rd Annual IEEE/ACM International Symposium on Microarchitecture (MICRO) , pp. 471–482, 2020. [12] J. Vieira, N. Roma, G. Falcao, and P. Tom´ as, “gem5-accel: A pre-rtl simulation toolchain for accelerator architecture validation,” IEEE Computer Architecture Letters , vol. 23, no. 1, pp. 1–4, 2024. [13] C. Fu, Z. Wang, and J. Han, “Chimera: A co-simulation framework combining with gem5 and fpga platform for efficient verification,” in 
+
+2024 34th International Conference on Field-Programmable Logic and Applications (FPL) , pp. 133–139, 2024. [14] L. Chen, D. Zhao, Z. Yu, N. Sun, and Y. Bao, “Gsim: Accelerating rtl simulation for large-scale designs,” in 2025 62nd ACM/IEEE Design Automation Conference (DAC) , pp. 1–7, 2025. [15] S. Beamer and D. Donofrio, “Efficiently exploiting low activity factors to accelerate rtl simulation,” in 2020 57th ACM/IEEE Design Automation Conference (DAC) , pp. 1–6, 2020. [16] G. L´ opez-Parad´ ıs, B. Li, A. Armejach, S. Wallentowitz, M. Moret´ o, and J. Balkind, “Fast behavioural rtl simulation of 10b transistor soc designs with metro-mpi,” in 2023 Design, Automation & Test in Europe Conference & Exhibition (DATE) , pp. 1–6, 2023. [17] E. M. Arasteh, V. Govindasamy, and R. D¨ omer, “Busymap, an efficient data structure to observe interconnect contention in systemc tlm-2.0,” in 2024 Design, Automation & Test in Europe Conference & Exhibition (DATE) , pp. 1–6, 2024. [18] N. Binkert, B. Beckmann, G. Black, S. K. Reinhardt, A. Saidi, A. Basu, J. Hestness, D. R. Hower, T. Krishna, S. Sardashti, R. Sen, K. Sewell, M. Shoaib, N. Vaish, M. D. Hill, and D. A. Wood, “The gem5 simulator,” 
+
+SIGARCH Comput. Archit. News , vol. 39, p. 1–7, Aug. 2011. [19] J. Bachrach, H. Vo, B. Richards, Y. Lee, A. Waterman, R. Aviˇ zienis, J. Wawrzynek, and K. Asanovi´ c, “Chisel: Constructing hardware in a scala embedded language,” in DAC Design Automation Conference 2012 ,pp. 1212–1221, 2012. [20] D. Lockhart, G. Zibrat, and C. Batten, “Pymtl: A unified frame-work for vertically integrated computer architecture research,” in 2014 47th Annual IEEE/ACM International Symposium on Microarchitecture ,pp. 280–292, 2014. [21] J. Weng, B. Han, D. Gao, R. Gao, W. Zhang, A. Zhong, C. Xu, J. Xin, Y. Luo, L. W. Wills, and M. Canini, “Assassyn: A unified abstraction for architectural simulation and implementation,” in Proceedings of the 52nd Annual International Symposium on Computer Architecture , ISCA ’25, (New York, NY, USA), p. 1464–1479, Association for Computing Machinery, 2025. [22] K. Zhou, Y. Liang, Y. Lin, R. Wang, and R. Huang, “Khronos: Fusing memory access for improved hardware rtl simulation,” in 2023 56th IEEE/ACM International Symposium on Microarchitecture (MICRO) ,pp. 180–193, 2023. [23] F. Mao, Y. Guo, X. Liao, H. Jin, W. Zhang, H. Liu, L. Zheng, X. Liu, Z. Jiang, and X. Zheng, “Accelerating loop-oriented rtl simulation with code instrumentation,” IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems , vol. 42, no. 12, pp. 4985–4998, 2023. [24] M. Abderehman, J. Patidar, J. Oza, Y. Nigam, T. A. Khader, and C. Karfa, “Fastsim: A fast simulation framework for high-level syn-thesis,” IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems , vol. 41, no. 5, pp. 1371–1385, 2022. [25] N. Bosbach, N. Zurstraßen, R. Pelke, L. J¨ unger, J. H. Weinstock, and R. Leupers, “Towards high-performance virtual platforms: A paralleliza-tion strategy for systemc tlm-2.0 cpu models,” in 2024 61st ACM/IEEE Design Automation Conference (DAC) , pp. 1–6, 2024. [26] O. Chatzopoulos, G. Papadimitriou, V. Karakostas, and D. Gizopoulos, “Gem5-marvel: Microarchitecture-level resilience analysis of heteroge-neous soc architectures,” in 2024 IEEE International Symposium on High-Performance Computer Architecture (HPCA) , pp. 543–559, 2024. [27] G. Lusby and N. Kapre, “Cocotb-pynq: Co-simulating python+rtl appli-cations targeting pynq platforms with cocotb,” in 2025 35th International Conference on Field-Programmable Logic and Applications (FPL) ,pp. 222–226, 2025. [28] M. Badawy, J. Wang, P. K. Sinha, and W. Ecker, “Target-aware auto-mated rtl generation for risc-v soc designs: A model-driven approach,” in 2025 32nd IEEE International Conference on Electronics, Circuits and Systems (ICECS) , pp. 1–2, 2025. [29] D. Zagieboylo, C. Sherk, G. E. Suh, and A. C. Myers, “Pdl: a high-level hardware design language for pipelined processors,” in Proceedings of the 43rd ACM SIGPLAN International Conference on Programming Language Design and Implementation , PLDI 2022, (New York, NY, USA), p. 719–732, Association for Computing Machinery, 2022. [30] X. Wang, G.-W. Wan, S.-Z. Wong, L. Zhang, T. Liu, Q. Tian, and J. Ye, “Chatcpu: An agile cpu design and verification platform with llm,” in Proceedings of the 61st ACM/IEEE Design Automation Conference ,DAC ’24, (New York, NY, USA), Association for Computing Machinery, 2024. [31] A. Amid, D. Biancolin, A. Gonzalez, D. Grubb, S. Karandikar, H. Liew, A. Magyar, H. Mao, A. Ou, N. Pemberton, P. Rigge, C. Schmidt, J. Wright, J. Zhao, Y. S. Shao, K. Asanovi´ c, and B. Nikoli´ c, “Chipyard: Integrated design, simulation, and implementation framework for custom socs,” IEEE Micro , vol. 40, no. 4, pp. 10–21, 2020. [32] S. L. Xi, Y. Yao, K. Bhardwaj, P. Whatmough, G.-Y. Wei, and D. Brooks, “Smaug: End-to-end full-stack simulation infrastructure for deep learn-ing workloads,” ACM Trans. Archit. Code Optim. , vol. 17, Nov. 2020. [33] Z. Li, Y. Ye, S. Neuendorffer, and A. Sampson, “Compiler-driven simulation of reconfigurable hardware accelerators,” in 2022 IEEE International Symposium on High-Performance Computer Architecture (HPCA) , pp. 619–632, 2022. [34] A. Kurth, B. Forsberg, and L. Benini, “Herov2: Full-stack open-source research platform for heterogeneous computing,” IEEE Transactions on Parallel and Distributed Systems , vol. 33, no. 12, pp. 4368–4382, 2022. [35] A. Izraelevitz, J. Koenig, P. Li, R. Lin, A. Wang, A. Magyar, D. Kim, C. Schmidt, C. Markley, J. Lawson, and J. Bachrach, “Reusability is firrtl ground: Hardware construction languages, compiler frameworks, and transformations,” in 2017 IEEE/ACM International Conference on Computer-Aided Design (ICCAD) , pp. 209–216, 2017. [36] M. Xiang, Y. Li, and Y. Zhao, “Chiselfv: A formal verification framework for chisel,” in 2023 Design, Automation & Test in Europe Conference & Exhibition (DATE) , pp. 1–6, 2023. 
+
+Chengzhen Meng is currently a Ph.D. student in software engineering at the School of Software, Shandong University. His research interests include novel computer architecture design and optimiza-tion with hardware–software co-design and design automation. 
+
+Xiaoyu Li is currently a Master’s student in Inte-grated Circuit Engineering at the School of Inte-grated Circuits, Shandong University. His research interests include digital circuit design and computer architecture for high-performance platforms. 
+
+Chen Bai received the Ph.D. degree in computer science and engineering from The Chinese Univer-sity of Hong Kong in 2024. He is currently a Post-doctoral Fellow with the Department of Electronic and Computer Engineering, The Hong Kong Uni-versity of Science and Technology. He will join Fu-dan University as a tenure-track assistant professor. His research interests include computer architecture and electronic design automation. He received the William J. McCalla Best Paper Award at ICCAD 2021, the Best Paper Award at ASPLOS 2026, and a Best Paper Award Nomination at ISPD 2024. Zhenyu Zhang is currently a Ph.D. student at the School of Integrated Circuits, Shandong University. His research lies at the intersection of machine learn-ing system architecture and AI infrastructure. Specif-ically, he focus on AI compilers (such as MLIR and TVM), hardware acceleration across GPUs and TPUs, and the optimization of large language model (LLM) operators. Hongjun Dai (Member, IEEE) received the BE and PhD degrees in computer science from Zhejiang University, China, in 2002 and 2007, respectively. He is a professor of software engineering with Shandong University, China. He has authored or coauthored more than 30 peer-reviewed journal and conference papers. His research interests include novel computer architecture optimization and the framework of distributed systems such as IoT and cloud.
